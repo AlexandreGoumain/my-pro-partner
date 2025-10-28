@@ -11,6 +11,8 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ARTICLE_STATUSES } from "@/lib/constants/article-statuses";
+import { ArticleDisplay } from "@/lib/types/article";
 import { ColumnDef } from "@tanstack/react-table";
 import {
     AlertTriangle,
@@ -20,26 +22,7 @@ import {
     Trash2,
 } from "lucide-react";
 
-// This type is used to define the shape of our data.
-export type Article = {
-    id: string;
-    reference: string;
-    nom: string;
-    description: string;
-    prix: number;
-    stock: number;
-    seuilAlerte: number;
-    categorie: string;
-    statut: "ACTIF" | "INACTIF" | "RUPTURE";
-    image?: string;
-    tva: number;
-};
-
-const stockStatuses = {
-    ACTIF: { label: "Actif", variant: "default" as const },
-    INACTIF: { label: "Inactif", variant: "secondary" as const },
-    RUPTURE: { label: "Rupture", variant: "destructive" as const },
-};
+export type Article = ArticleDisplay;
 
 export const columns: ColumnDef<Article>[] = [
     {
@@ -73,20 +56,21 @@ export const columns: ColumnDef<Article>[] = [
             const article = row.original;
             return (
                 <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-muted">
+                    <div className="w-10 h-10 rounded bg-muted flex items-center justify-center">
                         {article.image ? (
+                            // eslint-disable-next-line @next/next/no-img-element
                             <img
                                 src={article.image}
                                 alt={article.nom}
-                                className="h-8 w-8 rounded object-cover"
+                                className="w-10 h-10 rounded object-cover"
                             />
                         ) : (
-                            <Package className="h-5 w-5" />
+                            <Package className="w-5 h-5 text-muted-foreground" />
                         )}
                     </div>
-                    <div>
+                    <div className="min-w-0">
                         <div className="font-medium">{article.nom}</div>
-                        <div className="text-sm text-muted-foreground">
+                        <div className="text-sm text-muted-foreground truncate">
                             {article.description}
                         </div>
                     </div>
@@ -98,7 +82,7 @@ export const columns: ColumnDef<Article>[] = [
         accessorKey: "reference",
         header: "Référence",
         cell: ({ row }) => (
-            <div className="font-mono text-sm">{row.getValue("reference")}</div>
+            <code className="text-sm">{row.getValue("reference")}</code>
         ),
     },
     {
@@ -112,13 +96,8 @@ export const columns: ColumnDef<Article>[] = [
         accessorKey: "prix",
         header: "Prix",
         cell: ({ row }) => {
-            const amount = parseFloat(row.getValue("prix"));
-            const formatted = new Intl.NumberFormat("fr-FR", {
-                style: "currency",
-                currency: "EUR",
-            }).format(amount);
-
-            return <div className="font-medium">{formatted}</div>;
+            const prix = parseFloat(row.getValue("prix"));
+            return <div className="font-semibold">{prix.toFixed(2)}€</div>;
         },
     },
     {
@@ -126,20 +105,21 @@ export const columns: ColumnDef<Article>[] = [
         header: "Stock",
         cell: ({ row }) => {
             const stock = row.getValue("stock") as number;
-            const seuilAlerte = row.original.seuilAlerte;
-            const isLowStock = stock <= seuilAlerte;
+            const isLowStock = stock <= row.original.seuilAlerte;
 
             return (
                 <div className="flex items-center gap-2">
                     <span
-                        className={`font-medium ${
-                            isLowStock ? "text-orange-600" : ""
-                        }`}
+                        className={
+                            isLowStock
+                                ? "font-semibold text-orange-600"
+                                : "font-semibold"
+                        }
                     >
                         {stock}
                     </span>
                     {isLowStock && (
-                        <AlertTriangle className="h-4 w-4 text-orange-600" />
+                        <AlertTriangle className="w-4 h-4 text-orange-600" />
                     )}
                 </div>
             );
@@ -149,47 +129,42 @@ export const columns: ColumnDef<Article>[] = [
         accessorKey: "statut",
         header: "Statut",
         cell: ({ row }) => {
-            const status = row.getValue("statut") as keyof typeof stockStatuses;
-            const statusConfig = stockStatuses[status];
+            const status = row.getValue("statut") as keyof typeof ARTICLE_STATUSES;
+            const statusConfig = ARTICLE_STATUSES[status];
 
             return (
                 <Badge variant={statusConfig.variant}>
-                    {statusConfig.label}
+                    {statusConfig.shortLabel}
                 </Badge>
             );
         },
     },
     {
         id: "actions",
-        cell: ({ row }) => {
-            const article = row.original;
-
-            return (
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Ouvrir le menu</span>
-                            <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Modifier
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                            <Package className="mr-2 h-4 w-4" />
-                            Gérer le stock
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-destructive">
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Supprimer
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            );
-        },
+        cell: () => (
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="w-8 h-8">
+                        <MoreHorizontal className="w-4 h-4" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuItem>
+                        <Edit className="w-4 h-4 mr-2" />
+                        Modifier
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                        <Package className="w-4 h-4 mr-2" />
+                        Gérer le stock
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem className="text-destructive">
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Supprimer
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+        ),
     },
 ];

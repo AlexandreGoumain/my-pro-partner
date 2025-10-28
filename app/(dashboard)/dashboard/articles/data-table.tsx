@@ -65,49 +65,33 @@ export function DataTable<TData, TValue>({
     return (
         <div className="space-y-4">
             <DataTableToolbar table={table} />
-            <div className="rounded-lg border border-border/50 bg-background shadow-sm">
+            <div className="rounded-lg border">
                 <Table>
-                    <TableHeader className="bg-muted/30">
+                    <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (
-                            <TableRow
-                                key={headerGroup.id}
-                                className="border-b border-border/50"
-                            >
-                                {headerGroup.headers.map((header) => {
-                                    return (
-                                        <TableHead
-                                            key={header.id}
-                                            colSpan={header.colSpan}
-                                            className="px-4 py-3 text-xs font-medium text-muted-foreground uppercase tracking-wider"
-                                        >
-                                            {header.isPlaceholder
-                                                ? null
-                                                : flexRender(
-                                                      header.column.columnDef
-                                                          .header,
-                                                      header.getContext()
-                                                  )}
-                                        </TableHead>
-                                    );
-                                })}
+                            <TableRow key={headerGroup.id}>
+                                {headerGroup.headers.map((header) => (
+                                    <TableHead key={header.id} className="h-10">
+                                        {header.isPlaceholder
+                                            ? null
+                                            : flexRender(
+                                                  header.column.columnDef.header,
+                                                  header.getContext()
+                                              )}
+                                    </TableHead>
+                                ))}
                             </TableRow>
                         ))}
                     </TableHeader>
-                    <TableBody className="divide-y divide-border/30">
+                    <TableBody>
                         {table.getRowModel().rows?.length ? (
                             table.getRowModel().rows.map((row) => (
                                 <TableRow
                                     key={row.id}
-                                    data-state={
-                                        row.getIsSelected() && "selected"
-                                    }
-                                    className="hover:bg-muted/20 transition-colors"
+                                    data-state={row.getIsSelected() && "selected"}
                                 >
                                     {row.getVisibleCells().map((cell) => (
-                                        <TableCell
-                                            key={cell.id}
-                                            className="px-4 py-3"
-                                        >
+                                        <TableCell key={cell.id}>
                                             {flexRender(
                                                 cell.column.columnDef.cell,
                                                 cell.getContext()
@@ -129,9 +113,7 @@ export function DataTable<TData, TValue>({
                     </TableBody>
                 </Table>
             </div>
-            <div className="border-t border-border/50 bg-muted/20 px-2 py-2">
-                <DataTablePagination table={table} />
-            </div>
+            <DataTablePagination table={table} />
         </div>
     );
 }

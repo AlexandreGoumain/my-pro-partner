@@ -1,20 +1,14 @@
 import { prisma } from "@/lib/prisma";
+import { registerBackendSchema } from "@/lib/validation";
 import bcrypt from "bcryptjs";
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-
-const registerSchema = z.object({
-    email: z.string().email(),
-    password: z.string().min(6),
-    name: z.string().min(2),
-});
 
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
 
         // Validation
-        const validation = registerSchema.safeParse(body);
+        const validation = registerBackendSchema.safeParse(body);
         if (!validation.success) {
             return NextResponse.json(
                 { message: "Données invalides" },

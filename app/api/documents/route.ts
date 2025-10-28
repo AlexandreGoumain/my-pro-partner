@@ -1,4 +1,5 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { DocumentStatut, DocumentType } from "@/lib/generated/prisma";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { NextRequest, NextResponse } from "next/server";
@@ -30,15 +31,25 @@ export async function GET(req: NextRequest) {
         }
 
         const { searchParams } = new URL(req.url);
-        const type = searchParams.get("type");
+        const typeParam = searchParams.get("type");
         const clientId = searchParams.get("clientId");
-        const statut = searchParams.get("statut");
+        const statutParam = searchParams.get("statut");
+
+        // Type-safe enum validation
+        const type =
+            typeParam && Object.values(DocumentType).includes(typeParam as DocumentType)
+                ? (typeParam as DocumentType)
+                : undefined;
+        const statut =
+            statutParam && Object.values(DocumentStatut).includes(statutParam as DocumentStatut)
+                ? (statutParam as DocumentStatut)
+                : undefined;
 
         const documents = await prisma.document.findMany({
             where: {
-                ...(type && { type: type as any }),
+                ...(type && { type }),
                 ...(clientId && { clientId }),
-                ...(statut && { statut: statut as any }),
+                ...(statut && { statut }),
             },
             include: {
                 client: true,

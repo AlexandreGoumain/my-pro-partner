@@ -1,5 +1,9 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
+import {
+    createPaginatedResponse,
+    getPaginationParams,
+} from "@/lib/utils/pagination";
 import { getServerSession } from "next-auth/next";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
@@ -29,21 +33,31 @@ export async function GET(req: NextRequest) {
 
         const { searchParams } = new URL(req.url);
         const search = searchParams.get("search");
+        const pagination = getPaginationParams(searchParams);
 
-        const clients = await prisma.client.findMany({
-            where: search
-                ? {
-                      OR: [
-                          { nom: { contains: search, mode: "insensitive" } },
-                          { email: { contains: search, mode: "insensitive" } },
-                          { ville: { contains: search, mode: "insensitive" } },
-                      ],
-                  }
-                : {},
-            orderBy: { createdAt: "desc" },
-        });
+        const where = search
+            ? {
+                  OR: [
+                      { nom: { contains: search, mode: "insensitive" } },
+                      { email: { contains: search, mode: "insensitive" } },
+                      { ville: { contains: search, mode: "insensitive" } },
+                  ],
+              }
+            : {};
 
-        return NextResponse.json(clients);
+        const [clients, total] = await Promise.all([
+            prisma.client.findMany({
+                where,
+                orderBy: { createdAt: "desc" },
+                skip: pagination.skip,
+                take: pagination.limit,
+            }),
+            prisma.client.count({ where }),
+        ]);
+
+        return NextResponse.json(
+            createPaginatedResponse(clients, total, pagination)
+        );
     } catch (error) {
         console.error("Erreur lors de la récupération des clients:", error);
         return NextResponse.json(

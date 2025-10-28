@@ -1,4 +1,5 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { handlePrismaError } from "@/lib/errors/prisma";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { NextRequest, NextResponse } from "next/server";
@@ -96,18 +97,9 @@ export async function PUT(
 
         return NextResponse.json(article);
     } catch (error) {
-        if ((error as any).code === "P2025") {
-            return NextResponse.json(
-                { message: "Article non trouvé" },
-                { status: 404 }
-            );
-        }
-
         console.error("Erreur lors de la mise à jour de l'article:", error);
-        return NextResponse.json(
-            { message: "Erreur interne du serveur" },
-            { status: 500 }
-        );
+        const { message, status } = handlePrismaError(error);
+        return NextResponse.json({ message }, { status });
     }
 }
 
@@ -133,17 +125,8 @@ export async function DELETE(
 
         return NextResponse.json({ message: "Article supprimé avec succès" });
     } catch (error) {
-        if ((error as any).code === "P2025") {
-            return NextResponse.json(
-                { message: "Article non trouvé" },
-                { status: 404 }
-            );
-        }
-
         console.error("Erreur lors de la suppression de l'article:", error);
-        return NextResponse.json(
-            { message: "Erreur interne du serveur" },
-            { status: 500 }
-        );
+        const { message, status } = handlePrismaError(error);
+        return NextResponse.json({ message }, { status });
     }
 }

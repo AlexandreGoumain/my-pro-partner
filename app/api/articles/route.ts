@@ -1,5 +1,9 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
+import {
+    createPaginatedResponse,
+    getPaginationParams,
+} from "@/lib/utils/pagination";
 import { getServerSession } from "next-auth/next";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
@@ -32,30 +36,40 @@ export async function GET(req: NextRequest) {
         const { searchParams } = new URL(req.url);
         const search = searchParams.get("search");
         const categorieId = searchParams.get("categorieId");
+        const pagination = getPaginationParams(searchParams);
 
-        const articles = await prisma.article.findMany({
-            where: {
-                ...(search && {
-                    OR: [
-                        { nom: { contains: search, mode: "insensitive" } },
-                        {
-                            reference: {
-                                contains: search,
-                                mode: "insensitive",
-                            },
+        const where = {
+            ...(search && {
+                OR: [
+                    { nom: { contains: search, mode: "insensitive" } },
+                    {
+                        reference: {
+                            contains: search,
+                            mode: "insensitive",
                         },
-                    ],
-                }),
-                ...(categorieId && { categorieId }),
-                actif: true,
-            },
-            include: {
-                categorie: true,
-            },
-            orderBy: { createdAt: "desc" },
-        });
+                    },
+                ],
+            }),
+            ...(categorieId && { categorieId }),
+            actif: true,
+        };
 
-        return NextResponse.json(articles);
+        const [articles, total] = await Promise.all([
+            prisma.article.findMany({
+                where,
+                include: {
+                    categorie: true,
+                },
+                orderBy: { createdAt: "desc" },
+                skip: pagination.skip,
+                take: pagination.limit,
+            }),
+            prisma.article.count({ where }),
+        ]);
+
+        return NextResponse.json(
+            createPaginatedResponse(articles, total, pagination)
+        );
     } catch (error) {
         console.error("Erreur lors de la récupération des articles:", error);
         return NextResponse.json(

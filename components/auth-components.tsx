@@ -103,10 +103,12 @@ export function AuthError({ message }: { message: string | null }) {
  * Composant de succès avec animation
  */
 export function AuthSuccess({
-    message = "Succès !",
-    description = "Votre compte a été créé avec succès. Redirection en cours...",
     icon = "check",
-}) {
+}: {
+    message?: string;
+    description?: string;
+    icon?: string;
+} = {}) {
     return (
         <div className="flex justify-center mb-6">
             <div className="relative w-20 h-20">

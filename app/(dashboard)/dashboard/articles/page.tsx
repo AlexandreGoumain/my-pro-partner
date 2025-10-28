@@ -1,8 +1,7 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
     Select,
@@ -12,12 +11,13 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { ArticleCard } from "@/components/article-card";
+import { ArticleCardSkeleton, TableSkeleton } from "@/components/skeletons";
+import { mapArticleToDisplay } from "@/lib/types/article";
 import { Filter, Grid, List, Plus, Search } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { columns, type Article } from "./columns";
 import { DataTable } from "./data-table";
 
-// Données mockées pour les articles
 const mockArticles: Article[] = [
     {
         id: "1",
@@ -145,33 +145,58 @@ const sortOptions = [
 ];
 
 export default function CataloguePage() {
+    const [articles, setArticles] = useState<Article[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("Toutes");
     const [sortBy, setSortBy] = useState("Nom A-Z");
     const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
+    // Fetch articles from API
+    useEffect(() => {
+        async function fetchArticles() {
+            try {
+                setIsLoading(true);
+                const response = await fetch("/api/articles");
+
+                if (!response.ok) {
+                    throw new Error("Erreur lors du chargement des articles");
+                }
+
+                const result = await response.json();
+                // Handle both paginated and non-paginated responses
+                const data = result.data || result;
+                const mappedArticles = data.map(mapArticleToDisplay);
+                setArticles(mappedArticles);
+            } catch (err) {
+                console.error("Error fetching articles:", err);
+                setArticles(mockArticles); // Fallback to mock data
+            } finally {
+                setIsLoading(false);
+            }
+        }
+
+        fetchArticles();
+    }, []);
+
     // Article handlers
     const handleView = (article: Article) => {
         console.log("View article:", article);
-        // TODO: Implement view detail modal/page
     };
 
     const handleEdit = (article: Article) => {
         console.log("Edit article:", article);
-        // TODO: Implement edit modal/page
     };
 
     const handleDuplicate = (article: Article) => {
         console.log("Duplicate article:", article);
-        // TODO: Implement duplicate functionality
     };
 
     const handleDelete = (article: Article) => {
         console.log("Delete article:", article);
-        // TODO: Implement delete confirmation modal
     };
 
-    const filteredArticles = mockArticles.filter((article) => {
+    const filteredArticles = articles.filter((article) => {
         const matchesSearch =
             article.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
             article.reference
@@ -189,61 +214,52 @@ export default function CataloguePage() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-2xl font-bold tracking-tight">
-                        Catalogue
-                    </h2>
+                    <h2 className="text-2xl font-bold">Catalogue</h2>
                     <p className="text-muted-foreground">
                         Gérez votre catalogue de produits et services
                     </p>
                 </div>
-                <Button className="gap-2">
-                    <Plus className="h-4 w-4" />
+                <Button>
+                    <Plus className="w-4 h-4 mr-2" />
                     Ajouter un article
                 </Button>
             </div>
 
-            {/* Filtres et recherche - toujours visible */}
-            <div className="flex flex-col lg:flex-row gap-4 p-4 bg-muted/20 rounded-lg border border-border/30">
+            {/* Filtres et recherche */}
+            <div className="flex flex-col lg:flex-row gap-4 p-4 bg-muted/30 rounded-lg border">
                 <div className="flex flex-1 items-center gap-4">
-                    <div className="flex-1">
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                placeholder="Rechercher par nom, référence ou description..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-10 border-border/50 bg-background/50"
-                            />
-                        </div>
+                    <div className="flex-1 relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input
+                            placeholder="Rechercher par nom, référence ou description..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="pl-10"
+                        />
                     </div>
-                    <div className="flex gap-1 p-1 bg-background/50 rounded-lg border border-border/50">
+                    <div className="flex gap-1 p-1 bg-background rounded-lg border">
                         <Button
                             variant={viewMode === "grid" ? "default" : "ghost"}
                             size="sm"
                             onClick={() => setViewMode("grid")}
-                            className="h-8"
                         >
-                            <Grid className="h-4 w-4" />
+                            <Grid className="w-4 h-4" />
                         </Button>
                         <Button
                             variant={viewMode === "list" ? "default" : "ghost"}
                             size="sm"
                             onClick={() => setViewMode("list")}
-                            className="h-8"
                         >
-                            <List className="h-4 w-4" />
+                            <List className="w-4 h-4" />
                         </Button>
                     </div>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2">
-                    <Select
-                        value={selectedCategory}
-                        onValueChange={setSelectedCategory}
-                    >
-                        <SelectTrigger className="w-full sm:w-[180px] border-border/50 bg-background/50">
-                            <Filter className="mr-2 h-4 w-4" />
+                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                        <SelectTrigger className="w-full sm:w-[180px]">
+                            <Filter className="w-4 h-4 mr-2" />
                             <SelectValue placeholder="Catégorie" />
                         </SelectTrigger>
                         <SelectContent>
@@ -255,7 +271,7 @@ export default function CataloguePage() {
                         </SelectContent>
                     </Select>
                     <Select value={sortBy} onValueChange={setSortBy}>
-                        <SelectTrigger className="w-full sm:w-[180px] border-border/50 bg-background/50">
+                        <SelectTrigger className="w-full sm:w-[180px]">
                             <SelectValue placeholder="Trier par" />
                         </SelectTrigger>
                         <SelectContent>
@@ -272,7 +288,13 @@ export default function CataloguePage() {
             {/* Catalogue en vue grille */}
             {viewMode === "grid" && (
                 <>
-                    {filteredArticles.length > 0 ? (
+                    {isLoading ? (
+                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                            {Array.from({ length: 8 }).map((_, i) => (
+                                <ArticleCardSkeleton key={i} />
+                            ))}
+                        </div>
+                    ) : filteredArticles.length > 0 ? (
                         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                             {filteredArticles.map((article) => (
                                 <ArticleCard
@@ -287,12 +309,12 @@ export default function CataloguePage() {
                         </div>
                     ) : (
                         <Card className="p-12">
-                            <div className="flex flex-col items-center justify-center text-center space-y-4">
+                            <div className="flex flex-col items-center text-center space-y-4">
                                 <div className="rounded-full bg-muted p-6">
-                                    <Search className="h-12 w-12 text-muted-foreground" />
+                                    <Search className="w-12 h-12 text-muted-foreground" />
                                 </div>
-                                <div className="space-y-2">
-                                    <h3 className="text-xl font-semibold">
+                                <div>
+                                    <h3 className="text-xl font-semibold mb-2">
                                         Aucun article trouvé
                                     </h3>
                                     <p className="text-muted-foreground max-w-md">
@@ -300,8 +322,8 @@ export default function CataloguePage() {
                                         Essayez de modifier vos filtres ou ajoutez un nouvel article.
                                     </p>
                                 </div>
-                                <Button className="gap-2">
-                                    <Plus className="h-4 w-4" />
+                                <Button>
+                                    <Plus className="w-4 h-4 mr-2" />
                                     Ajouter un article
                                 </Button>
                             </div>
@@ -310,23 +332,15 @@ export default function CataloguePage() {
                 </>
             )}
 
-            {/* Catalogue en vue table */}
+            {/* Catalogue en vue liste */}
             {viewMode === "list" && (
-                <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-semibold">
-                            Liste des articles
-                        </h3>
-                    </div>
-                    <Card className="border-border/50 bg-background/50 shadow-sm">
-                        <CardContent className="p-0">
-                            <DataTable
-                                columns={columns}
-                                data={filteredArticles}
-                            />
-                        </CardContent>
-                    </Card>
-                </div>
+                <>
+                    {isLoading ? (
+                        <TableSkeleton rows={8} columns={6} />
+                    ) : (
+                        <DataTable columns={columns} data={filteredArticles} />
+                    )}
+                </>
             )}
         </div>
     );
