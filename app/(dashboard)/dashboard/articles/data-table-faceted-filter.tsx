@@ -1,6 +1,7 @@
 "use client";
 
 import { PlusCircledIcon } from "@radix-ui/react-icons";
+import { Column } from "@tanstack/react-table";
 import * as React from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -23,7 +24,7 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 interface DataTableFacetedFilterProps<TData, TValue> {
-    column?: any;
+    column?: Column<TData, TValue>;
     title?: string;
     options: {
         label: string;

@@ -59,7 +59,7 @@ export const authOptions: NextAuthOptions = {
         error: "/auth/error",
     },
     callbacks: {
-        async signIn({ user, account, profile }) {
+        async signIn({ user, account }) {
             // Handle OAuth sign in (Google)
             if (account?.provider === "google") {
                 try {
@@ -89,7 +89,7 @@ export const authOptions: NextAuthOptions = {
         async jwt({ token, user, account }) {
             if (user) {
                 token.id = user.id;
-                token.role = (user as any).role || "user";
+                token.role = user.role || "user";
             }
 
             // For OAuth users, fetch from database on first sign in

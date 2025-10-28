@@ -48,6 +48,7 @@ import {
     Settings,
     User,
 } from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -129,6 +130,16 @@ export default function DashboardLayout({
     children: React.ReactNode;
 }) {
     const pathname = usePathname();
+    const { data: session } = useSession();
+
+    const userName = session?.user?.name || "Utilisateur";
+    const userEmail = session?.user?.email || "";
+    const userInitials = userName
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2);
 
     return (
         <SidebarProvider>
@@ -303,10 +314,10 @@ export default function DashboardLayout({
                                         <Avatar className="h-10 w-10 cursor-pointer">
                                             <AvatarImage
                                                 src="/avatars/01.png"
-                                                alt="Jean Dupont"
+                                                alt={userName}
                                             />
                                             <AvatarFallback className="bg-primary text-primary-foreground">
-                                                JD
+                                                {userInitials}
                                             </AvatarFallback>
                                         </Avatar>
                                     </Button>
@@ -319,10 +330,10 @@ export default function DashboardLayout({
                                     <DropdownMenuLabel className="font-normal">
                                         <div className="flex flex-col space-y-1">
                                             <p className="text-sm font-medium leading-none">
-                                                Jean Dupont
+                                                {userName}
                                             </p>
                                             <p className="text-xs leading-none text-muted-foreground">
-                                                jean.dupont@example.com
+                                                {userEmail}
                                             </p>
                                         </div>
                                     </DropdownMenuLabel>
@@ -356,7 +367,9 @@ export default function DashboardLayout({
                                         </DropdownMenuShortcut>
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator />
-                                    <DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        onClick={() => signOut({ callbackUrl: "/auth/login" })}
+                                    >
                                         <LogOut className="mr-2 h-4 w-4" />
                                         <span>Se déconnecter</span>
                                         <DropdownMenuShortcut>

@@ -15,5 +15,13 @@ export const registerSchema = z.object({
   path: ["confirmPassword"],
 });
 
+// Backend schema without confirmPassword
+export const registerBackendSchema = z.object({
+  email: z.string().email("Email invalide"),
+  password: z.string().min(6, "Mot de passe trop court"),
+  name: z.string().min(2, "Nom requis"),
+});
+
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
+export type RegisterBackendInput = z.infer<typeof registerBackendSchema>;
