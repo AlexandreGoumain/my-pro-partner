@@ -1,0 +1,249 @@
+// ============================================
+// ERP ARTISAN - PRISMA SCHEMA
+// ============================================
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// AUTHENTIFICATION
+// ============================================
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  role      String   @default("user") // admin, user
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================
+// CLIENTS
+// ============================================
+
+model Client {
+  id        String   @id @default(cuid())
+  nom       String
+  prenom    String?
+  email     String?
+  telephone String?
+  adresse   String?
+  codePostal String?
+  ville     String?
+  pays      String   @default("France")
+  notes     String?
+
+  // Relations
+  documents Document[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([nom])
+  @@index([email])
+  @@index([ville])
+}
+
+// ============================================
+// CATALOGUE
+// ============================================
+
+model Categorie {
+  id        String   @id @default(cuid())
+  nom       String
+  description String?
+  ordre     Int      @default(0)
+  parentId  String?
+
+  // Relations
+  parent    Categorie?  @relation("CategoriesToParent", fields: [parentId], references: [id])
+  enfants   Categorie[] @relation("CategoriesToParent")
+  articles  Article[]
+
+  createdAt DateTime @default(now())
+
+  @@index([nom])
+  @@index([ordre])
+}
+
+model Article {
+  id           String   @id @default(cuid())
+  reference    String   @unique
+  nom          String
+  description  String?
+  prix_ht      Decimal  @db.Decimal(10, 2)
+  tva_taux     Decimal  @default(20.00) @db.Decimal(5, 2)
+  unite        String   @default("unité")
+  stock_actuel Int      @default(0)
+  stock_min    Int      @default(0)
+  gestion_stock Boolean @default(false)
+  actif        Boolean  @default(true)
+
+  // Relations
+  categorie    Categorie?          @relation(fields: [categorieId], references: [id])
+  categorieId  String?
+  lignes       LigneDocument[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([reference])
+  @@index([nom])
+  @@index([categorieId])
+  @@index([actif])
+}
+
+// ============================================
+// TRANSACTIONS
+// ============================================
+
+model Document {
+  id            String   @id @default(cuid())
+  numero        String   @unique
+  type          DocumentType
+  client        Client   @relation(fields: [clientId], references: [id])
+  clientId      String
+  dateEmission  DateTime @db.Date
+  dateEcheance  DateTime? @db.Date
+  statut        DocumentStatut @default(BROUILLON)
+
+  // Montants
+  total_ht      Decimal  @default(0) @db.Decimal(10, 2)
+  total_tva     Decimal  @default(0) @db.Decimal(10, 2)
+  total_ttc     Decimal  @default(0) @db.Decimal(10, 2)
+
+  // Paiements
+  acompte_montant Decimal @default(0) @db.Decimal(10, 2)
+  reste_a_payer   Decimal @default(0) @db.Decimal(10, 2)
+
+  // Infos complémentaires
+  notes             String?
+  conditions_paiement String?
+  validite_jours    Int      @default(30)
+
+  // Conversion devis → facture
+  devisId   String?
+  devis     Document?   @relation("DevisToFacture", fields: [devisId], references: [id])
+  factures  Document[]  @relation("DevisToFacture")
+
+  // Relations
+  lignes    LigneDocument[]
+  paiements Paiement[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([numero])
+  @@index([type])
+  @@index([clientId])
+  @@index([statut])
+  @@index([dateEmission])
+  @@index([dateEcheance])
+}
+
+enum DocumentType {
+  DEVIS
+  FACTURE
+  AVOIR
+}
+
+enum DocumentStatut {
+  BROUILLON
+  ENVOYE
+  ACCEPTE
+  REFUSE
+  PAYE
+  ANNULE
+}
+
+model LigneDocument {
+  id              String   @id @default(cuid())
+  document        Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  documentId      String
+  article         Article? @relation(fields: [articleId], references: [id])
+  articleId       String?
+
+  // Données
+  ordre           Int
+  designation     String
+  description     String?
+  quantite        Decimal  @db.Decimal(10, 2)
+  prix_unitaire_ht Decimal @db.Decimal(10, 2)
+  tva_taux        Decimal  @db.Decimal(5, 2)
+  remise_pourcent Decimal  @default(0) @db.Decimal(5, 2)
+
+  // Calculs
+  montant_ht      Decimal  @db.Decimal(10, 2)
+  montant_tva     Decimal  @db.Decimal(10, 2)
+  montant_ttc     Decimal  @db.Decimal(10, 2)
+
+  createdAt DateTime @default(now())
+
+  @@index([documentId])
+  @@index([articleId])
+  @@index([ordre])
+}
+
+model Paiement {
+  id              String   @id @default(cuid())
+  document        Document @relation(fields: [documentId], references: [id], onDelete: Restrict)
+  documentId      String
+  date_paiement   DateTime @db.Date
+  montant         Decimal  @db.Decimal(10, 2)
+  moyen_paiement  MoyenPaiement
+  reference       String?
+  notes           String?
+
+  createdAt DateTime @default(now())
+
+  @@index([documentId])
+  @@index([date_paiement])
+  @@index([moyen_paiement])
+}
+
+enum MoyenPaiement {
+  ESPECES
+  CHEQUE
+  VIREMENT
+  CARTE
+  PRELEVEMENT
+}
+
+// ============================================
+// PARAMÈTRES ENTREPRISE
+// ============================================
+
+model ParametresEntreprise {
+  id                    Int     @id @default(1)
+  nom_entreprise        String
+  siret                 String?
+  tva_intra             String?
+  adresse               String?
+  code_postal           String?
+  ville                 String?
+  telephone             String?
+  email                 String?
+  site_web              String?
+  logo_url              String?
+
+  // Numérotation
+  prefixe_devis         String  @default("DEV")
+  prefixe_facture       String  @default("FACT")
+  prochain_numero_devis Int     @default(1)
+  prochain_numero_facture Int   @default(1)
+
+  // Conditions
+  conditions_paiement_defaut String?
+  mentions_legales      String?
+
+  updatedAt DateTime @updatedAt
+}
