@@ -85,7 +85,7 @@ export function ArticleCard({
                     <Button
                         size="sm"
                         variant="secondary"
-                        className="flex-1 backdrop-blur-md bg-background/80"
+                        className="flex-1 backdrop-blur-md bg-background/80 cursor-pointer"
                         onClick={() => onView?.(article)}
                     >
                         <Eye className="h-4 w-4 mr-2" />
@@ -94,7 +94,7 @@ export function ArticleCard({
                     <Button
                         size="sm"
                         variant="secondary"
-                        className="flex-1 backdrop-blur-md bg-background/80"
+                        className="flex-1 backdrop-blur-md bg-background/80 cursor-pointer"
                         onClick={() => onEdit?.(article)}
                     >
                         <Edit className="h-4 w-4 mr-2" />
@@ -121,7 +121,7 @@ export function ArticleCard({
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8"
+                                className="h-8 w-8 cursor-pointer"
                             >
                                 <MoreHorizontal className="h-4 w-4" />
                             </Button>

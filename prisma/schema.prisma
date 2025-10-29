@@ -92,6 +92,7 @@ model Article {
   categorie    Categorie?          @relation(fields: [categorieId], references: [id])
   categorieId  String?
   lignes       LigneDocument[]
+  mouvements   MouvementStock[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -216,6 +217,38 @@ enum MoyenPaiement {
   VIREMENT
   CARTE
   PRELEVEMENT
+}
+
+// ============================================
+// GESTION DES STOCKS
+// ============================================
+
+model MouvementStock {
+  id              String            @id @default(cuid())
+  article         Article           @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  articleId       String
+  type            TypeMouvement
+  quantite        Int               // Positif pour entrée, négatif pour sortie
+  stock_avant     Int               // Stock avant le mouvement
+  stock_apres     Int               // Stock après le mouvement
+  motif           String?           // Raison du mouvement
+  reference       String?           // Numéro de bon de livraison, commande, etc.
+  notes           String?
+
+  createdAt       DateTime          @default(now())
+  createdBy       String?           // ID de l'utilisateur (optionnel pour le moment)
+
+  @@index([articleId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+enum TypeMouvement {
+  ENTREE          // Réception de stock (livraison fournisseur)
+  SORTIE          // Sortie de stock (vente, consommation)
+  AJUSTEMENT      // Correction manuelle du stock
+  INVENTAIRE      // Ajustement suite à inventaire
+  RETOUR          // Retour client ou fournisseur
 }
 
 // ============================================

@@ -1,26 +1,13 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { requireAuth } from "@/lib/api/auth-middleware";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth/next";
+import { categorieCreateSchema } from "@/lib/validation";
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-
-const categorieSchema = z.object({
-    nom: z.string().min(1, "Nom requis"),
-    description: z.string().optional(),
-    parentId: z.string().optional(),
-    ordre: z.number().int().default(0),
-});
 
 // GET: Récupérer toutes les catégories
 export async function GET() {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session) {
-            return NextResponse.json(
-                { message: "Non autorisé" },
-                { status: 401 }
-            );
-        }
+        const sessionOrError = await requireAuth();
+        if (sessionOrError instanceof NextResponse) return sessionOrError;
 
         const categories = await prisma.categorie.findMany({
             include: {
@@ -47,16 +34,11 @@ export async function GET() {
 // POST: Créer une nouvelle catégorie
 export async function POST(req: NextRequest) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session) {
-            return NextResponse.json(
-                { message: "Non autorisé" },
-                { status: 401 }
-            );
-        }
+        const sessionOrError = await requireAuth();
+        if (sessionOrError instanceof NextResponse) return sessionOrError;
 
         const body = await req.json();
-        const validation = categorieSchema.safeParse(body);
+        const validation = categorieCreateSchema.safeParse(body);
 
         if (!validation.success) {
             return NextResponse.json(
@@ -68,11 +50,23 @@ export async function POST(req: NextRequest) {
             );
         }
 
+        // Nettoyer les valeurs vides pour Prisma
+        const cleanedData = {
+            nom: validation.data.nom,
+            description: validation.data.description || null,
+            parentId: validation.data.parentId || null,
+            ordre: validation.data.ordre,
+        };
+
         const categorie = await prisma.categorie.create({
-            data: validation.data,
+            data: cleanedData,
             include: {
                 parent: true,
                 enfants: true,
+                articles: {
+                    where: { actif: true },
+                    select: { id: true },
+                },
             },
         });
 

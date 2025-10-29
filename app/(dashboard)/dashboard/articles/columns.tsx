@@ -16,7 +16,9 @@ import { ArticleDisplay } from "@/lib/types/article";
 import { ColumnDef } from "@tanstack/react-table";
 import {
     AlertTriangle,
+    Copy,
     Edit,
+    Eye,
     MoreHorizontal,
     Package,
     Trash2,
@@ -24,7 +26,16 @@ import {
 
 export type Article = ArticleDisplay;
 
-export const columns: ColumnDef<Article>[] = [
+interface ArticleHandlers {
+    onView: (article: Article) => void;
+    onEdit: (article: Article) => void;
+    onDuplicate: (article: Article) => void;
+    onDelete: (article: Article) => void;
+}
+
+export const createColumns = (
+    handlers: ArticleHandlers
+): ColumnDef<Article>[] => [
     {
         id: "select",
         header: ({ table }) => (
@@ -129,7 +140,9 @@ export const columns: ColumnDef<Article>[] = [
         accessorKey: "statut",
         header: "Statut",
         cell: ({ row }) => {
-            const status = row.getValue("statut") as keyof typeof ARTICLE_STATUSES;
+            const status = row.getValue(
+                "statut"
+            ) as keyof typeof ARTICLE_STATUSES;
             const statusConfig = ARTICLE_STATUSES[status];
 
             return (
@@ -141,30 +154,46 @@ export const columns: ColumnDef<Article>[] = [
     },
     {
         id: "actions",
-        cell: () => (
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="w-8 h-8">
-                        <MoreHorizontal className="w-4 h-4" />
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuItem>
-                        <Edit className="w-4 h-4 mr-2" />
-                        Modifier
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                        <Package className="w-4 h-4 mr-2" />
-                        Gérer le stock
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-destructive">
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Supprimer
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
-        ),
+        cell: ({ row }) => {
+            const article = row.original;
+            return (
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="w-8 h-8">
+                            <MoreHorizontal className="w-4 h-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuItem
+                            onClick={() => handlers.onView(article)}
+                        >
+                            <Eye className="w-4 h-4 mr-2" />
+                            Voir les détails
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                            onClick={() => handlers.onEdit(article)}
+                        >
+                            <Edit className="w-4 h-4 mr-2" />
+                            Modifier
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                            onClick={() => handlers.onDuplicate(article)}
+                        >
+                            <Copy className="w-4 h-4 mr-2" />
+                            Dupliquer
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                            className="text-destructive"
+                            onClick={() => handlers.onDelete(article)}
+                        >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Supprimer
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            );
+        },
     },
 ];

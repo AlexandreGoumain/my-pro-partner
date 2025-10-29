@@ -1,21 +1,8 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { requireAuth } from "@/lib/api/auth-middleware";
 import { handlePrismaError } from "@/lib/errors/prisma";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth/next";
+import { clientUpdateSchema } from "@/lib/validation";
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-
-const clientUpdateSchema = z.object({
-    nom: z.string().min(1).optional(),
-    prenom: z.string().optional(),
-    email: z.string().email().optional(),
-    telephone: z.string().optional(),
-    adresse: z.string().optional(),
-    codePostal: z.string().optional(),
-    ville: z.string().optional(),
-    pays: z.string().optional(),
-    notes: z.string().optional(),
-});
 
 // GET: Récupérer un client par ID
 export async function GET(
@@ -23,13 +10,8 @@ export async function GET(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session) {
-            return NextResponse.json(
-                { message: "Non autorisé" },
-                { status: 401 }
-            );
-        }
+        const sessionOrError = await requireAuth();
+        if (sessionOrError instanceof NextResponse) return sessionOrError;
 
         const { id } = await params;
 
@@ -66,13 +48,8 @@ export async function PUT(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session) {
-            return NextResponse.json(
-                { message: "Non autorisé" },
-                { status: 401 }
-            );
-        }
+        const sessionOrError = await requireAuth();
+        if (sessionOrError instanceof NextResponse) return sessionOrError;
 
         const { id } = await params;
         const body = await req.json();
@@ -107,13 +84,8 @@ export async function DELETE(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session) {
-            return NextResponse.json(
-                { message: "Non autorisé" },
-                { status: 401 }
-            );
-        }
+        const sessionOrError = await requireAuth();
+        if (sessionOrError instanceof NextResponse) return sessionOrError;
 
         const { id } = await params;
 
