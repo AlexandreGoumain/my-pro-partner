@@ -26,14 +26,14 @@ export function DataTableViewOptions<TData>({
                 <Button
                     variant="outline"
                     size="sm"
-                    className="ml-auto hidden h-8 lg:flex"
+                    className="ml-auto hidden h-8 lg:flex "
                 >
                     <MixerHorizontalIcon className="mr-2 h-4 w-4" />
-                    Vue
+                    Personnaliser la vue
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-[150px]">
-                <DropdownMenuLabel>Colonnes</DropdownMenuLabel>
+                <DropdownMenuLabel>Colonnes à afficher</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {table
                     .getAllColumns()

@@ -1,8 +1,8 @@
-import { Button, type ButtonProps } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { forwardRef } from "react";
+import { forwardRef, type ComponentPropsWithoutRef } from "react";
 
-interface ButtonWithSpinnerProps extends ButtonProps {
+interface ButtonWithSpinnerProps extends ComponentPropsWithoutRef<typeof Button> {
     isLoading?: boolean;
     loadingText?: string;
 }

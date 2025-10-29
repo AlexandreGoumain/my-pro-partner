@@ -1,35 +1,17 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { requireAuth } from "@/lib/api/auth-middleware";
 import { prisma } from "@/lib/prisma";
 import {
     createPaginatedResponse,
     getPaginationParams,
 } from "@/lib/utils/pagination";
-import { getServerSession } from "next-auth/next";
+import { clientCreateSchema } from "@/lib/validation";
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-
-const clientSchema = z.object({
-    nom: z.string().min(1, "Le nom est requis"),
-    prenom: z.string().optional(),
-    email: z.string().email().optional(),
-    telephone: z.string().optional(),
-    adresse: z.string().optional(),
-    codePostal: z.string().optional(),
-    ville: z.string().optional(),
-    pays: z.string().optional(),
-    notes: z.string().optional(),
-});
 
 // GET: Récupérer tous les clients
 export async function GET(req: NextRequest) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session) {
-            return NextResponse.json(
-                { message: "Non autorisé" },
-                { status: 401 }
-            );
-        }
+        const sessionOrError = await requireAuth();
+        if (sessionOrError instanceof NextResponse) return sessionOrError;
 
         const { searchParams } = new URL(req.url);
         const search = searchParams.get("search");
@@ -38,9 +20,9 @@ export async function GET(req: NextRequest) {
         const where = search
             ? {
                   OR: [
-                      { nom: { contains: search, mode: "insensitive" } },
-                      { email: { contains: search, mode: "insensitive" } },
-                      { ville: { contains: search, mode: "insensitive" } },
+                      { nom: { contains: search, mode: "insensitive" as const } },
+                      { email: { contains: search, mode: "insensitive" as const } },
+                      { ville: { contains: search, mode: "insensitive" as const } },
                   ],
               }
             : {};
@@ -70,16 +52,11 @@ export async function GET(req: NextRequest) {
 // POST: Créer un nouveau client
 export async function POST(req: NextRequest) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session) {
-            return NextResponse.json(
-                { message: "Non autorisé" },
-                { status: 401 }
-            );
-        }
+        const sessionOrError = await requireAuth();
+        if (sessionOrError instanceof NextResponse) return sessionOrError;
 
         const body = await req.json();
-        const validation = clientSchema.safeParse(body);
+        const validation = clientCreateSchema.safeParse(body);
 
         if (!validation.success) {
             return NextResponse.json(

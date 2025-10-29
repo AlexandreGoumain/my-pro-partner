@@ -4,23 +4,9 @@ import {
     createPaginatedResponse,
     getPaginationParams,
 } from "@/lib/utils/pagination";
+import { articleCreateSchema } from "@/lib/validation";
 import { getServerSession } from "next-auth/next";
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-
-const articleSchema = z.object({
-    reference: z.string().min(1, "Référence requise"),
-    nom: z.string().min(1, "Nom requis"),
-    description: z.string().optional(),
-    prix_ht: z.number().positive("Le prix doit être positif"),
-    tva_taux: z.number().default(20),
-    unite: z.string().default("unité"),
-    categorieId: z.string().optional(),
-    stock_actuel: z.number().int().default(0),
-    stock_min: z.number().int().default(0),
-    gestion_stock: z.boolean().default(false),
-    actif: z.boolean().default(true),
-});
 
 // GET: Récupérer tous les articles
 export async function GET(req: NextRequest) {
@@ -41,11 +27,11 @@ export async function GET(req: NextRequest) {
         const where = {
             ...(search && {
                 OR: [
-                    { nom: { contains: search, mode: "insensitive" } },
+                    { nom: { contains: search, mode: "insensitive" as const } },
                     {
                         reference: {
                             contains: search,
-                            mode: "insensitive",
+                            mode: "insensitive" as const,
                         },
                     },
                 ],
@@ -91,7 +77,7 @@ export async function POST(req: NextRequest) {
         }
 
         const body = await req.json();
-        const validation = articleSchema.safeParse(body);
+        const validation = articleCreateSchema.safeParse(body);
 
         if (!validation.success) {
             return NextResponse.json(
@@ -116,7 +102,10 @@ export async function POST(req: NextRequest) {
         }
 
         const article = await prisma.article.create({
-            data: validation.data,
+            data: {
+                ...validation.data,
+                categorieId: validation.data.categorieId || null,
+            },
             include: {
                 categorie: true,
             },

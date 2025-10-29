@@ -1,5 +1,11 @@
 "use client";
 
+import { ArticleCard } from "@/components/article-card";
+import { ArticleCreateDialog } from "@/components/article-create-dialog";
+import { ArticleEditDialog } from "@/components/article-edit-dialog";
+import { ArticleViewDialog } from "@/components/article-view-dialog";
+import { DeleteConfirmDialog } from "@/components/delete-confirm-dialog";
+import { ArticleCardSkeleton, TableSkeleton } from "@/components/skeletons";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,206 +16,169 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { ArticleCard } from "@/components/article-card";
-import { ArticleCardSkeleton, TableSkeleton } from "@/components/skeletons";
-import { mapArticleToDisplay } from "@/lib/types/article";
 import { Filter, Grid, List, Plus, Search } from "lucide-react";
-import { useEffect, useState } from "react";
-import { columns, type Article } from "./columns";
+import { useCallback, useMemo, useState } from "react";
+import { toast } from "sonner";
+import { createColumns, type Article } from "./columns";
 import { DataTable } from "./data-table";
+import {
+    useArticles,
+    useDeleteArticle,
+    useDuplicateArticle,
+} from "@/hooks/use-articles";
 
-const mockArticles: Article[] = [
-    {
-        id: "1",
-        nom: "Chaise de bureau ergonomique",
-        reference: "CHA-001",
-        prix: 299.99,
-        stock: 15,
-        seuilAlerte: 5,
-        categorie: "Mobilier",
-        statut: "ACTIF",
-        image: "/api/placeholder/300/200",
-        description: "Chaise ergonomique avec support lombaire réglable",
-        tva: 20,
-    },
-    {
-        id: "2",
-        nom: "Lampe LED design",
-        reference: "LAM-002",
-        prix: 89.99,
-        stock: 8,
-        seuilAlerte: 5,
-        categorie: "Éclairage",
-        statut: "ACTIF",
-        image: "/api/placeholder/300/200",
-        description: "Lampe LED moderne avec variateur d'intensité",
-        tva: 20,
-    },
-    {
-        id: "3",
-        nom: "Bureau en bois massif",
-        reference: "BUR-003",
-        prix: 599.99,
-        stock: 3,
-        seuilAlerte: 5,
-        categorie: "Mobilier",
-        statut: "ACTIF",
-        image: "/api/placeholder/300/200",
-        description: "Bureau en chêne massif avec tiroirs intégrés",
-        tva: 20,
-    },
-    {
-        id: "4",
-        nom: "Étagère murale flottante",
-        reference: "ETG-004",
-        prix: 149.99,
-        stock: 0,
-        seuilAlerte: 5,
-        categorie: "Rangement",
-        statut: "RUPTURE",
-        image: "/api/placeholder/300/200",
-        description: "Étagère murale invisible avec fixation dissimulée",
-        tva: 20,
-    },
-    {
-        id: "5",
-        nom: "Tapis de bureau antifatigue",
-        reference: "TAP-005",
-        prix: 79.99,
-        stock: 25,
-        seuilAlerte: 10,
-        categorie: "Accessoires",
-        statut: "ACTIF",
-        image: "/api/placeholder/300/200",
-        description: "Tapis ergonomique pour réduire la fatigue",
-        tva: 20,
-    },
-    {
-        id: "6",
-        nom: "Support moniteur réglable",
-        reference: "SUP-006",
-        prix: 129.99,
-        stock: 12,
-        seuilAlerte: 5,
-        categorie: "Accessoires",
-        statut: "ACTIF",
-        image: "/api/placeholder/300/200",
-        description: "Support VESA avec réglage en hauteur et inclinaison",
-        tva: 20,
-    },
-    {
-        id: "7",
-        nom: "Clavier mécanique gaming",
-        reference: "CLE-007",
-        prix: 159.99,
-        stock: 2,
-        seuilAlerte: 5,
-        categorie: "Équipements",
-        statut: "ACTIF",
-        image: "/api/placeholder/300/200",
-        description: "Clavier mécanique RGB avec switches Cherry MX",
-        tva: 20,
-    },
-    {
-        id: "8",
-        nom: "Ensemble de tournevis professionnel",
-        reference: "TOU-008",
-        prix: 89.99,
-        stock: 18,
-        seuilAlerte: 10,
-        categorie: "Outils",
-        statut: "ACTIF",
-        image: "/api/placeholder/300/200",
-        description: "Set complet de 32 tournevis magnétiques",
-        tva: 20,
-    },
-];
-
-const categories = [
-    "Toutes",
-    "Mobilier",
-    "Éclairage",
-    "Rangement",
-    "Accessoires",
-    "Outils",
-    "Équipements",
-    "Services",
-    "Consommables",
-];
-const sortOptions = [
-    "Nom A-Z",
-    "Nom Z-A",
-    "Prix croissant",
-    "Prix décroissant",
-    "Stock",
-];
+// Options de filtrage et tri (à terme, categories sera dynamique depuis l'API)
+const categories = ["Toutes", "Mobilier", "Éclairage", "Rangement", "Accessoires", "Outils", "Équipements", "Services", "Consommables"];
+const sortOptions = ["Nom A-Z", "Nom Z-A", "Prix croissant", "Prix décroissant", "Stock"];
 
 export default function CataloguePage() {
-    const [articles, setArticles] = useState<Article[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    // React Query hooks
+    const { data: articles = [], isLoading } = useArticles();
+    const duplicateArticle = useDuplicateArticle();
+    const deleteArticle = useDeleteArticle();
+
+    // UI states
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("Toutes");
     const [sortBy, setSortBy] = useState("Nom A-Z");
     const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
-    // Fetch articles from API
-    useEffect(() => {
-        async function fetchArticles() {
-            try {
-                setIsLoading(true);
-                const response = await fetch("/api/articles");
-
-                if (!response.ok) {
-                    throw new Error("Erreur lors du chargement des articles");
-                }
-
-                const result = await response.json();
-                // Handle both paginated and non-paginated responses
-                const data = result.data || result;
-                const mappedArticles = data.map(mapArticleToDisplay);
-                setArticles(mappedArticles);
-            } catch (err) {
-                console.error("Error fetching articles:", err);
-                setArticles(mockArticles); // Fallback to mock data
-            } finally {
-                setIsLoading(false);
-            }
-        }
-
-        fetchArticles();
-    }, []);
+    // Modal states
+    const [createDialogOpen, setCreateDialogOpen] = useState(false);
+    const [viewDialogOpen, setViewDialogOpen] = useState(false);
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [selectedArticle, setSelectedArticle] = useState<Article | null>(
+        null
+    );
 
     // Article handlers
-    const handleView = (article: Article) => {
-        console.log("View article:", article);
-    };
+    const handleCreate = useCallback(() => {
+        setCreateDialogOpen(true);
+    }, []);
 
-    const handleEdit = (article: Article) => {
-        console.log("Edit article:", article);
-    };
+    const handleCreateSuccess = useCallback(() => {
+        toast.success("Article créé", {
+            description: "L'article a été créé avec succès",
+        });
+        // React Query invalide automatiquement le cache
+    }, []);
 
-    const handleDuplicate = (article: Article) => {
-        console.log("Duplicate article:", article);
-    };
+    const handleView = useCallback((article: Article) => {
+        setSelectedArticle(article);
+        setViewDialogOpen(true);
+    }, []);
 
-    const handleDelete = (article: Article) => {
-        console.log("Delete article:", article);
-    };
+    const handleEdit = useCallback((article: Article) => {
+        setSelectedArticle(article);
+        setEditDialogOpen(true);
+    }, []);
 
-    const filteredArticles = articles.filter((article) => {
-        const matchesSearch =
-            article.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            article.reference
-                .toLowerCase()
-                .includes(searchTerm.toLowerCase()) ||
-            article.description
-                .toLowerCase()
-                .includes(searchTerm.toLowerCase());
-        const matchesCategory =
-            selectedCategory === "Toutes" ||
-            article.categorie === selectedCategory;
-        return matchesSearch && matchesCategory;
-    });
+    const handleDuplicate = useCallback(
+        (article: Article) => {
+            duplicateArticle.mutate(article, {
+                onSuccess: () => {
+                    toast.success("Article dupliqué", {
+                        description: "L'article a été dupliqué avec succès",
+                    });
+                },
+                onError: (error) => {
+                    toast.error("Erreur", {
+                        description:
+                            error instanceof Error
+                                ? error.message
+                                : "Impossible de dupliquer l'article",
+                    });
+                },
+            });
+        },
+        [duplicateArticle]
+    );
+
+    const handleDelete = useCallback((article: Article) => {
+        setSelectedArticle(article);
+        setDeleteDialogOpen(true);
+    }, []);
+
+    const confirmDelete = useCallback(() => {
+        if (!selectedArticle) return;
+
+        deleteArticle.mutate(selectedArticle.id, {
+            onSuccess: () => {
+                toast.success("Article supprimé", {
+                    description: "L'article a été supprimé avec succès",
+                });
+                setDeleteDialogOpen(false);
+                setSelectedArticle(null);
+            },
+            onError: (error) => {
+                toast.error("Erreur", {
+                    description:
+                        error instanceof Error
+                            ? error.message
+                            : "Impossible de supprimer l'article",
+                });
+            },
+        });
+    }, [selectedArticle, deleteArticle]);
+
+    const handleEditSuccess = useCallback(() => {
+        toast.success("Article modifié", {
+            description: "L'article a été modifié avec succès",
+        });
+        // React Query invalide automatiquement le cache
+    }, []);
+
+    // Create columns with handlers
+    const columns = useMemo(
+        () =>
+            createColumns({
+                onView: handleView,
+                onEdit: handleEdit,
+                onDuplicate: handleDuplicate,
+                onDelete: handleDelete,
+            }),
+        [handleView, handleEdit, handleDuplicate, handleDelete]
+    );
+
+    // Filtrer et trier les articles
+    const filteredAndSortedArticles = useMemo(() => {
+        // Filtrage
+        const filtered = articles.filter((article) => {
+            const matchesSearch =
+                article.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                article.reference
+                    .toLowerCase()
+                    .includes(searchTerm.toLowerCase()) ||
+                article.description
+                    .toLowerCase()
+                    .includes(searchTerm.toLowerCase());
+            const matchesCategory =
+                selectedCategory === "Toutes" ||
+                article.categorie === selectedCategory;
+            return matchesSearch && matchesCategory;
+        });
+
+        // Tri
+        const sorted = [...filtered].sort((a, b) => {
+            switch (sortBy) {
+                case "Nom A-Z":
+                    return a.nom.localeCompare(b.nom);
+                case "Nom Z-A":
+                    return b.nom.localeCompare(a.nom);
+                case "Prix croissant":
+                    return a.prix - b.prix;
+                case "Prix décroissant":
+                    return b.prix - a.prix;
+                case "Stock":
+                    return a.stock - b.stock;
+                default:
+                    return 0;
+            }
+        });
+
+        return sorted;
+    }, [articles, searchTerm, selectedCategory, sortBy]);
 
     return (
         <div className="space-y-6">
@@ -221,7 +190,7 @@ export default function CataloguePage() {
                         Gérez votre catalogue de produits et services
                     </p>
                 </div>
-                <Button>
+                <Button onClick={handleCreate}>
                     <Plus className="w-4 h-4 mr-2" />
                     Ajouter un article
                 </Button>
@@ -257,7 +226,10 @@ export default function CataloguePage() {
                     </div>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2">
-                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                    <Select
+                        value={selectedCategory}
+                        onValueChange={setSelectedCategory}
+                    >
                         <SelectTrigger className="w-full sm:w-[180px]">
                             <Filter className="w-4 h-4 mr-2" />
                             <SelectValue placeholder="Catégorie" />
@@ -294,9 +266,9 @@ export default function CataloguePage() {
                                 <ArticleCardSkeleton key={i} />
                             ))}
                         </div>
-                    ) : filteredArticles.length > 0 ? (
+                    ) : filteredAndSortedArticles.length > 0 ? (
                         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                            {filteredArticles.map((article) => (
+                            {filteredAndSortedArticles.map((article) => (
                                 <ArticleCard
                                     key={article.id}
                                     article={article}
@@ -318,11 +290,13 @@ export default function CataloguePage() {
                                         Aucun article trouvé
                                     </h3>
                                     <p className="text-muted-foreground max-w-md">
-                                        Aucun article ne correspond à vos critères de recherche.
-                                        Essayez de modifier vos filtres ou ajoutez un nouvel article.
+                                        Aucun article ne correspond à vos
+                                        critères de recherche. Essayez de
+                                        modifier vos filtres ou ajoutez un
+                                        nouvel article.
                                     </p>
                                 </div>
-                                <Button>
+                                <Button onClick={handleCreate}>
                                     <Plus className="w-4 h-4 mr-2" />
                                     Ajouter un article
                                 </Button>
@@ -338,10 +312,39 @@ export default function CataloguePage() {
                     {isLoading ? (
                         <TableSkeleton rows={8} columns={6} />
                     ) : (
-                        <DataTable columns={columns} data={filteredArticles} />
+                        <DataTable columns={columns} data={filteredAndSortedArticles} />
                     )}
                 </>
             )}
+
+            {/* Dialogs */}
+            <ArticleCreateDialog
+                open={createDialogOpen}
+                onOpenChange={setCreateDialogOpen}
+                onSuccess={handleCreateSuccess}
+            />
+
+            <ArticleViewDialog
+                article={selectedArticle}
+                open={viewDialogOpen}
+                onOpenChange={setViewDialogOpen}
+            />
+
+            <ArticleEditDialog
+                article={selectedArticle}
+                open={editDialogOpen}
+                onOpenChange={setEditDialogOpen}
+                onSuccess={handleEditSuccess}
+            />
+
+            <DeleteConfirmDialog
+                open={deleteDialogOpen}
+                onOpenChange={setDeleteDialogOpen}
+                onConfirm={confirmDelete}
+                isLoading={deleteArticle.isPending}
+                title="Supprimer l'article"
+                description={`Êtes-vous sûr de vouloir supprimer l'article "${selectedArticle?.nom}" ? Cette action est irréversible.`}
+            />
         </div>
     );
 }

@@ -1,23 +1,9 @@
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { handlePrismaError } from "@/lib/errors/prisma";
 import { prisma } from "@/lib/prisma";
+import { articleUpdateSchema } from "@/lib/validation";
 import { getServerSession } from "next-auth/next";
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-
-const articleUpdateSchema = z.object({
-    reference: z.string().min(1).optional(),
-    nom: z.string().min(1).optional(),
-    description: z.string().optional(),
-    prix_ht: z.number().positive().optional(),
-    tva_taux: z.number().optional(),
-    unite: z.string().optional(),
-    categorieId: z.string().optional(),
-    stock_actuel: z.number().int().optional(),
-    stock_min: z.number().int().optional(),
-    gestion_stock: z.boolean().optional(),
-    actif: z.boolean().optional(),
-});
 
 // GET: Récupérer un article par ID
 export async function GET(
@@ -89,7 +75,10 @@ export async function PUT(
 
         const article = await prisma.article.update({
             where: { id },
-            data: validation.data,
+            data: {
+                ...validation.data,
+                categorieId: validation.data.categorieId || null,
+            },
             include: {
                 categorie: true,
             },

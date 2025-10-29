@@ -39,7 +39,7 @@ export function DataTableFacetedFilter<TData, TValue>({
     options,
 }: DataTableFacetedFilterProps<TData, TValue>) {
     const facets = column?.getFacetedUniqueValues();
-    const selectedValues = new Set(column?.getFilterValue());
+    const selectedValues = new Set(column?.getFilterValue() as string[] | undefined);
 
     return (
         <Popover>
@@ -91,7 +91,7 @@ export function DataTableFacetedFilter<TData, TValue>({
             <PopoverContent className="w-[200px] p-0" align="start">
                 <Command>
                     <CommandInput
-                        placeholder={`Rechercher ${title.toLowerCase()}...`}
+                        placeholder={title ? `Rechercher ${title.toLowerCase()}...` : "Rechercher..."}
                         className="h-8 text-xs border-0"
                     />
                     <CommandList>
