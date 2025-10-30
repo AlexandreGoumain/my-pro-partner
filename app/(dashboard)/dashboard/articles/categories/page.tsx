@@ -11,6 +11,10 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import {
+    Collapsible,
+    CollapsibleContent,
+} from "@/components/ui/collapsible";
+import {
     Dialog,
     DialogContent,
     DialogDescription,
@@ -375,10 +379,7 @@ export default function CategoriesPage() {
                     </p>
                 </div>
                 <div className="flex gap-2">
-                    <Button
-                        variant="outline"
-                        onClick={() => setShowExamples(!showExamples)}
-                    >
+                    <Button variant="outline" onClick={() => setShowExamples(!showExamples)}>
                         <Sparkles className="h-4 w-4 mr-2" />
                         {showExamples ? "Masquer" : "Voir"} exemples
                     </Button>
@@ -389,9 +390,10 @@ export default function CategoriesPage() {
                 </div>
             </div>
 
-            {/* Examples Card */}
-            {showExamples && (
-                <Card className="border-purple-200 bg-purple-50/50">
+            {/* Examples Card with Animation */}
+            <Collapsible open={showExamples} onOpenChange={setShowExamples}>
+                <CollapsibleContent className="space-y-4">
+                <Card className="border-purple-200 bg-purple-50/50 animate-in slide-in-from-top-5 duration-300">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-lg">
                             Exemples d&apos;organisation
@@ -435,7 +437,8 @@ export default function CategoriesPage() {
                         </div>
                     </CardContent>
                 </Card>
-            )}
+                </CollapsibleContent>
+            </Collapsible>
 
             {/* Info Card */}
             <Card className="border-blue-200 bg-blue-50/50">
