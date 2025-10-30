@@ -1,18 +1,20 @@
-import { requireAuth } from "@/lib/api/auth-middleware";
 import { prisma } from "@/lib/prisma";
 import { categorieUpdateSchema } from "@/lib/validation";
+import {
+    handleTenantError,
+    requireTenantAuth,
+    validateTenantAccess,
+} from "@/lib/middleware/tenant-isolation";
 import { NextRequest, NextResponse } from "next/server";
 
-// GET: Récupérer une catégorie par ID
 export async function GET(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const sessionOrError = await requireAuth();
-        if (sessionOrError instanceof NextResponse) return sessionOrError;
-
+        const { entrepriseId } = await requireTenantAuth();
         const { id } = await params;
+
         const categorie = await prisma.categorie.findUnique({
             where: { id },
             include: {
@@ -36,24 +38,19 @@ export async function GET(
             );
         }
 
+        validateTenantAccess(categorie.entrepriseId, entrepriseId);
+
         return NextResponse.json(categorie);
     } catch (error) {
-        console.error("Erreur lors de la récupération de la catégorie:", error);
-        return NextResponse.json(
-            { message: "Erreur interne du serveur" },
-            { status: 500 }
-        );
+        return handleTenantError(error);
     }
 }
 
-// Shared update logic for PUT and PATCH
 async function updateCategorie(
     req: NextRequest,
     params: Promise<{ id: string }>
 ) {
-    const sessionOrError = await requireAuth();
-    if (sessionOrError instanceof NextResponse) return sessionOrError;
-
+    const { entrepriseId } = await requireTenantAuth();
     const { id } = await params;
     const body = await req.json();
     const validation = categorieUpdateSchema.safeParse(body);
@@ -68,7 +65,6 @@ async function updateCategorie(
         );
     }
 
-    // Vérifier que la catégorie existe
     const existingCategorie = await prisma.categorie.findUnique({
         where: { id },
     });
@@ -80,7 +76,8 @@ async function updateCategorie(
         );
     }
 
-    // Vérifier qu'on ne crée pas de boucle de parenté
+    validateTenantAccess(existingCategorie.entrepriseId, entrepriseId);
+
     if (validation.data.parentId) {
         const parentCategorie = await prisma.categorie.findUnique({
             where: { id: validation.data.parentId },
@@ -96,7 +93,13 @@ async function updateCategorie(
             );
         }
 
-        // Empêcher de se mettre soi-même comme parent
+        if (parentCategorie.entrepriseId !== entrepriseId) {
+            return NextResponse.json(
+                { message: "Catégorie parente invalide" },
+                { status: 403 }
+            );
+        }
+
         if (validation.data.parentId === id) {
             return NextResponse.json(
                 { message: "Une catégorie ne peut pas être son propre parent" },
@@ -104,7 +107,6 @@ async function updateCategorie(
             );
         }
 
-        // Empêcher les boucles (vérification simplifiée)
         if (parentCategorie?.parentId === id) {
             return NextResponse.json(
                 {
@@ -115,11 +117,12 @@ async function updateCategorie(
             );
         }
 
-        // Vérifier la limite de profondeur (2 niveaux max)
-        // Si le parent a déjà un parent, on ne peut pas déplacer cette catégorie sous lui
         if (parentCategorie.parentId) {
             return NextResponse.json(
-                { message: "Impossible de créer une sous-sous-catégorie. La hiérarchie est limitée à 2 niveaux (catégorie et sous-catégorie)." },
+                {
+                    message:
+                        "Impossible de créer une sous-sous-catégorie. La hiérarchie est limitée à 2 niveaux (catégorie et sous-catégorie).",
+                },
                 { status: 400 }
             );
         }
@@ -141,7 +144,6 @@ async function updateCategorie(
     return NextResponse.json(categorie);
 }
 
-// PUT: Mettre à jour une catégorie
 export async function PUT(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -149,15 +151,10 @@ export async function PUT(
     try {
         return await updateCategorie(req, params);
     } catch (error) {
-        console.error("Erreur lors de la mise à jour de la catégorie:", error);
-        return NextResponse.json(
-            { message: "Erreur interne du serveur" },
-            { status: 500 }
-        );
+        return handleTenantError(error);
     }
 }
 
-// PATCH: Mettre à jour partiellement une catégorie
 export async function PATCH(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -165,25 +162,18 @@ export async function PATCH(
     try {
         return await updateCategorie(req, params);
     } catch (error) {
-        console.error("Erreur lors de la mise à jour de la catégorie:", error);
-        return NextResponse.json(
-            { message: "Erreur interne du serveur" },
-            { status: 500 }
-        );
+        return handleTenantError(error);
     }
 }
 
-// DELETE: Supprimer une catégorie
 export async function DELETE(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const sessionOrError = await requireAuth();
-        if (sessionOrError instanceof NextResponse) return sessionOrError;
-
+        const { entrepriseId } = await requireTenantAuth();
         const { id } = await params;
-        // Vérifier que la catégorie existe
+
         const categorie = await prisma.categorie.findUnique({
             where: { id },
             include: {
@@ -199,7 +189,8 @@ export async function DELETE(
             );
         }
 
-        // Empêcher la suppression si la catégorie a des enfants
+        validateTenantAccess(categorie.entrepriseId, entrepriseId);
+
         if (categorie.enfants.length > 0) {
             return NextResponse.json(
                 {
@@ -209,7 +200,6 @@ export async function DELETE(
             );
         }
 
-        // Empêcher la suppression si la catégorie contient des articles
         if (categorie.articles.length > 0) {
             return NextResponse.json(
                 {
@@ -227,10 +217,6 @@ export async function DELETE(
             message: "Catégorie supprimée avec succès",
         });
     } catch (error) {
-        console.error("Erreur lors de la suppression de la catégorie:", error);
-        return NextResponse.json(
-            { message: "Erreur interne du serveur" },
-            { status: 500 }
-        );
+        return handleTenantError(error);
     }
 }

@@ -1,5 +1,5 @@
 // ============================================
-// ERP ARTISAN - PRISMA SCHEMA
+// ERP ARTISAN - PRISMA SCHEMA (MULTI-TENANT)
 // ============================================
 
 generator client {
@@ -13,17 +13,68 @@ datasource db {
 }
 
 // ============================================
+// MULTI-TENANCY
+// ============================================
+
+model Entreprise {
+  id    String @id @default(cuid())
+  nom   String
+  siret String? @unique
+  email String  @unique
+
+  // Gestion d'abonnement
+  plan            PlanAbonnement @default(FREE)
+  abonnementActif Boolean        @default(true)
+  dateAbonnement  DateTime       @default(now())
+  dateExpiration  DateTime?
+
+  // Relations (toutes les données de l'entreprise)
+  users      User[]
+  categories Categorie[]
+  articles   Article[]
+  clients    Client[]
+  documents  Document[]
+  mouvements MouvementStock[]
+  parametres ParametresEntreprise?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([siret])
+  @@index([abonnementActif])
+}
+
+enum PlanAbonnement {
+  FREE
+  BASIC
+  PREMIUM
+  ENTERPRISE
+}
+
+// ============================================
 // AUTHENTIFICATION
 // ============================================
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  name      String?
-  role      String   @default("user") // admin, user
+  id       String @id @default(cuid())
+  email    String @unique
+  password String
+  name     String?
+  role     String @default("user")
+
+  // Multi-tenant: chaque user appartient à une entreprise
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Onboarding: tracking si l'utilisateur a complété son profil
+  onboardingComplete Boolean @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([email])
 }
 
 // ============================================
@@ -42,12 +93,16 @@ model Client {
   pays       String  @default("France")
   notes      String?
 
-  // Relations
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
   documents Document[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([entrepriseId])
   @@index([nom])
   @@index([email])
   @@index([ville])
@@ -64,33 +119,35 @@ model Categorie {
   ordre       Int     @default(0)
   parentId    String?
 
-  // Relations
-  parent          Categorie?           @relation("CategoriesToParent", fields: [parentId], references: [id])
-  enfants         Categorie[]          @relation("CategoriesToParent")
-  articles        Article[]
-  champsCustom    ChampPersonnalise[]
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  parent       Categorie?           @relation("CategoriesToParent", fields: [parentId], references: [id])
+  enfants      Categorie[]          @relation("CategoriesToParent")
+  articles     Article[]
+  champsCustom ChampPersonnalise[]
 
   createdAt DateTime @default(now())
 
+  @@index([entrepriseId])
   @@index([nom])
   @@index([ordre])
 }
 
-// Champs personnalisés par catégorie (template)
 model ChampPersonnalise {
-  id           String           @id @default(cuid())
-  categorieId  String
-  nom          String           // Ex: "Marque", "Capacité de stockage"
-  code         String           // Ex: "marque", "storage_capacity" (pour le stockage)
-  type         TypeChampCustom  @default(TEXT)
-  ordre        Int              @default(0)
-  obligatoire  Boolean          @default(false)
-  placeholder  String?
-  description  String?
-  options      Json?            // Pour SELECT: ["64GB", "128GB", "256GB"]
-  validation   Json?            // Règles de validation (min, max, regex, etc.)
+  id          String          @id @default(cuid())
+  categorieId String
+  nom         String
+  code        String
+  type        TypeChampCustom @default(TEXT)
+  ordre       Int             @default(0)
+  obligatoire Boolean         @default(false)
+  placeholder String?
+  description String?
+  options     Json?
+  validation  Json?
 
-  // Relations
   categorie Categorie @relation(fields: [categorieId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
@@ -102,22 +159,22 @@ model ChampPersonnalise {
 }
 
 enum TypeChampCustom {
-  TEXT          // Texte court
-  TEXTAREA      // Texte long
-  NUMBER        // Nombre
-  DECIMAL       // Nombre décimal
-  SELECT        // Liste déroulante
-  MULTISELECT   // Liste à choix multiples
-  CHECKBOX      // Case à cocher
-  DATE          // Date
-  COLOR         // Sélecteur de couleur
-  URL           // URL
-  EMAIL         // Email
+  TEXT
+  TEXTAREA
+  NUMBER
+  DECIMAL
+  SELECT
+  MULTISELECT
+  CHECKBOX
+  DATE
+  COLOR
+  URL
+  EMAIL
 }
 
 model Article {
   id            String      @id @default(cuid())
-  reference     String      @unique
+  reference     String
   nom           String
   description   String?
   type          ArticleType @default(PRODUIT)
@@ -128,11 +185,12 @@ model Article {
   stock_min     Int         @default(0)
   gestion_stock Boolean     @default(false)
   actif         Boolean     @default(true)
+  champsCustom  Json?
 
-  // Champs personnalisés (stockage flexible)
-  champsCustom  Json?       // Ex: { "marque": "Apple", "storage_capacity": "128GB", "color": "Noir" }
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
 
-  // Relations
   categorie   Categorie?       @relation(fields: [categorieId], references: [id])
   categorieId String?
   lignes      LigneDocument[]
@@ -141,6 +199,8 @@ model Article {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([entrepriseId, reference])
+  @@index([entrepriseId])
   @@index([reference])
   @@index([nom])
   @@index([type])
@@ -159,40 +219,42 @@ enum ArticleType {
 
 model Document {
   id           String         @id @default(cuid())
-  numero       String         @unique
+  numero       String
   type         DocumentType
-  client       Client         @relation(fields: [clientId], references: [id])
-  clientId     String
   dateEmission DateTime       @db.Date
   dateEcheance DateTime?      @db.Date
   statut       DocumentStatut @default(BROUILLON)
 
-  // Montants
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  client   Client @relation(fields: [clientId], references: [id])
+  clientId String
+
   total_ht  Decimal @default(0) @db.Decimal(10, 2)
   total_tva Decimal @default(0) @db.Decimal(10, 2)
   total_ttc Decimal @default(0) @db.Decimal(10, 2)
 
-  // Paiements
   acompte_montant Decimal @default(0) @db.Decimal(10, 2)
   reste_a_payer   Decimal @default(0) @db.Decimal(10, 2)
 
-  // Infos complémentaires
   notes               String?
   conditions_paiement String?
   validite_jours      Int     @default(30)
 
-  // Conversion devis → facture
   devisId  String?
   devis    Document?  @relation("DevisToFacture", fields: [devisId], references: [id])
   factures Document[] @relation("DevisToFacture")
 
-  // Relations
   lignes    LigneDocument[]
   paiements Paiement[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([entrepriseId, numero])
+  @@index([entrepriseId])
   @@index([numero])
   @@index([type])
   @@index([clientId])
@@ -223,7 +285,6 @@ model LigneDocument {
   article    Article? @relation(fields: [articleId], references: [id])
   articleId  String?
 
-  // Données
   ordre            Int
   designation      String
   description      String?
@@ -232,7 +293,6 @@ model LigneDocument {
   tva_taux         Decimal @db.Decimal(5, 2)
   remise_pourcent  Decimal @default(0) @db.Decimal(5, 2)
 
-  // Calculs
   montant_ht  Decimal @db.Decimal(10, 2)
   montant_tva Decimal @db.Decimal(10, 2)
   montant_ttc Decimal @db.Decimal(10, 2)
@@ -275,30 +335,36 @@ enum MoyenPaiement {
 
 model MouvementStock {
   id          String        @id @default(cuid())
-  article     Article       @relation(fields: [articleId], references: [id], onDelete: Cascade)
-  articleId   String
   type        TypeMouvement
-  quantite    Int // Positif pour entrée, négatif pour sortie
-  stock_avant Int // Stock avant le mouvement
-  stock_apres Int // Stock après le mouvement
-  motif       String? // Raison du mouvement
-  reference   String? // Numéro de bon de livraison, commande, etc.
+  quantite    Int
+  stock_avant Int
+  stock_apres Int
+  motif       String?
+  reference   String?
   notes       String?
 
-  createdAt DateTime @default(now())
-  createdBy String? // ID de l'utilisateur (optionnel pour le moment)
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
 
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  articleId String
+
+  createdAt DateTime @default(now())
+  createdBy String?
+
+  @@index([entrepriseId])
   @@index([articleId])
   @@index([type])
   @@index([createdAt])
 }
 
 enum TypeMouvement {
-  ENTREE // Réception de stock (livraison fournisseur)
-  SORTIE // Sortie de stock (vente, consommation)
-  AJUSTEMENT // Correction manuelle du stock
-  INVENTAIRE // Ajustement suite à inventaire
-  RETOUR // Retour client ou fournisseur
+  ENTREE
+  SORTIE
+  AJUSTEMENT
+  INVENTAIRE
+  RETOUR
 }
 
 // ============================================
@@ -306,7 +372,7 @@ enum TypeMouvement {
 // ============================================
 
 model ParametresEntreprise {
-  id             Int     @id @default(1)
+  id             String  @id @default(cuid())
   nom_entreprise String
   siret          String?
   tva_intra      String?
@@ -318,15 +384,20 @@ model ParametresEntreprise {
   site_web       String?
   logo_url       String?
 
-  // Numérotation
   prefixe_devis           String @default("DEV")
   prefixe_facture         String @default("FACT")
   prochain_numero_devis   Int    @default(1)
   prochain_numero_facture Int    @default(1)
 
-  // Conditions
   conditions_paiement_defaut String?
   mentions_legales           String?
 
+  // Multi-tenant: relation one-to-one
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String     @unique
+
+  createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
 }

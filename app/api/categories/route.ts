@@ -1,15 +1,17 @@
-import { requireAuth } from "@/lib/api/auth-middleware";
 import { prisma } from "@/lib/prisma";
 import { categorieCreateSchema } from "@/lib/validation";
+import {
+    handleTenantError,
+    requireTenantAuth,
+} from "@/lib/middleware/tenant-isolation";
 import { NextRequest, NextResponse } from "next/server";
 
-// GET: Récupérer toutes les catégories
 export async function GET() {
     try {
-        const sessionOrError = await requireAuth();
-        if (sessionOrError instanceof NextResponse) return sessionOrError;
+        const { entrepriseId } = await requireTenantAuth();
 
         const categories = await prisma.categorie.findMany({
+            where: { entrepriseId },
             include: {
                 enfants: true,
                 parent: true,
@@ -23,19 +25,13 @@ export async function GET() {
 
         return NextResponse.json(categories);
     } catch (error) {
-        console.error("Erreur lors de la récupération des catégories:", error);
-        return NextResponse.json(
-            { message: "Erreur interne du serveur" },
-            { status: 500 }
-        );
+        return handleTenantError(error);
     }
 }
 
-// POST: Créer une nouvelle catégorie
 export async function POST(req: NextRequest) {
     try {
-        const sessionOrError = await requireAuth();
-        if (sessionOrError instanceof NextResponse) return sessionOrError;
+        const { entrepriseId } = await requireTenantAuth();
 
         const body = await req.json();
         const validation = categorieCreateSchema.safeParse(body);
@@ -50,11 +46,10 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Vérifier la limite de profondeur de la hiérarchie (2 niveaux max)
         if (validation.data.parentId) {
             const parentCategorie = await prisma.categorie.findUnique({
                 where: { id: validation.data.parentId },
-                select: { parentId: true },
+                select: { parentId: true, entrepriseId: true },
             });
 
             if (!parentCategorie) {
@@ -64,21 +59,30 @@ export async function POST(req: NextRequest) {
                 );
             }
 
-            // Si le parent a déjà un parent, on ne peut pas créer de sous-sous-catégorie
+            if (parentCategorie.entrepriseId !== entrepriseId) {
+                return NextResponse.json(
+                    { message: "Catégorie parente invalide" },
+                    { status: 403 }
+                );
+            }
+
             if (parentCategorie.parentId) {
                 return NextResponse.json(
-                    { message: "Impossible de créer une sous-sous-catégorie. La hiérarchie est limitée à 2 niveaux (catégorie et sous-catégorie)." },
+                    {
+                        message:
+                            "Impossible de créer une sous-sous-catégorie. La hiérarchie est limitée à 2 niveaux (catégorie et sous-catégorie).",
+                    },
                     { status: 400 }
                 );
             }
         }
 
-        // Nettoyer les valeurs vides pour Prisma
         const cleanedData = {
             nom: validation.data.nom,
             description: validation.data.description || null,
             parentId: validation.data.parentId || null,
             ordre: validation.data.ordre,
+            entrepriseId,
         };
 
         const categorie = await prisma.categorie.create({
@@ -95,10 +99,6 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json(categorie, { status: 201 });
     } catch (error) {
-        console.error("Erreur lors de la création de la catégorie:", error);
-        return NextResponse.json(
-            { message: "Erreur interne du serveur" },
-            { status: 500 }
-        );
+        return handleTenantError(error);
     }
 }

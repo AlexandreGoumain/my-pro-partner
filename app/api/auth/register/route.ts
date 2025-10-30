@@ -30,26 +30,68 @@ export async function POST(req: NextRequest) {
             );
         }
 
+        // Vérifier si l'email est déjà utilisé par une entreprise
+        const existingEntreprise = await prisma.entreprise.findUnique({
+            where: { email },
+        });
+
+        if (existingEntreprise) {
+            return NextResponse.json(
+                { message: "Une entreprise avec cet email existe déjà" },
+                { status: 400 }
+            );
+        }
+
         // Hasher le mot de passe
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Créer l'utilisateur
-        const user = await prisma.user.create({
-            data: {
-                email,
-                password: hashedPassword,
-                name,
-                role: "user",
-            },
+        // Créer l'entreprise et l'utilisateur atomiquement
+        const result = await prisma.$transaction(async (tx) => {
+            // Créer l'entreprise
+            const entreprise = await tx.entreprise.create({
+                data: {
+                    nom: name || "Mon Entreprise",
+                    email,
+                    plan: "FREE",
+                    abonnementActif: true,
+                },
+            });
+
+            // Créer l'utilisateur admin
+            const user = await tx.user.create({
+                data: {
+                    email,
+                    password: hashedPassword,
+                    name,
+                    role: "admin",
+                    entrepriseId: entreprise.id,
+                    onboardingComplete: true, // Registration form = onboarding complete
+                },
+            });
+
+            // Créer les paramètres par défaut
+            await tx.parametresEntreprise.create({
+                data: {
+                    entrepriseId: entreprise.id,
+                    nom_entreprise: name || "Mon Entreprise",
+                },
+            });
+
+            return { user, entreprise };
         });
 
         return NextResponse.json(
             {
-                message: "Utilisateur créé avec succès",
+                message: "Utilisateur et entreprise créés avec succès",
                 user: {
-                    id: user.id,
-                    email: user.email,
-                    name: user.name,
+                    id: result.user.id,
+                    email: result.user.email,
+                    name: result.user.name,
+                },
+                entreprise: {
+                    id: result.entreprise.id,
+                    nom: result.entreprise.nom,
+                    plan: result.entreprise.plan,
                 },
             },
             { status: 201 }
