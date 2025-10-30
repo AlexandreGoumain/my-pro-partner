@@ -19,10 +19,19 @@ export const authOptions: NextAuthOptions = {
 
                 const user = await prisma.user.findUnique({
                     where: { email: credentials.email },
+                    include: { entreprise: true },
                 });
 
                 if (!user) {
                     throw new Error("Utilisateur non trouvé");
+                }
+
+                if (!user.entreprise) {
+                    throw new Error("Aucune entreprise associée à cet utilisateur");
+                }
+
+                if (!user.entreprise.abonnementActif) {
+                    throw new Error("Abonnement expiré");
                 }
 
                 const isPasswordValid = await bcrypt.compare(
@@ -39,6 +48,8 @@ export const authOptions: NextAuthOptions = {
                     email: user.email,
                     name: user.name,
                     role: user.role,
+                    entrepriseId: user.entrepriseId,
+                    onboardingComplete: user.onboardingComplete,
                 };
             },
         }),
@@ -64,43 +75,113 @@ export const authOptions: NextAuthOptions = {
             if (account?.provider === "google") {
                 try {
                     // Check if user already exists in database
-                    const existingUser = await prisma.user.findUnique({
+                    let existingUser = await prisma.user.findUnique({
                         where: { email: user.email! },
+                        include: { entreprise: true },
                     });
 
-                    // If user doesn't exist, create them
                     if (!existingUser) {
-                        await prisma.user.create({
-                            data: {
-                                email: user.email!,
-                                name: user.name || "",
-                                password: "", // Empty password for OAuth users
-                                role: "user",
-                            },
+                        // Create entreprise + user automatically for OAuth
+                        const result = await prisma.$transaction(async (tx) => {
+                            // Check if entreprise with this email already exists
+                            let entreprise = await tx.entreprise.findUnique({
+                                where: { email: user.email! },
+                            });
+
+                            // If no entreprise exists, create one
+                            if (!entreprise) {
+                                entreprise = await tx.entreprise.create({
+                                    data: {
+                                        nom: user.name || "Mon Entreprise",
+                                        email: user.email!,
+                                        plan: "FREE",
+                                        abonnementActif: true,
+                                    },
+                                });
+                            }
+
+                            // Create user (onboardingComplete = false by default)
+                            const newUser = await tx.user.create({
+                                data: {
+                                    email: user.email!,
+                                    name: user.name || "",
+                                    password: "", // Empty for OAuth users
+                                    role: "admin",
+                                    entrepriseId: entreprise.id,
+                                    onboardingComplete: false,
+                                },
+                            });
+
+                            // Create or update default settings
+                            const existingParams = await tx.parametresEntreprise.findUnique({
+                                where: { entrepriseId: entreprise.id },
+                            });
+
+                            if (!existingParams) {
+                                await tx.parametresEntreprise.create({
+                                    data: {
+                                        entrepriseId: entreprise.id,
+                                        nom_entreprise: user.name || "Mon Entreprise",
+                                    },
+                                });
+                            }
+
+                            return newUser;
                         });
+
+                        console.log("OAuth user created successfully:", result.email);
+                        return true;
+                    }
+
+                    // Check if entreprise exists and is active
+                    if (!existingUser.entreprise) {
+                        console.error("User has no associated entreprise");
+                        return false;
+                    }
+
+                    if (!existingUser.entreprise.abonnementActif) {
+                        console.error("Subscription expired for entreprise:", existingUser.entreprise.nom);
+                        return false;
                     }
                 } catch (error) {
-                    console.error("Error creating OAuth user:", error);
+                    console.error("Error validating OAuth user:", error);
                     return false;
                 }
             }
             return true;
         },
-        async jwt({ token, user, account }) {
+        async jwt({ token, user, account, trigger }) {
             if (user) {
                 token.id = user.id;
                 token.role = user.role || "user";
+                token.entrepriseId = (user as any).entrepriseId;
+                token.onboardingComplete = (user as any).onboardingComplete;
             }
 
             // For OAuth users, fetch from database on first sign in
             if (account?.provider === "google" && user.email) {
                 const dbUser = await prisma.user.findUnique({
                     where: { email: user.email },
+                    include: { entreprise: true },
                 });
 
                 if (dbUser) {
                     token.id = dbUser.id;
                     token.role = dbUser.role;
+                    token.entrepriseId = dbUser.entrepriseId;
+                    token.onboardingComplete = dbUser.onboardingComplete;
+                }
+            }
+
+            // Refetch onboarding status from DB when session is updated
+            if (trigger === "update" && token.id) {
+                const dbUser = await prisma.user.findUnique({
+                    where: { id: token.id as string },
+                    select: { onboardingComplete: true },
+                });
+
+                if (dbUser) {
+                    token.onboardingComplete = dbUser.onboardingComplete;
                 }
             }
 
@@ -110,6 +191,8 @@ export const authOptions: NextAuthOptions = {
             if (session.user) {
                 session.user.id = token.id as string;
                 session.user.role = token.role as string;
+                (session.user as any).entrepriseId = token.entrepriseId as string;
+                (session.user as any).onboardingComplete = token.onboardingComplete as boolean;
             }
             return session;
         },
