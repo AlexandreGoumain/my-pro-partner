@@ -41,7 +41,6 @@ import {
     ChevronLeft,
     ChevronRight,
     DollarSign,
-    ExternalLink,
     FileText,
     FolderTree,
     Info,
@@ -51,10 +50,13 @@ import {
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { CategoryTreeSelect } from "@/components/category-tree-select";
 
 interface Category {
     id: string;
     nom: string;
+    parentId: string | null;
+    enfants?: Category[];
 }
 
 interface ArticleCreateDialogProps {
@@ -75,6 +77,7 @@ export function ArticleCreateDialog({
     const [categories, setCategories] = useState<Category[]>([]);
     const [loadingCategories, setLoadingCategories] = useState(true);
     const [currentStep, setCurrentStep] = useState<Step>(1);
+    const [direction, setDirection] = useState<"left" | "right">("right");
     const [articleType, setArticleType] = useState<
         "PRODUIT" | "SERVICE" | null
     >(null);
@@ -96,7 +99,6 @@ export function ArticleCreateDialog({
         },
     });
 
-    // Charger les catégories
     useEffect(() => {
         async function fetchCategories() {
             try {
@@ -115,10 +117,10 @@ export function ArticleCreateDialog({
         fetchCategories();
     }, []);
 
-    // Réinitialiser le formulaire quand le dialog s'ouvre
     useEffect(() => {
         if (open) {
             setCurrentStep(1);
+            setDirection("right");
             setArticleType(null);
             form.reset({
                 reference: "",
@@ -155,7 +157,6 @@ export function ArticleCreateDialog({
     const handleNext = async () => {
         let isValid = true;
 
-        // Validation selon l'étape
         if (currentStep === 1 && !articleType) {
             return;
         }
@@ -175,6 +176,7 @@ export function ArticleCreateDialog({
 
         if (isValid) {
             if (currentStep < totalSteps) {
+                setDirection("right");
                 setCurrentStep((prev) => (prev + 1) as Step);
             }
         }
@@ -182,6 +184,7 @@ export function ArticleCreateDialog({
 
     const handlePrevious = () => {
         if (currentStep > 1) {
+            setDirection("left");
             setCurrentStep((prev) => (prev - 1) as Step);
         }
     };
@@ -189,7 +192,6 @@ export function ArticleCreateDialog({
     const handleTypeSelect = (type: "PRODUIT" | "SERVICE") => {
         setArticleType(type);
         form.setValue("type", type);
-        // Si c'est un service, réinitialiser les valeurs de stock
         if (type === "SERVICE") {
             form.setValue("stock_actuel", 0);
             form.setValue("stock_min", 0);
@@ -220,7 +222,7 @@ export function ArticleCreateDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-6xl! sm:max-w-6xl! w-[95vw] max-h-[95vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>
                         Créer un nouveau{" "}
@@ -228,7 +230,6 @@ export function ArticleCreateDialog({
                     </DialogTitle>
                 </DialogHeader>
 
-                {/* Stepper */}
                 <div className="py-4">
                     <div className="flex items-center justify-between">
                         {steps.map((step, index) => {
@@ -291,21 +292,28 @@ export function ArticleCreateDialog({
                         onSubmit={form.handleSubmit(onSubmit)}
                         className="space-y-6"
                     >
-                        {/* Step 1: Type Selection */}
-                        {currentStep === 1 && (
-                            <div className="space-y-6 py-4">
-                                <div className="text-center space-y-2">
-                                    <h3 className="text-lg font-semibold">
-                                        Quel type d&apos;article souhaitez-vous
-                                        créer ?
-                                    </h3>
-                                    <p className="text-sm text-muted-foreground">
-                                        Choisissez si vous vendez un produit
-                                        physique ou un service
-                                    </p>
-                                </div>
+                        <div className="overflow-hidden">
+                            {currentStep === 1 && (
+                                <div
+                                    key="step-1"
+                                    className={`space-y-6 py-4 animate-in ${
+                                        direction === "right"
+                                            ? "slide-in-from-right"
+                                            : "slide-in-from-left"
+                                    } duration-300`}
+                                >
+                                    <div className="text-center space-y-2">
+                                        <h3 className="text-lg font-semibold">
+                                            Quel type d&apos;article souhaitez-vous
+                                            créer ?
+                                        </h3>
+                                        <p className="text-sm text-muted-foreground">
+                                            Choisissez si vous vendez un produit
+                                            physique ou un service
+                                        </p>
+                                    </div>
 
-                                <div className="grid grid-cols-2 gap-6">
+                                    <div className="grid grid-cols-2 gap-6">
                                     <Card
                                         className={`cursor-pointer transition-all hover:shadow-md ${
                                             articleType === "PRODUIT"
@@ -428,23 +436,29 @@ export function ArticleCreateDialog({
                                             </div>
                                         </CardContent>
                                     </Card>
+                                    </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
 
-                        {/* Step 2: General Information */}
-                        {currentStep === 2 && (
-                            <div className="space-y-6 py-4">
-                                <div className="space-y-2">
-                                    <h3 className="text-lg font-semibold">
-                                        Informations générales
-                                    </h3>
-                                    <p className="text-sm text-muted-foreground">
-                                        Renseignez les informations de base
-                                    </p>
-                                </div>
+                            {currentStep === 2 && (
+                                <div
+                                    key="step-2"
+                                    className={`space-y-6 py-4 animate-in ${
+                                        direction === "right"
+                                            ? "slide-in-from-right"
+                                            : "slide-in-from-left"
+                                    } duration-300`}
+                                >
+                                    <div className="space-y-2">
+                                        <h3 className="text-lg font-semibold">
+                                            Informations générales
+                                        </h3>
+                                        <p className="text-sm text-muted-foreground">
+                                            Renseignez les informations de base
+                                        </p>
+                                    </div>
 
-                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-2 gap-4">
                                     <FormField
                                         control={form.control}
                                         name="reference"
@@ -480,119 +494,66 @@ export function ArticleCreateDialog({
                                                 <FormLabel>
                                                     Catégorie *
                                                 </FormLabel>
-                                                <Select
-                                                    onValueChange={
-                                                        field.onChange
-                                                    }
-                                                    value={field.value}
-                                                    disabled={loadingCategories}
-                                                >
-                                                    <FormControl>
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder="Sélectionner une catégorie" />
-                                                        </SelectTrigger>
-                                                    </FormControl>
-                                                    <SelectContent>
-                                                        {categories.length ===
-                                                        0 ? (
-                                                            <div className="p-4 text-center">
-                                                                <p className="text-sm text-muted-foreground mb-3">
-                                                                    Aucune
-                                                                    catégorie
-                                                                    disponible
+                                                <FormControl>
+                                                    {categories.length === 0 ? (
+                                                        <div className="space-y-3">
+                                                            <div className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg bg-muted/30">
+                                                                <FolderTree className="h-10 w-10 text-muted-foreground mb-3" />
+                                                                <p className="text-sm text-muted-foreground text-center mb-3">
+                                                                    Aucune catégorie disponible
                                                                 </p>
                                                                 <Button
                                                                     type="button"
                                                                     variant="outline"
                                                                     size="sm"
-                                                                    className="w-full"
                                                                     onClick={() => {
-                                                                        onOpenChange(
-                                                                            false
-                                                                        );
-                                                                        router.push(
-                                                                            "/dashboard/articles/categories"
-                                                                        );
+                                                                        onOpenChange(false);
+                                                                        router.push("/dashboard/articles/categories");
                                                                     }}
                                                                 >
                                                                     <FolderTree className="h-4 w-4 mr-2" />
-                                                                    Créer mes
-                                                                    catégories
+                                                                    Créer mes catégories
                                                                 </Button>
                                                             </div>
-                                                        ) : (
-                                                            <>
-                                                                {categories.map(
-                                                                    (
-                                                                        category
-                                                                    ) => (
-                                                                        <SelectItem
-                                                                            key={
-                                                                                category.id
-                                                                            }
-                                                                            value={
-                                                                                category.id
-                                                                            }
-                                                                        >
-                                                                            {
-                                                                                category.nom
-                                                                            }
-                                                                        </SelectItem>
-                                                                    )
-                                                                )}
-                                                                <div className="border-t mt-2 pt-2">
-                                                                    <Button
-                                                                        type="button"
-                                                                        variant="ghost"
-                                                                        className="w-full justify-start text-primary"
-                                                                        onClick={() => {
-                                                                            onOpenChange(
-                                                                                false
-                                                                            );
-                                                                            router.push(
-                                                                                "/dashboard/articles/categories"
-                                                                            );
-                                                                        }}
-                                                                    >
-                                                                        <FolderTree className="h-4 w-4 mr-2" />
-                                                                        Gérer
-                                                                        mes
-                                                                        catégories
-                                                                        <ExternalLink className="h-3 w-3 ml-auto" />
-                                                                    </Button>
-                                                                </div>
-                                                            </>
-                                                        )}
-                                                    </SelectContent>
-                                                </Select>
-                                                {categories.length === 0 ? (
-                                                    <Card className="mt-2 border-amber-200 bg-amber-50/50">
-                                                        <CardContent className="p-3">
-                                                            <div className="flex gap-2">
-                                                                <Info className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
-                                                                <p className="text-xs text-amber-700">
-                                                                    Commencez
-                                                                    par créer
-                                                                    vos
-                                                                    catégories
-                                                                    pour mieux
-                                                                    organiser
-                                                                    votre
-                                                                    catalogue.
-                                                                    Nous vous
-                                                                    montrerons
-                                                                    des exemples
-                                                                    !
-                                                                </p>
-                                                            </div>
-                                                        </CardContent>
-                                                    </Card>
-                                                ) : (
-                                                    <FormDescription>
-                                                        Sélectionnez une
-                                                        catégorie ou créez-en de
-                                                        nouvelles
-                                                    </FormDescription>
+                                                            <Card className="border-amber-200 bg-amber-50/50">
+                                                                <CardContent className="p-3">
+                                                                    <div className="flex gap-2">
+                                                                        <Info className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                                                                        <p className="text-xs text-amber-700">
+                                                                            Commencez par créer vos catégories pour mieux organiser votre catalogue. Nous vous montrerons des exemples !
+                                                                        </p>
+                                                                    </div>
+                                                                </CardContent>
+                                                            </Card>
+                                                        </div>
+                                                    ) : (
+                                                        <CategoryTreeSelect
+                                                            categories={categories}
+                                                            value={field.value || ""}
+                                                            onValueChange={field.onChange}
+                                                            disabled={loadingCategories}
+                                                        />
+                                                    )}
+                                                </FormControl>
+                                                {categories.length > 0 && (
+                                                    <div className="flex items-center justify-between">
+                                                        <FormDescription>
+                                                            Utilisez l&apos;arborescence pour naviguer
+                                                        </FormDescription>
+                                                        <Button
+                                                            type="button"
+                                                            variant="link"
+                                                            size="sm"
+                                                            className="h-auto p-0 text-xs"
+                                                            onClick={() => {
+                                                                onOpenChange(false);
+                                                                router.push("/dashboard/articles/categories");
+                                                            }}
+                                                        >
+                                                            <FolderTree className="h-3 w-3 mr-1" />
+                                                            Gérer les catégories
+                                                        </Button>
+                                                    </div>
                                                 )}
                                                 <FormMessage />
                                             </FormItem>
@@ -646,22 +607,28 @@ export function ArticleCreateDialog({
                                         </FormItem>
                                     )}
                                 />
-                            </div>
-                        )}
-
-                        {/* Step 3: Pricing */}
-                        {currentStep === 3 && (
-                            <div className="space-y-6 py-4">
-                                <div className="space-y-2">
-                                    <h3 className="text-lg font-semibold">
-                                        Tarification
-                                    </h3>
-                                    <p className="text-sm text-muted-foreground">
-                                        Définissez le prix de vente
-                                    </p>
                                 </div>
+                            )}
 
-                                <div className="grid grid-cols-2 gap-4">
+                            {currentStep === 3 && (
+                                <div
+                                    key="step-3"
+                                    className={`space-y-6 py-4 animate-in ${
+                                        direction === "right"
+                                            ? "slide-in-from-right"
+                                            : "slide-in-from-left"
+                                    } duration-300`}
+                                >
+                                    <div className="space-y-2">
+                                        <h3 className="text-lg font-semibold">
+                                            Tarification
+                                        </h3>
+                                        <p className="text-sm text-muted-foreground">
+                                            Définissez le prix de vente
+                                        </p>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
                                     <FormField
                                         control={form.control}
                                         name="prix_ht"
@@ -735,11 +702,10 @@ export function ArticleCreateDialog({
                                             </FormItem>
                                         )}
                                     />
-                                </div>
+                                    </div>
 
-                                {/* Price Preview */}
-                                {form.watch("prix_ht") > 0 && (
-                                    <Card className="bg-primary/5 border-primary/20">
+                                    {form.watch("prix_ht") > 0 && (
+                                        <Card className="bg-primary/5 border-primary/20">
                                         <CardContent className="p-6 space-y-3">
                                             <div className="flex justify-between items-center">
                                                 <span className="text-sm text-muted-foreground">
@@ -778,25 +744,31 @@ export function ArticleCreateDialog({
                                                 </span>
                                             </div>
                                         </CardContent>
-                                    </Card>
-                                )}
-                            </div>
-                        )}
-
-                        {/* Step 4: Stock (Products only) */}
-                        {currentStep === 4 && articleType === "PRODUIT" && (
-                            <div className="space-y-6 py-4">
-                                <div className="space-y-2">
-                                    <h3 className="text-lg font-semibold">
-                                        Gestion du stock
-                                    </h3>
-                                    <p className="text-sm text-muted-foreground">
-                                        Configurez le stock initial et les
-                                        alertes
-                                    </p>
+                                        </Card>
+                                    )}
                                 </div>
+                            )}
 
-                                <div className="grid grid-cols-2 gap-4">
+                            {currentStep === 4 && articleType === "PRODUIT" && (
+                                <div
+                                    key="step-4"
+                                    className={`space-y-6 py-4 animate-in ${
+                                        direction === "right"
+                                            ? "slide-in-from-right"
+                                            : "slide-in-from-left"
+                                    } duration-300`}
+                                >
+                                    <div className="space-y-2">
+                                        <h3 className="text-lg font-semibold">
+                                            Gestion du stock
+                                        </h3>
+                                        <p className="text-sm text-muted-foreground">
+                                            Configurez le stock initial et les
+                                            alertes
+                                        </p>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
                                     <FormField
                                         control={form.control}
                                         name="stock_actuel"
@@ -860,9 +832,9 @@ export function ArticleCreateDialog({
                                             </FormItem>
                                         )}
                                     />
-                                </div>
+                                    </div>
 
-                                <Card className="bg-muted/50">
+                                    <Card className="bg-muted/50">
                                     <CardContent className="p-4">
                                         <div className="flex gap-3">
                                             <Info className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
@@ -880,9 +852,9 @@ export function ArticleCreateDialog({
                                             </div>
                                         </div>
                                     </CardContent>
-                                </Card>
+                                    </Card>
 
-                                <FormField
+                                    <FormField
                                     control={form.control}
                                     name="gestion_stock"
                                     render={({ field }) => (
@@ -909,25 +881,30 @@ export function ArticleCreateDialog({
                                         </FormItem>
                                     )}
                                 />
-                            </div>
-                        )}
-
-                        {/* Step 5 (or 4 for services): Summary */}
-                        {((currentStep === 5 && articleType === "PRODUIT") ||
-                            (currentStep === 4 &&
-                                articleType === "SERVICE")) && (
-                            <div className="space-y-6 py-4">
-                                <div className="space-y-2">
-                                    <h3 className="text-lg font-semibold">
-                                        Résumé et confirmation
-                                    </h3>
-                                    <p className="text-sm text-muted-foreground">
-                                        Vérifiez les informations avant de créer
-                                    </p>
                                 </div>
+                            )}
 
-                                <div className="space-y-4">
-                                    {/* Type */}
+                            {((currentStep === 5 && articleType === "PRODUIT") ||
+                                (currentStep === 4 &&
+                                    articleType === "SERVICE")) && (
+                                <div
+                                    key="step-5"
+                                    className={`space-y-6 py-4 animate-in ${
+                                        direction === "right"
+                                            ? "slide-in-from-right"
+                                            : "slide-in-from-left"
+                                    } duration-300`}
+                                >
+                                    <div className="space-y-2">
+                                        <h3 className="text-lg font-semibold">
+                                            Résumé et confirmation
+                                        </h3>
+                                        <p className="text-sm text-muted-foreground">
+                                            Vérifiez les informations avant de créer
+                                        </p>
+                                    </div>
+
+                                    <div className="space-y-4">
                                     <Card>
                                         <CardContent className="p-4">
                                             <div className="flex items-center gap-3">
@@ -972,7 +949,6 @@ export function ArticleCreateDialog({
                                         </CardContent>
                                     </Card>
 
-                                    {/* General Info */}
                                     <Card>
                                         <CardContent className="p-4 space-y-3">
                                             <h4 className="font-semibold text-sm">
@@ -1027,7 +1003,6 @@ export function ArticleCreateDialog({
                                         </CardContent>
                                     </Card>
 
-                                    {/* Pricing */}
                                     <Card>
                                         <CardContent className="p-4 space-y-3">
                                             <h4 className="font-semibold text-sm">
@@ -1077,7 +1052,6 @@ export function ArticleCreateDialog({
                                         </CardContent>
                                     </Card>
 
-                                    {/* Stock (if product) */}
                                     {articleType === "PRODUIT" && (
                                         <Card>
                                             <CardContent className="p-4 space-y-3">
@@ -1123,36 +1097,37 @@ export function ArticleCreateDialog({
                                             </CardContent>
                                         </Card>
                                     )}
-                                </div>
+                                    </div>
 
-                                <FormField
-                                    control={form.control}
-                                    name="actif"
-                                    render={({ field }) => (
-                                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 bg-muted/30">
-                                            <FormControl>
-                                                <Checkbox
-                                                    checked={field.value}
-                                                    onCheckedChange={
-                                                        field.onChange
-                                                    }
-                                                />
-                                            </FormControl>
-                                            <div className="space-y-1 leading-none">
-                                                <FormLabel>
-                                                    Activer immédiatement cet
-                                                    article
-                                                </FormLabel>
-                                                <FormDescription>
-                                                    L&apos;article sera visible
-                                                    dans le catalogue
-                                                </FormDescription>
-                                            </div>
-                                        </FormItem>
-                                    )}
-                                />
-                            </div>
-                        )}
+                                    <FormField
+                                        control={form.control}
+                                        name="actif"
+                                        render={({ field }) => (
+                                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 bg-muted/30">
+                                                <FormControl>
+                                                    <Checkbox
+                                                        checked={field.value}
+                                                        onCheckedChange={
+                                                            field.onChange
+                                                        }
+                                                    />
+                                                </FormControl>
+                                                <div className="space-y-1 leading-none">
+                                                    <FormLabel>
+                                                        Activer immédiatement cet
+                                                        article
+                                                    </FormLabel>
+                                                    <FormDescription>
+                                                        L&apos;article sera visible
+                                                        dans le catalogue
+                                                    </FormDescription>
+                                                </div>
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+                            )}
+                        </div>
 
                         {form.formState.errors.root && (
                             <div className="text-sm text-destructive">

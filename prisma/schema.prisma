@@ -65,14 +65,54 @@ model Categorie {
   parentId    String?
 
   // Relations
-  parent   Categorie?  @relation("CategoriesToParent", fields: [parentId], references: [id])
-  enfants  Categorie[] @relation("CategoriesToParent")
-  articles Article[]
+  parent          Categorie?           @relation("CategoriesToParent", fields: [parentId], references: [id])
+  enfants         Categorie[]          @relation("CategoriesToParent")
+  articles        Article[]
+  champsCustom    ChampPersonnalise[]
 
   createdAt DateTime @default(now())
 
   @@index([nom])
   @@index([ordre])
+}
+
+// Champs personnalisés par catégorie (template)
+model ChampPersonnalise {
+  id           String           @id @default(cuid())
+  categorieId  String
+  nom          String           // Ex: "Marque", "Capacité de stockage"
+  code         String           // Ex: "marque", "storage_capacity" (pour le stockage)
+  type         TypeChampCustom  @default(TEXT)
+  ordre        Int              @default(0)
+  obligatoire  Boolean          @default(false)
+  placeholder  String?
+  description  String?
+  options      Json?            // Pour SELECT: ["64GB", "128GB", "256GB"]
+  validation   Json?            // Règles de validation (min, max, regex, etc.)
+
+  // Relations
+  categorie Categorie @relation(fields: [categorieId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([categorieId, code])
+  @@index([categorieId])
+  @@index([ordre])
+}
+
+enum TypeChampCustom {
+  TEXT          // Texte court
+  TEXTAREA      // Texte long
+  NUMBER        // Nombre
+  DECIMAL       // Nombre décimal
+  SELECT        // Liste déroulante
+  MULTISELECT   // Liste à choix multiples
+  CHECKBOX      // Case à cocher
+  DATE          // Date
+  COLOR         // Sélecteur de couleur
+  URL           // URL
+  EMAIL         // Email
 }
 
 model Article {
@@ -88,6 +128,9 @@ model Article {
   stock_min     Int         @default(0)
   gestion_stock Boolean     @default(false)
   actif         Boolean     @default(true)
+
+  // Champs personnalisés (stockage flexible)
+  champsCustom  Json?       // Ex: { "marque": "Apple", "storage_capacity": "128GB", "color": "Noir" }
 
   // Relations
   categorie   Categorie?       @relation(fields: [categorieId], references: [id])
