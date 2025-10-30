@@ -10,8 +10,8 @@ export function Navigation() {
 
     const navItems = [
         { label: "Fonctionnalités", href: "#features" },
+        { label: "Démo", href: "#demo" },
         { label: "Tarifs", href: "#pricing" },
-        { label: "Témoignages", href: "#testimonials" },
         { label: "FAQ", href: "#faq" },
     ];
 

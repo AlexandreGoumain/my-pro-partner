@@ -1,10 +1,9 @@
 import { Navigation } from "@/components/landing/navigation";
 import { Hero } from "@/components/landing/hero";
-import { FeaturesGrid } from "@/components/landing/features-grid";
 import { StatsSection } from "@/components/landing/stats-section";
+import { BentoGrid } from "@/components/landing/bento-grid";
 import { ProductDemo } from "@/components/landing/product-demo";
 import { PricingCards } from "@/components/landing/pricing-cards";
-import { Testimonials } from "@/components/landing/testimonials";
 import { FAQ } from "@/components/landing/faq";
 import { CTASection } from "@/components/landing/cta-section";
 import { Footer } from "@/components/landing/footer";
@@ -45,10 +44,9 @@ export default function LandingPage() {
             <main>
                 <Hero />
                 <StatsSection />
-                <FeaturesGrid />
+                <BentoGrid />
                 <ProductDemo />
                 <PricingCards />
-                <Testimonials />
                 <FAQ />
                 <CTASection />
             </main>
