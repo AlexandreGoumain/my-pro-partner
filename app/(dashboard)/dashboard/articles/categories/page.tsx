@@ -301,17 +301,22 @@ export default function CategoriesPage() {
                     </div>
 
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => openCreateDialog(category.id)}
-                        >
-                            <Plus className="h-4 w-4" />
-                        </Button>
+                        {/* Bouton pour créer une sous-catégorie - uniquement pour les catégories principales */}
+                        {level === 0 && (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => openCreateDialog(category.id)}
+                                title="Créer une sous-catégorie"
+                            >
+                                <Plus className="h-4 w-4" />
+                            </Button>
+                        )}
                         <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => openEditDialog(category)}
+                            title="Modifier"
                         >
                             <Edit className="h-4 w-4" />
                         </Button>
@@ -319,6 +324,7 @@ export default function CategoriesPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleDelete(category)}
+                            title="Supprimer"
                         >
                             <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
@@ -352,7 +358,7 @@ export default function CategoriesPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <Button
-                        variant="ghost"
+                        variant="default"
                         onClick={() => router.push("/dashboard/articles")}
                         className="gap-2 -ml-2 mb-2"
                     >
@@ -392,7 +398,8 @@ export default function CategoriesPage() {
                         </CardTitle>
                         <CardDescription>
                             Inspirez-vous de ces exemples pour organiser votre
-                            catalogue
+                            catalogue (catégories principales et
+                            sous-catégories)
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -515,10 +522,17 @@ export default function CategoriesPage() {
                     <CardTitle className="flex items-center gap-2">
                         <FolderTree className="h-5 w-5" />
                         Votre organisation
+                        <Badge
+                            variant="secondary"
+                            className="text-xs font-normal"
+                        >
+                            2 niveaux max
+                        </Badge>
                     </CardTitle>
                     <CardDescription>
                         Cliquez sur les flèches pour déplier/replier • Survolez
-                        pour voir les actions
+                        pour voir les actions • Catégories et sous-catégories
+                        uniquement
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -576,10 +590,11 @@ export default function CategoriesPage() {
                             {formData.parentId ? (
                                 <span className="flex items-center gap-1">
                                     Cette sous-catégorie sera rangée dans la
-                                    catégorie parente
+                                    catégorie parente. La hiérarchie est limitée
+                                    à 2 niveaux.
                                 </span>
                             ) : (
-                                "Cette catégorie sera une catégorie principale"
+                                "Cette catégorie sera une catégorie principale. Vous pourrez ensuite créer des sous-catégories."
                             )}
                         </DialogDescription>
                     </DialogHeader>

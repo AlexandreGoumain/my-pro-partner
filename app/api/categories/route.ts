@@ -50,6 +50,29 @@ export async function POST(req: NextRequest) {
             );
         }
 
+        // Vérifier la limite de profondeur de la hiérarchie (2 niveaux max)
+        if (validation.data.parentId) {
+            const parentCategorie = await prisma.categorie.findUnique({
+                where: { id: validation.data.parentId },
+                select: { parentId: true },
+            });
+
+            if (!parentCategorie) {
+                return NextResponse.json(
+                    { message: "Catégorie parente introuvable" },
+                    { status: 404 }
+                );
+            }
+
+            // Si le parent a déjà un parent, on ne peut pas créer de sous-sous-catégorie
+            if (parentCategorie.parentId) {
+                return NextResponse.json(
+                    { message: "Impossible de créer une sous-sous-catégorie. La hiérarchie est limitée à 2 niveaux (catégorie et sous-catégorie)." },
+                    { status: 400 }
+                );
+            }
+        }
+
         // Nettoyer les valeurs vides pour Prisma
         const cleanedData = {
             nom: validation.data.nom,

@@ -89,6 +89,13 @@ async function updateCategorie(
             },
         });
 
+        if (!parentCategorie) {
+            return NextResponse.json(
+                { message: "Catégorie parente introuvable" },
+                { status: 404 }
+            );
+        }
+
         // Empêcher de se mettre soi-même comme parent
         if (validation.data.parentId === id) {
             return NextResponse.json(
@@ -104,6 +111,15 @@ async function updateCategorie(
                     message:
                         "Cette opération créerait une boucle de catégories",
                 },
+                { status: 400 }
+            );
+        }
+
+        // Vérifier la limite de profondeur (2 niveaux max)
+        // Si le parent a déjà un parent, on ne peut pas déplacer cette catégorie sous lui
+        if (parentCategorie.parentId) {
+            return NextResponse.json(
+                { message: "Impossible de créer une sous-sous-catégorie. La hiérarchie est limitée à 2 niveaux (catégorie et sous-catégorie)." },
                 { status: 400 }
             );
         }
