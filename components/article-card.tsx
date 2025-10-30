@@ -15,6 +15,7 @@ import {
 import { getArticleStatusConfig } from "@/lib/constants/article-statuses";
 import {
     AlertTriangle,
+    Briefcase,
     Copy,
     Edit,
     Eye,
@@ -42,9 +43,16 @@ export function ArticleCard({
     const isLowStock = article.stock <= article.seuilAlerte;
     const isOutOfStock = article.statut === "RUPTURE" || article.stock === 0;
     const statusConfig = getArticleStatusConfig(article.statut);
+    const articleType =
+        (article as Article & { type?: string }).type || "PRODUIT";
+    const isService = articleType === "SERVICE";
 
     return (
-        <Card className="group overflow-hidden hover:shadow-lg transition-shadow">
+        <Card
+            className={`group overflow-hidden hover:shadow-lg transition-all ${
+                isService ? "border-purple-200" : "border-blue-200"
+            }`}
+        >
             {/* Image */}
             <div className="relative aspect-video bg-muted overflow-hidden">
                 <Avatar className="w-full h-full rounded-none">
@@ -53,13 +61,44 @@ export function ArticleCard({
                         alt={article.nom}
                         className="object-cover transition-transform duration-500 group-hover:scale-110"
                     />
-                    <AvatarFallback className="rounded-none bg-muted">
-                        <Package className="h-12 w-12 text-muted-foreground/30" />
+                    <AvatarFallback
+                        className={`rounded-none ${
+                            isService ? "bg-purple-50" : "bg-blue-50"
+                        }`}
+                    >
+                        {isService ? (
+                            <Briefcase className="h-12 w-12 text-purple-400" />
+                        ) : (
+                            <Package className="h-12 w-12 text-blue-400" />
+                        )}
                     </AvatarFallback>
                 </Avatar>
 
                 {/* Gradient overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                {/* Type badge */}
+                <div className="absolute top-3 left-3">
+                    <Badge
+                        className={`backdrop-blur-sm ${
+                            isService
+                                ? "bg-purple-500/90 text-white border-purple-400"
+                                : "bg-blue-500/90 text-white border-blue-400"
+                        }`}
+                    >
+                        {isService ? (
+                            <>
+                                <Briefcase className="h-3 w-3 mr-1" />
+                                Service
+                            </>
+                        ) : (
+                            <>
+                                <Package className="h-3 w-3 mr-1" />
+                                Produit
+                            </>
+                        )}
+                    </Badge>
+                </div>
 
                 {/* Status badge */}
                 <div className="absolute top-3 right-3">
@@ -71,8 +110,8 @@ export function ArticleCard({
                 </div>
 
                 {/* Stock warning */}
-                {isLowStock && !isOutOfStock && (
-                    <div className="absolute top-3 left-3">
+                {isLowStock && !isOutOfStock && !isService && (
+                    <div className="absolute bottom-14 left-3">
                         <Badge className="bg-orange-500/10 text-orange-700 border-orange-500/20 backdrop-blur-sm">
                             <AlertTriangle className="h-3 w-3 mr-1" />
                             Stock faible
@@ -160,20 +199,40 @@ export function ArticleCard({
 
                 {/* Meta */}
                 <div className="flex items-center justify-between">
-                    <Badge variant="outline">{article.categorie}</Badge>
-                    <div className="flex items-center gap-1.5 text-sm">
-                        <Package className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground">
-                            Stock:
-                        </span>
-                        <span
-                            className={`font-semibold ${
-                                isLowStock ? "text-orange-600" : ""
-                            }`}
+                    <Badge
+                        variant="outline"
+                        className={
+                            isService
+                                ? "bg-purple-50 text-purple-700 border-purple-200"
+                                : "bg-blue-50 text-blue-700 border-blue-200"
+                        }
+                    >
+                        {article.categorie}
+                    </Badge>
+                    {!isService && (
+                        <div className="flex items-center gap-1.5 text-sm">
+                            <Package className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-xs text-muted-foreground">
+                                Stock:
+                            </span>
+                            <span
+                                className={`font-semibold ${
+                                    isLowStock ? "text-orange-600" : ""
+                                }`}
+                            >
+                                {article.stock}
+                            </span>
+                        </div>
+                    )}
+                    {isService && (
+                        <Badge
+                            variant="secondary"
+                            className="bg-purple-100 text-purple-700"
                         >
-                            {article.stock}
-                        </span>
-                    </div>
+                            <Briefcase className="h-3 w-3 mr-1" />
+                            Prestation
+                        </Badge>
+                    )}
                 </div>
             </div>
 

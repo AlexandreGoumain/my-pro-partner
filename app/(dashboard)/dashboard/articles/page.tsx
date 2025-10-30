@@ -4,8 +4,10 @@ import { ArticleCard } from "@/components/article-card";
 import { ArticleCreateDialog } from "@/components/article-create-dialog";
 import { ArticleEditDialog } from "@/components/article-edit-dialog";
 import { ArticleViewDialog } from "@/components/article-view-dialog";
+import { CategoryFilter } from "@/components/category-filter";
 import { DeleteConfirmDialog } from "@/components/delete-confirm-dialog";
 import { ArticleCardSkeleton, TableSkeleton } from "@/components/skeletons";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -16,32 +18,59 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Filter, Grid, List, Plus, Search } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
-import { toast } from "sonner";
-import { createColumns, type Article } from "./columns";
-import { DataTable } from "./data-table";
 import {
     useArticles,
     useDeleteArticle,
     useDuplicateArticle,
 } from "@/hooks/use-articles";
+import { useCategories } from "@/hooks/use-categories";
+import { expandCategoryIds } from "@/lib/types/category";
+import {
+    AlertCircle,
+    Briefcase,
+    Grid,
+    List,
+    Package,
+    Plus,
+    Search,
+    ShoppingBag,
+    Tag,
+    TrendingUp,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useCallback, useMemo, useState } from "react";
+import { toast } from "sonner";
+import { createColumns, type Article } from "./columns";
+import { DataTable } from "./data-table";
 
-// Options de filtrage et tri (à terme, categories sera dynamique depuis l'API)
-const categories = ["Toutes", "Mobilier", "Éclairage", "Rangement", "Accessoires", "Outils", "Équipements", "Services", "Consommables"];
-const sortOptions = ["Nom A-Z", "Nom Z-A", "Prix croissant", "Prix décroissant", "Stock"];
+const sortOptions = [
+    "Nom A-Z",
+    "Nom Z-A",
+    "Prix croissant",
+    "Prix décroissant",
+    "Stock",
+];
 
 export default function CataloguePage() {
+    // Hooks
+    const router = useRouter();
+
     // React Query hooks
     const { data: articles = [], isLoading } = useArticles();
+    const { data: categories = [] } = useCategories();
     const duplicateArticle = useDuplicateArticle();
     const deleteArticle = useDeleteArticle();
 
     // UI states
     const [searchTerm, setSearchTerm] = useState("");
-    const [selectedCategory, setSelectedCategory] = useState("Toutes");
+    const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>(
+        []
+    );
     const [sortBy, setSortBy] = useState("Nom A-Z");
     const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+    const [typeFilter, setTypeFilter] = useState<
+        "TOUS" | "PRODUIT" | "SERVICE"
+    >("TOUS");
 
     // Modal states
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -65,8 +94,8 @@ export default function CataloguePage() {
     }, []);
 
     const handleView = useCallback((article: Article) => {
-        setSelectedArticle(article);
-        setViewDialogOpen(true);
+        router.push(`/dashboard/articles/${article.id}`);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleEdit = useCallback((article: Article) => {
@@ -141,10 +170,54 @@ export default function CataloguePage() {
         [handleView, handleEdit, handleDuplicate, handleDelete]
     );
 
+    // Filter handlers with toggle functionality
+    const handleTypeFilterToggle = (type: "TOUS" | "PRODUIT" | "SERVICE") => {
+        if (typeFilter === type && type !== "TOUS") {
+            setTypeFilter("TOUS");
+        } else {
+            setTypeFilter(type);
+        }
+    };
+
+    // Statistiques par type
+    const stats = useMemo(() => {
+        const produits = articles.filter(
+            (a) =>
+                !(a as Article & { type?: string }).type ||
+                (a as Article & { type?: string }).type === "PRODUIT"
+        );
+        const services = articles.filter(
+            (a) => (a as Article & { type?: string }).type === "SERVICE"
+        );
+
+        return {
+            total: articles.length,
+            produits: produits.length,
+            services: services.length,
+            actifs: articles.filter((a) => a.statut === "ACTIF").length,
+            stockFaible: articles.filter(
+                (a) =>
+                    a.stock <=
+                        (a as Article & { seuilAlerte?: number }).seuilAlerte &&
+                    (!(a as Article & { type?: string }).type ||
+                        (a as Article & { type?: string }).type === "PRODUIT")
+            ).length,
+        };
+    }, [articles]);
+
+    // Obtenir tous les IDs de catégories incluant les enfants
+    const getAllCategoryIds = useMemo(() => {
+        return expandCategoryIds(selectedCategoryIds, categories);
+    }, [selectedCategoryIds, categories]);
+
     // Filtrer et trier les articles
     const filteredAndSortedArticles = useMemo(() => {
         // Filtrage
         const filtered = articles.filter((article) => {
+            const articleWithType = article as Article & {
+                type?: string;
+                categorieId?: string;
+            };
             const matchesSearch =
                 article.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 article.reference
@@ -154,9 +227,17 @@ export default function CataloguePage() {
                     .toLowerCase()
                     .includes(searchTerm.toLowerCase());
             const matchesCategory =
-                selectedCategory === "Toutes" ||
-                article.categorie === selectedCategory;
-            return matchesSearch && matchesCategory;
+                selectedCategoryIds.length === 0 ||
+                (articleWithType.categorieId &&
+                    getAllCategoryIds.includes(articleWithType.categorieId));
+            const matchesType =
+                typeFilter === "TOUS" ||
+                (typeFilter === "PRODUIT" &&
+                    (!articleWithType.type ||
+                        articleWithType.type === "PRODUIT")) ||
+                (typeFilter === "SERVICE" &&
+                    articleWithType.type === "SERVICE");
+            return matchesSearch && matchesCategory && matchesType;
         });
 
         // Tri
@@ -178,22 +259,239 @@ export default function CataloguePage() {
         });
 
         return sorted;
-    }, [articles, searchTerm, selectedCategory, sortBy]);
+    }, [
+        articles,
+        searchTerm,
+        selectedCategoryIds,
+        getAllCategoryIds,
+        sortBy,
+        typeFilter,
+    ]);
+
+    // Messages d'état vide personnalisés
+    const getEmptyStateMessage = () => {
+        // Si vraiment aucune donnée du tout et filtre sur "TOUS"
+        const hasNoDataAtAll = articles.length === 0;
+
+        if (typeFilter === "PRODUIT") {
+            return {
+                title: "Aucun produit trouvé",
+                description:
+                    "Aucun produit ne correspond à vos critères. Essayez de modifier vos filtres ou ajoutez un nouveau produit.",
+                buttonText: "Ajouter un produit",
+                icon: Package,
+            };
+        } else if (typeFilter === "SERVICE") {
+            return {
+                title: "Aucun service trouvé",
+                description:
+                    "Aucun service ne correspond à vos critères. Essayez de modifier vos filtres ou ajoutez un nouveau service.",
+                buttonText: "Ajouter un service",
+                icon: Briefcase,
+            };
+        } else if (typeFilter === "TOUS" && hasNoDataAtAll) {
+            // Cas spécial : vraiment aucune donnée
+            return {
+                title: "Commencez votre catalogue",
+                description:
+                    "Vous n'avez pas encore de produits ni de services. Créez votre premier article pour commencer à gérer votre activité.",
+                buttonText: "Créer mon premier article",
+                icon: ShoppingBag,
+            };
+        } else {
+            // Filtre actif mais pas de résultats
+            return {
+                title: "Aucun article trouvé",
+                description:
+                    "Aucun article ne correspond à vos critères de recherche. Essayez de modifier vos filtres ou ajoutez un nouvel article.",
+                buttonText: "Ajouter un article",
+                icon: Search,
+            };
+        }
+    };
+
+    const emptyState = getEmptyStateMessage();
 
     return (
         <div className="space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-2xl font-bold">Catalogue</h2>
+                    <h2 className="text-2xl font-bold">Catalogue & Services</h2>
                     <p className="text-muted-foreground">
                         Gérez votre catalogue de produits et services
                     </p>
                 </div>
-                <Button onClick={handleCreate}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Ajouter un article
-                </Button>
+                <div className="flex gap-2">
+                    <Button
+                        variant="outline"
+                        onClick={() =>
+                            router.push("/dashboard/articles/categories")
+                        }
+                        className="cursor-pointer"
+                    >
+                        <Tag className="w-4 h-4 mr-2" />
+                        Catégories
+                    </Button>
+                    <Button onClick={handleCreate} className="cursor-pointer">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Ajouter
+                    </Button>
+                </div>
+            </div>
+
+            {/* KPI Cards */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+                <Card
+                    className={`cursor-pointer hover:border-primary transition-colors ${
+                        typeFilter === "TOUS"
+                            ? "border-primary bg-primary/5 ring-2 ring-primary/20"
+                            : ""
+                    }`}
+                    onClick={() => handleTypeFilterToggle("TOUS")}
+                >
+                    <div className="p-6">
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-1">
+                                <p className="text-sm text-muted-foreground">
+                                    Total
+                                </p>
+                                <p className="text-2xl font-bold">
+                                    {stats.total}
+                                </p>
+                            </div>
+                            <ShoppingBag
+                                className={`h-8 w-8 ${
+                                    typeFilter === "TOUS"
+                                        ? "text-primary"
+                                        : "text-muted-foreground"
+                                }`}
+                            />
+                        </div>
+                    </div>
+                </Card>
+
+                <Card
+                    className={`cursor-pointer hover:border-blue-500 transition-colors ${
+                        typeFilter === "PRODUIT"
+                            ? "border-blue-500 bg-blue-50/50 ring-2 ring-blue-500/20"
+                            : ""
+                    }`}
+                    onClick={() => handleTypeFilterToggle("PRODUIT")}
+                >
+                    <div className="p-6">
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-1">
+                                <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+                                    <Package className="h-4 w-4 text-blue-600" />
+                                    Produits
+                                </p>
+                                <p className="text-2xl font-bold">
+                                    {stats.produits}
+                                </p>
+                            </div>
+                            <Badge
+                                variant="outline"
+                                className="bg-blue-100 text-blue-700 border-blue-300"
+                            >
+                                {stats.total > 0
+                                    ? (
+                                          (stats.produits / stats.total) *
+                                          100
+                                      ).toFixed(0)
+                                    : 0}
+                                %
+                            </Badge>
+                        </div>
+                    </div>
+                </Card>
+
+                <Card
+                    className={`cursor-pointer hover:border-purple-500 transition-colors ${
+                        typeFilter === "SERVICE"
+                            ? "border-purple-500 bg-purple-50/50 ring-2 ring-purple-500/20"
+                            : ""
+                    }`}
+                    onClick={() => handleTypeFilterToggle("SERVICE")}
+                >
+                    <div className="p-6">
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-1">
+                                <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+                                    <Briefcase className="h-4 w-4 text-purple-600" />
+                                    Services
+                                </p>
+                                <p className="text-2xl font-bold">
+                                    {stats.services}
+                                </p>
+                            </div>
+                            <Badge
+                                variant="outline"
+                                className="bg-purple-100 text-purple-700 border-purple-300"
+                            >
+                                {stats.total > 0
+                                    ? (
+                                          (stats.services / stats.total) *
+                                          100
+                                      ).toFixed(0)
+                                    : 0}
+                                %
+                            </Badge>
+                        </div>
+                    </div>
+                </Card>
+
+                <Card>
+                    <div className="p-6">
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-1">
+                                <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+                                    <TrendingUp className="h-4 w-4 text-green-600" />
+                                    Actifs
+                                </p>
+                                <p className="text-2xl font-bold">
+                                    {stats.actifs}
+                                </p>
+                            </div>
+                            <Badge
+                                variant="outline"
+                                className="bg-green-100 text-green-700 border-green-300"
+                            >
+                                {stats.total > 0
+                                    ? (
+                                          (stats.actifs / stats.total) *
+                                          100
+                                      ).toFixed(0)
+                                    : 0}
+                                %
+                            </Badge>
+                        </div>
+                    </div>
+                </Card>
+
+                <Card>
+                    <div className="p-6">
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-1">
+                                <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+                                    <AlertCircle className="h-4 w-4 text-amber-600" />
+                                    Stock faible
+                                </p>
+                                <p className="text-2xl font-bold">
+                                    {stats.stockFaible}
+                                </p>
+                            </div>
+                            {stats.stockFaible > 0 && (
+                                <Badge
+                                    variant="outline"
+                                    className="bg-amber-100 text-amber-700 border-amber-300"
+                                >
+                                    Alerte
+                                </Badge>
+                            )}
+                        </div>
+                    </div>
+                </Card>
             </div>
 
             {/* Filtres et recherche */}
@@ -226,22 +524,10 @@ export default function CataloguePage() {
                     </div>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2">
-                    <Select
-                        value={selectedCategory}
-                        onValueChange={setSelectedCategory}
-                    >
-                        <SelectTrigger className="w-full sm:w-[180px]">
-                            <Filter className="w-4 h-4 mr-2" />
-                            <SelectValue placeholder="Catégorie" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {categories.map((category) => (
-                                <SelectItem key={category} value={category}>
-                                    {category}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
+                    <CategoryFilter
+                        selectedCategoryIds={selectedCategoryIds}
+                        onSelectionChange={setSelectedCategoryIds}
+                    />
                     <Select value={sortBy} onValueChange={setSortBy}>
                         <SelectTrigger className="w-full sm:w-[180px]">
                             <SelectValue placeholder="Trier par" />
@@ -282,23 +568,51 @@ export default function CataloguePage() {
                     ) : (
                         <Card className="p-12">
                             <div className="flex flex-col items-center text-center space-y-4">
-                                <div className="rounded-full bg-muted p-6">
-                                    <Search className="w-12 h-12 text-muted-foreground" />
+                                <div
+                                    className={`rounded-full p-6 ${
+                                        typeFilter === "PRODUIT"
+                                            ? "bg-blue-100"
+                                            : typeFilter === "SERVICE"
+                                            ? "bg-purple-100"
+                                            : articles.length === 0
+                                            ? "bg-primary/10"
+                                            : "bg-muted"
+                                    }`}
+                                >
+                                    {(() => {
+                                        const Icon = emptyState.icon;
+                                        return (
+                                            <Icon
+                                                className={`w-12 h-12 ${
+                                                    typeFilter === "PRODUIT"
+                                                        ? "text-blue-600"
+                                                        : typeFilter ===
+                                                          "SERVICE"
+                                                        ? "text-purple-600"
+                                                        : articles.length === 0
+                                                        ? "text-primary"
+                                                        : "text-muted-foreground"
+                                                }`}
+                                            />
+                                        );
+                                    })()}
                                 </div>
                                 <div>
                                     <h3 className="text-xl font-semibold mb-2">
-                                        Aucun article trouvé
+                                        {emptyState.title}
                                     </h3>
                                     <p className="text-muted-foreground max-w-md">
-                                        Aucun article ne correspond à vos
-                                        critères de recherche. Essayez de
-                                        modifier vos filtres ou ajoutez un
-                                        nouvel article.
+                                        {emptyState.description}
                                     </p>
                                 </div>
-                                <Button onClick={handleCreate}>
+                                <Button
+                                    onClick={handleCreate}
+                                    size={
+                                        articles.length === 0 ? "lg" : "default"
+                                    }
+                                >
                                     <Plus className="w-4 h-4 mr-2" />
-                                    Ajouter un article
+                                    {emptyState.buttonText}
                                 </Button>
                             </div>
                         </Card>
@@ -312,7 +626,11 @@ export default function CataloguePage() {
                     {isLoading ? (
                         <TableSkeleton rows={8} columns={6} />
                     ) : (
-                        <DataTable columns={columns} data={filteredAndSortedArticles} />
+                        <DataTable
+                            columns={columns}
+                            data={filteredAndSortedArticles}
+                            emptyMessage={emptyState.description}
+                        />
                     )}
                 </>
             )}
