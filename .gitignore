@@ -46,5 +46,5 @@ next-env.d.ts
 .claude/
 CLAUDE.md
 
-# Personal Documentation
+# Personal Documentation (commented out - we want to version docs)
 doc/
