@@ -80,7 +80,7 @@ const items = [
         icon: Package,
         items: [
             {
-                title: "Catalogue",
+                title: "Catalogue & Services",
                 url: "/dashboard/articles",
             },
             {
@@ -368,7 +368,11 @@ export default function DashboardLayout({
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem
-                                        onClick={() => signOut({ callbackUrl: "/auth/login" })}
+                                        onClick={() =>
+                                            signOut({
+                                                callbackUrl: "/auth/login",
+                                            })
+                                        }
                                     >
                                         <LogOut className="mr-2 h-4 w-4" />
                                         <span>Se déconnecter</span>

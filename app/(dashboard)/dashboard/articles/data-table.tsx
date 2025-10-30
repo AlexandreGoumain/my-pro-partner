@@ -29,11 +29,13 @@ import { DataTableToolbar } from "./data-table-toolbar";
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
     data: TData[];
+    emptyMessage?: string;
 }
 
 export function DataTable<TData, TValue>({
     columns,
     data,
+    emptyMessage = "Aucun résultat trouvé",
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = React.useState<SortingState>([]);
     const [columnFilters, setColumnFilters] =
@@ -76,7 +78,8 @@ export function DataTable<TData, TValue>({
                                         {header.isPlaceholder
                                             ? null
                                             : flexRender(
-                                                  header.column.columnDef.header,
+                                                  header.column.columnDef
+                                                      .header,
                                                   header.getContext()
                                               )}
                                     </TableHead>
@@ -89,7 +92,9 @@ export function DataTable<TData, TValue>({
                             table.getRowModel().rows.map((row) => (
                                 <TableRow
                                     key={row.id}
-                                    data-state={row.getIsSelected() && "selected"}
+                                    data-state={
+                                        row.getIsSelected() && "selected"
+                                    }
                                 >
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell key={cell.id}>
@@ -107,7 +112,7 @@ export function DataTable<TData, TValue>({
                                     colSpan={columns.length}
                                     className="h-24 text-center text-muted-foreground"
                                 >
-                                    Aucun résultat trouvé
+                                    {emptyMessage}
                                 </TableCell>
                             </TableRow>
                         )}
