@@ -63,7 +63,6 @@ export function CategoryCreateDialog({
         },
     });
 
-    // Réinitialiser le formulaire quand le dialog s'ouvre
     useEffect(() => {
         if (open) {
             form.reset({
@@ -76,7 +75,6 @@ export function CategoryCreateDialog({
     }, [open, form]);
 
     function onSubmit(values: CategorieCreateInput) {
-        // Nettoyer les valeurs vides
         const cleanedValues = {
             ...values,
             parentId: values.parentId || undefined,

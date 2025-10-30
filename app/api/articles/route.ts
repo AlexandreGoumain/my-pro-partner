@@ -8,7 +8,6 @@ import { articleCreateSchema } from "@/lib/validation";
 import { getServerSession } from "next-auth/next";
 import { NextRequest, NextResponse } from "next/server";
 
-// GET: Récupérer tous les articles
 export async function GET(req: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
@@ -65,7 +64,6 @@ export async function GET(req: NextRequest) {
     }
 }
 
-// POST: Créer un nouvel article
 export async function POST(req: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
@@ -89,7 +87,6 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Vérifier si la référence existe déjà
         const existingArticle = await prisma.article.findUnique({
             where: { reference: validation.data.reference },
         });

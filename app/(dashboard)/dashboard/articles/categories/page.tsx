@@ -1,6 +1,7 @@
 "use client";
 
 import { DeleteConfirmDialog } from "@/components/delete-confirm-dialog";
+import { FieldBuilderInline } from "@/components/field-builder-inline";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,6 +31,7 @@ import {
     buildCategoryTree,
     type CategorieWithCount,
 } from "@/lib/types/category";
+import type { ChampPersonnaliseCreateInput } from "@/lib/types/custom-fields";
 import {
     ArrowLeft,
     ChevronDown,
@@ -41,6 +43,7 @@ import {
     GripVertical,
     Info,
     Lightbulb,
+    Loader2,
     Plus,
     Sparkles,
     Trash2,
@@ -105,12 +108,21 @@ export default function CategoriesPage() {
         null
     );
     const [isDeleting, setIsDeleting] = useState(false);
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<{
+        nom: string;
+        description: string;
+        parentId: string | null;
+        champsCustom: ChampPersonnaliseCreateInput[];
+    }>({
         nom: "",
         description: "",
-        parentId: null as string | null,
+        parentId: null,
+        champsCustom: [],
     });
     const [showExamples, setShowExamples] = useState(false);
+    const [currentStep, setCurrentStep] = useState(1);
+    const [direction, setDirection] = useState<"left" | "right">("right");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         fetchCategories();
@@ -138,46 +150,136 @@ export default function CategoriesPage() {
     function openCreateDialog(parentId: string | null = null) {
         setEditMode(false);
         setSelectedCategory(null);
-        setFormData({ nom: "", description: "", parentId });
+        setCurrentStep(1);
+        setFormData({
+            nom: "",
+            description: "",
+            parentId,
+            champsCustom: [], // Utilisé uniquement pour les sous-catégories
+        });
         setDialogOpen(true);
     }
 
-    function openEditDialog(category: Category) {
+    async function openEditDialog(category: Category) {
         setEditMode(true);
         setSelectedCategory(category);
+        setCurrentStep(1);
+
+        // Charger les champs custom existants (uniquement pour les sous-catégories)
+        let champsCustom: typeof formData.champsCustom = [];
+        if (category.parentId) {
+            try {
+                const response = await fetch(`/api/categories/${category.id}/champs`);
+                if (response.ok) {
+                    champsCustom = await response.json();
+                }
+            } catch (error) {
+                console.error("Erreur lors du chargement des champs:", error);
+            }
+        }
+
         setFormData({
             nom: category.nom,
             description: category.description || "",
             parentId: category.parentId || null,
+            champsCustom,
         });
         setDialogOpen(true);
     }
 
     async function handleSubmit() {
-        if (!formData.nom.trim()) return;
+        if (!formData.nom.trim() || isSubmitting) return;
 
         try {
+            setIsSubmitting(true);
             const url =
                 editMode && selectedCategory
                     ? `/api/categories/${selectedCategory.id}`
                     : "/api/categories";
 
+            // 1. Sauvegarder la catégorie
             const response = await fetch(url, {
                 method: editMode ? "PATCH" : "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(formData),
+                body: JSON.stringify({
+                    nom: formData.nom,
+                    description: formData.description,
+                    parentId: formData.parentId,
+                }),
             });
 
-            if (response.ok) {
-                toast.success(
-                    editMode ? "Catégorie modifiée" : "Catégorie créée"
-                );
-                setDialogOpen(false);
-                fetchCategories();
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || "Erreur lors de la sauvegarde");
             }
+
+            const savedCategory = await response.json();
+            const categoryId = savedCategory.id;
+
+            // 2. Sauvegarder les champs personnalisés (UNIQUEMENT pour les sous-catégories)
+            if (formData.parentId) {
+                // Supprimer les anciens champs en mode édition
+                if (editMode) {
+                    const existingFields = await fetch(
+                        `/api/categories/${categoryId}/champs`
+                    ).then((r) => r.json());
+
+                    for (const field of existingFields) {
+                        await fetch(
+                            `/api/categories/${categoryId}/champs/${field.id}`,
+                            { method: "DELETE" }
+                        );
+                    }
+                }
+
+                // Créer les nouveaux champs
+                if (formData.champsCustom.length > 0) {
+                    for (const champ of formData.champsCustom) {
+                        const champResponse = await fetch(`/api/categories/${categoryId}/champs`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(champ),
+                        });
+
+                        if (!champResponse.ok) {
+                            const errorData = await champResponse.json().catch(() => ({}));
+                            throw new Error(errorData.message || "Erreur lors de la création d'un champ personnalisé");
+                        }
+                    }
+                }
+            }
+
+            // Messages de succès
+            const isSubCategory = !!formData.parentId;
+            const hasTemplate = formData.champsCustom.length > 0;
+
+            let successMessage = "";
+            if (editMode) {
+                successMessage = isSubCategory
+                    ? hasTemplate
+                        ? "Sous-catégorie modifiée avec son template"
+                        : "Sous-catégorie modifiée avec succès"
+                    : "Catégorie modifiée avec succès";
+            } else {
+                successMessage = isSubCategory
+                    ? hasTemplate
+                        ? "Sous-catégorie créée avec son template"
+                        : "Sous-catégorie créée avec succès"
+                    : "Catégorie créée avec succès";
+            }
+
+            toast.success(successMessage);
+            setDialogOpen(false);
+            fetchCategories();
         } catch (error) {
             console.error("Error saving category:", error);
-            toast.error("Erreur lors de l'enregistrement");
+            toast.error(
+                error instanceof Error
+                    ? error.message
+                    : "Erreur lors de l'enregistrement"
+            );
+        } finally {
+            setIsSubmitting(false);
         }
     }
 
@@ -223,6 +325,20 @@ export default function CategoriesPage() {
             newExpanded.add(id);
         }
         setExpandedIds(newExpanded);
+    }
+
+    function handleNext() {
+        if (currentStep < 2 && formData.nom.trim()) {
+            setDirection("right");
+            setCurrentStep(2);
+        }
+    }
+
+    function handlePrevious() {
+        if (currentStep > 1) {
+            setDirection("left");
+            setCurrentStep(1);
+        }
     }
 
     function CategoryNode({
@@ -324,6 +440,21 @@ export default function CategoriesPage() {
                         >
                             <Edit className="h-4 w-4" />
                         </Button>
+                        {/* Bouton template uniquement pour les sous-catégories */}
+                        {level > 0 && (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() =>
+                                    router.push(
+                                        `/dashboard/articles/categories/${category.id}/template`
+                                    )
+                                }
+                                title="Gérer le template"
+                            >
+                                <Sparkles className="h-4 w-4 text-primary" />
+                            </Button>
+                        )}
                         <Button
                             variant="ghost"
                             size="sm"
@@ -452,13 +583,14 @@ export default function CategoriesPage() {
                             <ul className="text-sm text-blue-700 space-y-1 list-disc list-inside">
                                 <li>
                                     <strong>Catégorie principale</strong> : Par
-                                    exemple "Plomberie" ou "Services"
+                                    exemple "Plomberie" ou "Services" - Simple
+                                    organisation sans champs personnalisés
                                 </li>
                                 <li>
                                     <strong>Sous-catégorie</strong> : Cliquez
                                     sur le + à droite d'une catégorie pour créer
-                                    une sous-catégorie (ex: "Installation" sous
-                                    "Plomberie")
+                                    une sous-catégorie avec un template personnalisé
+                                    (ex: "Installation" sous "Plomberie")
                                 </li>
                                 <li>
                                     Survolez une catégorie pour voir les actions
@@ -581,7 +713,7 @@ export default function CategoriesPage() {
 
             {/* Dialog */}
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-                <DialogContent className="max-w-2xl">
+                <DialogContent className="max-w-4xl w-[80vw] max-h-[90vh] overflow-hidden flex flex-col">
                     <DialogHeader>
                         <DialogTitle className="text-2xl">
                             {editMode ? "Modifier" : "Créer"}{" "}
@@ -602,119 +734,341 @@ export default function CategoriesPage() {
                         </DialogDescription>
                     </DialogHeader>
 
-                    <div className="space-y-6 py-4">
-                        {formData.parentId && (
-                            <Card className="bg-muted/50">
-                                <CardContent className="p-4">
-                                    <div className="flex items-center gap-2 text-sm">
-                                        <Info className="h-4 w-4 text-muted-foreground" />
-                                        <span className="text-muted-foreground">
-                                            Sous-catégorie de :{" "}
-                                            <strong>
-                                                {
-                                                    categories.find(
-                                                        (c) =>
-                                                            c.id ===
-                                                            formData.parentId
-                                                    )?.nom
+
+                    {/* Indicateur de progression pour sous-catégories aussi */}
+                    {formData.parentId && (
+                        <div className="flex items-center justify-center gap-2 py-4 border-b">
+                            <div className="flex items-center gap-2">
+                                {[
+                                    { num: 1, label: "Informations" },
+                                    { num: 2, label: "Template" },
+                                ].map((step, idx) => (
+                                    <div key={step.num} className="flex items-center">
+                                        <div className="flex flex-col items-center gap-1">
+                                            <div
+                                                className={`flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all ${
+                                                    currentStep === step.num
+                                                        ? "border-primary bg-primary text-primary-foreground"
+                                                        : currentStep > step.num
+                                                        ? "border-primary bg-primary/20 text-primary"
+                                                        : "border-muted-foreground/30 text-muted-foreground"
+                                                }`}
+                                            >
+                                                {currentStep > step.num ? (
+                                                    <ChevronRight className="h-4 w-4" />
+                                                ) : (
+                                                    step.num
+                                                )}
+                                            </div>
+                                            <span
+                                                className={`text-xs font-medium ${
+                                                    currentStep === step.num
+                                                        ? "text-primary"
+                                                        : "text-muted-foreground"
+                                                }`}
+                                            >
+                                                {step.label}
+                                            </span>
+                                        </div>
+                                        {idx < 1 && (
+                                            <div
+                                                className={`w-20 h-0.5 mx-3 transition-all ${
+                                                    currentStep > step.num
+                                                        ? "bg-primary"
+                                                        : "bg-muted-foreground/30"
+                                                }`}
+                                            />
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Contenu */}
+                    <div className="flex-1 overflow-hidden">
+                        <div className="h-full overflow-y-auto px-1">
+                            {/* Pour les catégories principales : formulaire simple (pas de steps) */}
+                            {!formData.parentId ? (
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="nom" className="text-base">
+                                            Nom de la catégorie *
+                                        </Label>
+                                        <Input
+                                            id="nom"
+                                            placeholder="Ex: Plomberie, Services, Matériaux..."
+                                            value={formData.nom}
+                                            onChange={(e) =>
+                                                setFormData({
+                                                    ...formData,
+                                                    nom: e.target.value,
+                                                })
+                                            }
+                                            onKeyDown={(e) => {
+                                                if (
+                                                    e.key === "Enter" &&
+                                                    formData.nom.trim()
+                                                ) {
+                                                    handleSubmit();
                                                 }
-                                            </strong>
-                                        </span>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        )}
-
-                        <div className="space-y-2">
-                            <Label htmlFor="nom" className="text-base">
-                                Nom de la catégorie *
-                            </Label>
-                            <Input
-                                id="nom"
-                                placeholder={
-                                    formData.parentId
-                                        ? "Ex: Installation, Réparation..."
-                                        : "Ex: Plomberie, Services, Matériaux..."
-                                }
-                                value={formData.nom}
-                                onChange={(e) =>
-                                    setFormData({
-                                        ...formData,
-                                        nom: e.target.value,
-                                    })
-                                }
-                                onKeyDown={(e) => {
-                                    if (
-                                        e.key === "Enter" &&
-                                        formData.nom.trim()
-                                    ) {
-                                        handleSubmit();
-                                    }
-                                }}
-                                autoFocus
-                                className="text-base"
-                            />
-                            <p className="text-xs text-muted-foreground">
-                                Choisissez un nom court et clair
-                            </p>
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="description" className="text-base">
-                                Description (optionnel)
-                            </Label>
-                            <Textarea
-                                id="description"
-                                placeholder="Une courte description pour vous aider à vous souvenir..."
-                                value={formData.description}
-                                onChange={(e) =>
-                                    setFormData({
-                                        ...formData,
-                                        description: e.target.value,
-                                    })
-                                }
-                                rows={3}
-                                className="resize-none"
-                            />
-                        </div>
-
-                        <Separator />
-
-                        <Card className="border-amber-200 bg-amber-50/50">
-                            <CardContent className="p-4">
-                                <div className="flex gap-3">
-                                    <Lightbulb className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                                    <div className="text-sm">
-                                        <p className="font-medium text-amber-900 mb-1">
-                                            Conseil
-                                        </p>
-                                        <p className="text-amber-700">
-                                            Créez d'abord vos catégories
-                                            principales, puis ajoutez des
-                                            sous-catégories si besoin. Vous
-                                            pourrez toujours modifier plus tard
-                                            !
+                                            }}
+                                            autoFocus
+                                            className="text-base"
+                                        />
+                                        <p className="text-xs text-muted-foreground">
+                                            Choisissez un nom court et clair
                                         </p>
                                     </div>
+
+                                    <div className="space-y-2">
+                                        <Label htmlFor="description" className="text-base">
+                                            Description (optionnel)
+                                        </Label>
+                                        <Textarea
+                                            id="description"
+                                            placeholder="Une courte description pour vous aider à vous souvenir..."
+                                            value={formData.description}
+                                            onChange={(e) =>
+                                                setFormData({
+                                                    ...formData,
+                                                    description: e.target.value,
+                                                })
+                                            }
+                                            rows={3}
+                                            className="resize-none"
+                                        />
+                                    </div>
+
+                                    <Card className="border-amber-200 bg-amber-50/50">
+                                        <CardContent className="p-4">
+                                            <div className="flex gap-3">
+                                                <Lightbulb className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                                                <div className="text-sm">
+                                                    <p className="font-medium text-amber-900 mb-1">
+                                                        Conseil
+                                                    </p>
+                                                    <p className="text-amber-700">
+                                                        Créez d'abord vos catégories principales,
+                                                        puis créez des sous-catégories avec des templates
+                                                        personnalisés si besoin.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
                                 </div>
-                            </CardContent>
-                        </Card>
+                            ) : (
+                                <>
+                                    {/* Pour les sous-catégories : avec steps et templates */}
+                                    {/* Step 1 : Informations de base */}
+                                    {currentStep === 1 && (
+                                        <div
+                                            className={`space-y-4 animate-in ${
+                                                direction === "right"
+                                                    ? "slide-in-from-left"
+                                                    : "slide-in-from-right"
+                                            } duration-300`}
+                                        >
+                                            <Card className="bg-muted/50">
+                                                <CardContent className="p-4">
+                                                    <div className="flex items-center gap-2 text-sm">
+                                                        <Info className="h-4 w-4 text-muted-foreground" />
+                                                        <span className="text-muted-foreground">
+                                                            Sous-catégorie de :{" "}
+                                                            <strong>
+                                                                {
+                                                                    categories.find(
+                                                                        (c) =>
+                                                                            c.id ===
+                                                                            formData.parentId
+                                                                    )?.nom
+                                                                }
+                                                            </strong>
+                                                        </span>
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
+
+                                            <div className="space-y-2">
+                                                <Label htmlFor="nom" className="text-base">
+                                                    Nom de la sous-catégorie *
+                                                </Label>
+                                                <Input
+                                                    id="nom"
+                                                    placeholder="Ex: Installation, Réparation..."
+                                                    value={formData.nom}
+                                                    onChange={(e) =>
+                                                        setFormData({
+                                                            ...formData,
+                                                            nom: e.target.value,
+                                                        })
+                                                    }
+                                                    onKeyDown={(e) => {
+                                                        if (
+                                                            e.key === "Enter" &&
+                                                            formData.nom.trim()
+                                                        ) {
+                                                            handleNext();
+                                                        }
+                                                    }}
+                                                    autoFocus
+                                                    className="text-base"
+                                                />
+                                                <p className="text-xs text-muted-foreground">
+                                                    Choisissez un nom court et clair
+                                                </p>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <Label htmlFor="description" className="text-base">
+                                                    Description (optionnel)
+                                                </Label>
+                                                <Textarea
+                                                    id="description"
+                                                    placeholder="Une courte description pour vous aider à vous souvenir..."
+                                                    value={formData.description}
+                                                    onChange={(e) =>
+                                                        setFormData({
+                                                            ...formData,
+                                                            description: e.target.value,
+                                                        })
+                                                    }
+                                                    rows={3}
+                                                    className="resize-none"
+                                                />
+                                            </div>
+
+                                            <Card className="border-amber-200 bg-amber-50/50">
+                                                <CardContent className="p-4">
+                                                    <div className="flex gap-3">
+                                                        <Lightbulb className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                                                        <div className="text-sm">
+                                                            <p className="font-medium text-amber-900 mb-1">
+                                                                Conseil
+                                                            </p>
+                                                            <p className="text-amber-700">
+                                                                Vous pouvez définir un template spécifique
+                                                                pour cette sous-catégorie à l'étape suivante.
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
+                                        </div>
+                                    )}
+
+                                    {/* Step 2 : Template personnalisé */}
+                                    {currentStep === 2 && (
+                                        <div
+                                            className={`space-y-4 animate-in ${
+                                                direction === "right"
+                                                    ? "slide-in-from-right"
+                                                    : "slide-in-from-left"
+                                            } duration-300`}
+                                        >
+                                            <FieldBuilderInline
+                                                fields={formData.champsCustom}
+                                                onChange={(fields) =>
+                                                    setFormData({
+                                                        ...formData,
+                                                        champsCustom: fields,
+                                                    })
+                                                }
+                                            />
+                                        </div>
+                                    )}
+                                </>
+                            )}
+                        </div>
                     </div>
 
                     <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => setDialogOpen(false)}
-                        >
-                            Annuler
-                        </Button>
-                        <Button
-                            onClick={handleSubmit}
-                            disabled={!formData.nom.trim()}
-                            size="lg"
-                        >
-                            {editMode ? "Enregistrer" : "Créer"}
-                        </Button>
+                        {/* Pour les catégories principales : simple bouton Créer */}
+                        {!formData.parentId ? (
+                            <>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setDialogOpen(false)}
+                                    disabled={isSubmitting}
+                                >
+                                    Annuler
+                                </Button>
+                                <Button
+                                    onClick={handleSubmit}
+                                    disabled={!formData.nom.trim() || isSubmitting}
+                                >
+                                    {isSubmitting ? (
+                                        <>
+                                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                            {editMode ? "Enregistrement..." : "Création..."}
+                                        </>
+                                    ) : (
+                                        editMode ? "Enregistrer" : "Créer"
+                                    )}
+                                </Button>
+                            </>
+                        ) : (
+                            /* Pour les sous-catégories : navigation avec steps */
+                            currentStep === 1 ? (
+                                <>
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => setDialogOpen(false)}
+                                        disabled={isSubmitting}
+                                    >
+                                        Annuler
+                                    </Button>
+                                    <Button
+                                        onClick={handleNext}
+                                        disabled={!formData.nom.trim() || isSubmitting}
+                                    >
+                                        Suivant
+                                        <ChevronRight className="h-4 w-4 ml-2" />
+                                    </Button>
+                                </>
+                            ) : (
+                                <>
+                                    <Button
+                                        variant="outline"
+                                        onClick={handlePrevious}
+                                        disabled={isSubmitting}
+                                    >
+                                        <ChevronRight className="h-4 w-4 mr-2 rotate-180" />
+                                        Précédent
+                                    </Button>
+                                    <div className="flex gap-2">
+                                        <Button
+                                            variant="outline"
+                                            onClick={handleSubmit}
+                                            disabled={!formData.nom.trim() || isSubmitting}
+                                        >
+                                            {isSubmitting ? (
+                                                <>
+                                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                                    Enregistrement...
+                                                </>
+                                            ) : (
+                                                "Passer"
+                                            )}
+                                        </Button>
+                                        <Button
+                                            onClick={handleSubmit}
+                                            disabled={!formData.nom.trim() || isSubmitting}
+                                        >
+                                            {isSubmitting ? (
+                                                <>
+                                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                                    {editMode ? "Enregistrement..." : "Création..."}
+                                                </>
+                                            ) : (
+                                                editMode ? "Enregistrer" : "Créer"
+                                            )}
+                                        </Button>
+                                    </div>
+                                </>
+                            )
+                        )}
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

@@ -222,3 +222,90 @@ export const clientUpdateSchema = clientBaseSchema.partial();
 
 export type ClientCreateInput = z.infer<typeof clientCreateSchema>;
 export type ClientUpdateInput = z.infer<typeof clientUpdateSchema>;
+
+// Champs personnalisés validation schemas
+const validationRulesSchema = z
+    .object({
+        min: z.number().optional(),
+        max: z.number().optional(),
+        minLength: z.number().optional(),
+        maxLength: z.number().optional(),
+        pattern: z.string().optional(),
+        required: z.boolean().optional(),
+    })
+    .optional()
+    .nullable();
+
+export const champPersonnaliseBaseSchema = z.object({
+    nom: z
+        .string()
+        .min(1, "Le nom du champ est requis")
+        .max(100, "Le nom ne peut pas dépasser 100 caractères"),
+    code: z
+        .string()
+        .min(1, "Le code du champ est requis")
+        .max(50, "Le code ne peut pas dépasser 50 caractères")
+        .regex(
+            /^[a-z][a-z0-9_]*$/,
+            "Le code doit commencer par une lettre minuscule et ne contenir que des lettres minuscules, chiffres et underscores"
+        ),
+    type: z.enum([
+        "TEXT",
+        "TEXTAREA",
+        "NUMBER",
+        "DECIMAL",
+        "SELECT",
+        "MULTISELECT",
+        "CHECKBOX",
+        "DATE",
+        "COLOR",
+        "URL",
+        "EMAIL",
+    ]),
+    ordre: z
+        .number({
+            invalid_type_error: "L'ordre doit être un nombre",
+        })
+        .int("L'ordre doit être un nombre entier")
+        .default(0),
+    obligatoire: z.boolean().default(false),
+    placeholder: z
+        .string()
+        .max(200, "Le placeholder ne peut pas dépasser 200 caractères")
+        .optional()
+        .nullable()
+        .or(z.literal("")),
+    description: z
+        .string()
+        .max(500, "La description ne peut pas dépasser 500 caractères")
+        .optional()
+        .nullable()
+        .or(z.literal("")),
+    options: z.array(z.string()).optional().nullable(),
+    validation: validationRulesSchema,
+});
+
+// Validation conditionnelle : options requises pour SELECT et MULTISELECT
+export const champPersonnaliseCreateSchema = champPersonnaliseBaseSchema.refine(
+    (data) => {
+        if (data.type === "SELECT" || data.type === "MULTISELECT") {
+            return data.options && data.options.length > 0;
+        }
+        return true;
+    },
+    {
+        message:
+            "Les options sont requises pour les champs de type SELECT ou MULTISELECT",
+        path: ["options"],
+    }
+);
+
+export const champPersonnaliseUpdateSchema =
+    champPersonnaliseBaseSchema.partial();
+
+export type ChampPersonnaliseCreateInput = z.infer<
+    typeof champPersonnaliseCreateSchema
+>;
+export type ChampPersonnaliseUpdateInput = z.infer<
+    typeof champPersonnaliseUpdateSchema
+>;
