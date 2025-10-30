@@ -1,31 +1,33 @@
-import { requireAuth } from "@/lib/api/auth-middleware";
 import { prisma } from "@/lib/prisma";
 import {
     createPaginatedResponse,
     getPaginationParams,
 } from "@/lib/utils/pagination";
 import { clientCreateSchema } from "@/lib/validation";
+import {
+    handleTenantError,
+    requireTenantAuth,
+} from "@/lib/middleware/tenant-isolation";
 import { NextRequest, NextResponse } from "next/server";
 
-// GET: Récupérer tous les clients
 export async function GET(req: NextRequest) {
     try {
-        const sessionOrError = await requireAuth();
-        if (sessionOrError instanceof NextResponse) return sessionOrError;
+        const { entrepriseId } = await requireTenantAuth();
 
         const { searchParams } = new URL(req.url);
         const search = searchParams.get("search");
         const pagination = getPaginationParams(searchParams);
 
-        const where = search
-            ? {
-                  OR: [
-                      { nom: { contains: search, mode: "insensitive" as const } },
-                      { email: { contains: search, mode: "insensitive" as const } },
-                      { ville: { contains: search, mode: "insensitive" as const } },
-                  ],
-              }
-            : {};
+        const where = {
+            entrepriseId,
+            ...(search && {
+                OR: [
+                    { nom: { contains: search, mode: "insensitive" as const } },
+                    { email: { contains: search, mode: "insensitive" as const } },
+                    { ville: { contains: search, mode: "insensitive" as const } },
+                ],
+            }),
+        };
 
         const [clients, total] = await Promise.all([
             prisma.client.findMany({
@@ -41,19 +43,13 @@ export async function GET(req: NextRequest) {
             createPaginatedResponse(clients, total, pagination)
         );
     } catch (error) {
-        console.error("Erreur lors de la récupération des clients:", error);
-        return NextResponse.json(
-            { message: "Erreur interne du serveur" },
-            { status: 500 }
-        );
+        return handleTenantError(error);
     }
 }
 
-// POST: Créer un nouveau client
 export async function POST(req: NextRequest) {
     try {
-        const sessionOrError = await requireAuth();
-        if (sessionOrError instanceof NextResponse) return sessionOrError;
+        const { entrepriseId } = await requireTenantAuth();
 
         const body = await req.json();
         const validation = clientCreateSchema.safeParse(body);
@@ -69,15 +65,14 @@ export async function POST(req: NextRequest) {
         }
 
         const client = await prisma.client.create({
-            data: validation.data,
+            data: {
+                ...validation.data,
+                entrepriseId,
+            },
         });
 
         return NextResponse.json(client, { status: 201 });
     } catch (error) {
-        console.error("Erreur lors de la création du client:", error);
-        return NextResponse.json(
-            { message: "Erreur interne du serveur" },
-            { status: 500 }
-        );
+        return handleTenantError(error);
     }
 }

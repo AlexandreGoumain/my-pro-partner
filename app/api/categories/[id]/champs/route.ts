@@ -1,6 +1,10 @@
-import { requireAuth } from "@/lib/api/auth-middleware";
 import { prisma } from "@/lib/prisma";
 import { champPersonnaliseCreateSchema } from "@/lib/validation";
+import {
+    handleTenantError,
+    requireTenantAuth,
+    validateTenantAccess,
+} from "@/lib/middleware/tenant-isolation";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
@@ -8,13 +12,12 @@ export async function GET(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const sessionOrError = await requireAuth();
-        if (sessionOrError instanceof NextResponse) return sessionOrError;
-
+        const { entrepriseId } = await requireTenantAuth();
         const { id } = await params;
 
         const categorie = await prisma.categorie.findUnique({
             where: { id },
+            select: { entrepriseId: true },
         });
 
         if (!categorie) {
@@ -23,6 +26,8 @@ export async function GET(
                 { status: 404 }
             );
         }
+
+        validateTenantAccess(categorie.entrepriseId, entrepriseId);
 
         const champs = await prisma.champPersonnalise.findMany({
             where: { categorieId: id },
@@ -31,14 +36,7 @@ export async function GET(
 
         return NextResponse.json(champs);
     } catch (error) {
-        console.error(
-            "Erreur lors de la récupération des champs personnalisés:",
-            error
-        );
-        return NextResponse.json(
-            { message: "Erreur interne du serveur" },
-            { status: 500 }
-        );
+        return handleTenantError(error);
     }
 }
 
@@ -47,13 +45,12 @@ export async function POST(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const sessionOrError = await requireAuth();
-        if (sessionOrError instanceof NextResponse) return sessionOrError;
-
+        const { entrepriseId } = await requireTenantAuth();
         const { id } = await params;
 
         const categorie = await prisma.categorie.findUnique({
             where: { id },
+            select: { entrepriseId: true },
         });
 
         if (!categorie) {
@@ -62,6 +59,8 @@ export async function POST(
                 { status: 404 }
             );
         }
+
+        validateTenantAccess(categorie.entrepriseId, entrepriseId);
 
         const body = await req.json();
         const validation = champPersonnaliseCreateSchema.safeParse(body);
@@ -114,13 +113,6 @@ export async function POST(
 
         return NextResponse.json(champ, { status: 201 });
     } catch (error) {
-        console.error(
-            "Erreur lors de la création du champ personnalisé:",
-            error
-        );
-        return NextResponse.json(
-            { message: "Erreur interne du serveur" },
-            { status: 500 }
-        );
+        return handleTenantError(error);
     }
 }

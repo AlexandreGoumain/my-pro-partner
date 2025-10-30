@@ -1,22 +1,18 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import {
     createPaginatedResponse,
     getPaginationParams,
 } from "@/lib/utils/pagination";
 import { articleCreateSchema } from "@/lib/validation";
-import { getServerSession } from "next-auth/next";
+import {
+    handleTenantError,
+    requireTenantAuth,
+} from "@/lib/middleware/tenant-isolation";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session) {
-            return NextResponse.json(
-                { message: "Non autorisé" },
-                { status: 401 }
-            );
-        }
+        const { entrepriseId } = await requireTenantAuth();
 
         const { searchParams } = new URL(req.url);
         const search = searchParams.get("search");
@@ -24,6 +20,7 @@ export async function GET(req: NextRequest) {
         const pagination = getPaginationParams(searchParams);
 
         const where = {
+            entrepriseId,
             ...(search && {
                 OR: [
                     { nom: { contains: search, mode: "insensitive" as const } },
@@ -56,23 +53,13 @@ export async function GET(req: NextRequest) {
             createPaginatedResponse(articles, total, pagination)
         );
     } catch (error) {
-        console.error("Erreur lors de la récupération des articles:", error);
-        return NextResponse.json(
-            { message: "Erreur interne du serveur" },
-            { status: 500 }
-        );
+        return handleTenantError(error);
     }
 }
 
 export async function POST(req: NextRequest) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session) {
-            return NextResponse.json(
-                { message: "Non autorisé" },
-                { status: 401 }
-            );
-        }
+        const { entrepriseId } = await requireTenantAuth();
 
         const body = await req.json();
         const validation = articleCreateSchema.safeParse(body);
@@ -88,7 +75,12 @@ export async function POST(req: NextRequest) {
         }
 
         const existingArticle = await prisma.article.findUnique({
-            where: { reference: validation.data.reference },
+            where: {
+                entrepriseId_reference: {
+                    entrepriseId,
+                    reference: validation.data.reference,
+                },
+            },
         });
 
         if (existingArticle) {
@@ -101,6 +93,7 @@ export async function POST(req: NextRequest) {
         const article = await prisma.article.create({
             data: {
                 ...validation.data,
+                entrepriseId,
                 categorieId: validation.data.categorieId || null,
             },
             include: {
@@ -110,10 +103,6 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json(article, { status: 201 });
     } catch (error) {
-        console.error("Erreur lors de la création de l'article:", error);
-        return NextResponse.json(
-            { message: "Erreur interne du serveur" },
-            { status: 500 }
-        );
+        return handleTenantError(error);
     }
 }
