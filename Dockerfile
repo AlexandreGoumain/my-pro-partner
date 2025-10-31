@@ -8,9 +8,9 @@
 FROM node:20-slim AS builder
 WORKDIR /app
 
-# Install build dependencies
+# Install build dependencies (including tools for native modules)
 RUN apt-get update && \
-    apt-get install -y openssl && \
+    apt-get install -y openssl python3 make g++ && \
     rm -rf /var/lib/apt/lists/*
 
 # Set environment variables BEFORE npm ci (needed for postinstall script)
