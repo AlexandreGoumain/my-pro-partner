@@ -3,6 +3,8 @@ import { Categorie, Article as PrismaArticle } from "@/lib/generated/prisma";
 // Type from Prisma with relations
 export type ArticleWithRelations = PrismaArticle & {
     categorie: Categorie | null;
+    type?: "PRODUIT" | "SERVICE";
+    categorieId?: string | null;
 };
 
 // Frontend display type
@@ -43,12 +45,12 @@ export function mapArticleToDisplay(
         reference: article.reference,
         nom: article.nom,
         description: article.description || "",
-        type: (article as any).type || "PRODUIT",
+        type: article.type || "PRODUIT",
         prix: Number(article.prix_ht),
         stock,
         seuilAlerte,
         categorie: article.categorie?.nom || "Sans catégorie",
-        categorieId: (article as any).categorieId || null,
+        categorieId: article.categorieId || null,
         statut,
         tva: Number(article.tva_taux),
     };

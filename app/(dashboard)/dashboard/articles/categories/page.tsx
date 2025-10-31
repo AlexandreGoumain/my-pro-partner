@@ -33,7 +33,6 @@ import {
 } from "@/lib/types/category";
 import type { ChampPersonnaliseCreateInput } from "@/lib/types/custom-fields";
 import {
-    ArrowLeft,
     ChevronDown,
     ChevronRight,
     Edit,
@@ -492,14 +491,6 @@ export default function CategoriesPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <Button
-                        variant="default"
-                        onClick={() => router.push("/dashboard/articles")}
-                        className="gap-2 -ml-2 mb-2"
-                    >
-                        <ArrowLeft className="h-4 w-4" />
-                        Retour au catalogue
-                    </Button>
                     <h1 className="text-3xl font-bold flex items-center gap-3">
                         <FolderTree className="h-8 w-8 text-primary" />
                         Organisation des catégories

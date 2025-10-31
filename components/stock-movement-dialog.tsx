@@ -9,7 +9,7 @@ import {
 } from "@/lib/validation";
 import { useCreateStockMouvement } from "@/hooks/use-stock";
 import { useArticles } from "@/hooks/use-articles";
-import type { Article } from "@/app/(dashboard)/dashboard/articles/columns";
+import type { Article } from "@/app/(dashboard)/dashboard/articles/_components/data-table/columns";
 import {
   Dialog,
   DialogContent,

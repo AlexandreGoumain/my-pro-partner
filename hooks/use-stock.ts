@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/lib/api/fetch-client";
 import { mapMouvementToDisplay } from "@/lib/types/stock";
 import type {
   MouvementStockDisplay,
@@ -10,21 +11,6 @@ import type {
   StockAdjustmentInput,
 } from "@/lib/validation";
 import { articleKeys } from "./use-articles";
-
-// Type pour la réponse de l'API articles avec catégorie
-interface ArticleFromAPI {
-  id: string;
-  reference: string;
-  nom: string;
-  stock_actuel: number;
-  stock_min: number;
-  prix_ht: string | number;
-  gestion_stock: boolean;
-  categorie?: {
-    id: string;
-    nom: string;
-  } | null;
-}
 
 // Query Keys
 export const stockKeys = {
@@ -58,17 +44,9 @@ export function useStockMouvements(filters?: StockFilters) {
   return useQuery({
     queryKey: filters ? stockKeys.list(filters) : stockKeys.lists(),
     queryFn: async (): Promise<MouvementStockDisplay[]> => {
-      const response = await fetch(url);
-
-      if (!response.ok) {
-        throw new Error("Erreur lors du chargement des mouvements");
-      }
-
-      const result = await response.json();
-      const data = result.data || result;
-      return data.map((m: MouvementStockWithRelations) =>
-        mapMouvementToDisplay(m)
-      );
+      const result = await api.get<MouvementStockWithRelations[] | { data: MouvementStockWithRelations[] }>(url);
+      const data = Array.isArray(result) ? result : result.data || [];
+      return data.map((m: MouvementStockWithRelations) => mapMouvementToDisplay(m));
     },
   });
 }
@@ -77,15 +55,7 @@ export function useStockMouvements(filters?: StockFilters) {
 export function useStockMouvement(id: string) {
   return useQuery({
     queryKey: stockKeys.detail(id),
-    queryFn: async () => {
-      const response = await fetch(`/api/stock/mouvements/${id}`);
-
-      if (!response.ok) {
-        throw new Error("Erreur lors du chargement du mouvement");
-      }
-
-      return response.json();
-    },
+    queryFn: async () => api.get<MouvementStockWithRelations>(`/api/stock/mouvements/${id}`),
     enabled: !!id,
   });
 }
@@ -95,22 +65,8 @@ export function useCreateStockMouvement() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: MouvementStockCreateInput) => {
-      const response = await fetch("/api/stock/mouvements", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Erreur lors de la création du mouvement");
-      }
-
-      return response.json();
-    },
+    mutationFn: async (data: MouvementStockCreateInput) =>
+      api.post<MouvementStockWithRelations>("/api/stock/mouvements", data),
     onSuccess: () => {
       // Invalider les caches des mouvements et des articles
       queryClient.invalidateQueries({ queryKey: stockKeys.all });
@@ -124,20 +80,7 @@ export function useDeleteStockMouvement() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (id: string) => {
-      const response = await fetch(`/api/stock/mouvements/${id}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(
-          error.message || "Erreur lors de l'annulation du mouvement"
-        );
-      }
-
-      return response.json();
-    },
+    mutationFn: async (id: string) => api.delete(`/api/stock/mouvements/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: stockKeys.all });
       queryClient.invalidateQueries({ queryKey: articleKeys.all });
@@ -156,24 +99,7 @@ export function useAdjustStock() {
     }: {
       articleId: string;
       data: StockAdjustmentInput;
-    }) => {
-      const response = await fetch(`/api/articles/${articleId}/stock`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(
-          error.message || "Erreur lors de l'ajustement du stock"
-        );
-      }
-
-      return response.json();
-    },
+    }) => api.put(`/api/articles/${articleId}/stock`, data),
     onSuccess: (_, variables) => {
       // Invalider les caches
       queryClient.invalidateQueries({ queryKey: stockKeys.all });
@@ -186,40 +112,11 @@ export function useAdjustStock() {
 }
 
 // Hook pour récupérer les articles avec alertes de stock
+// ✅ Optimized: Uses dedicated /api/articles/alerts endpoint
 export function useStockAlerts() {
   return useQuery({
     queryKey: stockKeys.alerts(),
-    queryFn: async (): Promise<ArticleAvecAlerte[]> => {
-      const response = await fetch("/api/articles");
-
-      if (!response.ok) {
-        throw new Error("Erreur lors du chargement des articles");
-      }
-
-      const result = await response.json();
-      const articles = result.data || result;
-
-      // Filtrer les articles en alerte (stock <= stock_min) et qui ont la gestion de stock activée
-      return articles
-        .filter(
-          (article: ArticleFromAPI) =>
-            article.gestion_stock &&
-            article.stock_actuel <= article.stock_min
-        )
-        .map((article: ArticleFromAPI) => ({
-          id: article.id,
-          reference: article.reference,
-          nom: article.nom,
-          stock_actuel: article.stock_actuel,
-          stock_min: article.stock_min,
-          prix_ht: Number(article.prix_ht),
-          categorie: article.categorie
-            ? {
-                id: article.categorie.id,
-                nom: article.categorie.nom,
-              }
-            : null,
-        }));
-    },
+    queryFn: async (): Promise<ArticleAvecAlerte[]> =>
+      api.get<ArticleAvecAlerte[]>("/api/articles/alerts"),
   });
 }

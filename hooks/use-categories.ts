@@ -1,3 +1,4 @@
+import { api } from "@/lib/api/fetch-client";
 import type { Categorie } from "@/lib/types/category";
 import type {
     CategorieCreateInput,
@@ -18,15 +19,7 @@ export const categorieKeys = {
 export function useCategories() {
     return useQuery({
         queryKey: categorieKeys.all,
-        queryFn: async (): Promise<Categorie[]> => {
-            const response = await fetch("/api/categories");
-
-            if (!response.ok) {
-                throw new Error("Erreur lors du chargement des catégories");
-            }
-
-            return response.json();
-        },
+        queryFn: async (): Promise<Categorie[]> => api.get<Categorie[]>("/api/categories"),
     });
 }
 
@@ -34,15 +27,7 @@ export function useCategories() {
 export function useCategorie(id: string) {
     return useQuery({
         queryKey: categorieKeys.detail(id),
-        queryFn: async (): Promise<Categorie> => {
-            const response = await fetch(`/api/categories/${id}`);
-
-            if (!response.ok) {
-                throw new Error("Erreur lors du chargement de la catégorie");
-            }
-
-            return response.json();
-        },
+        queryFn: async (): Promise<Categorie> => api.get<Categorie>(`/api/categories/${id}`),
         enabled: !!id,
     });
 }
@@ -52,22 +37,8 @@ export function useCreateCategorie() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (data: CategorieCreateInput) => {
-            const response = await fetch("/api/categories", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(data),
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || "Erreur lors de la création");
-            }
-
-            return response.json();
-        },
+        mutationFn: async (data: CategorieCreateInput) =>
+            api.post<Categorie>("/api/categories", data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: categorieKeys.all });
         },
@@ -85,24 +56,7 @@ export function useUpdateCategorie() {
         }: {
             id: string;
             data: CategorieUpdateInput;
-        }) => {
-            const response = await fetch(`/api/categories/${id}`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(data),
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(
-                    error.message || "Erreur lors de la mise à jour"
-                );
-            }
-
-            return response.json();
-        },
+        }) => api.put<Categorie>(`/api/categories/${id}`, data),
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: categorieKeys.all });
             queryClient.invalidateQueries({
@@ -117,20 +71,7 @@ export function useDeleteCategorie() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (id: string) => {
-            const response = await fetch(`/api/categories/${id}`, {
-                method: "DELETE",
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(
-                    error.message || "Erreur lors de la suppression"
-                );
-            }
-
-            return response.json();
-        },
+        mutationFn: async (id: string) => api.delete(`/api/categories/${id}`),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: categorieKeys.all });
         },

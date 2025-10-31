@@ -34,14 +34,13 @@ import {
     Plus,
     Search,
     ShoppingBag,
-    Tag,
     TrendingUp,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { createColumns, type Article } from "./columns";
-import { DataTable } from "./data-table";
+import { createColumns, type Article } from "./_components/data-table/columns";
+import { DataTable } from "./_components/data-table";
 
 const sortOptions = [
     "Nom A-Z",
@@ -171,13 +170,13 @@ export default function CataloguePage() {
     );
 
     // Filter handlers with toggle functionality
-    const handleTypeFilterToggle = (type: "TOUS" | "PRODUIT" | "SERVICE") => {
+    const handleTypeFilterToggle = useCallback((type: "TOUS" | "PRODUIT" | "SERVICE") => {
         if (typeFilter === type && type !== "TOUS") {
             setTypeFilter("TOUS");
         } else {
             setTypeFilter(type);
         }
-    };
+    }, [typeFilter]);
 
     // Statistiques par type
     const stats = useMemo(() => {
@@ -322,22 +321,10 @@ export default function CataloguePage() {
                         Gérez votre catalogue de produits et services
                     </p>
                 </div>
-                <div className="flex gap-2">
-                    <Button
-                        variant="outline"
-                        onClick={() =>
-                            router.push("/dashboard/articles/categories")
-                        }
-                        className="cursor-pointer"
-                    >
-                        <Tag className="w-4 h-4 mr-2" />
-                        Catégories
-                    </Button>
-                    <Button onClick={handleCreate} className="cursor-pointer">
-                        <Plus className="w-4 h-4 mr-2" />
-                        Ajouter
-                    </Button>
-                </div>
+                <Button onClick={handleCreate} className="cursor-pointer">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Ajouter
+                </Button>
             </div>
 
             {/* KPI Cards */}

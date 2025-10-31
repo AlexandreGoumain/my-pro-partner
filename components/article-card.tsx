@@ -1,6 +1,7 @@
 "use client";
 
-import { Article } from "@/app/(dashboard)/dashboard/articles/columns";
+import { memo } from "react";
+import { Article } from "@/app/(dashboard)/dashboard/articles/_components/data-table/columns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -33,7 +34,7 @@ interface ArticleCardProps {
     onDelete?: (article: Article) => void;
 }
 
-export function ArticleCard({
+export const ArticleCard = memo(function ArticleCard({
     article,
     onView,
     onEdit,
@@ -247,4 +248,4 @@ export function ArticleCard({
             </div>
         </Card>
     );
-}
+});

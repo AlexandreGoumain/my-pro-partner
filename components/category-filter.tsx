@@ -20,7 +20,7 @@ import {
     FolderOpen,
     X,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 
 interface CategoryFilterProps {
     selectedCategoryIds: string[];
@@ -217,7 +217,7 @@ interface CategoryNodeProps {
     isIndeterminate: (id: string) => boolean;
 }
 
-function CategoryNode({
+const CategoryNode = memo(function CategoryNode({
     category,
     level,
     expandedIds,
@@ -324,4 +324,4 @@ function CategoryNode({
             )}
         </div>
     );
-}
+});

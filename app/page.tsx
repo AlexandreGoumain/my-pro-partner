@@ -1,18 +1,20 @@
-import { Navigation } from "@/components/landing/navigation";
-import { Hero } from "@/components/landing/hero";
-import { StatsSection } from "@/components/landing/stats-section";
 import { BentoGrid } from "@/components/landing/bento-grid";
-import { ProductDemo } from "@/components/landing/product-demo";
-import { PricingCards } from "@/components/landing/pricing-cards";
-import { FAQ } from "@/components/landing/faq";
 import { CTASection } from "@/components/landing/cta-section";
+import { FAQ } from "@/components/landing/faq";
 import { Footer } from "@/components/landing/footer";
+import { Hero } from "@/components/landing/hero";
+import { Navigation } from "@/components/landing/navigation";
+import { PricingCards } from "@/components/landing/pricing-cards";
+import { StatsSection } from "@/components/landing/stats-section";
+import { TrustBadges } from "@/components/landing/trust-badges";
+import { HowItWorks } from "@/components/landing/how-it-works";
+import { Guarantees } from "@/components/landing/guarantees";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "MyProPartner - L'ERP moderne pour artisans et PME",
+    title: "MyProPartner - ERP Moderne pour Artisans et PME",
     description:
-        "Gérez votre entreprise en toute simplicité avec MyProPartner. Clients, devis, factures, stocks : tout en un seul endroit. Essai gratuit 14 jours.",
+        "Gérez votre entreprise en toute simplicité. Clients, devis, factures, stocks : tout en un seul endroit. Essai gratuit 14 jours.",
     keywords: [
         "ERP",
         "artisan",
@@ -24,7 +26,7 @@ export const metadata: Metadata = {
         "comptabilité",
     ],
     openGraph: {
-        title: "MyProPartner - L'ERP moderne pour artisans et PME",
+        title: "MyProPartner - ERP Moderne pour Artisans et PME",
         description:
             "Gérez votre entreprise en toute simplicité. Clients, devis, factures, stocks : tout en un seul endroit.",
         type: "website",
@@ -32,8 +34,9 @@ export const metadata: Metadata = {
     },
     twitter: {
         card: "summary_large_image",
-        title: "MyProPartner - L'ERP moderne pour artisans",
-        description: "L'ERP tout-en-un pour artisans et PME. Essai gratuit 14 jours.",
+        title: "MyProPartner - ERP Moderne pour Artisans",
+        description:
+            "ERP tout-en-un pour artisans et PME. Essai gratuit 14 jours.",
     },
 };
 
@@ -45,7 +48,9 @@ export default function LandingPage() {
                 <Hero />
                 <StatsSection />
                 <BentoGrid />
-                <ProductDemo />
+                <TrustBadges />
+                <HowItWorks />
+                <Guarantees />
                 <PricingCards />
                 <FAQ />
                 <CTASection />

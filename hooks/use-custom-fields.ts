@@ -1,23 +1,24 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/lib/api/fetch-client";
 import {
     ChampPersonnalise,
     ChampPersonnaliseCreateInput,
     ChampPersonnaliseUpdateInput,
 } from "@/lib/types/custom-fields";
 
+// Query Keys - Standardized pattern
+export const customFieldsKeys = {
+    all: ["custom-fields"] as const,
+    byCategory: (categorieId: string) => ["custom-fields", categorieId] as const,
+};
+
 // Hook pour récupérer les champs personnalisés d'une catégorie
 export function useCategoryCustomFields(categorieId: string | null | undefined) {
     return useQuery<ChampPersonnalise[]>({
-        queryKey: ["custom-fields", categorieId],
+        queryKey: categorieId ? customFieldsKeys.byCategory(categorieId) : customFieldsKeys.all,
         queryFn: async () => {
             if (!categorieId) return [];
-            const response = await fetch(
-                `/api/categories/${categorieId}/champs`
-            );
-            if (!response.ok) {
-                throw new Error("Erreur lors du chargement des champs");
-            }
-            return response.json();
+            return api.get<ChampPersonnalise[]>(`/api/categories/${categorieId}/champs`);
         },
         enabled: !!categorieId,
     });
@@ -28,26 +29,11 @@ export function useCreateCustomField(categorieId: string) {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (data: ChampPersonnaliseCreateInput) => {
-            const response = await fetch(
-                `/api/categories/${categorieId}/champs`,
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(data),
-                }
-            );
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || "Erreur lors de la création");
-            }
-
-            return response.json();
-        },
+        mutationFn: async (data: ChampPersonnaliseCreateInput) =>
+            api.post<ChampPersonnalise>(`/api/categories/${categorieId}/champs`, data),
         onSuccess: () => {
             queryClient.invalidateQueries({
-                queryKey: ["custom-fields", categorieId],
+                queryKey: customFieldsKeys.byCategory(categorieId),
             });
         },
     });
@@ -58,28 +44,11 @@ export function useUpdateCustomField(categorieId: string, champId: string) {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (data: ChampPersonnaliseUpdateInput) => {
-            const response = await fetch(
-                `/api/categories/${categorieId}/champs/${champId}`,
-                {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(data),
-                }
-            );
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(
-                    error.message || "Erreur lors de la modification"
-                );
-            }
-
-            return response.json();
-        },
+        mutationFn: async (data: ChampPersonnaliseUpdateInput) =>
+            api.put<ChampPersonnalise>(`/api/categories/${categorieId}/champs/${champId}`, data),
         onSuccess: () => {
             queryClient.invalidateQueries({
-                queryKey: ["custom-fields", categorieId],
+                queryKey: customFieldsKeys.byCategory(categorieId),
             });
         },
     });
@@ -90,26 +59,11 @@ export function useDeleteCustomField(categorieId: string) {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (champId: string) => {
-            const response = await fetch(
-                `/api/categories/${categorieId}/champs/${champId}`,
-                {
-                    method: "DELETE",
-                }
-            );
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(
-                    error.message || "Erreur lors de la suppression"
-                );
-            }
-
-            return response.json();
-        },
+        mutationFn: async (champId: string) =>
+            api.delete(`/api/categories/${categorieId}/champs/${champId}`),
         onSuccess: () => {
             queryClient.invalidateQueries({
-                queryKey: ["custom-fields", categorieId],
+                queryKey: customFieldsKeys.byCategory(categorieId),
             });
         },
     });
@@ -124,28 +78,15 @@ export function useReorderCustomFields(categorieId: string) {
             updates: Array<{ id: string; ordre: number }>
         ) => {
             const promises = updates.map((update) =>
-                fetch(
-                    `/api/categories/${categorieId}/champs/${update.id}`,
-                    {
-                        method: "PUT",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ ordre: update.ordre }),
-                    }
-                )
+                api.put(`/api/categories/${categorieId}/champs/${update.id}`, { ordre: update.ordre })
             );
 
-            const responses = await Promise.all(promises);
-            const failed = responses.filter((r) => !r.ok);
-
-            if (failed.length > 0) {
-                throw new Error("Erreur lors de la réorganisation");
-            }
-
+            await Promise.all(promises);
             return true;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({
-                queryKey: ["custom-fields", categorieId],
+                queryKey: customFieldsKeys.byCategory(categorieId),
             });
         },
     });

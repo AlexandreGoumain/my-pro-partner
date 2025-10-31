@@ -1,7 +1,7 @@
 "use client";
 
 import { Table } from "@tanstack/react-table";
-import { DataTableViewOptions } from "./data-table-view-options";
+import { DataTableViewOptions } from "./view-options";
 
 interface DataTableToolbarProps<TData> {
     table: Table<TData>;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -8,6 +8,7 @@ import {
     type ArticleUpdateInput,
 } from "@/lib/validation";
 import { useUpdateArticle } from "@/hooks/use-articles";
+import { useCategories } from "@/hooks/use-categories";
 import {
     Dialog,
     DialogContent,
@@ -37,11 +38,6 @@ import { ButtonWithSpinner } from "@/components/ui/button-with-spinner";
 import { ArticleDisplay } from "@/lib/types/article";
 import { Checkbox } from "@/components/ui/checkbox";
 
-interface Category {
-    id: string;
-    nom: string;
-}
-
 interface ArticleEditDialogProps {
     article: ArticleDisplay | null;
     open: boolean;
@@ -56,8 +52,7 @@ export function ArticleEditDialog({
     onSuccess,
 }: ArticleEditDialogProps) {
     const updateArticle = useUpdateArticle();
-    const [categories, setCategories] = useState<Category[]>([]);
-    const [loadingCategories, setLoadingCategories] = useState(true);
+    const { data: categories = [], isLoading: loadingCategories } = useCategories();
 
     const form = useForm<ArticleUpdateInput>({
         resolver: zodResolver(articleUpdateSchema),
@@ -74,24 +69,6 @@ export function ArticleEditDialog({
             actif: true,
         },
     });
-
-    // Charger les catégories
-    useEffect(() => {
-        async function fetchCategories() {
-            try {
-                setLoadingCategories(true);
-                const response = await fetch("/api/categories");
-                if (!response.ok) throw new Error("Erreur chargement catégories");
-                const data = await response.json();
-                setCategories(data);
-            } catch (error) {
-                console.error("Error fetching categories:", error);
-            } finally {
-                setLoadingCategories(false);
-            }
-        }
-        fetchCategories();
-    }, []);
 
     // Charger les données de l'article dans le formulaire
     useEffect(() => {

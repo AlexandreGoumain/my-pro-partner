@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { mapArticleToDisplay } from "@/lib/types/article";
-import type { Article } from "@/app/(dashboard)/dashboard/articles/columns";
+import { api } from "@/lib/api/fetch-client";
+import { mapArticleToDisplay, type ArticleWithRelations } from "@/lib/types/article";
+import type { Article } from "@/app/(dashboard)/dashboard/articles/_components/data-table/columns";
 import type { ArticleCreateInput, ArticleUpdateInput } from "@/lib/validation";
 
 // Query Keys
@@ -14,14 +15,8 @@ export function useArticles() {
     return useQuery({
         queryKey: articleKeys.all,
         queryFn: async (): Promise<Article[]> => {
-            const response = await fetch("/api/articles");
-
-            if (!response.ok) {
-                throw new Error("Erreur lors du chargement des articles");
-            }
-
-            const result = await response.json();
-            const data = result.data || result;
+            const result = await api.get<ArticleWithRelations[] | { data: ArticleWithRelations[] }>("/api/articles");
+            const data = Array.isArray(result) ? result : result.data || [];
             return data.map(mapArticleToDisplay);
         },
     });
@@ -31,15 +26,7 @@ export function useArticles() {
 export function useArticle(id: string) {
     return useQuery({
         queryKey: articleKeys.detail(id),
-        queryFn: async () => {
-            const response = await fetch(`/api/articles/${id}`);
-
-            if (!response.ok) {
-                throw new Error("Erreur lors du chargement de l'article");
-            }
-
-            return response.json();
-        },
+        queryFn: async () => api.get<ArticleWithRelations>(`/api/articles/${id}`),
         enabled: !!id, // Ne lance la requête que si l'ID existe
     });
 }
@@ -49,22 +36,8 @@ export function useCreateArticle() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (data: ArticleCreateInput) => {
-            const response = await fetch("/api/articles", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(data),
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || "Erreur lors de la création");
-            }
-
-            return response.json();
-        },
+        mutationFn: async (data: ArticleCreateInput) =>
+            api.post<ArticleWithRelations>("/api/articles", data),
         onSuccess: () => {
             // Invalide le cache des articles pour forcer un rechargement
             queryClient.invalidateQueries({ queryKey: articleKeys.all });
@@ -83,24 +56,7 @@ export function useUpdateArticle() {
         }: {
             id: string;
             data: ArticleUpdateInput;
-        }) => {
-            const response = await fetch(`/api/articles/${id}`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(data),
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(
-                    error.message || "Erreur lors de la mise à jour"
-                );
-            }
-
-            return response.json();
-        },
+        }) => api.put<ArticleWithRelations>(`/api/articles/${id}`, data),
         onSuccess: (_, variables) => {
             // Invalide le cache des articles et de l'article spécifique
             queryClient.invalidateQueries({ queryKey: articleKeys.all });
@@ -116,32 +72,18 @@ export function useDuplicateArticle() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (article: Article) => {
-            const response = await fetch("/api/articles", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    reference: `${article.reference}-COPIE`,
-                    nom: `${article.nom} (Copie)`,
-                    description: article.description,
-                    prix_ht: article.prix,
-                    tva_taux: article.tva,
-                    stock_actuel: 0,
-                    stock_min: article.seuilAlerte,
-                    gestion_stock: true,
-                    actif: true,
-                }),
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || "Erreur lors de la duplication");
-            }
-
-            return response.json();
-        },
+        mutationFn: async (article: Article) =>
+            api.post<ArticleWithRelations>("/api/articles", {
+                reference: `${article.reference}-COPIE`,
+                nom: `${article.nom} (Copie)`,
+                description: article.description,
+                prix_ht: article.prix,
+                tva_taux: article.tva,
+                stock_actuel: 0,
+                stock_min: article.seuilAlerte,
+                gestion_stock: true,
+                actif: true,
+            }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: articleKeys.all });
         },
@@ -153,20 +95,7 @@ export function useDeleteArticle() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (id: string) => {
-            const response = await fetch(`/api/articles/${id}`, {
-                method: "DELETE",
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(
-                    error.message || "Erreur lors de la suppression"
-                );
-            }
-
-            return response.json();
-        },
+        mutationFn: async (id: string) => api.delete(`/api/articles/${id}`),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: articleKeys.all });
         },
