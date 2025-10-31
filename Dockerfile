@@ -9,7 +9,7 @@ WORKDIR /app
 
 # Install dependencies only when needed
 COPY package.json package-lock.json* ./
-RUN npm ci --only=production && npm cache clean --force
+RUN npm ci --omit=dev --legacy-peer-deps && npm cache clean --force
 
 # Stage 2: Builder
 FROM node:20-alpine AS builder
@@ -20,7 +20,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Install all dependencies (including devDependencies) for build
-RUN npm ci
+RUN npm ci --legacy-peer-deps
 
 # Generate Prisma Client
 RUN npx prisma generate
