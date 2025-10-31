@@ -23,6 +23,8 @@ COPY . .
 RUN npm ci --legacy-peer-deps
 
 # Generate Prisma Client
+# Use a placeholder DATABASE_URL for generation (not used during build, only at runtime)
+ENV DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder?schema=public"
 RUN npx prisma generate
 
 # Build Next.js application
