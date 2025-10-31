@@ -8,14 +8,14 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const { entrepriseId } = await requireTenantAuth();
 
         const niveau = await prisma.niveauFidelite.findFirst({
             where: {
-                id: params.id,
+                id: (await params).id,
                 entrepriseId,
             },
         });
@@ -35,7 +35,7 @@ export async function GET(
 
 export async function PUT(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const { entrepriseId } = await requireTenantAuth();
@@ -56,7 +56,7 @@ export async function PUT(
         // Vérifier que le niveau existe
         const existing = await prisma.niveauFidelite.findFirst({
             where: {
-                id: params.id,
+                id: (await params).id,
                 entrepriseId,
             },
         });
@@ -74,7 +74,7 @@ export async function PUT(
                 where: {
                     entrepriseId,
                     nom: validation.data.nom,
-                    id: { not: params.id },
+                    id: { not: (await params).id },
                 },
             });
 
@@ -92,7 +92,7 @@ export async function PUT(
                 where: {
                     entrepriseId,
                     ordre: validation.data.ordre,
-                    id: { not: params.id },
+                    id: { not: (await params).id },
                 },
             });
 
@@ -105,7 +105,7 @@ export async function PUT(
         }
 
         const niveau = await prisma.niveauFidelite.update({
-            where: { id: params.id },
+            where: { id: (await params).id },
             data: validation.data,
         });
 
@@ -117,7 +117,7 @@ export async function PUT(
 
 export async function DELETE(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const { entrepriseId } = await requireTenantAuth();
@@ -125,7 +125,7 @@ export async function DELETE(
         // Vérifier que le niveau existe
         const existing = await prisma.niveauFidelite.findFirst({
             where: {
-                id: params.id,
+                id: (await params).id,
                 entrepriseId,
             },
         });
@@ -140,7 +140,7 @@ export async function DELETE(
         // Vérifier s'il y a des clients qui utilisent ce niveau
         const clientsCount = await prisma.client.count({
             where: {
-                niveauFideliteId: params.id,
+                niveauFideliteId: (await params).id,
                 entrepriseId,
             },
         });
@@ -155,7 +155,7 @@ export async function DELETE(
         }
 
         await prisma.niveauFidelite.delete({
-            where: { id: params.id },
+            where: { id: (await params).id },
         });
 
         return NextResponse.json({ message: "Niveau supprimé avec succès" });

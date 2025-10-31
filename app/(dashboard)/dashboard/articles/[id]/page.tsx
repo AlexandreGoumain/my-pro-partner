@@ -133,6 +133,8 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
                         statut: data.statut,
                         image: data.image,
                         tva: data.tva_taux,
+                        gestionStock: data.gestion_stock || false,
+                        createdAt: data.createdAt ? new Date(data.createdAt) : undefined,
                     };
                     setArticle(articleDisplay);
                 }

@@ -58,23 +58,23 @@ async function migrateExistingUsers() {
 
         const [categories, articles, clients, documents, mouvements] = await Promise.all([
             prisma.categorie.updateMany({
-                where: { entrepriseId: null },
+                where: { entrepriseId: { equals: null } },
                 data: { entrepriseId: defaultEntreprise.id },
             }),
             prisma.article.updateMany({
-                where: { entrepriseId: null },
+                where: { entrepriseId: { equals: null } },
                 data: { entrepriseId: defaultEntreprise.id },
             }),
             prisma.client.updateMany({
-                where: { entrepriseId: null },
+                where: { entrepriseId: { equals: null } },
                 data: { entrepriseId: defaultEntreprise.id },
             }),
             prisma.document.updateMany({
-                where: { entrepriseId: null },
+                where: { entrepriseId: { equals: null } },
                 data: { entrepriseId: defaultEntreprise.id },
             }),
             prisma.mouvementStock.updateMany({
-                where: { entrepriseId: null },
+                where: { entrepriseId: { equals: null } },
                 data: { entrepriseId: defaultEntreprise.id },
             }),
         ]);

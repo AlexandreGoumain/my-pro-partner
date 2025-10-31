@@ -5,7 +5,7 @@ import {
   getPaginationParams,
 } from "@/lib/utils/pagination";
 import { mouvementStockCreateSchema } from "@/lib/validation";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@/lib/generated/prisma/client";
 import { getServerSession } from "next-auth/next";
 import { NextRequest, NextResponse } from "next/server";
 

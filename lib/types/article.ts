@@ -22,6 +22,8 @@ export type ArticleDisplay = {
     statut: "ACTIF" | "INACTIF" | "RUPTURE";
     image?: string;
     tva: number;
+    gestionStock: boolean;
+    createdAt?: Date;
 };
 
 // Mapper function from DB to display
@@ -53,5 +55,7 @@ export function mapArticleToDisplay(
         categorieId: article.categorieId || null,
         statut,
         tva: Number(article.tva_taux),
+        gestionStock: article.gestion_stock,
+        createdAt: article.createdAt,
     };
 }

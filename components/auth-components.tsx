@@ -59,7 +59,7 @@ export function AuthBranding({
                                     ]
                                 )}
                             >
-                                <Check className="h-6 w-6" />
+                                <Check className="h-6 w-6" {...({} as any)} />
                             </div>
                         </div>
                         <div>

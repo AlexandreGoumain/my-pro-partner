@@ -15,6 +15,8 @@ export interface Client {
     pays: string;
     notes?: string | null;
     entrepriseId: string;
+    points_solde: number;
+    niveauFideliteId?: string | null;
     createdAt: Date;
     updatedAt: Date;
 }

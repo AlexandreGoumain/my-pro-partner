@@ -104,7 +104,7 @@ export async function DELETE(
 
       // Supprimer le mouvement original
       await tx.mouvementStock.delete({
-        where: { id: params.id },
+        where: { id: (await params).id },
       });
     });
 

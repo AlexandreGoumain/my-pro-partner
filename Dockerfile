@@ -31,12 +31,9 @@ COPY . .
 # Install all dependencies (including devDependencies) for build
 RUN npm ci --legacy-peer-deps
 
-# Generate Prisma Client
-# Use a placeholder DATABASE_URL for generation (not used during build, only at runtime)
+# Build Next.js application (will generate Prisma client and index automatically)
+# Use a placeholder DATABASE_URL for Prisma generation (not used during build, only at runtime)
 ENV DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder?schema=public"
-RUN npx prisma generate
-
-# Build Next.js application
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
