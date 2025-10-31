@@ -48,3 +48,9 @@ CLAUDE.md
 
 # Personal Documentation (commented out - we want to version docs)
 doc/
+
+# Docker & Nginx
+nginx/ssl/*.pem
+nginx/ssl/*.key
+nginx/logs/
+*.log
