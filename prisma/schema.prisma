@@ -29,13 +29,15 @@ model Entreprise {
   dateExpiration  DateTime?
 
   // Relations (toutes les données de l'entreprise)
-  users      User[]
-  categories Categorie[]
-  articles   Article[]
-  clients    Client[]
-  documents  Document[]
-  mouvements MouvementStock[]
-  parametres ParametresEntreprise?
+  users             User[]
+  categories        Categorie[]
+  articles          Article[]
+  clients           Client[]
+  documents         Document[]
+  mouvements        MouvementStock[]
+  parametres        ParametresEntreprise?
+  niveauxFidelite   NiveauFidelite[]
+  mouvementsPoints  MouvementPoints[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -93,11 +95,17 @@ model Client {
   pays       String  @default("France")
   notes      String?
 
+  // Programme de fidélité
+  points_solde      Int     @default(0)
+  niveauFidelite    NiveauFidelite? @relation(fields: [niveauFideliteId], references: [id])
+  niveauFideliteId  String?
+
   // Multi-tenant
   entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
   entrepriseId String
 
-  documents Document[]
+  documents        Document[]
+  mouvementsPoints MouvementPoints[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -106,6 +114,8 @@ model Client {
   @@index([nom])
   @@index([email])
   @@index([ville])
+  @@index([niveauFideliteId])
+  @@index([points_solde])
 }
 
 // ============================================
@@ -400,4 +410,68 @@ model ParametresEntreprise {
   updatedAt DateTime @updatedAt
 
   @@index([entrepriseId])
+}
+
+// ============================================
+// PROGRAMME DE FIDÉLITÉ
+// ============================================
+
+model NiveauFidelite {
+  id          String  @id @default(cuid())
+  nom         String
+  description String?
+  ordre       Int     @default(0)
+  seuilPoints Int
+  remise      Decimal @default(0) @db.Decimal(5, 2)
+  couleur     String  @default("#000000")
+  icone       String?
+  avantages   String?
+  actif       Boolean @default(true)
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  clients Client[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([entrepriseId, nom])
+  @@unique([entrepriseId, ordre])
+  @@index([entrepriseId])
+  @@index([ordre])
+  @@index([seuilPoints])
+  @@index([actif])
+}
+
+model MouvementPoints {
+  id          String              @id @default(cuid())
+  type        TypeMouvementPoints
+  points      Int
+  description String?
+  reference   String?
+  dateExpiration DateTime?       @db.Date
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId String
+
+  createdAt DateTime @default(now())
+
+  @@index([entrepriseId])
+  @@index([clientId])
+  @@index([type])
+  @@index([createdAt])
+  @@index([dateExpiration])
+}
+
+enum TypeMouvementPoints {
+  GAIN
+  DEPENSE
+  EXPIRATION
+  AJUSTEMENT
 }

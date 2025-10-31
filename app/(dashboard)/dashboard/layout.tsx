@@ -35,10 +35,13 @@ import {
     SidebarTrigger,
 } from "@/components/ui/sidebar";
 import {
+    Award,
+    BarChart3,
     Building2,
     ChevronRight,
     CreditCard,
     FileText,
+    FileUp,
     HelpCircle,
     Keyboard,
     LayoutDashboard,
@@ -47,6 +50,7 @@ import {
     Plus,
     Settings,
     User,
+    Users,
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
@@ -62,15 +66,34 @@ const items = [
     {
         title: "Clients",
         url: "/dashboard/clients",
-        icon: User,
+        icon: Users,
         items: [
             {
                 title: "Liste des clients",
                 url: "/dashboard/clients",
             },
             {
-                title: "Ajouter un client",
-                url: "/dashboard/clients/new",
+                title: "Segments",
+                url: "/dashboard/clients/segments",
+            },
+            {
+                title: "Statistiques",
+                url: "/dashboard/clients/statistiques",
+            },
+            {
+                title: "Import/Export",
+                url: "/dashboard/clients/import-export",
+            },
+        ],
+    },
+    {
+        title: "Fidélité",
+        url: "/dashboard/fidelite",
+        icon: Award,
+        items: [
+            {
+                title: "Niveaux de fidélité",
+                url: "/dashboard/fidelite/niveaux",
             },
         ],
     },
