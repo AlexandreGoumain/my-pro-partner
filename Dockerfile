@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 # Install dependencies only when needed
 COPY package.json package-lock.json* ./
-RUN npm ci --omit=dev --legacy-peer-deps && npm cache clean --force
+RUN npm ci --ignore-scripts --legacy-peer-deps && npm cache clean --force
 
 # Stage 2: Builder
 FROM node:20-slim AS builder
