@@ -13,15 +13,75 @@ import {
     FileSpreadsheet,
     Users,
 } from "lucide-react";
-import { useClients } from "@/hooks/use-clients";
+import { useClients, useImportClients } from "@/hooks/use-clients";
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { CSVImportDialog, type CSVMapping } from "@/components/csv-import-dialog";
 
 export default function ClientImportExportPage() {
     const { data: clients = [], isLoading } = useClients();
+    const importClients = useImportClients();
     const [isDragging, setIsDragging] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [importDialogOpen, setImportDialogOpen] = useState(false);
+
+    // CSV Import mappings
+    const csvMappings: CSVMapping[] = [
+        {
+            csvHeader: "Nom",
+            targetField: "nom",
+            label: "Nom",
+            required: true,
+        },
+        {
+            csvHeader: "Prénom",
+            targetField: "prenom",
+            label: "Prénom",
+        },
+        {
+            csvHeader: "Email",
+            targetField: "email",
+            label: "Email",
+            validator: (value) => {
+                if (!value || value.trim() === "") return { valid: true };
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return emailRegex.test(value)
+                    ? { valid: true }
+                    : { valid: false, error: "Email invalide" };
+            },
+        },
+        {
+            csvHeader: "Téléphone",
+            targetField: "telephone",
+            label: "Téléphone",
+        },
+        {
+            csvHeader: "Adresse",
+            targetField: "adresse",
+            label: "Adresse",
+        },
+        {
+            csvHeader: "Ville",
+            targetField: "ville",
+            label: "Ville",
+        },
+        {
+            csvHeader: "Code Postal",
+            targetField: "codePostal",
+            label: "Code Postal",
+        },
+        {
+            csvHeader: "Pays",
+            targetField: "pays",
+            label: "Pays",
+        },
+        {
+            csvHeader: "Notes",
+            targetField: "notes",
+            label: "Notes",
+        },
+    ];
 
     const handleExportCSV = useCallback(() => {
         if (clients.length === 0) {
@@ -162,16 +222,15 @@ export default function ClientImportExportPage() {
     }, []);
 
     const handleImport = useCallback(() => {
-        if (!selectedFile) {
-            toast.error("Aucun fichier sélectionné");
-            return;
-        }
+        setImportDialogOpen(true);
+    }, []);
 
-        // TODO: Implémenter la logique d'import
-        toast.info("Fonctionnalité en cours de développement", {
-            description: "L'import de clients sera bientôt disponible",
-        });
-    }, [selectedFile]);
+    const handleCSVImport = useCallback(
+        async (data: Record<string, any>[]) => {
+            return await importClients.mutateAsync(data);
+        },
+        [importClients]
+    );
 
     return (
         <div className="space-y-6">
@@ -365,17 +424,15 @@ export default function ClientImportExportPage() {
                                 </div>
                             </div>
 
-                            {selectedFile && (
-                                <Button
-                                    onClick={handleImport}
-                                    className="w-full cursor-pointer"
-                                >
-                                    <Upload
-                                        className="w-4 h-4 mr-2"
-                                    />
-                                    Importer le fichier
-                                </Button>
-                            )}
+                            <Button
+                                onClick={handleImport}
+                                className="w-full cursor-pointer bg-black hover:bg-black/90 text-white"
+                            >
+                                <Upload
+                                    className="w-4 h-4 mr-2"
+                                />
+                                Importer des clients
+                            </Button>
                         </div>
                     </div>
                 </Card>
@@ -427,6 +484,16 @@ export default function ClientImportExportPage() {
                     </div>
                 </div>
             </Card>
+
+            {/* CSV Import Dialog */}
+            <CSVImportDialog
+                open={importDialogOpen}
+                onOpenChange={setImportDialogOpen}
+                title="Importer des clients"
+                description="Importez plusieurs clients à la fois via un fichier CSV"
+                mappings={csvMappings}
+                onImport={handleCSVImport}
+            />
         </div>
     );
 }

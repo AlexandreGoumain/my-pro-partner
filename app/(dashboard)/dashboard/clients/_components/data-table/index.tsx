@@ -26,16 +26,30 @@ import {
 import { DataTablePagination } from "./pagination";
 import { DataTableToolbar } from "./toolbar";
 
+export interface PaginationInfo {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasMore: boolean;
+}
+
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
     data: TData[];
     emptyMessage?: string;
+    pagination?: PaginationInfo;
+    onPageChange?: (page: number) => void;
+    onPageSizeChange?: (size: number) => void;
 }
 
 export function DataTable<TData, TValue>({
     columns,
     data,
     emptyMessage = "Aucun résultat trouvé",
+    pagination,
+    onPageChange,
+    onPageSizeChange,
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = React.useState<SortingState>([]);
     const [columnFilters, setColumnFilters] =
@@ -43,6 +57,9 @@ export function DataTable<TData, TValue>({
     const [columnVisibility, setColumnVisibility] =
         React.useState<VisibilityState>({});
     const [rowSelection, setRowSelection] = React.useState({});
+
+    // Use server-side pagination if provided
+    const isServerSidePagination = !!pagination;
 
     // eslint-disable-next-line react-hooks/incompatible-library
     const table = useReactTable({
@@ -60,9 +77,17 @@ export function DataTable<TData, TValue>({
         onColumnFiltersChange: setColumnFilters,
         onColumnVisibilityChange: setColumnVisibility,
         getCoreRowModel: getCoreRowModel(),
-        getFilteredRowModel: getFilteredRowModel(),
-        getPaginationRowModel: getPaginationRowModel(),
-        getSortedRowModel: getSortedRowModel(),
+        // Only use client-side filtering/sorting/pagination when NOT using server-side
+        ...(isServerSidePagination
+            ? {
+                  manualPagination: true,
+                  pageCount: pagination?.totalPages ?? 0,
+              }
+            : {
+                  getFilteredRowModel: getFilteredRowModel(),
+                  getPaginationRowModel: getPaginationRowModel(),
+                  getSortedRowModel: getSortedRowModel(),
+              }),
     });
 
     return (
@@ -119,7 +144,12 @@ export function DataTable<TData, TValue>({
                     </TableBody>
                 </Table>
             </div>
-            <DataTablePagination table={table} />
+            <DataTablePagination
+                table={table}
+                pagination={pagination}
+                onPageChange={onPageChange}
+                onPageSizeChange={onPageSizeChange}
+            />
         </div>
     );
 }
