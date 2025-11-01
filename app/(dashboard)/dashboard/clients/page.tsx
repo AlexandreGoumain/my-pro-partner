@@ -9,33 +9,34 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import {
-    Client,
-    useClients,
-    useDeleteClient,
-} from "@/hooks/use-clients";
+import { Client, useClients, useDeleteClient } from "@/hooks/use-clients";
+import { useSegment, useSegmentClients } from "@/hooks/use-segments";
+import { differenceInDays } from "date-fns";
 import {
     AlertCircle,
     ArrowUpRight,
     Clock,
-    Euro,
-    Mail,
-    Phone,
     Plus,
     Search,
     TrendingUp,
     Users,
+    X,
     Zap,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { differenceInDays } from "date-fns";
 
 export default function ClientsPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const segmentId = searchParams.get("segment");
+
+    // Data fetching
     const { data: clients = [], isLoading } = useClients();
     const deleteClient = useDeleteClient();
+    const { data: segment } = useSegment(segmentId || "");
+    const { data: segmentClientsData } = useSegmentClients(segmentId || "");
 
     const [searchTerm, setSearchTerm] = useState("");
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -43,11 +44,19 @@ export default function ClientsPage() {
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
+    // Determine which clients to show
+    const displayClients =
+        segmentId && segmentClientsData ? segmentClientsData.data : clients;
+
     // Intelligence metrics
     const intelligence = useMemo(() => {
         const now = new Date();
-        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+        const thirtyDaysAgo = new Date(
+            now.getTime() - 30 * 24 * 60 * 60 * 1000
+        );
+        const ninetyDaysAgo = new Date(
+            now.getTime() - 90 * 24 * 60 * 60 * 1000
+        );
 
         // Nouveaux clients ce mois
         const newThisMonth = clients.filter(
@@ -86,21 +95,29 @@ export default function ClientsPage() {
 
     // Filtrer les clients par recherche
     const filteredClients = useMemo(() => {
-        if (!searchTerm) return clients;
+        if (!searchTerm) return displayClients;
 
-        return clients.filter((client) => {
+        return displayClients.filter((client) => {
             const nomComplet = client.prenom
                 ? `${client.nom} ${client.prenom}`
                 : client.nom;
             return (
                 nomComplet.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 (client.email &&
-                    client.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                    client.email
+                        .toLowerCase()
+                        .includes(searchTerm.toLowerCase())) ||
                 (client.telephone &&
-                    client.telephone.toLowerCase().includes(searchTerm.toLowerCase()))
+                    client.telephone
+                        .toLowerCase()
+                        .includes(searchTerm.toLowerCase()))
             );
         });
-    }, [clients, searchTerm]);
+    }, [displayClients, searchTerm]);
+
+    const clearSegmentFilter = useCallback(() => {
+        router.push("/dashboard/clients");
+    }, [router]);
 
     const handleCreate = useCallback(() => {
         setCreateDialogOpen(true);
@@ -185,7 +202,10 @@ export default function ClientsPage() {
                     <div className="p-5">
                         <div className="flex items-center justify-between mb-4">
                             <div className="h-10 w-10 rounded-lg bg-black/5 flex items-center justify-center">
-                                <Users className="h-5 w-5 text-black/60" strokeWidth={2} />
+                                <Users
+                                    className="h-5 w-5 text-black/60"
+                                    strokeWidth={2}
+                                />
                             </div>
                             <Badge
                                 variant="secondary"
@@ -198,7 +218,9 @@ export default function ClientsPage() {
                             <p className="text-[32px] font-semibold tracking-[-0.02em] text-black">
                                 {intelligence.total}
                             </p>
-                            <p className="text-[14px] text-black/60">Clients enregistrés</p>
+                            <p className="text-[14px] text-black/60">
+                                Clients enregistrés
+                            </p>
                         </div>
                     </div>
                 </Card>
@@ -208,7 +230,10 @@ export default function ClientsPage() {
                     <div className="p-5">
                         <div className="flex items-center justify-between mb-4">
                             <div className="h-10 w-10 rounded-lg bg-black/5 flex items-center justify-center">
-                                <TrendingUp className="h-5 w-5 text-black/60" strokeWidth={2} />
+                                <TrendingUp
+                                    className="h-5 w-5 text-black/60"
+                                    strokeWidth={2}
+                                />
                             </div>
                             <Badge
                                 variant="secondary"
@@ -221,7 +246,9 @@ export default function ClientsPage() {
                             <p className="text-[32px] font-semibold tracking-[-0.02em] text-black">
                                 {intelligence.newThisMonth}
                             </p>
-                            <p className="text-[14px] text-black/60">Nouveaux ce mois</p>
+                            <p className="text-[14px] text-black/60">
+                                Nouveaux ce mois
+                            </p>
                         </div>
                     </div>
                 </Card>
@@ -231,14 +258,21 @@ export default function ClientsPage() {
                     <div className="p-5">
                         <div className="flex items-center justify-between mb-4">
                             <div className="h-10 w-10 rounded-lg bg-black/5 flex items-center justify-center">
-                                <Zap className="h-5 w-5 text-black/60" strokeWidth={2} />
+                                <Zap
+                                    className="h-5 w-5 text-black/60"
+                                    strokeWidth={2}
+                                />
                             </div>
                             <Badge
                                 variant="secondary"
                                 className="bg-black/5 text-black/60 border-0 text-[12px] h-5 px-2"
                             >
                                 {intelligence.total > 0
-                                    ? `${((intelligence.active / intelligence.total) * 100).toFixed(0)}%`
+                                    ? `${(
+                                          (intelligence.active /
+                                              intelligence.total) *
+                                          100
+                                      ).toFixed(0)}%`
                                     : "0%"}
                             </Badge>
                         </div>
@@ -246,7 +280,9 @@ export default function ClientsPage() {
                             <p className="text-[32px] font-semibold tracking-[-0.02em] text-black">
                                 {intelligence.active}
                             </p>
-                            <p className="text-[14px] text-black/60">Actifs (30j)</p>
+                            <p className="text-[14px] text-black/60">
+                                Actifs (30j)
+                            </p>
                         </div>
                     </div>
                 </Card>
@@ -267,13 +303,21 @@ export default function ClientsPage() {
                         <div className="flex items-center justify-between mb-4">
                             <div
                                 className={`h-10 w-10 rounded-lg flex items-center justify-center ${
-                                    intelligence.inactive > 0 ? "bg-black/10" : "bg-black/5"
+                                    intelligence.inactive > 0
+                                        ? "bg-black/10"
+                                        : "bg-black/5"
                                 }`}
                             >
                                 {intelligence.inactive > 0 ? (
-                                    <AlertCircle className="h-5 w-5 text-black/80" strokeWidth={2} />
+                                    <AlertCircle
+                                        className="h-5 w-5 text-black/80"
+                                        strokeWidth={2}
+                                    />
                                 ) : (
-                                    <Clock className="h-5 w-5 text-black/60" strokeWidth={2} />
+                                    <Clock
+                                        className="h-5 w-5 text-black/60"
+                                        strokeWidth={2}
+                                    />
                                 )}
                             </div>
                             {intelligence.inactive > 0 && (
@@ -289,7 +333,9 @@ export default function ClientsPage() {
                             <p className="text-[32px] font-semibold tracking-[-0.02em] text-black">
                                 {intelligence.inactive}
                             </p>
-                            <p className="text-[14px] text-black/60">Inactifs (&gt;90j)</p>
+                            <p className="text-[14px] text-black/60">
+                                Inactifs (&gt;90j)
+                            </p>
                         </div>
                     </div>
                 </Card>
@@ -325,8 +371,9 @@ export default function ClientsPage() {
                                 />
                             </div>
                             <p className="text-[12px] text-black/40">
-                                {intelligence.complete} clients avec informations complètes
-                                (email + téléphone + adresse)
+                                {intelligence.complete} clients avec
+                                informations complètes (email + téléphone +
+                                adresse)
                             </p>
                         </div>
                     </div>
@@ -342,46 +389,122 @@ export default function ClientsPage() {
                             <Button
                                 variant="outline"
                                 className="w-full justify-between h-12 px-4 text-[14px] font-medium border-black/10 hover:bg-black/5 cursor-pointer"
-                                onClick={() => router.push("/dashboard/clients/segments")}
+                                onClick={() =>
+                                    router.push("/dashboard/clients/segments")
+                                }
                             >
                                 <div className="flex items-center gap-2.5">
-                                    <Users className="h-4 w-4 text-black/60" strokeWidth={2} />
-                                    <span className="text-black/80">Voir les segments clients</span>
+                                    <Users
+                                        className="h-4 w-4 text-black/60"
+                                        strokeWidth={2}
+                                    />
+                                    <span className="text-black/80">
+                                        Voir les segments clients
+                                    </span>
                                 </div>
-                                <ArrowUpRight className="h-4 w-4 text-black/40" strokeWidth={2} />
+                                <ArrowUpRight
+                                    className="h-4 w-4 text-black/40"
+                                    strokeWidth={2}
+                                />
                             </Button>
                             <Button
                                 variant="outline"
                                 className="w-full justify-between h-12 px-4 text-[14px] font-medium border-black/10 hover:bg-black/5 cursor-pointer"
-                                onClick={() => router.push("/dashboard/clients/statistiques")}
+                                onClick={() =>
+                                    router.push(
+                                        "/dashboard/clients/statistiques"
+                                    )
+                                }
                             >
                                 <div className="flex items-center gap-2.5">
-                                    <TrendingUp className="h-4 w-4 text-black/60" strokeWidth={2} />
-                                    <span className="text-black/80">Consulter les statistiques</span>
+                                    <TrendingUp
+                                        className="h-4 w-4 text-black/60"
+                                        strokeWidth={2}
+                                    />
+                                    <span className="text-black/80">
+                                        Consulter les statistiques
+                                    </span>
                                 </div>
-                                <ArrowUpRight className="h-4 w-4 text-black/40" strokeWidth={2} />
+                                <ArrowUpRight
+                                    className="h-4 w-4 text-black/40"
+                                    strokeWidth={2}
+                                />
                             </Button>
                             <Button
                                 variant="outline"
                                 className="w-full justify-between h-12 px-4 text-[14px] font-medium border-black/10 hover:bg-black/5 cursor-pointer"
-                                onClick={() => router.push("/dashboard/clients/import-export")}
+                                onClick={() =>
+                                    router.push(
+                                        "/dashboard/clients/import-export"
+                                    )
+                                }
                             >
                                 <div className="flex items-center gap-2.5">
-                                    <ArrowUpRight className="h-4 w-4 text-black/60" strokeWidth={2} />
-                                    <span className="text-black/80">Import / Export</span>
+                                    <ArrowUpRight
+                                        className="h-4 w-4 text-black/60"
+                                        strokeWidth={2}
+                                    />
+                                    <span className="text-black/80">
+                                        Import / Export
+                                    </span>
                                 </div>
-                                <ArrowUpRight className="h-4 w-4 text-black/40" strokeWidth={2} />
+                                <ArrowUpRight
+                                    className="h-4 w-4 text-black/40"
+                                    strokeWidth={2}
+                                />
                             </Button>
                         </div>
                     </div>
                 </Card>
             </div>
 
+            {/* Segment Filter Banner */}
+            {segmentId && segment && (
+                <Card className="border-black/20 shadow-sm bg-black/2">
+                    <div className="p-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="h-9 w-9 rounded-lg bg-black/10 flex items-center justify-center">
+                                    <Users
+                                        className="h-4 w-4 text-black/60"
+                                        strokeWidth={2}
+                                    />
+                                </div>
+                                <div>
+                                    <p className="text-[14px] font-medium text-black">
+                                        Filtre actif : {segment.nom}
+                                    </p>
+                                    <p className="text-[13px] text-black/60">
+                                        {displayClients.length} client
+                                        {displayClients.length > 1
+                                            ? "s"
+                                            : ""}{" "}
+                                        dans ce segment
+                                    </p>
+                                </div>
+                            </div>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={clearSegmentFilter}
+                                className="h-9 px-3 text-[13px] hover:bg-black/10"
+                            >
+                                <X className="h-4 w-4 mr-1.5" strokeWidth={2} />
+                                Effacer le filtre
+                            </Button>
+                        </div>
+                    </div>
+                </Card>
+            )}
+
             {/* Recherche */}
             <Card className="border-black/8 shadow-sm">
                 <div className="p-4">
                     <div className="relative">
-                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-black/40" strokeWidth={2} />
+                        <Search
+                            className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-black/40"
+                            strokeWidth={2}
+                        />
                         <Input
                             placeholder="Rechercher un client par nom, email ou téléphone..."
                             value={searchTerm}
@@ -415,7 +538,10 @@ export default function ClientsPage() {
                 <Card className="p-12 border-black/8 shadow-sm">
                     <div className="flex flex-col items-center text-center space-y-5">
                         <div className="rounded-full h-20 w-20 bg-black/5 flex items-center justify-center">
-                            <Users className="w-10 h-10 text-black/40" strokeWidth={2} />
+                            <Users
+                                className="w-10 h-10 text-black/40"
+                                strokeWidth={2}
+                            />
                         </div>
                         <div>
                             <h3 className="text-[17px] font-semibold tracking-[-0.01em] text-black mb-2">
@@ -434,7 +560,10 @@ export default function ClientsPage() {
                                 onClick={handleCreate}
                                 className="h-11 px-6 text-[14px] font-medium bg-black hover:bg-black/90 text-white rounded-md shadow-sm cursor-pointer mt-2"
                             >
-                                <Plus className="w-4 h-4 mr-2" strokeWidth={2} />
+                                <Plus
+                                    className="w-4 h-4 mr-2"
+                                    strokeWidth={2}
+                                />
                                 Ajouter mon premier client
                             </Button>
                         )}

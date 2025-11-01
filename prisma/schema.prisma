@@ -38,6 +38,9 @@ model Entreprise {
   parametres        ParametresEntreprise?
   niveauxFidelite   NiveauFidelite[]
   mouvementsPoints  MouvementPoints[]
+  segments          Segment[]
+  automations       Automation[]
+  campaigns         Campaign[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -474,4 +477,171 @@ enum TypeMouvementPoints {
   DEPENSE
   EXPIRATION
   AJUSTEMENT
+}
+
+// ============================================
+// SEGMENTATION CLIENTS
+// ============================================
+
+model Segment {
+  id          String      @id @default(cuid())
+  nom         String
+  description String?
+  type        TypeSegment @default(CUSTOM)
+  icone       String?     // Nom de l'icône lucide-react (ex: "Users", "Mail", "MapPin")
+  couleur     String?     // Couleur de fond (ex: "#f3f4f6")
+
+  // Critères de filtrage stockés en JSON
+  // Format pour segments prédéfinis: { type: "all" } ou { type: "with-email" }
+  // Format pour segments custom: [
+  //   { field: "email", operator: "exists" },
+  //   { field: "points_solde", operator: "gt", value: 100 }
+  // ]
+  criteres Json
+
+  // Statistiques (cache, recalculées périodiquement)
+  derniereCalcul DateTime?
+  nombreClients  Int?      @default(0)
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  actif     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([entrepriseId, nom])
+  @@index([entrepriseId])
+  @@index([type])
+  @@index([actif])
+}
+
+enum TypeSegment {
+  PREDEFINED // Segments système (tous clients, avec email, etc.)
+  CUSTOM     // Segments créés par l'utilisateur
+}
+
+// ============================================
+// AUTOMATIONS
+// ============================================
+
+model Automation {
+  id          String          @id @default(cuid())
+  nom         String
+  description String?
+  actif       Boolean         @default(true)
+
+  // Trigger
+  triggerType TriggerType
+  triggerConfig Json // Configuration du trigger
+
+  // Action
+  actionType ActionType
+  actionConfig Json // Configuration de l'action
+
+  // Statistiques
+  derniereExecution DateTime?
+  nombreExecutions  Int       @default(0)
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  executions AutomationExecution[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([actif])
+  @@index([triggerType])
+}
+
+enum TriggerType {
+  NEW_CLIENT_IN_SEGMENT
+  CLIENT_MILESTONE
+  SEGMENT_CHANGE
+  INACTIVITY
+  SCHEDULED
+}
+
+enum ActionType {
+  SEND_EMAIL
+  ADD_TO_SEGMENT
+  REMOVE_FROM_SEGMENT
+  ADD_POINTS
+  SEND_SMS
+  CREATE_TASK
+}
+
+model AutomationExecution {
+  id           String     @id @default(cuid())
+  automation   Automation @relation(fields: [automationId], references: [id], onDelete: Cascade)
+  automationId String
+
+  clientId String?
+  statut   ExecutionStatut
+  resultat String?
+  erreur   String?
+
+  executedAt DateTime @default(now())
+
+  @@index([automationId])
+  @@index([statut])
+  @@index([executedAt])
+}
+
+enum ExecutionStatut {
+  SUCCESS
+  FAILED
+  PENDING
+}
+
+// ============================================
+// CAMPAGNES
+// ============================================
+
+model Campaign {
+  id          String         @id @default(cuid())
+  nom         String
+  description String?
+  type        CampaignType   @default(EMAIL)
+  statut      CampaignStatut @default(DRAFT)
+
+  segmentId String?
+  subject   String?
+  body      String?
+
+  scheduledAt DateTime?
+  sentAt      DateTime?
+
+  recipientsCount Int @default(0)
+  sentCount       Int @default(0)
+  openedCount     Int @default(0)
+  clickedCount    Int @default(0)
+
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([statut])
+  @@index([scheduledAt])
+}
+
+enum CampaignType {
+  EMAIL
+  SMS
+  NOTIFICATION
+}
+
+enum CampaignStatut {
+  DRAFT
+  SCHEDULED
+  SENDING
+  SENT
+  CANCELLED
 }
