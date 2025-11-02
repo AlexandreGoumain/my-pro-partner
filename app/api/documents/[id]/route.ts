@@ -66,7 +66,7 @@ export async function GET(
             );
         }
 
-        return NextResponse.json(document);
+        return NextResponse.json({ document });
     } catch (error) {
         console.error("Erreur lors de la récupération du document:", error);
         return NextResponse.json(

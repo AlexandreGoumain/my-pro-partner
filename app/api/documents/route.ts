@@ -5,18 +5,36 @@ import { getServerSession } from "next-auth/next";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
+const lineItemSchema = z.object({
+    ordre: z.number(),
+    articleId: z.string().optional().nullable(),
+    designation: z.string().min(1),
+    description: z.string().optional().nullable(),
+    quantite: z.number(),
+    prix_unitaire_ht: z.number(),
+    tva_taux: z.number(),
+    remise_pourcent: z.number().default(0),
+    montant_ht: z.number(),
+    montant_tva: z.number(),
+    montant_ttc: z.number(),
+});
+
 const documentSchema = z.object({
-    numero: z.string().min(1, "Numéro requis"),
     type: z.enum(["DEVIS", "FACTURE", "AVOIR"]),
     clientId: z.string().min(1, "Client requis"),
     dateEmission: z.string().transform((s) => new Date(s)),
     dateEcheance: z
         .string()
         .transform((s) => new Date(s))
-        .optional(),
-    notes: z.string().optional(),
-    conditions_paiement: z.string().optional(),
+        .optional().nullable(),
+    statut: z.enum(["BROUILLON", "ENVOYE", "ACCEPTE", "REFUSE", "PAYE", "ANNULE"]).default("BROUILLON"),
+    notes: z.string().optional().nullable(),
+    conditions_paiement: z.string().optional().nullable(),
     validite_jours: z.number().default(30),
+    total_ht: z.number(),
+    total_tva: z.number(),
+    total_ttc: z.number(),
+    lignes: z.array(lineItemSchema).min(1, "Au moins une ligne requise"),
 });
 
 // GET: Récupérer tous les documents
@@ -63,7 +81,7 @@ export async function GET(req: NextRequest) {
             orderBy: { dateEmission: "desc" },
         });
 
-        return NextResponse.json(documents);
+        return NextResponse.json({ documents });
     } catch (error) {
         console.error("Erreur lors de la récupération des documents:", error);
         return NextResponse.json(
@@ -110,28 +128,63 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Vérifier si le numéro existe déjà pour cette entreprise
-        const existingDoc = await prisma.document.findUnique({
-            where: {
-                entrepriseId_numero: {
-                    entrepriseId: client.entrepriseId,
-                    numero: validation.data.numero,
-                },
-            },
+        // Get parametres to generate document number
+        let parametres = await prisma.parametresEntreprise.findUnique({
+            where: { entrepriseId: client.entrepriseId },
         });
 
-        if (existingDoc) {
-            return NextResponse.json(
-                { message: "Ce numéro de document existe déjà" },
-                { status: 400 }
-            );
+        // Create parametres if not exists
+        if (!parametres) {
+            parametres = await prisma.parametresEntreprise.create({
+                data: {
+                    entrepriseId: client.entrepriseId,
+                    nom_entreprise: "Mon Entreprise",
+                },
+            });
         }
 
+        // Generate document number
+        let numero: string;
+        let prefixe: string;
+        let prochainNumero: number;
+
+        if (validation.data.type === "DEVIS") {
+            prefixe = parametres.prefixe_devis;
+            prochainNumero = parametres.prochain_numero_devis;
+            numero = `${prefixe}${prochainNumero.toString().padStart(5, "0")}`;
+        } else if (validation.data.type === "FACTURE") {
+            prefixe = parametres.prefixe_facture;
+            prochainNumero = parametres.prochain_numero_facture;
+            numero = `${prefixe}${prochainNumero.toString().padStart(5, "0")}`;
+        } else {
+            prefixe = "AVOIR";
+            prochainNumero = 1;
+            numero = `${prefixe}${prochainNumero.toString().padStart(5, "0")}`;
+        }
+
+        // Extract lignes from validation data
+        const { lignes, ...documentData } = validation.data;
+
+        // Create document with lignes
         const document = await prisma.document.create({
             data: {
-                ...validation.data,
-                statut: "BROUILLON",
+                numero,
+                type: documentData.type,
+                clientId: documentData.clientId,
+                dateEmission: documentData.dateEmission,
+                dateEcheance: documentData.dateEcheance || null,
+                statut: documentData.statut,
+                notes: documentData.notes || null,
+                conditions_paiement: documentData.conditions_paiement || null,
+                validite_jours: documentData.validite_jours,
+                total_ht: documentData.total_ht,
+                total_tva: documentData.total_tva,
+                total_ttc: documentData.total_ttc,
+                reste_a_payer: documentData.total_ttc,
                 entrepriseId: client.entrepriseId,
+                lignes: {
+                    create: lignes,
+                },
             },
             include: {
                 client: true,
@@ -139,7 +192,20 @@ export async function POST(req: NextRequest) {
             },
         });
 
-        return NextResponse.json(document, { status: 201 });
+        // Update prochain numero
+        if (validation.data.type === "DEVIS") {
+            await prisma.parametresEntreprise.update({
+                where: { entrepriseId: client.entrepriseId },
+                data: { prochain_numero_devis: prochainNumero + 1 },
+            });
+        } else if (validation.data.type === "FACTURE") {
+            await prisma.parametresEntreprise.update({
+                where: { entrepriseId: client.entrepriseId },
+                data: { prochain_numero_facture: prochainNumero + 1 },
+            });
+        }
+
+        return NextResponse.json({ document }, { status: 201 });
     } catch (error) {
         console.error("Erreur lors de la création du document:", error);
         return NextResponse.json(
