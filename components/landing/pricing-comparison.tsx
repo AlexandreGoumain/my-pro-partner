@@ -383,7 +383,7 @@ export function PricingComparison() {
 
                 <Card className="overflow-hidden border border-black/[0.08]">
                     {/* Header */}
-                    <div className="grid grid-cols-4 gap-4 p-6 bg-neutral-50 border-b border-black/[0.08]">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-6 bg-neutral-50 border-b border-black/[0.08]">
                         <div className="text-[15px] font-semibold text-black">
                             Fonctionnalités
                         </div>
@@ -461,7 +461,7 @@ export function PricingComparison() {
                                 {section.items.map((item, itemIndex) => (
                                     <div
                                         key={itemIndex}
-                                        className="grid grid-cols-4 gap-4 px-6 py-4 hover:bg-neutral-50/30 transition-colors"
+                                        className="grid grid-cols-1 md:grid-cols-4 gap-4 px-6 py-4 hover:bg-neutral-50/30 transition-colors"
                                     >
                                         <div className="flex items-center">
                                             <span className="text-[14px] text-black/70">

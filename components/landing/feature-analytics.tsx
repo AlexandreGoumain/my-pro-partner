@@ -50,7 +50,7 @@ export function FeatureAnalytics() {
                                     </button>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <div className="p-4 rounded-lg bg-green-500/5 border border-green-500/20">
                                         <p className="text-[12px] text-green-600/60 mb-1">CA ce mois</p>
                                         <p className="text-[24px] font-semibold text-green-700">48 750 €</p>

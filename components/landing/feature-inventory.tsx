@@ -106,7 +106,7 @@ export function FeatureInventory() {
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-3 gap-3">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                     <div className="p-4 rounded-lg bg-neutral-50 border border-black/[0.05]">
                                         <p className="text-[12px] text-black/40 mb-1">Total articles</p>
                                         <p className="text-[24px] font-semibold text-black">487</p>
@@ -115,7 +115,7 @@ export function FeatureInventory() {
                                         <p className="text-[12px] text-red-600/60 mb-1">Stock bas</p>
                                         <p className="text-[24px] font-semibold text-red-700">12</p>
                                     </div>
-                                    <div className="p-4 rounded-lg bg-orange-500/5 border border-orange-500/20">
+                                    <div className="p-4 rounded-lg bg-orange-500/5 border border-orange-500/20 col-span-2 sm:col-span-1">
                                         <p className="text-[12px] text-orange-600/60 mb-1">À commander</p>
                                         <p className="text-[24px] font-semibold text-orange-700">8</p>
                                     </div>
