@@ -9,33 +9,61 @@ export function Hero() {
         <section className="relative pt-40 sm:pt-48 pb-24 px-6 sm:px-8 overflow-hidden bg-white">
             <div className="max-w-[980px] mx-auto">
                 <div className="text-center space-y-7">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-black/[0.03] border border-black/[0.08] mb-4 animate-in fade-in duration-700">
+                        <div className="flex -space-x-2">
+                            <div className="w-6 h-6 rounded-full bg-black/10 border-2 border-white" />
+                            <div className="w-6 h-6 rounded-full bg-black/10 border-2 border-white" />
+                            <div className="w-6 h-6 rounded-full bg-black/10 border-2 border-white" />
+                        </div>
+                        <span className="text-[13px] text-black/60 font-medium">
+                            Utilisé par 500+ artisans et PME
+                        </span>
+                    </div>
+
                     <h1 className="text-[56px] sm:text-[72px] lg:text-[96px] font-semibold tracking-[-0.03em] text-black leading-[0.95] animate-in fade-in slide-in-from-bottom-4 duration-700">
-                        Votre entreprise.
+                        Gérez votre entreprise
                         <br />
-                        <span className="block mt-1">Simplifiée.</span>
+                        <span className="block mt-1">
+                            en 3x moins de temps.
+                        </span>
                     </h1>
 
-                    <p className="text-[21px] sm:text-[24px] font-normal text-black/60 max-w-[640px] mx-auto leading-[1.4] tracking-[-0.01em] pt-2 animate-in fade-in slide-in-from-bottom-6 duration-700 delay-100">
-                        L&apos;ERP tout-en-un conçu pour les artisans et PME.
-                        Gérez vos clients, devis, factures et stocks.
+                    <p className="text-[21px] sm:text-[24px] font-normal text-black/60 max-w-[720px] mx-auto leading-[1.4] tracking-[-0.01em] pt-2 animate-in fade-in slide-in-from-bottom-6 duration-700 delay-100">
+                        L&apos;ERP tout-en-un qui fait gagner{" "}
+                        <span className="text-black font-medium">
+                            15h par semaine
+                        </span>{" "}
+                        aux artisans et PME. Devis, factures, clients, stocks,
+                        tout au même endroit.
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-3 justify-center items-center pt-6 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
                         <Link href="/auth/register">
                             <Button
                                 size="lg"
-                                className="bg-black hover:bg-black/90 text-white rounded-full h-11 px-7 text-[14px] font-medium shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
+                                className="bg-black hover:bg-black/90 text-white rounded-full h-12 px-8 text-[15px] font-medium shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
                             >
-                                Essayer gratuitement
+                                Démarrer gratuitement
                                 <ArrowRight className="ml-2 h-4 w-4" />
+                            </Button>
+                        </Link>
+                        <Link href="#features">
+                            <Button
+                                size="lg"
+                                variant="outline"
+                                className="rounded-full h-12 px-8 text-[15px] font-medium border-black/10 hover:bg-black/5"
+                            >
+                                Voir les fonctionnalités
                             </Button>
                         </Link>
                     </div>
 
                     <div className="flex flex-wrap gap-5 justify-center items-center pt-4 text-[13px] text-black/50 font-medium animate-in fade-in duration-700 delay-300">
-                        <span>Essai gratuit 14 jours</span>
+                        <span>✓ Essai gratuit 14 jours</span>
                         <span className="w-1 h-1 rounded-full bg-black/20" />
-                        <span>Sans carte bancaire</span>
+                        <span>✓ Sans carte bancaire</span>
+                        <span className="w-1 h-1 rounded-full bg-black/20" />
+                        <span>✓ Configuration en 5 minutes</span>
                     </div>
                 </div>
 
