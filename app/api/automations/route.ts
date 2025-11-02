@@ -9,10 +9,23 @@ import { z } from "zod";
 const automationCreateSchema = z.object({
     nom: z.string().min(1, "Le nom est requis"),
     description: z.string().optional(),
-    triggerType: z.string(),
-    triggerConfig: z.any(),
-    actionType: z.string(),
-    actionConfig: z.any(),
+    triggerType: z.enum([
+        "NEW_CLIENT_IN_SEGMENT",
+        "CLIENT_MILESTONE",
+        "SEGMENT_CHANGE",
+        "INACTIVITY",
+        "SCHEDULED",
+    ]),
+    triggerConfig: z.record(z.any()).default({}),
+    actionType: z.enum([
+        "SEND_EMAIL",
+        "ADD_TO_SEGMENT",
+        "REMOVE_FROM_SEGMENT",
+        "ADD_POINTS",
+        "SEND_SMS",
+        "CREATE_TASK",
+    ]),
+    actionConfig: z.record(z.any()).default({}),
     actif: z.boolean().default(true),
 });
 

@@ -70,8 +70,9 @@ export function BulkEmailDialog({
                 `Email envoyé avec succès à ${clientCount} client${clientCount > 1 ? "s" : ""}`
             );
             handleClose();
-        } catch (error: any) {
-            toast.error(error.message || "Erreur lors de l'envoi des emails");
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : "Erreur lors de l'envoi des emails";
+            toast.error(errorMessage);
         } finally {
             setSending(false);
         }

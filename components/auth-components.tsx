@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { AlertCircle, LogIn } from "lucide-react";
+import { AlertCircle, LogIn, Check as CheckIcon } from "lucide-react";
 
 /**
  * Composant de branding pour les pages d'authentification
@@ -59,7 +59,7 @@ export function AuthBranding({
                                     ]
                                 )}
                             >
-                                <Check className="h-6 w-6" {...({} as any)} />
+                                <CheckIcon className="h-6 w-6" />
                             </div>
                         </div>
                         <div>

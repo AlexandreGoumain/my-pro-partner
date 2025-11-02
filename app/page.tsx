@@ -2,13 +2,13 @@ import { BentoGrid } from "@/components/landing/bento-grid";
 import { CTASection } from "@/components/landing/cta-section";
 import { FAQ } from "@/components/landing/faq";
 import { Footer } from "@/components/landing/footer";
+import { Guarantees } from "@/components/landing/guarantees";
 import { Hero } from "@/components/landing/hero";
+import { HowItWorks } from "@/components/landing/how-it-works";
 import { Navigation } from "@/components/landing/navigation";
 import { PricingCards } from "@/components/landing/pricing-cards";
 import { StatsSection } from "@/components/landing/stats-section";
 import { TrustBadges } from "@/components/landing/trust-badges";
-import { HowItWorks } from "@/components/landing/how-it-works";
-import { Guarantees } from "@/components/landing/guarantees";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {

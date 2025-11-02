@@ -23,6 +23,12 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import {
+    getClientFullName,
+    getClientInitials,
+    formatClientLocation,
+    hasContactInfo,
+} from "@/lib/utils/client-formatting";
 
 interface ClientCardProps {
     client: Client;
@@ -30,18 +36,6 @@ interface ClientCardProps {
     onEdit?: (client: Client) => void;
     onDelete?: (client: Client) => void;
 }
-
-// Helper functions
-const getClientFullName = (nom: string, prenom?: string | null) =>
-    prenom ? `${nom} ${prenom}` : nom;
-
-const getClientInitials = (nom: string, prenom?: string | null) =>
-    prenom ? `${nom.charAt(0)}${prenom.charAt(0)}` : nom.substring(0, 2);
-
-const getLocation = (ville?: string | null, codePostal?: string | null) => {
-    if (!ville) return null;
-    return codePostal ? `${codePostal} ${ville}` : ville;
-};
 
 export const ClientCard = memo(function ClientCard({
     client,
@@ -51,8 +45,8 @@ export const ClientCard = memo(function ClientCard({
 }: ClientCardProps) {
     const nomComplet = getClientFullName(client.nom, client.prenom);
     const initiales = getClientInitials(client.nom, client.prenom);
-    const localisation = getLocation(client.ville, client.codePostal);
-    const hasContact = client.email || client.telephone;
+    const localisation = formatClientLocation(client.ville, client.codePostal);
+    const hasContact = hasContactInfo(client);
 
     const handleView = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();

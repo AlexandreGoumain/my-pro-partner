@@ -53,6 +53,7 @@ export async function DELETE(
   try {
     const sessionOrError = await requireAuth();
     if (sessionOrError instanceof NextResponse) return sessionOrError;
+    const session = sessionOrError;
 
     const { id } = await params;
     // Récupérer le mouvement à annuler
@@ -69,6 +70,8 @@ export async function DELETE(
         { status: 404 }
       );
     }
+
+    const entrepriseId = mouvementOriginal.entrepriseId;
 
     // Créer un mouvement compensatoire et supprimer l'original en transaction
     await prisma.$transaction(async (tx) => {
@@ -93,6 +96,7 @@ export async function DELETE(
           reference: mouvementOriginal.reference,
           notes: `Mouvement compensatoire pour annuler: ${mouvementOriginal.type} de ${mouvementOriginal.quantite}`,
           createdBy: session.user?.email || null,
+          entrepriseId,
         },
       });
 

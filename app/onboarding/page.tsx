@@ -1,5 +1,6 @@
 "use client";
 
+import { AuthError } from "@/components/auth";
 import { Button } from "@/components/ui/button";
 import {
     Form,
@@ -12,66 +13,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
+import { useOnboardingPage } from "@/hooks/use-onboarding-page";
 import { cn } from "@/lib/utils";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useSession } from "next-auth/react";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-
-const onboardingSchema = z.object({
-    nomEntreprise: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
-    siret: z.string().optional(),
-    adresse: z.string().optional(),
-    telephone: z.string().optional(),
-});
-
-type OnboardingInput = z.infer<typeof onboardingSchema>;
 
 export default function OnboardingPage() {
-    const { data: session, update } = useSession();
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-
-    const form = useForm<OnboardingInput>({
-        resolver: zodResolver(onboardingSchema),
-        defaultValues: {
-            nomEntreprise: session?.user?.name || "",
-            siret: "",
-            adresse: "",
-            telephone: "",
-        },
-    });
-
-    const onSubmit = async (data: OnboardingInput) => {
-        setIsLoading(true);
-        setError(null);
-
-        try {
-            const response = await fetch("/api/onboarding/complete", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data),
-            });
-
-            const result = await response.json();
-
-            if (!response.ok) {
-                setError(result.message || "Une erreur est survenue");
-                setIsLoading(false);
-                return;
-            }
-
-            // Update session to reflect onboarding completion
-            await update();
-
-            // Force full page reload to refresh JWT token in middleware
-            window.location.replace("/dashboard");
-        } catch {
-            setError("Une erreur est survenue");
-            setIsLoading(false);
-        }
-    };
+    const { form, isLoading, error, onSubmit } = useOnboardingPage();
 
     return (
         <div className="container flex h-screen w-screen flex-col items-center justify-center">
@@ -81,15 +27,12 @@ export default function OnboardingPage() {
                         Bienvenue ! 👋
                     </h1>
                     <p className="text-sm text-muted-foreground">
-                        Complétez les informations de votre entreprise pour commencer
+                        Complétez les informations de votre entreprise pour
+                        commencer
                     </p>
                 </div>
 
-                {error && (
-                    <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3">
-                        <p className="text-sm text-destructive">{error}</p>
-                    </div>
-                )}
+                <AuthError error={error} />
 
                 <div className="rounded-lg border bg-card p-6">
                     <Form {...form}>
@@ -102,7 +45,9 @@ export default function OnboardingPage() {
                                 name="nomEntreprise"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Nom de l'entreprise *</FormLabel>
+                                        <FormLabel>
+                                            Nom de l&apos;entreprise *
+                                        </FormLabel>
                                         <FormControl>
                                             <Input
                                                 {...field}
@@ -110,7 +55,8 @@ export default function OnboardingPage() {
                                                 disabled={isLoading}
                                                 className={cn(
                                                     "transition-all",
-                                                    form.formState.errors.nomEntreprise &&
+                                                    form.formState.errors
+                                                        .nomEntreprise &&
                                                         "border-destructive"
                                                 )}
                                             />
@@ -134,7 +80,8 @@ export default function OnboardingPage() {
                                             />
                                         </FormControl>
                                         <FormDescription>
-                                            Numéro SIRET à 14 chiffres (optionnel)
+                                            Numéro SIRET à 14 chiffres
+                                            (optionnel)
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>
@@ -197,7 +144,8 @@ export default function OnboardingPage() {
                 </div>
 
                 <p className="px-8 text-center text-xs text-muted-foreground">
-                    Vous pourrez modifier ces informations plus tard dans les paramètres
+                    Vous pourrez modifier ces informations plus tard dans les
+                    paramètres
                 </p>
             </div>
         </div>

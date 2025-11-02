@@ -89,7 +89,12 @@ export async function POST(req: NextRequest) {
     }
 
     // For multiple segments, calculate all pairwise overlaps
-    const pairwiseOverlaps: any[] = [];
+    const pairwiseOverlaps: Array<{
+      segment1: string;
+      segment2: string;
+      overlap: number;
+      overlapPercentage: number;
+    }> = [];
     for (let i = 0; i < segmentResults.length; i++) {
       for (let j = i + 1; j < segmentResults.length; j++) {
         const seg1 = segmentResults[i];

@@ -66,6 +66,7 @@ export async function PUT(
 
     // Déterminer le type de mouvement basé sur la quantité
     const type = quantite > 0 ? "ENTREE" : "SORTIE";
+    const entrepriseId = article.entrepriseId;
 
     // Créer le mouvement et mettre à jour le stock en une transaction
     const result = await prisma.$transaction(async (tx) => {
@@ -79,6 +80,7 @@ export async function PUT(
           stock_apres,
           motif: motif || `Ajustement ${type === "ENTREE" ? "positif" : "négatif"}`,
           createdBy: session.user?.email || null,
+          entrepriseId,
         },
       });
 

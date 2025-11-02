@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
     }
 
     if (type) {
-      where.type = type;
+      where.type = type as Prisma.EnumTypeMouvementFilter<"MouvementStock">;
     }
 
     if (startDate || endDate) {
@@ -139,6 +139,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Get entrepriseId from article
+    const entrepriseId = article.entrepriseId;
+
     // Créer le mouvement et mettre à jour le stock en une transaction
     const mouvement = await prisma.$transaction(async (tx) => {
       // Créer le mouvement
@@ -153,6 +156,7 @@ export async function POST(req: NextRequest) {
           reference: reference || null,
           notes: notes || null,
           createdBy: session.user?.email || null,
+          entrepriseId,
         },
         include: {
           article: {

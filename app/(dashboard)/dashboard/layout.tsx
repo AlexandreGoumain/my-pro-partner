@@ -36,12 +36,10 @@ import {
 } from "@/components/ui/sidebar";
 import {
     Award,
-    BarChart3,
     Building2,
     ChevronRight,
     CreditCard,
     FileText,
-    FileUp,
     HelpCircle,
     Keyboard,
     LayoutDashboard,

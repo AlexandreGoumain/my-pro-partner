@@ -15,6 +15,11 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Edit, Eye, Mail, MapPin, MoreHorizontal, Phone, Trash2, User } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import {
+    getClientFullName,
+    getClientInitials,
+    formatClientLocation,
+} from "@/lib/utils/client-formatting";
 
 interface ClientHandlers {
     onView: (client: Client) => void;
@@ -54,12 +59,8 @@ export const createColumns = (
         header: "Client",
         cell: ({ row }) => {
             const client = row.original;
-            const nomComplet = client.prenom
-                ? `${client.nom} ${client.prenom}`
-                : client.nom;
-            const initiales = client.prenom
-                ? `${client.nom.charAt(0)}${client.prenom.charAt(0)}`
-                : client.nom.substring(0, 2);
+            const nomComplet = getClientFullName(client.nom, client.prenom);
+            const initiales = getClientInitials(client.nom, client.prenom);
 
             return (
                 <div className="flex items-center gap-3">
@@ -99,11 +100,7 @@ export const createColumns = (
         header: "Localisation",
         cell: ({ row }) => {
             const client = row.original;
-            const localisation = client.ville
-                ? client.codePostal
-                    ? `${client.codePostal} ${client.ville}`
-                    : client.ville
-                : null;
+            const localisation = formatClientLocation(client.ville, client.codePostal);
 
             return localisation ? (
                 <div className="flex items-center gap-2">

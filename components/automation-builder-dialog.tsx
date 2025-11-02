@@ -14,14 +14,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useSegments } from "@/hooks/use-segments";
-import { useCreateAutomation, useUpdateAutomation } from "@/hooks/use-automations";
+import {
+  Automation,
+  TriggerConfig,
+  ActionConfig,
+  useCreateAutomation,
+  useUpdateAutomation
+} from "@/hooks/use-automations";
 import { toast } from "sonner";
 import { Zap, ArrowRight } from "lucide-react";
 
 interface AutomationBuilderDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  automation?: any;
+  automation?: Automation | null;
 }
 
 const triggerTypes = [
@@ -50,8 +56,8 @@ export function AutomationBuilderDialog({
   const [description, setDescription] = useState("");
   const [triggerType, setTriggerType] = useState("");
   const [actionType, setActionType] = useState("");
-  const [triggerConfig, setTriggerConfig] = useState<any>({});
-  const [actionConfig, setActionConfig] = useState<any>({});
+  const [triggerConfig, setTriggerConfig] = useState<TriggerConfig>({});
+  const [actionConfig, setActionConfig] = useState<ActionConfig>({});
 
   const { data: segmentsData } = useSegments({ actif: true });
   const segments = segmentsData?.data || [];
@@ -103,8 +109,9 @@ export function AutomationBuilderDialog({
       }
 
       onOpenChange(false);
-    } catch (error: any) {
-      toast.error(error.message || "Erreur lors de la sauvegarde");
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Erreur lors de la sauvegarde";
+      toast.error(errorMessage);
     }
   };
 

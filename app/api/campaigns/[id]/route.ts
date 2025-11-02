@@ -9,8 +9,8 @@ import { z } from "zod";
 const campaignUpdateSchema = z.object({
     nom: z.string().min(1).optional(),
     description: z.string().optional(),
-    type: z.enum(["EMAIL", "SMS", "PUSH"]).optional(),
-    segmentId: z.string().optional(),
+    type: z.enum(["EMAIL", "SMS", "NOTIFICATION"]).optional(),
+    segmentId: z.string().optional().nullable(),
     subject: z.string().optional(),
     body: z.string().optional(),
     scheduledAt: z.string().datetime().optional(),

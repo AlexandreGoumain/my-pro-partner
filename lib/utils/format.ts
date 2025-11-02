@@ -98,3 +98,28 @@ export function parseFormInteger(value: string, defaultValue: number = 0): numbe
   const parsed = parseInt(value, 10);
   return isNaN(parsed) ? defaultValue : parsed;
 }
+
+/**
+ * Pluralize a word based on count
+ * @param count - The count to check
+ * @param singular - Singular form of the word
+ * @param plural - Plural form of the word (optional, defaults to singular + 's')
+ * @returns Plural or singular form based on count
+ */
+export function pluralize(
+  count: number,
+  singular: string,
+  plural?: string
+): string {
+  if (count <= 1) return singular;
+  return plural || `${singular}s`;
+}
+
+/**
+ * Get plural suffix based on count
+ * @param count - The count to check
+ * @returns 's' if count > 1, empty string otherwise
+ */
+export function pluralSuffix(count: number): string {
+  return count > 1 ? "s" : "";
+}

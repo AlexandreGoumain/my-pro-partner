@@ -83,7 +83,9 @@ export default function CategoryTemplatePage({
                     </Link>
                 </Button>
                 <div>
-                    <h1 className="text-3xl font-bold">Template de catégorie</h1>
+                    <h1 className="text-3xl font-bold">
+                        Template de catégorie
+                    </h1>
                     <p className="text-muted-foreground">
                         Configurez les champs personnalisés pour &quot;
                         {categorie.nom}&quot;

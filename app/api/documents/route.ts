@@ -97,9 +97,27 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Vérifier si le numéro existe déjà
+        // Get client to verify existence and get entrepriseId
+        const client = await prisma.client.findUnique({
+            where: { id: validation.data.clientId },
+            select: { id: true, entrepriseId: true },
+        });
+
+        if (!client) {
+            return NextResponse.json(
+                { message: "Client non trouvé" },
+                { status: 404 }
+            );
+        }
+
+        // Vérifier si le numéro existe déjà pour cette entreprise
         const existingDoc = await prisma.document.findUnique({
-            where: { numero: validation.data.numero },
+            where: {
+                entrepriseId_numero: {
+                    entrepriseId: client.entrepriseId,
+                    numero: validation.data.numero,
+                },
+            },
         });
 
         if (existingDoc) {
@@ -113,6 +131,7 @@ export async function POST(req: NextRequest) {
             data: {
                 ...validation.data,
                 statut: "BROUILLON",
+                entrepriseId: client.entrepriseId,
             },
             include: {
                 client: true,

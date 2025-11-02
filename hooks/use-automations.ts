@@ -6,15 +6,48 @@ const API_BASE = "/api/automations";
 // TYPES
 // ============================================
 
+// Configuration for automation triggers and actions
+export interface TriggerConfig {
+  // For EVENT_OCCURRED triggers
+  event?: string;
+  // For DATE_CONDITION triggers
+  dateField?: string;
+  operator?: string;
+  value?: number | string;
+  // For CLIENT_SEGMENT triggers
+  segmentId?: string;
+  // For LOYALTY_POINTS triggers
+  threshold?: number;
+  // Additional dynamic fields
+  [key: string]: unknown;
+}
+
+export interface ActionConfig {
+  // For SEND_EMAIL actions
+  templateId?: string;
+  subject?: string;
+  body?: string;
+  // For ADD_TO_SEGMENT actions
+  segmentId?: string;
+  // For UPDATE_FIELD actions
+  field?: string;
+  value?: string | number;
+  // For SEND_NOTIFICATION actions
+  title?: string;
+  message?: string;
+  // Additional dynamic fields
+  [key: string]: unknown;
+}
+
 export interface Automation {
   id: string;
   nom: string;
   description?: string;
   actif: boolean;
   triggerType: string;
-  triggerConfig: any;
+  triggerConfig: TriggerConfig;
   actionType: string;
-  actionConfig: any;
+  actionConfig: ActionConfig;
   derniereExecution?: Date;
   nombreExecutions: number;
   createdAt: Date;
@@ -25,9 +58,9 @@ export interface CreateAutomationData {
   nom: string;
   description?: string;
   triggerType: string;
-  triggerConfig: any;
+  triggerConfig: TriggerConfig;
   actionType: string;
-  actionConfig: any;
+  actionConfig: ActionConfig;
   actif?: boolean;
 }
 

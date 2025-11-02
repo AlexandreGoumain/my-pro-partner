@@ -28,7 +28,7 @@ const clientImportSchema = z.object({
     .transform((val) => val || null),
   pays: z
     .union([z.string(), z.null(), z.undefined()])
-    .transform((val) => val || null),
+    .transform((val) => val || "France"),
   notes: z
     .union([z.string(), z.null(), z.undefined()])
     .transform((val) => val || null),
@@ -39,16 +39,11 @@ export async function POST(req: NextRequest) {
     const { entrepriseId } = await requireTenantAuth();
     const body = await req.json();
 
-    console.log(`\n🔵 === DÉBUT IMPORT CLIENTS ===`);
-    console.log(`📦 Données reçues:`, body.clients?.length || 0, `clients`);
-
     const { clients } = z
       .object({
         clients: z.array(clientImportSchema),
       })
       .parse(body);
-
-    console.log(`✅ Validation Zod passée pour ${clients.length} clients`);
 
     if (clients.length === 0) {
       return NextResponse.json(
@@ -70,11 +65,7 @@ export async function POST(req: NextRequest) {
       .filter((email): email is string => !!email && email.trim() !== "");
     const uniqueEmails = new Set(emails);
 
-    console.log(`📧 Import: ${clients.length} clients, ${emails.length} emails fournis, ${uniqueEmails.size} emails uniques`);
-
     if (emails.length !== uniqueEmails.size) {
-      const duplicates = emails.filter((email, index) => emails.indexOf(email) !== index);
-      console.log(`❌ Emails en double détectés:`, [...new Set(duplicates)]);
       return NextResponse.json(
         { message: "Des emails en double ont été détectés dans l'import" },
         { status: 400 }
@@ -87,11 +78,7 @@ export async function POST(req: NextRequest) {
       .filter((phone): phone is string => !!phone && phone.trim() !== "");
     const uniquePhones = new Set(phones);
 
-    console.log(`📱 Import: ${phones.length} téléphones fournis, ${uniquePhones.size} téléphones uniques`);
-
     if (phones.length !== uniquePhones.size) {
-      const duplicates = phones.filter((phone, index) => phones.indexOf(phone) !== index);
-      console.log(`❌ Téléphones en double détectés:`, [...new Set(duplicates)]);
       return NextResponse.json(
         { message: "Des numéros de téléphone en double ont été détectés dans l'import" },
         { status: 400 }
@@ -143,8 +130,6 @@ export async function POST(req: NextRequest) {
     }
 
     // Create clients in batch
-    console.log(`✅ Toutes les validations passées, création de ${clients.length} clients...`);
-
     const createdClients = await prisma.client.createMany({
       data: clients.map((client) => ({
         ...client,
@@ -158,14 +143,10 @@ export async function POST(req: NextRequest) {
     const actuallyCreated = createdClients.count;
     const skipped = totalSent - actuallyCreated;
 
-    console.log(`✅ Import terminé: ${actuallyCreated}/${totalSent} créés, ${skipped} ignorés (skipDuplicates)`);
-
     let message = `${actuallyCreated} client(s) importé(s) avec succès`;
     if (skipped > 0) {
       message += ` (${skipped} ignoré(s) car déjà existant(s))`;
     }
-
-    console.log(`🔵 === FIN IMPORT CLIENTS ===\n`);
 
     return NextResponse.json({
       message,

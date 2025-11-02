@@ -41,6 +41,7 @@ interface DataTableProps<TData, TValue> {
     pagination?: PaginationInfo;
     onPageChange?: (page: number) => void;
     onPageSizeChange?: (size: number) => void;
+    onRowClick?: (row: TData) => void;
 }
 
 export function DataTable<TData, TValue>({
@@ -50,6 +51,7 @@ export function DataTable<TData, TValue>({
     pagination,
     onPageChange,
     onPageSizeChange,
+    onRowClick,
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = React.useState<SortingState>([]);
     const [columnFilters, setColumnFilters] =
@@ -120,6 +122,8 @@ export function DataTable<TData, TValue>({
                                     data-state={
                                         row.getIsSelected() && "selected"
                                     }
+                                    className={onRowClick ? "cursor-pointer" : ""}
+                                    onClick={() => onRowClick?.(row.original)}
                                 >
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell key={cell.id}>

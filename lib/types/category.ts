@@ -44,7 +44,7 @@ export interface CategorieDisplay {
  * Utilitaire pour construire une structure hiérarchique à partir d'une liste plate
  */
 export function buildCategoryTree<
-    T extends { id: string; parentId: string | null; enfants?: any[] }
+    T extends { id: string; parentId: string | null; enfants?: T[] }
 >(flatList: T[]): T[] {
     const map = new Map<string, T>();
     const roots: T[] = [];

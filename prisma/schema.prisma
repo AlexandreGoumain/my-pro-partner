@@ -507,6 +507,8 @@ model Segment {
   entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
   entrepriseId String
 
+  campaigns Campaign[]
+
   actif     Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -609,6 +611,7 @@ model Campaign {
   type        CampaignType   @default(EMAIL)
   statut      CampaignStatut @default(DRAFT)
 
+  segment   Segment? @relation(fields: [segmentId], references: [id])
   segmentId String?
   subject   String?
   body      String?

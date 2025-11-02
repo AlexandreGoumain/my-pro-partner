@@ -10,7 +10,7 @@ import { z } from "zod";
 const campaignCreateSchema = z.object({
     nom: z.string().min(1),
     description: z.string().optional(),
-    type: z.enum(["EMAIL", "SMS", "PUSH"]).default("EMAIL"),
+    type: z.enum(["EMAIL", "SMS", "NOTIFICATION"]).default("EMAIL"),
     segmentId: z.string().optional(),
     subject: z.string().optional(),
     body: z.string().optional(),

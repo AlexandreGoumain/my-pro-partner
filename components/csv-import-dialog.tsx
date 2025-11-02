@@ -124,12 +124,8 @@ export function CSVImportDialog({
         const reader = new FileReader();
         reader.onload = (event) => {
             const content = event.target?.result as string;
-            console.log(`🔵 Frontend: Parsing CSV, taille: ${content.length} caractères`);
 
             const { headers: parsedHeaders, rows, errors } = parseCSV(content);
-
-            console.log(`🔵 Frontend: CSV parsé - ${parsedHeaders.length} colonnes, ${rows.length} lignes`);
-            console.log(`🔵 Frontend: Headers:`, parsedHeaders);
 
             if (errors.length > 0) {
                 errors.forEach((error) => toast.error(error));
@@ -213,8 +209,6 @@ export function CSVImportDialog({
 
         try {
             // Transform data according to mappings
-            console.log(`🔵 Frontend: Début transformation de ${parsedData.length} lignes`);
-
             const transformedData = parsedData.map((row) => {
                 const transformed: Record<string, any> = {};
                 mappings.forEach((mapping) => {
@@ -224,12 +218,7 @@ export function CSVImportDialog({
                 return transformed;
             });
 
-            console.log(`🔵 Frontend: Transformation terminée, ${transformedData.length} lignes à envoyer`);
-            console.log(`🔵 Frontend: Aperçu des 3 premières lignes:`, transformedData.slice(0, 3));
-
             const result = await onImport(transformedData);
-
-            console.log(`🔵 Frontend: Résultat de l'import:`, result);
 
             // Check if result contains detailed info about skipped items
             if (result && typeof result === 'object' && 'skipped' in result && result.skipped > 0) {

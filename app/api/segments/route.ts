@@ -22,7 +22,7 @@ const segmentCreateSchema = z.object({
   type: z.nativeEnum(TypeSegment).default("CUSTOM"),
   icone: z.string().optional(),
   couleur: z.string().optional(),
-  criteres: z.any(), // JSON field - validated separately
+  criteres: z.union([z.record(z.any()), z.array(z.any())]).default({}), // JSON field - can be object or array
   actif: z.boolean().default(true),
 });
 

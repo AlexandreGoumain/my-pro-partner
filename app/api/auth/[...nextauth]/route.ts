@@ -129,7 +129,6 @@ export const authOptions: NextAuthOptions = {
                             return newUser;
                         });
 
-                        console.log("OAuth user created successfully:", result.email);
                         return true;
                     }
 

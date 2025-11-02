@@ -102,7 +102,7 @@ export function SegmentBuilderDialog({
         if (segment && open) {
             setNom(segment.nom);
             setDescription(segment.description || "");
-            const criteriaData = segment.criteres as any;
+            const criteriaData = segment.criteres as { conditions?: SegmentCriterion[]; logic?: "AND" | "OR" } | null | undefined;
             if (criteriaData?.conditions) {
                 setConditions(criteriaData.conditions);
             }
@@ -199,11 +199,9 @@ export function SegmentBuilderDialog({
             }
             onSuccess?.();
             handleClose();
-        } catch (error: any) {
-            toast.error(
-                error.message ||
-                    `Erreur lors de ${isEditMode ? "la modification" : "la création"} du segment`
-            );
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : `Erreur lors de ${isEditMode ? "la modification" : "la création"} du segment`;
+            toast.error(errorMessage);
         }
     };
 
@@ -274,7 +272,7 @@ export function SegmentBuilderDialog({
                             </Label>
                             <Select
                                 value={logic}
-                                onValueChange={(v: any) => setLogic(v)}
+                                onValueChange={(v: "AND" | "OR") => setLogic(v)}
                             >
                                 <SelectTrigger className="w-32 h-9 border-black/10 text-[13px]">
                                     <SelectValue />

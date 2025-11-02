@@ -22,14 +22,39 @@ export interface Client {
     updatedAt: Date;
 }
 
+// Monthly data for evolution chart
+export interface MonthlyData {
+    month: string;
+    count: number;
+}
+
+// City data for geographic distribution
+export interface CityData {
+    city: string;
+    count: number;
+}
+
+// Data quality metrics
+export interface DataQuality {
+    withEmail: number;
+    withPhone: number;
+    withBoth: number;
+    withLocation: number;
+}
+
 // Client statistics type definition
 export interface ClientsStats {
     total: number;
-    newThisMonth: number;
     inactive: number;
     active: number;
     complete: number;
     completionRate: number;
+    currentMonth: number;
+    lastMonth: number;
+    growth: number;
+    monthlyEvolution: MonthlyData[];
+    topCities: CityData[];
+    dataQuality: DataQuality;
 }
 
 // Pagination params

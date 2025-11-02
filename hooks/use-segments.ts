@@ -4,6 +4,7 @@ import {
   SegmentDisplay,
   CreateSegmentForm,
   UpdateSegmentForm,
+  Client,
 } from "@/lib/types";
 
 const API_BASE = "/api/segments";
@@ -46,7 +47,7 @@ async function fetchSegmentClients(
   id: string,
   page = 1,
   limit = 50
-): Promise<{ data: any[]; total: number }> {
+): Promise<{ data: Client[]; total: number }> {
   const response = await fetch(
     `${API_BASE}/${id}/clients?page=${page}&limit=${limit}`
   );
@@ -230,10 +231,63 @@ export function useExportSegment() {
 }
 
 // ============================================
+// ANALYTICS & COMPARISON TYPES
+// ============================================
+
+interface SegmentComparisonResult {
+  segments: Array<{ id: string; nom: string; count: number }>;
+  overlap?: number;
+  overlapPercentage?: number;
+  uniqueToFirst?: number;
+  uniqueToSecond?: number;
+  overlapClientIds?: string[];
+  uniqueToFirstIds?: string[];
+  uniqueToSecondIds?: string[];
+  pairwiseOverlaps?: Array<{
+    segment1: string;
+    segment2: string;
+    overlap: number;
+    overlapPercentage: number;
+  }>;
+  inAllSegments?: number;
+  totalUniqueClients?: number;
+}
+
+interface SegmentAnalytics {
+  segment: {
+    id: string;
+    nom: string;
+    description: string | null;
+    type: string;
+  };
+  summary: {
+    totalClients: number;
+    percentageOfBase: number;
+    growth: number;
+    newLast30Days: number;
+  };
+  demographics: {
+    withEmail: number;
+    withPhone: number;
+    withAddress: number;
+    withLoyaltyPoints: number;
+    completionRate: number;
+  };
+  distribution: {
+    topCities: Array<{ city: string; count: number }>;
+    loyaltyBuckets: Array<{ range: string; count: number }>;
+  };
+  timeline: {
+    monthly: Array<{ month: string; count: number }>;
+    cumulative: Array<{ month: string; total: number }>;
+  };
+}
+
+// ============================================
 // ANALYTICS & COMPARISON
 // ============================================
 
-async function compareSegments(segmentIds: string[]): Promise<any> {
+async function compareSegments(segmentIds: string[]): Promise<SegmentComparisonResult> {
   const response = await fetch("/api/segments/compare", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -248,7 +302,7 @@ async function compareSegments(segmentIds: string[]): Promise<any> {
   return response.json();
 }
 
-async function getSegmentAnalytics(id: string): Promise<any> {
+async function getSegmentAnalytics(id: string): Promise<SegmentAnalytics> {
   const response = await fetch(`/api/segments/${id}/analytics`);
 
   if (!response.ok) {

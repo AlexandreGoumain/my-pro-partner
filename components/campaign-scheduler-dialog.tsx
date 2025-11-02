@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/popover";
 import { useSegments } from "@/hooks/use-segments";
 import {
+  Campaign,
   useCreateCampaign,
   useUpdateCampaign,
   useScheduleCampaign,
@@ -38,7 +39,7 @@ import { fr } from "date-fns/locale";
 interface CampaignSchedulerDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  campaign?: any;
+  campaign?: Campaign | null;
 }
 
 export function CampaignSchedulerDialog({
@@ -48,7 +49,7 @@ export function CampaignSchedulerDialog({
 }: CampaignSchedulerDialogProps) {
   const [nom, setNom] = useState("");
   const [description, setDescription] = useState("");
-  const [type, setType] = useState<"EMAIL" | "SMS" | "PUSH">("EMAIL");
+  const [type, setType] = useState<"EMAIL" | "SMS" | "NOTIFICATION">("EMAIL");
   const [segmentId, setSegmentId] = useState<string>("");
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
@@ -120,8 +121,9 @@ export function CampaignSchedulerDialog({
       }
 
       onOpenChange(false);
-    } catch (error: any) {
-      toast.error(error.message || "Erreur lors de la sauvegarde");
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Erreur lors de la sauvegarde";
+      toast.error(errorMessage);
     }
   };
 
@@ -168,8 +170,9 @@ export function CampaignSchedulerDialog({
       }
 
       onOpenChange(false);
-    } catch (error: any) {
-      toast.error(error.message || "Erreur lors de la planification");
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Erreur lors de la planification";
+      toast.error(errorMessage);
     }
   };
 
@@ -201,14 +204,14 @@ export function CampaignSchedulerDialog({
               <Label className="text-[13px] font-medium text-black/80">
                 Type de campagne *
               </Label>
-              <Select value={type} onValueChange={(v: any) => setType(v)}>
+              <Select value={type} onValueChange={(v: "EMAIL" | "SMS" | "NOTIFICATION") => setType(v)}>
                 <SelectTrigger className="h-11 border-black/10 text-[14px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="EMAIL">Email</SelectItem>
                   <SelectItem value="SMS">SMS</SelectItem>
-                  <SelectItem value="PUSH">Notification Push</SelectItem>
+                  <SelectItem value="NOTIFICATION">Notification Push</SelectItem>
                 </SelectContent>
               </Select>
             </div>
