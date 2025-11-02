@@ -41,6 +41,7 @@ model Entreprise {
   segments          Segment[]
   automations       Automation[]
   campaigns         Campaign[]
+  conversations     Conversation[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -74,6 +75,8 @@ model User {
 
   // Onboarding: tracking si l'utilisateur a complété son profil
   onboardingComplete Boolean @default(false)
+
+  conversations Conversation[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -647,4 +650,61 @@ enum CampaignStatut {
   SENDING
   SENT
   CANCELLED
+}
+
+// ============================================
+// CHATBOT IA
+// ============================================
+
+model Conversation {
+  id     String @id @default(cuid())
+  titre  String // Auto-généré à partir du premier message
+  pinned Boolean @default(false) // Conversations épinglées
+
+  // Multi-tenant
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  messages Message[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([entrepriseId])
+  @@index([createdAt])
+  @@index([pinned])
+}
+
+model Message {
+  id             String @id @default(cuid())
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  conversationId String
+
+  role    MessageRole // "user" | "assistant" | "system"
+  content String      @db.Text
+
+  // Tracking du modèle IA utilisé (pour analytics)
+  model String? // "gpt-4o-mini" | "gpt-4o" | null (si user message)
+
+  // Métadonnées JSON pour:
+  // - Actions exécutées (function calling results)
+  // - Feedback utilisateur (thumbs up/down)
+  // - Tokens utilisés (input/output)
+  // - Temps de réponse
+  metadata Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([conversationId])
+  @@index([role])
+  @@index([createdAt])
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
 }
