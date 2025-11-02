@@ -14,9 +14,10 @@ import { useClientsPage } from "@/hooks/use-clients-page";
 import { CLIENT_CSV_MAPPINGS } from "@/lib/constants/csv-mappings";
 import { Plus, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { Suspense } from "react";
 import { DataTable } from "./_components/data-table";
 
-export default function ClientsPage() {
+function ClientsPageContent() {
     const router = useRouter();
     const handlers = useClientsPage();
 
@@ -134,5 +135,38 @@ export default function ClientsPage() {
                 selectedClient={handlers.selectedClient}
             />
         </div>
+    );
+}
+
+function ClientsPageFallback() {
+    return (
+        <div className="space-y-6">
+            <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                    <div className="h-9 w-48 bg-black/5 rounded-md animate-pulse" />
+                    <div className="h-5 w-96 bg-black/5 rounded-md animate-pulse" />
+                </div>
+                <div className="flex gap-3">
+                    <div className="h-11 w-36 bg-black/5 rounded-md animate-pulse" />
+                    <div className="h-11 w-36 bg-black/5 rounded-md animate-pulse" />
+                </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {[1, 2, 3, 4].map((i) => (
+                    <div
+                        key={i}
+                        className="h-24 bg-black/5 rounded-lg animate-pulse"
+                    />
+                ))}
+            </div>
+        </div>
+    );
+}
+
+export default function ClientsPage() {
+    return (
+        <Suspense fallback={<ClientsPageFallback />}>
+            <ClientsPageContent />
+        </Suspense>
     );
 }
