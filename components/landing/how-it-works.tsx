@@ -7,21 +7,27 @@ export function HowItWorks() {
             number: "01",
             title: "Créez votre compte",
             description:
-                "Inscription en 2 minutes. Aucune carte bancaire requise pour l'essai gratuit.",
+                "Inscription en 2 minutes. Renseignez les informations de votre entreprise.",
+            details: ["Email + mot de passe", "Informations entreprise", "Aucune carte requise"],
+            time: "2 min"
         },
         {
             icon: Zap,
             number: "02",
             title: "Configurez votre espace",
             description:
-                "Importez vos données existantes et personnalisez votre interface en quelques clics.",
+                "Importez vos clients et produits. Personnalisez vos templates de factures.",
+            details: ["Import Excel/CSV", "Templates personnalisés", "Logo et couleurs"],
+            time: "5 min"
         },
         {
             icon: Rocket,
             number: "03",
             title: "Lancez-vous",
             description:
-                "Créez votre première facture et profitez de toutes les fonctionnalités immédiatement.",
+                "Créez votre premier devis, gérez vos stocks, suivez vos paiements.",
+            details: ["Premier devis", "Gestion stocks", "Dashboard activé"],
+            time: "Immédiat"
         },
     ];
 
@@ -63,13 +69,28 @@ export function HowItWorks() {
                                     </div>
                                 </div>
 
-                                <div className="space-y-3">
-                                    <h3 className="text-[20px] font-semibold text-black tracking-[-0.01em]">
-                                        {step.title}
-                                    </h3>
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <h3 className="text-[20px] font-semibold text-black tracking-[-0.01em]">
+                                            {step.title}
+                                        </h3>
+                                        <div className="inline-flex px-3 py-1 rounded-full bg-black/[0.03] border border-black/[0.08]">
+                                            <span className="text-[12px] text-black/60 font-medium">
+                                                {step.time}
+                                            </span>
+                                        </div>
+                                    </div>
                                     <p className="text-[14px] text-black/60 leading-relaxed max-w-[300px] mx-auto">
                                         {step.description}
                                     </p>
+                                    <div className="space-y-2 pt-2">
+                                        {step.details.map((detail, detailIndex) => (
+                                            <div key={detailIndex} className="flex items-center justify-center gap-2">
+                                                <div className="w-1 h-1 rounded-full bg-black/30" />
+                                                <span className="text-[13px] text-black/50">{detail}</span>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
                         );
