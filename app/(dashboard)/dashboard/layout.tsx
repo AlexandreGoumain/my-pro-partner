@@ -2,6 +2,8 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { ChatbotProvider } from "@/lib/chatbot/chatbot-context";
+import { ChatbotWidget } from "@/components/chatbot/chatbot-widget";
 import {
     Collapsible,
     CollapsibleContent,
@@ -163,6 +165,7 @@ export default function DashboardLayout({
         .slice(0, 2);
 
     return (
+        <ChatbotProvider>
         <SidebarProvider>
             <Sidebar>
                 <SidebarHeader>
@@ -407,7 +410,9 @@ export default function DashboardLayout({
                     </div>
                 </header>
                 <div className="flex flex-1 flex-col gap-4 p-4">{children}</div>
+                <ChatbotWidget />
             </SidebarInset>
         </SidebarProvider>
+        </ChatbotProvider>
     );
 }
