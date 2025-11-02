@@ -46,7 +46,9 @@ export type PredefinedSegmentType =
   | "all"
   | "with-email"
   | "with-phone"
+  | "by-city"
   | "with-loyalty"
+  | "loyalty"
   | "vip"
   | "recent"
   | "inactive";

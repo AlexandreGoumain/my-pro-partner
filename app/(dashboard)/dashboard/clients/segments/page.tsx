@@ -24,7 +24,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { useClients } from "@/hooks/use-clients";
+import { useClientsStats } from "@/hooks/use-clients";
 import {
     useDeleteSegment,
     useExportSegment,
@@ -38,7 +38,6 @@ import {
     Clock,
     Download,
     Edit,
-    Eye,
     Filter,
     GitCompare,
     Loader2,
@@ -76,7 +75,7 @@ const ICON_MAP: Record<
 export default function ClientSegmentsPage() {
     const router = useRouter();
     const { data: segmentsData, isLoading } = useSegments();
-    const { data: clients = [] } = useClients();
+    const { data: clientsStats } = useClientsStats();
     const seedMutation = useSeedSegments();
     const exportMutation = useExportSegment();
     const deleteMutation = useDeleteSegment();
@@ -85,6 +84,8 @@ export default function ClientSegmentsPage() {
     const [emailDialogOpen, setEmailDialogOpen] = useState(false);
     const [comparisonDialogOpen, setComparisonDialogOpen] = useState(false);
     const [selectedSegmentForEmail, setSelectedSegmentForEmail] =
+        useState<Segment | null>(null);
+    const [selectedSegmentForEdit, setSelectedSegmentForEdit] =
         useState<Segment | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -108,7 +109,7 @@ export default function ClientSegmentsPage() {
     );
     const customSegments = filteredSegments.filter((s) => s.type === "CUSTOM");
 
-    const totalClients = clients.length;
+    const totalClients = clientsStats?.total || 0;
 
     // Keyboard shortcut: Ctrl+N to create new segment
     useEffect(() => {
@@ -121,10 +122,6 @@ export default function ClientSegmentsPage() {
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, []);
-
-    const handleViewSegment = (segment: Segment) => {
-        router.push(`/dashboard/clients?segment=${segment.id}`);
-    };
 
     const handleSeedSegments = async () => {
         try {
@@ -199,6 +196,11 @@ export default function ClientSegmentsPage() {
     const handleSendEmail = (segment: Segment) => {
         setSelectedSegmentForEmail(segment);
         setEmailDialogOpen(true);
+    };
+
+    const handleEditSegment = (segment: Segment) => {
+        setSelectedSegmentForEdit(segment);
+        setBuilderDialogOpen(true);
     };
 
     const getSegmentIcon = (iconName: string | null) => {
@@ -431,12 +433,7 @@ export default function ClientSegmentsPage() {
                                     key={segment.id}
                                     className="group border-black/8 shadow-sm hover:border-black/20 transition-all duration-200 overflow-hidden"
                                 >
-                                    <div
-                                        className="p-5 cursor-pointer"
-                                        onClick={() =>
-                                            handleViewSegment(segment)
-                                        }
-                                    >
+                                    <div className="p-5">
                                         <div className="flex items-start justify-between mb-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="h-10 w-10 rounded-lg bg-black/5 group-hover:bg-black/10 transition-colors flex items-center justify-center">
@@ -548,40 +545,23 @@ export default function ClientSegmentsPage() {
 
                                     {/* Quick actions - visible on hover */}
                                     <div className="border-t border-black/8 p-3 bg-black/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                        <div className="flex gap-2">
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="flex-1 h-9 text-[13px] font-medium hover:bg-black/5"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleViewSegment(segment);
-                                                }}
-                                            >
-                                                <Eye
-                                                    className="h-4 w-4 mr-2"
-                                                    strokeWidth={2}
-                                                />
-                                                Voir
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="flex-1 h-9 text-[13px] font-medium hover:bg-black/5"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    router.push(
-                                                        `/dashboard/clients/segments/${segment.id}/analytics`
-                                                    );
-                                                }}
-                                            >
-                                                <BarChart3
-                                                    className="h-4 w-4 mr-2"
-                                                    strokeWidth={2}
-                                                />
-                                                Analytics
-                                            </Button>
-                                        </div>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="w-full h-9 text-[13px] font-medium hover:bg-black/5"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                router.push(
+                                                    `/dashboard/clients/segments/${segment.id}/analytics`
+                                                );
+                                            }}
+                                        >
+                                            <BarChart3
+                                                className="h-4 w-4 mr-2"
+                                                strokeWidth={2}
+                                            />
+                                            Analytics
+                                        </Button>
                                     </div>
                                 </Card>
                             );
@@ -649,12 +629,7 @@ export default function ClientSegmentsPage() {
                                     key={segment.id}
                                     className="group border-black/8 shadow-sm hover:border-black/20 transition-all duration-200 overflow-hidden"
                                 >
-                                    <div
-                                        className="p-5 cursor-pointer"
-                                        onClick={() =>
-                                            handleViewSegment(segment)
-                                        }
-                                    >
+                                    <div className="p-5">
                                         <div className="flex items-start justify-between mb-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="h-10 w-10 rounded-lg bg-black/5 group-hover:bg-black/10 transition-colors flex items-center justify-center">
@@ -707,8 +682,8 @@ export default function ClientSegmentsPage() {
                                                     <DropdownMenuItem
                                                         onClick={(e) => {
                                                             e.stopPropagation();
-                                                            toast.info(
-                                                                "Fonctionnalité à venir"
+                                                            handleEditSegment(
+                                                                segment
                                                             );
                                                         }}
                                                         className="text-[13px]"
@@ -800,40 +775,23 @@ export default function ClientSegmentsPage() {
 
                                     {/* Quick actions - visible on hover */}
                                     <div className="border-t border-black/8 p-3 bg-black/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                        <div className="flex gap-2">
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="flex-1 h-9 text-[13px] font-medium hover:bg-black/5"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleViewSegment(segment);
-                                                }}
-                                            >
-                                                <Eye
-                                                    className="h-4 w-4 mr-2"
-                                                    strokeWidth={2}
-                                                />
-                                                Voir
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="flex-1 h-9 text-[13px] font-medium hover:bg-black/5"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    router.push(
-                                                        `/dashboard/clients/segments/${segment.id}/analytics`
-                                                    );
-                                                }}
-                                            >
-                                                <BarChart3
-                                                    className="h-4 w-4 mr-2"
-                                                    strokeWidth={2}
-                                                />
-                                                Analytics
-                                            </Button>
-                                        </div>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="w-full h-9 text-[13px] font-medium hover:bg-black/5"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                router.push(
+                                                    `/dashboard/clients/segments/${segment.id}/analytics`
+                                                );
+                                            }}
+                                        >
+                                            <BarChart3
+                                                className="h-4 w-4 mr-2"
+                                                strokeWidth={2}
+                                            />
+                                            Analytics
+                                        </Button>
                                     </div>
                                 </Card>
                             );
@@ -845,9 +803,15 @@ export default function ClientSegmentsPage() {
             {/* Dialogs */}
             <SegmentBuilderDialog
                 open={builderDialogOpen}
-                onOpenChange={setBuilderDialogOpen}
+                onOpenChange={(open) => {
+                    setBuilderDialogOpen(open);
+                    if (!open) {
+                        setSelectedSegmentForEdit(null);
+                    }
+                }}
+                segment={selectedSegmentForEdit}
                 onSuccess={() => {
-                    toast.success("Segment créé avec succès");
+                    // Toast is already shown in the dialog
                 }}
             />
 

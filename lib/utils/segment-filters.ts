@@ -65,7 +65,10 @@ function applyPredefinedSegment<T extends Partial<ClientLike>>(
       return clients.filter((c) => c.email && c.email.trim() !== "");
     case "with-phone":
       return clients.filter((c) => c.telephone && c.telephone.trim() !== "");
+    case "by-city":
+      return clients.filter((c) => c.ville && c.ville.trim() !== "");
     case "with-loyalty":
+    case "loyalty":
       return clients.filter((c) => (c.points_solde ?? 0) > 0);
     case "recent":
       return clients.filter((c) => c.createdAt && new Date(c.createdAt) >= thirtyDaysAgo);

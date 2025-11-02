@@ -21,22 +21,24 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useClients } from "@/hooks/use-clients";
-import { useCreateSegment } from "@/hooks/use-segments";
+import { useCreateSegment, useUpdateSegment } from "@/hooks/use-segments";
 import {
     CreateSegmentForm,
+    Segment,
     SegmentCriterion,
     SegmentField,
     SegmentOperator,
 } from "@/lib/types";
 import { applySegmentCriteria } from "@/lib/utils/segment-filters";
 import { Loader2, Plus, Trash2, Users } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 interface SegmentBuilderDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onSuccess?: () => void;
+    segment?: Segment | null; // Segment to edit (null for create mode)
 }
 
 const FIELD_OPTIONS: { value: SegmentField; label: string }[] = [
@@ -80,9 +82,13 @@ export function SegmentBuilderDialog({
     open,
     onOpenChange,
     onSuccess,
+    segment,
 }: SegmentBuilderDialogProps) {
     const createMutation = useCreateSegment();
+    const updateMutation = useUpdateSegment();
     const { data: clients = [] } = useClients();
+
+    const isEditMode = !!segment;
 
     const [nom, setNom] = useState("");
     const [description, setDescription] = useState("");
@@ -90,6 +96,27 @@ export function SegmentBuilderDialog({
         { field: "email", operator: "exists" },
     ]);
     const [logic, setLogic] = useState<"AND" | "OR">("AND");
+
+    // Initialize form with segment data when in edit mode
+    useEffect(() => {
+        if (segment && open) {
+            setNom(segment.nom);
+            setDescription(segment.description || "");
+            const criteriaData = segment.criteres as any;
+            if (criteriaData?.conditions) {
+                setConditions(criteriaData.conditions);
+            }
+            if (criteriaData?.logic) {
+                setLogic(criteriaData.logic);
+            }
+        } else if (!open) {
+            // Reset form when dialog closes
+            setNom("");
+            setDescription("");
+            setConditions([{ field: "email", operator: "exists" }]);
+            setLogic("AND");
+        }
+    }, [segment, open]);
 
     // Preview matching clients
     const matchingClients = useMemo(() => {
@@ -151,8 +178,8 @@ export function SegmentBuilderDialog({
         const data: CreateSegmentForm = {
             nom,
             description: description || undefined,
-            icone: "Filter",
-            couleur: "#f3f4f6",
+            icone: segment?.icone || "Filter",
+            couleur: segment?.couleur || "#f3f4f6",
             criteres: {
                 conditions,
                 logic,
@@ -160,13 +187,22 @@ export function SegmentBuilderDialog({
         };
 
         try {
-            await createMutation.mutateAsync(data);
-            toast.success("Segment créé avec succès");
+            if (isEditMode && segment) {
+                await updateMutation.mutateAsync({
+                    id: segment.id,
+                    data,
+                });
+                toast.success("Segment modifié avec succès");
+            } else {
+                await createMutation.mutateAsync(data);
+                toast.success("Segment créé avec succès");
+            }
             onSuccess?.();
             handleClose();
         } catch (error: any) {
             toast.error(
-                error.message || "Erreur lors de la création du segment"
+                error.message ||
+                    `Erreur lors de ${isEditMode ? "la modification" : "la création"} du segment`
             );
         }
     };
@@ -184,7 +220,9 @@ export function SegmentBuilderDialog({
             <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="text-[20px] font-semibold tracking-[-0.01em]">
-                        Créer un segment personnalisé
+                        {isEditMode
+                            ? "Modifier le segment"
+                            : "Créer un segment personnalisé"}
                     </DialogTitle>
                     <DialogDescription className="text-[14px] text-black/60">
                         Définissez des critères pour segmenter automatiquement
@@ -458,24 +496,36 @@ export function SegmentBuilderDialog({
                             type="button"
                             variant="outline"
                             onClick={handleClose}
-                            disabled={createMutation.isPending}
+                            disabled={
+                                createMutation.isPending ||
+                                updateMutation.isPending
+                            }
                             className="h-11 px-5 text-[14px] border-black/10 hover:bg-black/5"
                         >
                             Annuler
                         </Button>
                         <Button
                             type="submit"
-                            disabled={createMutation.isPending || !nom.trim()}
+                            disabled={
+                                createMutation.isPending ||
+                                updateMutation.isPending ||
+                                !nom.trim()
+                            }
                             className="h-11 px-6 text-[14px] bg-black hover:bg-black/90 text-white"
                         >
-                            {createMutation.isPending ? (
+                            {createMutation.isPending ||
+                            updateMutation.isPending ? (
                                 <>
                                     <Loader2
                                         className="w-4 h-4 mr-2 animate-spin"
                                         strokeWidth={2}
                                     />
-                                    Création...
+                                    {isEditMode
+                                        ? "Modification..."
+                                        : "Création..."}
                                 </>
+                            ) : isEditMode ? (
+                                "Modifier le segment"
                             ) : (
                                 "Créer le segment"
                             )}
