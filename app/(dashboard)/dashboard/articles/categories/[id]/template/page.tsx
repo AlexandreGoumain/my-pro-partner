@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { use, useEffect, useState } from "react";
+import { use } from "react";
+import { useCategorie } from "@/hooks/use-categories";
 
 export default function CategoryTemplatePage({
     params,
@@ -14,33 +15,8 @@ export default function CategoryTemplatePage({
 }) {
     const { id } = use(params);
 
-    // Récupérer les infos de la catégorie
-    const [categorie, setCategorie] = useState<{
-        id: string;
-        nom: string;
-        description?: string | null;
-    } | null>(null);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        async function fetchCategorie() {
-            try {
-                const response = await fetch(`/api/categories`);
-                if (response.ok) {
-                    const categories = await response.json();
-                    const found = categories.find(
-                        (c: { id: string }) => c.id === id
-                    );
-                    setCategorie(found || null);
-                }
-            } catch (error) {
-                console.error("Erreur:", error);
-            } finally {
-                setLoading(false);
-            }
-        }
-        fetchCategorie();
-    }, [id]);
+    // Récupérer les infos de la catégorie avec React Query
+    const { data: categorie, isLoading: loading } = useCategorie(id);
 
     if (loading) {
         return (

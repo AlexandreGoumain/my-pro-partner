@@ -32,8 +32,8 @@ export async function GET(req: NextRequest) {
         const campaigns = await prisma.campaign.findMany({
             where: {
                 entrepriseId,
-                ...(statut && { statut: statut as any }),
-                ...(type && { type: type as any }),
+                ...(statut && { statut: statut as unknown }),
+                ...(type && { type: type as unknown }),
             },
             include: {
                 segment: {
@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
 
             const segmentClients = applySegmentCriteria(
                 allClients,
-                segment.criteres as any
+                segment.criteres as unknown
             );
 
             recipientsCount = segmentClients.length;

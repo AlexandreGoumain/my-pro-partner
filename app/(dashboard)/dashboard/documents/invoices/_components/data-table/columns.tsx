@@ -73,8 +73,8 @@ export const createColumns = (
             const invoice = row.original;
             return (
                 <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-md bg-blue-500/10">
-                        <Receipt className="h-4 w-4 text-blue-600" strokeWidth={2} />
+                    <div className="flex h-8 w-8 items-center justify-center rounded-md bg-black/5">
+                        <Receipt className="h-4 w-4 text-black/60" strokeWidth={2} />
                     </div>
                     <span className="font-medium text-[14px]">{invoice.numero}</span>
                 </div>

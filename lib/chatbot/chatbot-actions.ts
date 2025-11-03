@@ -1043,7 +1043,7 @@ export type ActionName = (typeof chatbotTools)[number]["function"]["name"];
 
 export interface ActionResult {
     success: boolean;
-    data?: any;
+    data?: unknown;
     error?: string;
     message?: string;
 }

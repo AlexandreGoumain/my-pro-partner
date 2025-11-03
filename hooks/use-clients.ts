@@ -181,7 +181,7 @@ export function useImportClients() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (clients: Record<string, any>[]) =>
+        mutationFn: async (clients: Record<string, unknown>[]) =>
             api.post<{ message: string; count: number; total: number; skipped: number }>("/api/clients/import", {
                 clients,
             }),

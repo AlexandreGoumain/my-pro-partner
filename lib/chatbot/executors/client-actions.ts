@@ -9,7 +9,7 @@ import { createFetchHelper, buildQueryParams, handleApiResponse } from './utils'
  * Search clients with filters
  */
 export async function searchClients(
-  params: any,
+  params: unknown,
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
@@ -40,7 +40,7 @@ export async function searchClients(
  * Get detailed information about a specific client
  */
 export async function getClientDetails(
-  params: any,
+  params: unknown,
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
@@ -52,7 +52,7 @@ export async function getClientDetails(
  * Create a new client
  */
 export async function createClient(
-  params: any,
+  params: unknown,
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
@@ -64,7 +64,7 @@ export async function createClient(
  * Add loyalty points to a client
  */
 export async function addLoyaltyPoints(
-  params: any,
+  params: unknown,
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
@@ -79,7 +79,7 @@ export async function addLoyaltyPoints(
  * Update client information
  */
 export async function updateClient(
-  params: any,
+  params: unknown,
   baseUrl: string
 ): Promise<ActionResult> {
   const { clientId, ...updateData } = params;
@@ -92,7 +92,7 @@ export async function updateClient(
  * Delete a client
  */
 export async function deleteClient(
-  params: any,
+  params: unknown,
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
@@ -104,7 +104,7 @@ export async function deleteClient(
  * Get client history (invoices, quotes, etc.)
  */
 export async function getClientHistory(
-  params: any,
+  params: unknown,
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
@@ -116,7 +116,7 @@ export async function getClientHistory(
  * Export clients list to CSV
  */
 export async function exportClients(
-  params: any,
+  params: unknown,
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);

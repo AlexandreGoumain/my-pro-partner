@@ -75,7 +75,7 @@ export const authOptions: NextAuthOptions = {
             if (account?.provider === "google") {
                 try {
                     // Check if user already exists in database
-                    let existingUser = await prisma.user.findUnique({
+                    const existingUser = await prisma.user.findUnique({
                         where: { email: user.email! },
                         include: { entreprise: true },
                     });
@@ -153,8 +153,8 @@ export const authOptions: NextAuthOptions = {
             if (user) {
                 token.id = user.id;
                 token.role = user.role || "user";
-                token.entrepriseId = (user as any).entrepriseId;
-                token.onboardingComplete = (user as any).onboardingComplete;
+                token.entrepriseId = (user as unknown).entrepriseId;
+                token.onboardingComplete = (user as unknown).onboardingComplete;
             }
 
             // For OAuth users, fetch from database on first sign in
@@ -190,8 +190,8 @@ export const authOptions: NextAuthOptions = {
             if (session.user) {
                 session.user.id = token.id as string;
                 session.user.role = token.role as string;
-                (session.user as any).entrepriseId = token.entrepriseId as string;
-                (session.user as any).onboardingComplete = token.onboardingComplete as boolean;
+                (session.user as unknown).entrepriseId = token.entrepriseId as string;
+                (session.user as unknown).onboardingComplete = token.onboardingComplete as boolean;
             }
             return session;
         },

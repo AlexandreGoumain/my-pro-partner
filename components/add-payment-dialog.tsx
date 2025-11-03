@@ -86,7 +86,7 @@ export function AddPaymentDialog({
 
             toast.success("Paiement enregistré avec succès");
             onSuccess();
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Error adding payment:", error);
             toast.error(error.message || "Impossible d'enregistrer le paiement");
         } finally {

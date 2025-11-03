@@ -92,7 +92,7 @@ function parseCSVLine(line: string): string[] {
 /**
  * Convert object array to CSV
  */
-export function objectsToCSV<T extends Record<string, any>>(
+export function objectsToCSV<T extends Record<string, unknown>>(
   objects: T[],
   headers?: string[]
 ): string {

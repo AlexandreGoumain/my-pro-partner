@@ -8,7 +8,7 @@ import type { ActionResult } from '../chatbot-actions';
  * Type for executor functions
  */
 export type ExecutorFunction = (
-  params: any,
+  params: unknown,
   baseUrl: string
 ) => Promise<ActionResult>;
 
@@ -27,14 +27,14 @@ export function createFetchHelper(baseUrl: string) {
   return {
     get: (path: string) => fetchApi(path, { method: 'GET' }),
 
-    post: (path: string, data: any) =>
+    post: (path: string, data: unknown) =>
       fetchApi(path, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       }),
 
-    patch: (path: string, data: any) =>
+    patch: (path: string, data: unknown) =>
       fetchApi(path, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -71,7 +71,7 @@ export async function handleApiResponse(
 /**
  * Build query parameters from an object
  */
-export function buildQueryParams(params: Record<string, any>): URLSearchParams {
+export function buildQueryParams(params: Record<string, unknown>): URLSearchParams {
   const queryParams = new URLSearchParams();
 
   for (const [key, value] of Object.entries(params)) {

@@ -15,11 +15,17 @@ import {
 
 interface DataTableViewOptionsProps<TData> {
     table: Table<TData>;
+    columnLabels?: Record<string, string>;
 }
 
 export function DataTableViewOptions<TData>({
     table,
+    columnLabels = {},
 }: DataTableViewOptionsProps<TData>) {
+    const getColumnLabel = (columnId: string): string => {
+        return columnLabels[columnId] || columnId;
+    };
+
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -52,19 +58,7 @@ export function DataTableViewOptions<TData>({
                                     column.toggleVisibility(!!value)
                                 }
                             >
-                                {column.id === "nom"
-                                    ? "Client"
-                                    : column.id === "telephone"
-                                    ? "Téléphone"
-                                    : column.id === "ville"
-                                    ? "Localisation"
-                                    : column.id === "pays"
-                                    ? "Pays"
-                                    : column.id === "createdAt"
-                                    ? "Créé le"
-                                    : column.id === "actions"
-                                    ? "Actions"
-                                    : column.id}
+                                {getColumnLabel(column.id)}
                             </DropdownMenuCheckboxItem>
                         );
                     })}

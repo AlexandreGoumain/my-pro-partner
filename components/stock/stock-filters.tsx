@@ -12,7 +12,7 @@ import { STOCK_MOVEMENT_TYPES } from "@/lib/constants/stock-movements";
 
 export interface StockFiltersProps {
     filters: StockFilters;
-    articlesWithStock: any[];
+    articlesWithStock: unknown[];
     loadingArticles: boolean;
     onFilterChange: (key: keyof StockFilters, value: string) => void;
     onResetFilters: () => void;

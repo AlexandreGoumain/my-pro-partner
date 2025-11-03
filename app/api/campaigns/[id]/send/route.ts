@@ -56,7 +56,7 @@ export async function POST(
     }
 
     // Get recipients
-    let recipients: any[] = [];
+    let recipients: unknown[] = [];
     if (campaign.segmentId && campaign.segment) {
       const allClients = await prisma.client.findMany({
         where: { entrepriseId },
@@ -64,7 +64,7 @@ export async function POST(
 
       recipients = applySegmentCriteria(
         allClients,
-        campaign.segment.criteres as any
+        campaign.segment.criteres as unknown
       );
     } else {
       recipients = await prisma.client.findMany({

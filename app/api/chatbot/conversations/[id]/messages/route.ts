@@ -12,7 +12,7 @@ interface RouteParams {
   };
 }
 
-export const GET = withAuth(async (req: NextRequest, session: any, { params }: RouteParams) => {
+export const GET = withAuth(async (req: NextRequest, session: unknown, { params }: RouteParams) => {
   try {
     // Vérifier que la conversation appartient à l'utilisateur
     const conversation = await prisma.conversation.findUnique({
@@ -56,7 +56,7 @@ export const GET = withAuth(async (req: NextRequest, session: any, { params }: R
       messages: messages.reverse(), // Inverser pour avoir chronologique
       hasMore: messages.length === limit,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching messages:', error);
     return NextResponse.json(
       { error: 'Erreur lors de la récupération des messages' },

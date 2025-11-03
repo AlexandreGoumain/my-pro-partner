@@ -9,7 +9,7 @@ import { createFetchHelper, buildQueryParams, handleApiResponse } from './utils'
  * Search articles with filters
  */
 export async function searchArticles(
-  params: any,
+  params: unknown,
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
@@ -41,7 +41,7 @@ export async function searchArticles(
  * Get stock alerts for low stock items
  */
 export async function getStockAlerts(
-  params: any,
+  params: unknown,
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
@@ -53,7 +53,7 @@ export async function getStockAlerts(
  * Adjust stock for an article
  */
 export async function adjustStock(
-  params: any,
+  params: unknown,
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
@@ -69,7 +69,7 @@ export async function adjustStock(
  * Create a new article
  */
 export async function createArticle(
-  params: any,
+  params: unknown,
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
@@ -81,7 +81,7 @@ export async function createArticle(
  * Update article information
  */
 export async function updateArticle(
-  params: any,
+  params: unknown,
   baseUrl: string
 ): Promise<ActionResult> {
   const { articleId, ...updateData } = params;
@@ -94,7 +94,7 @@ export async function updateArticle(
  * Delete an article
  */
 export async function deleteArticle(
-  params: any,
+  params: unknown,
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
@@ -106,7 +106,7 @@ export async function deleteArticle(
  * Get detailed information about an article
  */
 export async function getArticleDetails(
-  params: any,
+  params: unknown,
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
@@ -118,7 +118,7 @@ export async function getArticleDetails(
  * Get stock movement history for an article
  */
 export async function getStockHistory(
-  params: any,
+  params: unknown,
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
@@ -138,7 +138,7 @@ export async function getStockHistory(
  * List all article categories
  */
 export async function listCategories(
-  params: any,
+  params: unknown,
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);

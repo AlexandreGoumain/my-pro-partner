@@ -153,7 +153,7 @@ export function SegmentComparisonDialog({
                         disabled={
                             !segmentA || !segmentB || compareSegments.isPending
                         }
-                        className="w-full bg-black hover:bg-black/90 text-white h-11 px-6 text-[14px] font-medium rounded-md shadow-sm"
+                        className="w-full bg-slate-700 hover:bg-slate-700/90 text-white h-11 px-6 text-[14px] font-medium rounded-md shadow-sm"
                     >
                         <GitCompare className="h-4 w-4 mr-2" strokeWidth={2} />
                         Comparer

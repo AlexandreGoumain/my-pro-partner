@@ -249,7 +249,7 @@ export default function SegmentAnalyticsPage({
                                 label
                             >
                                 {analytics.distribution.loyaltyBuckets.map(
-                                    (_: any, index: number) => (
+                                    (_: unknown, index: number) => (
                                         <Cell
                                             key={`cell-${index}`}
                                             fill={COLORS[index % COLORS.length]}

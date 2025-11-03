@@ -10,6 +10,9 @@ import type {
     DocumentStatus,
 } from "@/lib/types/document.types";
 import { DOCUMENT_DEFAULTS, MESSAGES } from "@/lib/constants/document.constants";
+import { useClients } from "./use-clients";
+import { useArticles } from "./use-articles";
+import { useSeries } from "./use-series";
 
 interface UseDocumentFormOptions {
     documentType: DocumentType;
@@ -19,12 +22,21 @@ interface UseDocumentFormOptions {
 export function useDocumentForm({ documentType, redirectPath }: UseDocumentFormOptions) {
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [clients, setClients] = useState<Client[]>([]);
-    const [articles, setArticles] = useState<Article[]>([]);
     const [lines, setLines] = useState<LineItem[]>([]);
+
+    // Utiliser React Query pour fetcher les données
+    const { data: clientsData = [] } = useClients(DOCUMENT_DEFAULTS.FETCH_LIMIT);
+    const { data: articlesData = [] } = useArticles();
+    const { data: seriesData = [] } = useSeries();
+
+    // Convertir les données pour le formulaire
+    const clients = clientsData as unknown as Client[];
+    const articles = articlesData as unknown as Article[];
+    const series = seriesData as unknown[];
 
     const [formData, setFormData] = useState<DocumentFormData>({
         clientId: "",
+        serieId: "", // Optional serie selection
         dateEmission: new Date().toISOString().split("T")[0],
         dateEcheance: "",
         validite_jours: DOCUMENT_DEFAULTS.VALIDITY_DAYS,
@@ -32,13 +44,8 @@ export function useDocumentForm({ documentType, redirectPath }: UseDocumentFormO
         conditions_paiement: "",
     });
 
+    // Calculer la date d'échéance par défaut une seule fois au montage
     useEffect(() => {
-        fetchClients();
-        fetchArticles();
-        calculateDefaultExpiryDate();
-    }, []);
-
-    const calculateDefaultExpiryDate = () => {
         const today = new Date();
         const expiryDate = new Date(today);
         expiryDate.setDate(today.getDate() + DOCUMENT_DEFAULTS.VALIDITY_DAYS);
@@ -46,31 +53,7 @@ export function useDocumentForm({ documentType, redirectPath }: UseDocumentFormO
             ...prev,
             dateEcheance: expiryDate.toISOString().split("T")[0],
         }));
-    };
-
-    const fetchClients = async () => {
-        try {
-            const response = await fetch(`/api/clients?limit=${DOCUMENT_DEFAULTS.FETCH_LIMIT}`);
-            if (!response.ok) throw new Error();
-            const data = await response.json();
-            setClients(data.data || data.clients || []);
-        } catch (error) {
-            console.error("Error fetching clients:", error);
-            toast.error(MESSAGES.ERRORS.LOAD_CLIENTS);
-        }
-    };
-
-    const fetchArticles = async () => {
-        try {
-            const response = await fetch(`/api/articles?limit=${DOCUMENT_DEFAULTS.FETCH_LIMIT}`);
-            if (!response.ok) throw new Error();
-            const data = await response.json();
-            setArticles(data.data || data.articles || []);
-        } catch (error) {
-            console.error("Error fetching articles:", error);
-            toast.error(MESSAGES.ERRORS.LOAD_ARTICLES);
-        }
-    };
+    }, []);
 
     const totals = useMemo(() => {
         const totalHT = lines.reduce((sum, line) => sum + line.montant_ht, 0);
@@ -107,6 +90,7 @@ export function useDocumentForm({ documentType, redirectPath }: UseDocumentFormO
             const payload = {
                 type: documentType,
                 clientId: formData.clientId,
+                ...(formData.serieId && { serieId: formData.serieId }), // Optional serie
                 dateEmission: formData.dateEmission,
                 dateEcheance: formData.dateEcheance,
                 validite_jours: formData.validite_jours,
@@ -165,6 +149,7 @@ export function useDocumentForm({ documentType, redirectPath }: UseDocumentFormO
         formData,
         setFormData,
         clients,
+        series,
         articles,
         lines,
         setLines,

@@ -71,7 +71,7 @@ import { navigateTo } from "./executors/navigation-actions";
  */
 export async function executeAction(
     actionName: string,
-    parameters: Record<string, any>,
+    parameters: Record<string, unknown>,
     baseUrl: string
 ): Promise<ActionResult> {
     try {

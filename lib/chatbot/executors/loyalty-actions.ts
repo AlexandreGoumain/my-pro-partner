@@ -9,7 +9,7 @@ import { createFetchHelper, handleApiResponse } from './utils';
  * List all loyalty levels
  */
 export async function listLoyaltyLevels(
-  params: any,
+  params: unknown,
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
@@ -21,7 +21,7 @@ export async function listLoyaltyLevels(
  * Get loyalty program statistics
  */
 export async function getLoyaltyStats(
-  params: any,
+  params: unknown,
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);

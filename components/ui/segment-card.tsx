@@ -1,6 +1,6 @@
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -8,15 +8,15 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-    MoreHorizontal,
-    Download,
-    Mail,
-    Edit,
-    Trash2,
-    BarChart3,
-} from "lucide-react";
 import { Segment } from "@/lib/types";
+import {
+    BarChart3,
+    Download,
+    Edit,
+    Mail,
+    MoreHorizontal,
+    Trash2,
+} from "lucide-react";
 import React from "react";
 
 export interface SegmentCardProps {
@@ -44,7 +44,7 @@ export function SegmentCard({
     onViewAnalytics,
 }: SegmentCardProps) {
     return (
-        <Card className="group border-black/8 shadow-sm hover:border-black/20 transition-all duration-200 overflow-hidden">
+        <Card className="group border-black/8 shadow-sm hover:border-black/20 transition-all duration-200 overflow-hidden py-2">
             <div className="p-5">
                 <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">

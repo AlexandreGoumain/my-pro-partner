@@ -50,8 +50,8 @@ interface CSVImportDialogProps {
     title: string;
     description?: string;
     mappings: CSVMapping[];
-    onImport: (data: Record<string, any>[]) => Promise<{ message: string; count: number; total: number; skipped: number } | void>;
-    templateData?: Record<string, any>[];
+    onImport: (data: Record<string, unknown>[]) => Promise<{ message: string; count: number; total: number; skipped: number } | void>;
+    templateData?: Record<string, unknown>[];
 }
 
 export function CSVImportDialog({
@@ -210,7 +210,7 @@ export function CSVImportDialog({
         try {
             // Transform data according to mappings
             const transformedData = parsedData.map((row) => {
-                const transformed: Record<string, any> = {};
+                const transformed: Record<string, unknown> = {};
                 mappings.forEach((mapping) => {
                     const value = row[mapping.csvHeader];
                     transformed[mapping.targetField] = value || null;

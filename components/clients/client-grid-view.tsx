@@ -9,7 +9,7 @@ export interface ClientGridViewProps {
     clients: Client[];
     isLoading: boolean;
     searchTerm: string;
-    pagination: any;
+    pagination: unknown;
     showPagination: boolean;
     onView: (client: Client) => void;
     onEdit: (client: Client) => void;

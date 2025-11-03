@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api/auth-middleware';
 import { prisma } from '@/lib/prisma';
 
-export const GET = withAuth(async (req: NextRequest, session: any) => {
+export const GET = withAuth(async (req: NextRequest, session: unknown) => {
   try {
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get('page') || '1');
@@ -58,7 +58,7 @@ export const GET = withAuth(async (req: NextRequest, session: any) => {
       limit,
       pages: Math.ceil(total / limit),
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching conversations:', error);
     return NextResponse.json(
       { error: 'Erreur lors de la récupération des conversations' },

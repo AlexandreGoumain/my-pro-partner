@@ -43,43 +43,43 @@ export function ArticleStatsGrid({
                 label="Produits"
                 value={stats.produits}
                 icon={Package}
-                iconClassName="h-4 w-4 text-blue-600"
+                iconClassName="h-4 w-4 text-black/60"
                 percentage={stats.total > 0 ? (stats.produits / stats.total) * 100 : 0}
                 badge={{
                     variant: "outline",
-                    className: "bg-blue-100 text-blue-700 border-blue-300",
+                    className: "bg-black/5 text-black/70 border-black/10",
                 }}
                 isActive={typeFilter === "PRODUIT"}
                 onClick={() => onTypeFilterToggle("PRODUIT")}
-                activeClassName="border-blue-500 bg-blue-50/50 ring-2 ring-blue-500/20"
-                hoverClassName="hover:border-blue-500"
+                activeClassName="border-black/20 bg-black/5 ring-2 ring-black/10"
+                hoverClassName="hover:border-black/20"
             />
 
             <ArticleStatsCard
                 label="Services"
                 value={stats.services}
                 icon={Briefcase}
-                iconClassName="h-4 w-4 text-purple-600"
+                iconClassName="h-4 w-4 text-black/60"
                 percentage={stats.total > 0 ? (stats.services / stats.total) * 100 : 0}
                 badge={{
                     variant: "outline",
-                    className: "bg-purple-100 text-purple-700 border-purple-300",
+                    className: "bg-black/5 text-black/70 border-black/10",
                 }}
                 isActive={typeFilter === "SERVICE"}
                 onClick={() => onTypeFilterToggle("SERVICE")}
-                activeClassName="border-purple-500 bg-purple-50/50 ring-2 ring-purple-500/20"
-                hoverClassName="hover:border-purple-500"
+                activeClassName="border-black/20 bg-black/5 ring-2 ring-black/10"
+                hoverClassName="hover:border-black/20"
             />
 
             <ArticleStatsCard
                 label="Actifs"
                 value={stats.actifs}
                 icon={TrendingUp}
-                iconClassName="h-4 w-4 text-green-600"
+                iconClassName="h-4 w-4 text-black/60"
                 percentage={stats.total > 0 ? (stats.actifs / stats.total) * 100 : 0}
                 badge={{
                     variant: "outline",
-                    className: "bg-green-100 text-green-700 border-green-300",
+                    className: "bg-black/5 text-black/70 border-black/10",
                 }}
             />
 
@@ -87,14 +87,14 @@ export function ArticleStatsGrid({
                 label="Stock faible"
                 value={stats.stockFaible}
                 icon={AlertCircle}
-                iconClassName="h-4 w-4 text-amber-600"
+                iconClassName="h-4 w-4 text-black/60"
                 badge={
                     stats.stockFaible > 0
                         ? {
                               label: "Alerte",
                               variant: "outline",
                               className:
-                                  "bg-amber-100 text-amber-700 border-amber-300",
+                                  "bg-black/5 text-black/70 border-black/10",
                           }
                         : undefined
                 }
