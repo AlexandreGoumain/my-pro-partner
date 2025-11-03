@@ -9,7 +9,7 @@ import { createFetchHelper, buildQueryParams, handleApiResponse } from './utils'
  * Search customer segments
  */
 export async function searchSegments(
-  params: any,
+  params: unknown,
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
@@ -37,7 +37,7 @@ export async function searchSegments(
  * Create a marketing campaign
  */
 export async function createCampaign(
-  params: any,
+  params: unknown,
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
@@ -49,7 +49,7 @@ export async function createCampaign(
  * Get clients in a specific segment
  */
 export async function getSegmentClients(
-  params: any,
+  params: unknown,
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
@@ -67,7 +67,7 @@ export async function getSegmentClients(
  * Get analytics for a segment
  */
 export async function analyzeSegment(
-  params: any,
+  params: unknown,
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
@@ -79,7 +79,7 @@ export async function analyzeSegment(
  * Compare two segments
  */
 export async function compareSegments(
-  params: any,
+  params: unknown,
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
@@ -96,7 +96,7 @@ export async function compareSegments(
  * Get campaign details
  */
 export async function getCampaignDetails(
-  params: any,
+  params: unknown,
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
@@ -108,7 +108,7 @@ export async function getCampaignDetails(
  * Schedule a campaign for later
  */
 export async function scheduleCampaign(
-  params: any,
+  params: unknown,
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
@@ -122,7 +122,7 @@ export async function scheduleCampaign(
  * Send a campaign immediately
  */
 export async function sendCampaignNow(
-  params: any,
+  params: unknown,
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
@@ -134,7 +134,7 @@ export async function sendCampaignNow(
  * Cancel a scheduled campaign
  */
 export async function cancelCampaign(
-  params: any,
+  params: unknown,
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);

@@ -6,101 +6,32 @@ import { PageHeader } from "@/components/ui/page-header";
 import { DocumentStatusBadge } from "@/components/ui/document-status-badge";
 import { DocumentTypeBadge } from "@/components/ui/document-type-badge";
 import { DocumentPdfDialog } from "@/components/pdf/document-pdf-dialog";
-import { ArrowLeft, Edit, FileText, Receipt, Trash2, Download } from "lucide-react";
+import { ArrowLeft, Receipt, Trash2, Download } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-
-interface QuoteDetails {
-    id: string;
-    numero: string;
-    type: "DEVIS";
-    dateEmission: Date;
-    dateEcheance: Date | null;
-    statut: "BROUILLON" | "ENVOYE" | "ACCEPTE" | "REFUSE" | "ANNULE";
-    client: {
-        nom: string;
-        prenom: string | null;
-        email: string | null;
-        telephone: string | null;
-        adresse: string | null;
-    };
-    total_ht: number;
-    total_tva: number;
-    total_ttc: number;
-    notes: string | null;
-    conditions_paiement: string | null;
-    validite_jours: number;
-    lignes: Array<{
-        id: string;
-        designation: string;
-        description: string | null;
-        quantite: number;
-        prix_unitaire_ht: number;
-        tva_taux: number;
-        remise_pourcent: number;
-        montant_ht: number;
-        montant_tva: number;
-        montant_ttc: number;
-    }>;
-}
+import { useDocument, useDeleteDocument, useConvertQuoteToInvoice } from "@/hooks/use-documents";
+import { useCompanySettings } from "@/hooks/use-company-settings";
 
 export default function QuoteDetailPage() {
     const params = useParams();
     const router = useRouter();
-    const [quote, setQuote] = useState<QuoteDetails | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [companySettings, setCompanySettings] = useState<any>(null);
     const [isPdfDialogOpen, setIsPdfDialogOpen] = useState(false);
 
-    useEffect(() => {
-        if (params.id) {
-            fetchQuote(params.id as string);
-            fetchCompanySettings();
-        }
-    }, [params.id]);
+    const { data: quote, isLoading } = useDocument(params.id as string);
+    const { data: companySettings } = useCompanySettings();
+    const deleteDocument = useDeleteDocument();
+    const convertToInvoice = useConvertQuoteToInvoice();
 
-    const fetchCompanySettings = async () => {
-        try {
-            const response = await fetch("/api/settings/company");
-            if (response.ok) {
-                const data = await response.json();
-                setCompanySettings(data.settings);
-            }
-        } catch (error) {
-            console.error("Error fetching company settings:", error);
-        }
-    };
-
-    const fetchQuote = async (id: string) => {
-        try {
-            setIsLoading(true);
-            const response = await fetch(`/api/documents/${id}`);
-            if (!response.ok) throw new Error("Erreur lors du chargement du devis");
-
-            const data = await response.json();
-            setQuote(data.document);
-        } catch (error) {
-            console.error("Error fetching quote:", error);
-            toast.error("Impossible de charger le devis");
-            router.push("/dashboard/documents/quotes");
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    const canConvert = useMemo(() => quote?.statut === "ACCEPTE", [quote?.statut]);
 
     const handleDelete = async () => {
         if (!quote || !confirm("Êtes-vous sûr de vouloir supprimer ce devis ?")) return;
 
         try {
-            const response = await fetch(`/api/documents/${quote.id}`, {
-                method: "DELETE",
-            });
-
-            if (!response.ok) throw new Error("Erreur lors de la suppression");
-
+            await deleteDocument.mutateAsync(quote.id);
             toast.success("Devis supprimé avec succès");
             router.push("/dashboard/documents/quotes");
         } catch (error) {
@@ -113,15 +44,9 @@ export default function QuoteDetailPage() {
         if (!quote) return;
 
         try {
-            const response = await fetch(`/api/documents/${quote.id}/convert`, {
-                method: "POST",
-            });
-
-            if (!response.ok) throw new Error("Erreur lors de la conversion");
-
-            const data = await response.json();
+            const result = await convertToInvoice.mutateAsync(quote.id);
             toast.success("Devis converti en facture avec succès");
-            router.push(`/dashboard/documents/invoices/${data.invoice.id}`);
+            router.push(`/dashboard/documents/invoices/${result.invoice.id}`);
         } catch (error) {
             console.error("Error converting quote:", error);
             toast.error("Impossible de convertir le devis");
@@ -155,8 +80,6 @@ export default function QuoteDetailPage() {
     const clientName = quote.client.prenom
         ? `${quote.client.nom} ${quote.client.prenom}`
         : quote.client.nom;
-
-    const canConvert = quote.statut === "ACCEPTE";
 
     return (
         <div className="space-y-6">

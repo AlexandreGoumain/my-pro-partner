@@ -59,7 +59,7 @@ export async function GET(
 
     const filteredClients = applySegmentCriteria(
       clients,
-      segment.criteres as any
+      segment.criteres as unknown
     );
 
     const segmentWithCount = {
@@ -166,7 +166,7 @@ export async function PATCH(
 
       const filteredClients = applySegmentCriteria(
         clients,
-        validation.data.criteres as any
+        validation.data.criteres as unknown
       );
 
       nombreClients = filteredClients.length;

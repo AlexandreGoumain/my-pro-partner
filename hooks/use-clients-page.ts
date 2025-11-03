@@ -28,7 +28,7 @@ export interface ClientsPageHandlers {
     // Data
     clients: Client[];
     displayClients: Client[];
-    pagination: any;
+    pagination: { page: number; pageSize: number; total: number };
     showPagination: boolean;
     isLoading: boolean;
     intelligence: {
@@ -43,7 +43,7 @@ export interface ClientsPageHandlers {
 
     // Segment filter
     segmentId: string | null;
-    segment: any;
+    segment: { id: string; nom: string } | null;
     clearSegmentFilter: () => void;
 
     // Dialogs
@@ -68,7 +68,7 @@ export interface ClientsPageHandlers {
     handleImport: (data: Record<string, unknown>[]) => Promise<void>;
 
     // Table columns
-    columns: any[];
+    columns: unknown[];
 
     // Delete state
     isDeleting: boolean;

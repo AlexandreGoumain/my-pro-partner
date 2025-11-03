@@ -151,6 +151,45 @@ export function generateNumeroDocument(
     return result;
 }
 
+// Type pour les paramètres généraux de l'entreprise
+export interface CompanySettings {
+    nom_entreprise?: string | null;
+    siret?: string | null;
+    tva_intra?: string | null;
+    adresse?: string | null;
+    code_postal?: string | null;
+    ville?: string | null;
+    telephone?: string | null;
+    email?: string | null;
+    site_web?: string | null;
+    logo_url?: string | null;
+    mentions_legales?: string | null;
+}
+
+// Type pour les informations utilisateur
+export interface UserSettings {
+    name?: string | null;
+    email?: string | null;
+    role?: string | null;
+    createdAt?: Date | string | null;
+}
+
+// Type pour les informations d'entreprise (abonnement)
+export interface EntrepriseSettings {
+    id?: string;
+    plan?: "FREE" | "BASIC" | "PREMIUM" | "ENTERPRISE" | null;
+}
+
+// Type pour les préférences de l'utilisateur
+export interface PreferenceSettings {
+    langue?: string;
+    timezone?: string;
+    devise?: string;
+    format_nombre?: string;
+    format_date?: string;
+    premier_jour?: string;
+}
+
 // Type pour les préférences de notifications
 export interface NotificationPreferences {
     id?: string;

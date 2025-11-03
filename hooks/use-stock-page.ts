@@ -7,11 +7,11 @@ import {
 } from "@/hooks/use-stock";
 
 export interface StockPageHandlers {
-    mouvements: any[];
+    mouvements: unknown[];
     loadingMouvements: boolean;
-    alerts: any[];
+    alerts: unknown[];
     loadingAlerts: boolean;
-    articles: any[];
+    articles: unknown[];
     loadingArticles: boolean;
 
     movementDialogOpen: boolean;
@@ -19,7 +19,7 @@ export interface StockPageHandlers {
     filters: StockFilters;
     setFilters: (filters: StockFilters) => void;
 
-    articlesWithStock: any[];
+    articlesWithStock: unknown[];
     stats: {
         totalArticles: number;
         articlesEnRupture: number;

@@ -5,9 +5,10 @@ import { SettingsSection } from "@/components/ui/settings-section";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { CreditCard, TrendingUp, Users, FileText, Package, Zap } from "lucide-react";
+import { EntrepriseSettings } from "@/lib/types/settings";
 
 interface SubscriptionTabProps {
-    entreprise: any;
+    entreprise: EntrepriseSettings | null;
 }
 
 export function SubscriptionTab({ entreprise }: SubscriptionTabProps) {

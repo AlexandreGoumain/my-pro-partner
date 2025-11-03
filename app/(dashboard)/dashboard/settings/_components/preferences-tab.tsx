@@ -9,10 +9,11 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { SettingsSection } from "@/components/ui/settings-section";
+import { PreferenceSettings } from "@/lib/types/settings";
 import { Calendar, DollarSign, Globe } from "lucide-react";
 
 interface PreferencesTabProps {
-    preferences: any;
+    preferences: PreferenceSettings;
     onChange: (field: string, value: string) => void;
 }
 

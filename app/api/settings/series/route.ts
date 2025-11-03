@@ -48,7 +48,7 @@ export async function GET(req: NextRequest) {
         const typeFilter = searchParams.get("type"); // "devis", "factures", "avoirs"
 
         // Build where clause
-        const where: any = {
+        const where: unknown = {
             entrepriseId: user.entrepriseId,
         };
 

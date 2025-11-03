@@ -7,7 +7,7 @@ import type { ActionResult } from '../chatbot-actions';
 /**
  * Navigate to a specific page in the ERP
  */
-export async function navigateTo(params: any): Promise<ActionResult> {
+export async function navigateTo(params: unknown): Promise<ActionResult> {
   const pageMap: Record<string, string> = {
     DASHBOARD: '/dashboard',
     CLIENTS: '/dashboard/clients',

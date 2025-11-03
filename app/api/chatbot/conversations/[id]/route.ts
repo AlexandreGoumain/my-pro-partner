@@ -12,7 +12,7 @@ interface RouteParams {
   };
 }
 
-export const GET = withAuth(async (req: NextRequest, session: any, { params }: RouteParams) => {
+export const GET = withAuth(async (req: NextRequest, session: unknown, { params }: RouteParams) => {
   try {
     const conversation = await prisma.conversation.findUnique({
       where: {
@@ -43,7 +43,7 @@ export const GET = withAuth(async (req: NextRequest, session: any, { params }: R
     }
 
     return NextResponse.json(conversation);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching conversation:', error);
     return NextResponse.json(
       { error: 'Erreur lors de la récupération de la conversation' },
@@ -52,7 +52,7 @@ export const GET = withAuth(async (req: NextRequest, session: any, { params }: R
   }
 });
 
-export const DELETE = withAuth(async (req: NextRequest, session: any, { params }: RouteParams) => {
+export const DELETE = withAuth(async (req: NextRequest, session: unknown, { params }: RouteParams) => {
   try {
     // Vérifier que la conversation appartient à l'utilisateur
     const conversation = await prisma.conversation.findUnique({
@@ -79,7 +79,7 @@ export const DELETE = withAuth(async (req: NextRequest, session: any, { params }
       success: true,
       message: 'Conversation supprimée',
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error deleting conversation:', error);
     return NextResponse.json(
       { error: 'Erreur lors de la suppression de la conversation' },
@@ -88,7 +88,7 @@ export const DELETE = withAuth(async (req: NextRequest, session: any, { params }
   }
 });
 
-export const PATCH = withAuth(async (req: NextRequest, session: any, { params }: RouteParams) => {
+export const PATCH = withAuth(async (req: NextRequest, session: unknown, { params }: RouteParams) => {
   try {
     const body = await req.json();
     const { pinned, titre } = body;
@@ -119,7 +119,7 @@ export const PATCH = withAuth(async (req: NextRequest, session: any, { params }:
     });
 
     return NextResponse.json(updated);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating conversation:', error);
     return NextResponse.json(
       { error: 'Erreur lors de la mise à jour de la conversation' },

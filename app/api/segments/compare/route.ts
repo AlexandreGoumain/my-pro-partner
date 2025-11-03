@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
 
     // Apply criteria for each segment
     const segmentResults = segments.map((segment) => {
-      const clients = applySegmentCriteria(allClients, segment.criteres as any);
+      const clients = applySegmentCriteria(allClients, segment.criteres as unknown);
       return {
         id: segment.id,
         nom: segment.nom,

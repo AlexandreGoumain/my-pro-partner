@@ -6,10 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SettingsSection } from "@/components/ui/settings-section";
 import { Activity, Key, Shield, User } from "lucide-react";
+import { useState } from "@/lib/types/settings";
+import { Activity, Key, Shield, User } from "lucide-react";
 import { useState } from "react";
 
 interface AccountTabProps {
-    user: any;
+    user: UserSettings;
 }
 
 export function AccountTab({ user }: AccountTabProps) {

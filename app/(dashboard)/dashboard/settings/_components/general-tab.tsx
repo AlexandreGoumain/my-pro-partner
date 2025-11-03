@@ -1,12 +1,14 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
+import { CompanySettings } from "@/lib/types/settings";
 import { Label } from "@/components/ui/label";
 import { SettingsSection } from "@/components/ui/settings-section";
+import { Building2 } from "@/lib/types/settings";
 import { Building2 } from "lucide-react";
 
 interface GeneralTabProps {
-    settings: any;
+    settings: CompanySettings;
     onChange: (field: string, value: string) => void;
 }
 

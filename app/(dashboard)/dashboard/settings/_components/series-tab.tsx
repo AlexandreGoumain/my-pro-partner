@@ -7,70 +7,37 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { SettingsSection } from "@/components/ui/settings-section";
 import { SerieDocument } from "@/lib/types/settings";
 import { FileText, Plus } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
+import { useSeries, useCreateSerie, useUpdateSerie, useDeleteSerie, useToggleSerie } from "@/hooks/use-series";
 
 export function SeriesTab() {
-    const [series, setSeries] = useState<SerieDocument[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [dialogOpen, setDialogOpen] = useState(false);
-    const [editingSerie, setEditingSerie] = useState<SerieDocument | null>(
-        null
-    );
+    const [editingSerie, setEditingSerie] = useState<SerieDocument | null>(null);
 
-    useEffect(() => {
-        fetchSeries();
-    }, []);
-
-    const fetchSeries = async () => {
-        try {
-            setIsLoading(true);
-            const response = await fetch("/api/settings/series");
-            if (!response.ok)
-                throw new Error("Erreur lors du chargement des séries");
-
-            const data = await response.json();
-            setSeries(data.series || []);
-        } catch (error) {
-            console.error("Error fetching series:", error);
-            toast.error("Impossible de charger les séries");
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    // React Query hooks
+    const { data: series = [], isLoading } = useSeries();
+    const createSerie = useCreateSerie();
+    const updateSerie = useUpdateSerie();
+    const deleteSerie = useDeleteSerie();
+    const toggleSerie = useToggleSerie();
 
     const handleSave = async (data: Partial<SerieDocument>) => {
         try {
-            const url = editingSerie
-                ? `/api/settings/series/${editingSerie.id}`
-                : "/api/settings/series";
-            const method = editingSerie ? "PUT" : "POST";
-
-            const response = await fetch(url, {
-                method,
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data),
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(
-                    error.message || "Erreur lors de la sauvegarde"
-                );
+            if (editingSerie) {
+                await updateSerie.mutateAsync({ id: editingSerie.id, data });
+                toast.success("Série modifiée avec succès");
+            } else {
+                await createSerie.mutateAsync(data);
+                toast.success("Série créée avec succès");
             }
 
-            toast.success(
-                editingSerie
-                    ? "Série modifiée avec succès"
-                    : "Série créée avec succès"
-            );
-            fetchSeries();
             setDialogOpen(false);
             setEditingSerie(null);
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Error saving serie:", error);
-            toast.error(error.message || "Impossible de sauvegarder la série");
-            throw error; // Relance l'erreur pour empêcher la fermeture du dialogue
+            toast.error((error as Error).message || "Impossible de sauvegarder la série");
+            throw error;
         }
     };
 
@@ -89,39 +56,18 @@ export function SeriesTab() {
         }
 
         try {
-            const response = await fetch(`/api/settings/series/${serie.id}`, {
-                method: "DELETE",
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(
-                    error.message || "Erreur lors de la suppression"
-                );
-            }
-
+            await deleteSerie.mutateAsync(serie.id);
             toast.success("Série supprimée avec succès");
-            fetchSeries();
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Error deleting serie:", error);
-            toast.error(error.message || "Impossible de supprimer la série");
+            toast.error((error as Error).message || "Impossible de supprimer la série");
         }
     };
 
     const handleToggleActive = async (serie: SerieDocument) => {
         try {
-            const response = await fetch(`/api/settings/series/${serie.id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ active: !serie.active }),
-            });
-
-            if (!response.ok) {
-                throw new Error("Erreur lors de la mise à jour");
-            }
-
+            await toggleSerie.mutateAsync({ id: serie.id, active: !serie.active });
             toast.success(serie.active ? "Série désactivée" : "Série activée");
-            fetchSeries();
         } catch (error) {
             console.error("Error toggling serie:", error);
             toast.error("Impossible de modifier la série");

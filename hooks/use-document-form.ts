@@ -10,6 +10,9 @@ import type {
     DocumentStatus,
 } from "@/lib/types/document.types";
 import { DOCUMENT_DEFAULTS, MESSAGES } from "@/lib/constants/document.constants";
+import { useClients } from "./use-clients";
+import { useArticles } from "./use-articles";
+import { useSeries } from "./use-series";
 
 interface UseDocumentFormOptions {
     documentType: DocumentType;
@@ -19,10 +22,17 @@ interface UseDocumentFormOptions {
 export function useDocumentForm({ documentType, redirectPath }: UseDocumentFormOptions) {
     const router = useRouter();
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [clients, setClients] = useState<Client[]>([]);
-    const [articles, setArticles] = useState<Article[]>([]);
-    const [series, setSeries] = useState<any[]>([]); // Series for document numbering
     const [lines, setLines] = useState<LineItem[]>([]);
+
+    // Utiliser React Query pour fetcher les données
+    const { data: clientsData = [] } = useClients(DOCUMENT_DEFAULTS.FETCH_LIMIT);
+    const { data: articlesData = [] } = useArticles();
+    const { data: seriesData = [] } = useSeries();
+
+    // Convertir les données pour le formulaire
+    const clients = clientsData as unknown as Client[];
+    const articles = articlesData as unknown as Article[];
+    const series = seriesData as unknown[];
 
     const [formData, setFormData] = useState<DocumentFormData>({
         clientId: "",
@@ -34,14 +44,8 @@ export function useDocumentForm({ documentType, redirectPath }: UseDocumentFormO
         conditions_paiement: "",
     });
 
+    // Calculer la date d'échéance par défaut une seule fois au montage
     useEffect(() => {
-        fetchClients();
-        fetchArticles();
-        fetchSeries();
-        calculateDefaultExpiryDate();
-    }, []);
-
-    const calculateDefaultExpiryDate = () => {
         const today = new Date();
         const expiryDate = new Date(today);
         expiryDate.setDate(today.getDate() + DOCUMENT_DEFAULTS.VALIDITY_DAYS);
@@ -49,49 +53,7 @@ export function useDocumentForm({ documentType, redirectPath }: UseDocumentFormO
             ...prev,
             dateEcheance: expiryDate.toISOString().split("T")[0],
         }));
-    };
-
-    const fetchClients = async () => {
-        try {
-            const response = await fetch(`/api/clients?limit=${DOCUMENT_DEFAULTS.FETCH_LIMIT}`);
-            if (!response.ok) throw new Error();
-            const data = await response.json();
-            setClients(data.data || data.clients || []);
-        } catch (error) {
-            console.error("Error fetching clients:", error);
-            toast.error(MESSAGES.ERRORS.LOAD_CLIENTS);
-        }
-    };
-
-    const fetchArticles = async () => {
-        try {
-            const response = await fetch(`/api/articles?limit=${DOCUMENT_DEFAULTS.FETCH_LIMIT}`);
-            if (!response.ok) throw new Error();
-            const data = await response.json();
-            setArticles(data.data || data.articles || []);
-        } catch (error) {
-            console.error("Error fetching articles:", error);
-            toast.error(MESSAGES.ERRORS.LOAD_ARTICLES);
-        }
-    };
-
-    const fetchSeries = async () => {
-        try {
-            // Filter series based on document type
-            const typeParam =
-                documentType === "DEVIS" ? "devis" :
-                documentType === "FACTURE" ? "factures" :
-                documentType === "AVOIR" ? "avoirs" : "";
-
-            const response = await fetch(`/api/settings/series?active=true&type=${typeParam}`);
-            if (!response.ok) throw new Error();
-            const data = await response.json();
-            setSeries(data.series || []);
-        } catch (error) {
-            console.error("Error fetching series:", error);
-            // Don't show error toast - series are optional
-        }
-    };
+    }, []);
 
     const totals = useMemo(() => {
         const totalHT = lines.reduce((sum, line) => sum + line.montant_ht, 0);

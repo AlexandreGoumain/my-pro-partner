@@ -58,7 +58,7 @@ export function useConversations(): ConversationsState {
 
       setCurrentConversationId(id);
 
-      return conversation.messages.map((m: any) => ({
+      return conversation.messages.map((m: unknown) => ({
         id: m.id,
         role: m.role.toLowerCase() as 'user' | 'assistant',
         content: m.content,

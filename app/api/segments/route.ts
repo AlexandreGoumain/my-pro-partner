@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
     const segmentsWithCounts = segments.map((segment) => {
       const filteredClients = applySegmentCriteria(
         clients,
-        segment.criteres as any
+        segment.criteres as unknown
       );
 
       return {
@@ -140,7 +140,7 @@ export async function POST(req: NextRequest) {
 
     const filteredClients = applySegmentCriteria(
       clients,
-      validation.data.criteres as any
+      validation.data.criteres as unknown
     );
 
     const segment = await prisma.segment.create({

@@ -20,7 +20,7 @@ interface RequestBody {
   conversationId?: string;
 }
 
-export const POST = withAuth(async (req: NextRequest, session: any) => {
+export const POST = withAuth(async (req: NextRequest, session: unknown) => {
   try {
     const body: RequestBody = await req.json();
     const { messages, conversationId } = body;
@@ -159,7 +159,7 @@ export const POST = withAuth(async (req: NextRequest, session: any) => {
         Connection: 'keep-alive',
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in chatbot message API:', error);
     return new Response(
       JSON.stringify({ error: error.message || 'Erreur lors du traitement du message' }),

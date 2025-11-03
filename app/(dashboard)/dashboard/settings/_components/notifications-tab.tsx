@@ -3,10 +3,11 @@
 import { Label } from "@/components/ui/label";
 import { SettingsSection } from "@/components/ui/settings-section";
 import { Switch } from "@/components/ui/switch";
+import { NotificationPreferences } from "@/lib/types/settings";
 import { Bell, Webhook } from "lucide-react";
 
 interface NotificationsTabProps {
-    notifications: any;
+    notifications: Partial<NotificationPreferences>;
     onChange: (field: string, value: boolean) => void;
 }
 

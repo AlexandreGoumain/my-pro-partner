@@ -5,7 +5,7 @@ import { format } from "date-fns";
 import { EXPORT_CSV_HEADERS } from "@/lib/constants/import-export-config";
 
 export interface ImportExportPageHandlers {
-    clients: any[];
+    clients: unknown[];
     isLoading: boolean;
     isDragging: boolean;
     selectedFile: File | null;
@@ -20,7 +20,7 @@ export interface ImportExportPageHandlers {
     handleDrop: (e: React.DragEvent) => void;
     handleFileSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
     handleImport: () => void;
-    handleCSVImport: (data: Record<string, any>[]) => Promise<any>;
+    handleCSVImport: (data: Record<string, unknown>[]) => Promise<unknown>;
 }
 
 export function useImportExportPage(): ImportExportPageHandlers {
@@ -158,7 +158,7 @@ export function useImportExportPage(): ImportExportPageHandlers {
     }, []);
 
     const handleCSVImport = useCallback(
-        async (data: Record<string, any>[]) => {
+        async (data: Record<string, unknown>[]) => {
             return await importClients.mutateAsync(data);
         },
         [importClients]

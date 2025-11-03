@@ -14,31 +14,25 @@ import { NotificationsTab } from "./_components/notifications-tab";
 import { PreferencesTab } from "./_components/preferences-tab";
 import { SeriesTab } from "./_components/series-tab";
 import { SubscriptionTab } from "./_components/subscription-tab";
+import { useCompanySettings, useUpdateCompanySettings } from "@/hooks/use-company-settings";
+import { useNotificationSettings, useUpdateNotificationSettings } from "@/hooks/use-notification-settings";
 
-interface CompanySettings {
-    id?: string;
-    nom_entreprise: string;
-    siret?: string;
-    tva_intra?: string;
-    adresse?: string;
-    code_postal?: string;
-    ville?: string;
-    telephone?: string;
-    email?: string;
-    site_web?: string;
-    logo_url?: string;
-    prefixe_devis: string;
-    prefixe_facture: string;
-    conditions_paiement_defaut?: string;
-    mentions_legales?: string;
-}
+import { CompanySettings, NotificationPreferences, PreferenceSettings } from "@/lib/types/settings";
 
 export default function SettingsPage() {
     const { data: session } = useSession();
-    const [isLoading, setIsLoading] = useState(true);
-    const [isSaving, setIsSaving] = useState(false);
     const [activeTab, setActiveTab] = useState("general");
 
+    // React Query hooks
+    const { data: companyData, isLoading: isLoadingCompany } = useCompanySettings();
+    const { data: notificationData, isLoading: isLoadingNotifications } = useNotificationSettings();
+    const updateCompany = useUpdateCompanySettings();
+    const updateNotifications = useUpdateNotificationSettings();
+
+    const isLoading = isLoadingCompany || isLoadingNotifications;
+    const isSaving = updateCompany.isPending || updateNotifications.isPending;
+
+    // Local state pour le formulaire (synchronisé avec React Query data)
     const [settings, setSettings] = useState<CompanySettings>({
         nom_entreprise: "",
         prefixe_devis: "DEV",
@@ -62,43 +56,18 @@ export default function SettingsPage() {
         premier_jour: "lundi",
     });
 
+    // Synchroniser l'état local avec les données de React Query
     useEffect(() => {
-        fetchSettings();
-        fetchNotifications();
-    }, []);
-
-    const fetchSettings = async () => {
-        try {
-            setIsLoading(true);
-            const response = await fetch("/api/settings/company");
-            if (!response.ok)
-                throw new Error("Erreur lors du chargement des paramètres");
-
-            const data = await response.json();
-            if (data.settings) {
-                setSettings(data.settings);
-            }
-        } catch (error) {
-            console.error("Error fetching settings:", error);
-            toast.error("Impossible de charger les paramètres");
-        } finally {
-            setIsLoading(false);
+        if (companyData) {
+            setSettings(companyData);
         }
-    };
+    }, [companyData]);
 
-    const fetchNotifications = async () => {
-        try {
-            const response = await fetch("/api/settings/notifications");
-            if (!response.ok) return;
-
-            const data = await response.json();
-            if (data.notifications) {
-                setNotifications(data.notifications);
-            }
-        } catch (error) {
-            console.error("Error fetching notifications:", error);
+    useEffect(() => {
+        if (notificationData) {
+            setNotifications(notificationData);
         }
-    };
+    }, [notificationData]);
 
     const handleSettingsChange = (field: string, value: string) => {
         setSettings((prev) => ({ ...prev, [field]: value }));
@@ -114,38 +83,20 @@ export default function SettingsPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsSaving(true);
 
         try {
-            // Save company settings
-            const companyResponse = await fetch("/api/settings/company", {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(settings),
-            });
-
-            if (!companyResponse.ok) {
-                const error = await companyResponse.json();
-                throw new Error(
-                    error.message || "Erreur lors de la sauvegarde"
-                );
-            }
-
-            // Save notifications
-            await fetch("/api/settings/notifications", {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(notifications),
-            });
+            // Save company settings and notifications in parallel
+            await Promise.all([
+                updateCompany.mutateAsync(settings),
+                updateNotifications.mutateAsync(notifications),
+            ]);
 
             toast.success("Paramètres enregistrés avec succès");
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Error saving settings:", error);
             toast.error(
-                error.message || "Impossible d'enregistrer les paramètres"
+                (error as Error).message || "Impossible d'enregistrer les paramètres"
             );
-        } finally {
-            setIsSaving(false);
         }
     };
 

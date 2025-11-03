@@ -1,13 +1,14 @@
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { toast } from "sonner";
+import { useDocuments, useDeleteDocument, type DocumentType } from "./use-documents";
 
-export type DocumentType = "FACTURE" | "DEVIS";
+export type { DocumentType };
 
 interface UseDocumentPageProps<T> {
     documentType: DocumentType;
     basePath: string;
-    createColumns: (handlers: any) => any[];
+    createColumns: (handlers: Record<string, unknown>) => unknown[];
     additionalHandlers?: Record<string, (document: T) => void | Promise<void>>;
 }
 
@@ -18,8 +19,8 @@ export function useDocumentPage<T extends { id: string }>({
     additionalHandlers = {},
 }: UseDocumentPageProps<T>) {
     const router = useRouter();
-    const [documents, setDocuments] = useState<T[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+    const { data: documents = [], isLoading } = useDocuments(documentType);
+    const deleteDocument = useDeleteDocument();
 
     const labels = {
         FACTURE: {
@@ -62,27 +63,6 @@ export function useDocumentPage<T extends { id: string }>({
 
     const label = labels[documentType];
 
-    const fetchDocuments = async () => {
-        try {
-            setIsLoading(true);
-            const response = await fetch(`/api/documents?type=${documentType}`);
-            if (!response.ok) throw new Error(label.loadingError);
-
-            const data = await response.json();
-            setDocuments(data.documents || []);
-        } catch (error) {
-            console.error(`Error fetching ${label.plural}:`, error);
-            toast.error(label.fetchError);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchDocuments();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
     const handleView = (document: T) => {
         router.push(`${basePath}/${document.id}`);
     };
@@ -95,14 +75,8 @@ export function useDocumentPage<T extends { id: string }>({
         if (!confirm(label.deleteConfirm)) return;
 
         try {
-            const response = await fetch(`/api/documents/${document.id}`, {
-                method: "DELETE",
-            });
-
-            if (!response.ok) throw new Error("Erreur lors de la suppression");
-
+            await deleteDocument.mutateAsync(document.id);
             toast.success(label.deleteSuccess);
-            fetchDocuments();
         } catch (error) {
             console.error(`Error deleting ${label.singular}:`, error);
             toast.error(label.deleteError);
@@ -113,17 +87,17 @@ export function useDocumentPage<T extends { id: string }>({
         router.push(`${basePath}/new`);
     };
 
-    const handlers = {
+    const handlers = useMemo(() => ({
         onView: handleView,
         onEdit: handleEdit,
         onDelete: handleDelete,
         ...additionalHandlers,
-    };
+    }), [handleView, handleEdit, handleDelete, additionalHandlers]);
 
-    const columns = createColumns(handlers);
+    const columns = useMemo(() => createColumns(handlers), [createColumns, handlers]);
 
     return {
-        documents,
+        documents: documents as T[],
         isLoading,
         columns,
         label,
@@ -132,7 +106,6 @@ export function useDocumentPage<T extends { id: string }>({
             handleEdit,
             handleDelete,
             handleCreate,
-            fetchDocuments,
         },
     };
 }

@@ -50,7 +50,7 @@ export async function GET(
     // Apply segment criteria
     const filteredClients = applySegmentCriteria(
       allClients,
-      segment.criteres as any
+      segment.criteres as unknown
     );
 
     // Format data based on requested format

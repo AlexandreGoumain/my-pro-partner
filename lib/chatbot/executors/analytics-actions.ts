@@ -9,7 +9,7 @@ import { createFetchHelper, buildQueryParams, handleApiResponse } from './utils'
  * Get general statistics (revenue, client count, etc.)
  */
 export async function getStatistics(
-  params: any,
+  params: unknown,
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
@@ -26,7 +26,7 @@ export async function getStatistics(
  * Get dashboard KPIs
  */
 export async function getDashboardKpis(
-  params: any,
+  params: unknown,
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
@@ -38,7 +38,7 @@ export async function getDashboardKpis(
  * Search across all entities (clients, articles, documents)
  */
 export async function searchAll(
-  params: any,
+  params: unknown,
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
@@ -79,7 +79,7 @@ export async function searchAll(
  * Quick create invoice from article
  */
 export async function quickInvoice(
-  params: any,
+  params: unknown,
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
@@ -114,7 +114,7 @@ export async function quickInvoice(
  * Get recent activity (clients, documents)
  */
 export async function getRecentActivity(
-  params: any,
+  params: unknown,
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);

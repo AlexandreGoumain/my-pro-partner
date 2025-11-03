@@ -13,7 +13,7 @@ const feedbackSchema = z.object({
   comment: z.string().optional(),
 });
 
-export const POST = withAuth(async (req: NextRequest, session: any) => {
+export const POST = withAuth(async (req: NextRequest, session: unknown) => {
   try {
     const body = await req.json();
     const validated = feedbackSchema.parse(body);
@@ -37,7 +37,7 @@ export const POST = withAuth(async (req: NextRequest, session: any) => {
     }
 
     // Mettre à jour le metadata du message avec le feedback
-    const currentMetadata = (message.metadata as any) || {};
+    const currentMetadata = (message.metadata as unknown) || {};
     const updatedMetadata = {
       ...currentMetadata,
       feedback: {
@@ -56,7 +56,7 @@ export const POST = withAuth(async (req: NextRequest, session: any) => {
       success: true,
       message: 'Feedback enregistré',
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: 'Données invalides', details: error.errors },

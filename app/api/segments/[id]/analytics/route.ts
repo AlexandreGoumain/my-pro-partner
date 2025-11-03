@@ -44,7 +44,7 @@ export async function GET(
     // Apply segment criteria
     const segmentClients = applySegmentCriteria(
       allClients,
-      segment.criteres as any
+      segment.criteres as unknown
     );
 
     // Calculate demographics
@@ -125,7 +125,7 @@ export async function GET(
 
     // Cumulative growth over time
     const cumulativeData: Array<{ month: string; total: number }> = [];
-    let cumulative = 0;
+    const cumulative = 0;
     for (let i = 11; i >= 0; i--) {
       const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
       const nextMonthDate = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);

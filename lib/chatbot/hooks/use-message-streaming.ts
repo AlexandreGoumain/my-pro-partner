@@ -145,7 +145,7 @@ export function useMessageStreaming({
 
         // Reload conversations
         await loadConversations();
-      } catch (err: any) {
+      } catch (err: unknown) {
         setError(err);
         console.error('Error sending message:', err);
       } finally {

@@ -1,49 +1,21 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
-import { PageHeader } from "@/components/ui/page-header";
 import { LoadingCard } from "@/components/ui/loading-card";
-import { TrendingUp, TrendingDown, FileText, Receipt, Euro, Clock } from "lucide-react";
-import { useState, useEffect } from "react";
-import { toast } from "sonner";
-
-interface Analytics {
-    totalRevenue: number;
-    totalQuotes: number;
-    totalInvoices: number;
-    paidInvoices: number;
-    unpaidInvoices: number;
-    overdueInvoices: number;
-    revenueThisMonth: number;
-    revenueLastMonth: number;
-    averageQuoteValue: number;
-    averageInvoiceValue: number;
-    conversionRate: number;
-}
+import { PageHeader } from "@/components/ui/page-header";
+import {
+    Clock,
+    Euro,
+    FileText,
+    Receipt,
+    TrendingDown,
+    TrendingUp,
+} from "lucide-react";
+import { useMemo } from "react";
+import { useAnalytics } from "@/hooks/use-analytics";
 
 export default function AnalyticsPage() {
-    const [analytics, setAnalytics] = useState<Analytics | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-
-    useEffect(() => {
-        fetchAnalytics();
-    }, []);
-
-    const fetchAnalytics = async () => {
-        try {
-            setIsLoading(true);
-            const response = await fetch("/api/analytics/sales");
-            if (!response.ok) throw new Error("Erreur lors du chargement des statistiques");
-
-            const data = await response.json();
-            setAnalytics(data.analytics);
-        } catch (error) {
-            console.error("Error fetching analytics:", error);
-            toast.error("Impossible de charger les statistiques");
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    const { data: analytics, isLoading, error } = useAnalytics();
 
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat("fr-FR", {
@@ -52,10 +24,16 @@ export default function AnalyticsPage() {
         }).format(value);
     };
 
-    const calculateTrend = () => {
+    const trend = useMemo(() => {
         if (!analytics || analytics.revenueLastMonth === 0) return 0;
-        return ((analytics.revenueThisMonth - analytics.revenueLastMonth) / analytics.revenueLastMonth) * 100;
-    };
+        return (
+            ((analytics.revenueThisMonth - analytics.revenueLastMonth) /
+                analytics.revenueLastMonth) *
+            100
+        );
+    }, [analytics]);
+
+    const isTrendPositive = useMemo(() => trend >= 0, [trend]);
 
     if (isLoading) {
         return (
@@ -73,9 +51,6 @@ export default function AnalyticsPage() {
         return null;
     }
 
-    const trend = calculateTrend();
-    const isTrendPositive = trend >= 0;
-
     return (
         <div className="space-y-6">
             <PageHeader
@@ -87,9 +62,14 @@ export default function AnalyticsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <Card className="p-6 border-black/8 shadow-sm">
                     <div className="flex items-center justify-between mb-2">
-                        <span className="text-[14px] text-black/60">Chiffre d'affaires total</span>
+                        <span className="text-[14px] text-black/60">
+                            Chiffre d&apos;affaires total
+                        </span>
                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black/5">
-                            <Euro className="h-5 w-5 text-black/60" strokeWidth={2} />
+                            <Euro
+                                className="h-5 w-5 text-black/60"
+                                strokeWidth={2}
+                            />
                         </div>
                     </div>
                     <div className="text-[28px] font-bold tracking-[-0.02em] text-black">
@@ -99,12 +79,20 @@ export default function AnalyticsPage() {
 
                 <Card className="p-6 border-black/8 shadow-sm">
                     <div className="flex items-center justify-between mb-2">
-                        <span className="text-[14px] text-black/60">CA ce mois</span>
+                        <span className="text-[14px] text-black/60">
+                            CA ce mois
+                        </span>
                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black/5">
                             {isTrendPositive ? (
-                                <TrendingUp className="h-5 w-5 text-black/60" strokeWidth={2} />
+                                <TrendingUp
+                                    className="h-5 w-5 text-black/60"
+                                    strokeWidth={2}
+                                />
                             ) : (
-                                <TrendingDown className="h-5 w-5 text-black/60" strokeWidth={2} />
+                                <TrendingDown
+                                    className="h-5 w-5 text-black/60"
+                                    strokeWidth={2}
+                                />
                             )}
                         </div>
                     </div>
@@ -112,7 +100,8 @@ export default function AnalyticsPage() {
                         {formatCurrency(analytics.revenueThisMonth)}
                     </div>
                     <div className="text-[13px] font-medium text-black/60">
-                        {isTrendPositive ? "+" : ""}{trend.toFixed(1)}% vs mois dernier
+                        {isTrendPositive ? "+" : ""}
+                        {trend.toFixed(1)}% vs mois dernier
                     </div>
                 </Card>
 
@@ -120,29 +109,39 @@ export default function AnalyticsPage() {
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-[14px] text-black/60">Devis</span>
                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black/5">
-                            <FileText className="h-5 w-5 text-black/60" strokeWidth={2} />
+                            <FileText
+                                className="h-5 w-5 text-black/60"
+                                strokeWidth={2}
+                            />
                         </div>
                     </div>
                     <div className="text-[28px] font-bold tracking-[-0.02em] text-black mb-1">
                         {analytics.totalQuotes}
                     </div>
                     <div className="text-[13px] text-black/60">
-                        Valeur moyenne: {formatCurrency(analytics.averageQuoteValue)}
+                        Valeur moyenne:{" "}
+                        {formatCurrency(analytics.averageQuoteValue)}
                     </div>
                 </Card>
 
                 <Card className="p-6 border-black/8 shadow-sm">
                     <div className="flex items-center justify-between mb-2">
-                        <span className="text-[14px] text-black/60">Factures</span>
+                        <span className="text-[14px] text-black/60">
+                            Factures
+                        </span>
                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black/5">
-                            <Receipt className="h-5 w-5 text-black/60" strokeWidth={2} />
+                            <Receipt
+                                className="h-5 w-5 text-black/60"
+                                strokeWidth={2}
+                            />
                         </div>
                     </div>
                     <div className="text-[28px] font-bold tracking-[-0.02em] text-black mb-1">
                         {analytics.totalInvoices}
                     </div>
                     <div className="text-[13px] text-black/60">
-                        Valeur moyenne: {formatCurrency(analytics.averageInvoiceValue)}
+                        Valeur moyenne:{" "}
+                        {formatCurrency(analytics.averageInvoiceValue)}
                     </div>
                 </Card>
             </div>
@@ -155,19 +154,25 @@ export default function AnalyticsPage() {
                     </h3>
                     <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                            <span className="text-[14px] text-black/60">Payées</span>
+                            <span className="text-[14px] text-black/60">
+                                Payées
+                            </span>
                             <span className="text-[14px] font-medium text-black">
                                 {analytics.paidInvoices}
                             </span>
                         </div>
                         <div className="flex items-center justify-between">
-                            <span className="text-[14px] text-black/60">En attente</span>
+                            <span className="text-[14px] text-black/60">
+                                En attente
+                            </span>
                             <span className="text-[14px] font-medium text-black">
                                 {analytics.unpaidInvoices}
                             </span>
                         </div>
                         <div className="flex items-center justify-between">
-                            <span className="text-[14px] text-black/60">En retard</span>
+                            <span className="text-[14px] text-black/60">
+                                En retard
+                            </span>
                             <span className="text-[14px] font-medium text-black">
                                 {analytics.overdueInvoices}
                             </span>
@@ -198,14 +203,21 @@ export default function AnalyticsPage() {
                     {analytics.overdueInvoices > 0 ? (
                         <div className="flex items-start gap-3">
                             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black/5">
-                                <Clock className="h-5 w-5 text-black/60" strokeWidth={2} />
+                                <Clock
+                                    className="h-5 w-5 text-black/60"
+                                    strokeWidth={2}
+                                />
                             </div>
                             <div>
                                 <div className="text-[20px] font-bold text-black">
                                     {analytics.overdueInvoices}
                                 </div>
                                 <div className="text-[13px] text-black/60 mt-1">
-                                    facture{analytics.overdueInvoices > 1 ? "s" : ""} nécessite{analytics.overdueInvoices > 1 ? "nt" : ""} un suivi
+                                    facture
+                                    {analytics.overdueInvoices > 1 ? "s" : ""}{" "}
+                                    nécessite
+                                    {analytics.overdueInvoices > 1 ? "nt" : ""}{" "}
+                                    un suivi
                                 </div>
                             </div>
                         </div>

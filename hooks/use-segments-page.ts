@@ -13,7 +13,7 @@ import type { Segment } from "@/lib/types";
 export interface SegmentsPageHandlers {
     segments: Segment[];
     isLoading: boolean;
-    clientsStats: any;
+    clientsStats: Record<string, number>;
     totalClients: number;
 
     searchQuery: string;
@@ -44,8 +44,8 @@ export interface SegmentsPageHandlers {
     setSelectedSegmentForEdit: (segment: Segment | null) => void;
     segmentToDelete: string | null;
 
-    seedMutation: any;
-    deleteMutation: any;
+    seedMutation: { isPending: boolean; mutate: (data: unknown) => void };
+    deleteMutation: { isPending: boolean; mutate: (id: string) => void };
 
     handleSeedSegments: () => Promise<void>;
     handleExportSegment: (segmentId: string, format: "csv" | "json") => Promise<void>;
@@ -137,7 +137,7 @@ export function useSegmentsPage(): SegmentsPageHandlers {
                     result.created > 1 ? "s" : ""
                 } créé${result.created > 1 ? "s" : ""} avec succès`
             );
-        } catch (error: any) {
+        } catch (error: unknown) {
             toast.error(
                 error.message || "Erreur lors de la création des segments"
             );
@@ -151,7 +151,7 @@ export function useSegmentsPage(): SegmentsPageHandlers {
         try {
             await exportMutation.mutateAsync({ id: segmentId, format });
             toast.success("Export réussi");
-        } catch (error: any) {
+        } catch (error: unknown) {
             toast.error(error.message || "Erreur lors de l'export");
         }
     };
