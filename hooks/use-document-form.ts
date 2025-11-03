@@ -21,10 +21,12 @@ export function useDocumentForm({ documentType, redirectPath }: UseDocumentFormO
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [clients, setClients] = useState<Client[]>([]);
     const [articles, setArticles] = useState<Article[]>([]);
+    const [series, setSeries] = useState<any[]>([]); // Series for document numbering
     const [lines, setLines] = useState<LineItem[]>([]);
 
     const [formData, setFormData] = useState<DocumentFormData>({
         clientId: "",
+        serieId: "", // Optional serie selection
         dateEmission: new Date().toISOString().split("T")[0],
         dateEcheance: "",
         validite_jours: DOCUMENT_DEFAULTS.VALIDITY_DAYS,
@@ -35,6 +37,7 @@ export function useDocumentForm({ documentType, redirectPath }: UseDocumentFormO
     useEffect(() => {
         fetchClients();
         fetchArticles();
+        fetchSeries();
         calculateDefaultExpiryDate();
     }, []);
 
@@ -69,6 +72,24 @@ export function useDocumentForm({ documentType, redirectPath }: UseDocumentFormO
         } catch (error) {
             console.error("Error fetching articles:", error);
             toast.error(MESSAGES.ERRORS.LOAD_ARTICLES);
+        }
+    };
+
+    const fetchSeries = async () => {
+        try {
+            // Filter series based on document type
+            const typeParam =
+                documentType === "DEVIS" ? "devis" :
+                documentType === "FACTURE" ? "factures" :
+                documentType === "AVOIR" ? "avoirs" : "";
+
+            const response = await fetch(`/api/settings/series?active=true&type=${typeParam}`);
+            if (!response.ok) throw new Error();
+            const data = await response.json();
+            setSeries(data.series || []);
+        } catch (error) {
+            console.error("Error fetching series:", error);
+            // Don't show error toast - series are optional
         }
     };
 
@@ -107,6 +128,7 @@ export function useDocumentForm({ documentType, redirectPath }: UseDocumentFormO
             const payload = {
                 type: documentType,
                 clientId: formData.clientId,
+                ...(formData.serieId && { serieId: formData.serieId }), // Optional serie
                 dateEmission: formData.dateEmission,
                 dateEcheance: formData.dateEcheance,
                 validite_jours: formData.validite_jours,
@@ -165,6 +187,7 @@ export function useDocumentForm({ documentType, redirectPath }: UseDocumentFormO
         formData,
         setFormData,
         clients,
+        series,
         articles,
         lines,
         setLines,

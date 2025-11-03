@@ -2,6 +2,7 @@
 
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
+import { LoadingCard } from "@/components/ui/loading-card";
 import { TrendingUp, TrendingDown, FileText, Receipt, Euro, Clock } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -63,11 +64,7 @@ export default function AnalyticsPage() {
                     title="Analytics"
                     description="Suivez vos performances de vente"
                 />
-                <Card className="p-12 border-black/8 shadow-sm">
-                    <div className="flex items-center justify-center">
-                        <div className="text-[14px] text-black/40">Chargement...</div>
-                    </div>
-                </Card>
+                <LoadingCard />
             </div>
         );
     }
@@ -91,8 +88,8 @@ export default function AnalyticsPage() {
                 <Card className="p-6 border-black/8 shadow-sm">
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-[14px] text-black/60">Chiffre d'affaires total</span>
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-500/10">
-                            <Euro className="h-5 w-5 text-green-600" strokeWidth={2} />
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black/5">
+                            <Euro className="h-5 w-5 text-black/60" strokeWidth={2} />
                         </div>
                     </div>
                     <div className="text-[28px] font-bold tracking-[-0.02em] text-black">
@@ -103,18 +100,18 @@ export default function AnalyticsPage() {
                 <Card className="p-6 border-black/8 shadow-sm">
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-[14px] text-black/60">CA ce mois</span>
-                        <div className={`flex h-10 w-10 items-center justify-center rounded-full ${isTrendPositive ? "bg-green-500/10" : "bg-red-500/10"}`}>
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black/5">
                             {isTrendPositive ? (
-                                <TrendingUp className="h-5 w-5 text-green-600" strokeWidth={2} />
+                                <TrendingUp className="h-5 w-5 text-black/60" strokeWidth={2} />
                             ) : (
-                                <TrendingDown className="h-5 w-5 text-red-600" strokeWidth={2} />
+                                <TrendingDown className="h-5 w-5 text-black/60" strokeWidth={2} />
                             )}
                         </div>
                     </div>
                     <div className="text-[28px] font-bold tracking-[-0.02em] text-black mb-1">
                         {formatCurrency(analytics.revenueThisMonth)}
                     </div>
-                    <div className={`text-[13px] font-medium ${isTrendPositive ? "text-green-600" : "text-red-600"}`}>
+                    <div className="text-[13px] font-medium text-black/60">
                         {isTrendPositive ? "+" : ""}{trend.toFixed(1)}% vs mois dernier
                     </div>
                 </Card>
@@ -122,8 +119,8 @@ export default function AnalyticsPage() {
                 <Card className="p-6 border-black/8 shadow-sm">
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-[14px] text-black/60">Devis</span>
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-500/10">
-                            <FileText className="h-5 w-5 text-purple-600" strokeWidth={2} />
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black/5">
+                            <FileText className="h-5 w-5 text-black/60" strokeWidth={2} />
                         </div>
                     </div>
                     <div className="text-[28px] font-bold tracking-[-0.02em] text-black mb-1">
@@ -137,8 +134,8 @@ export default function AnalyticsPage() {
                 <Card className="p-6 border-black/8 shadow-sm">
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-[14px] text-black/60">Factures</span>
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500/10">
-                            <Receipt className="h-5 w-5 text-blue-600" strokeWidth={2} />
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black/5">
+                            <Receipt className="h-5 w-5 text-black/60" strokeWidth={2} />
                         </div>
                     </div>
                     <div className="text-[28px] font-bold tracking-[-0.02em] text-black mb-1">
@@ -159,19 +156,19 @@ export default function AnalyticsPage() {
                     <div className="space-y-3">
                         <div className="flex items-center justify-between">
                             <span className="text-[14px] text-black/60">Payées</span>
-                            <span className="text-[14px] font-medium text-green-600">
+                            <span className="text-[14px] font-medium text-black">
                                 {analytics.paidInvoices}
                             </span>
                         </div>
                         <div className="flex items-center justify-between">
                             <span className="text-[14px] text-black/60">En attente</span>
-                            <span className="text-[14px] font-medium text-orange-600">
+                            <span className="text-[14px] font-medium text-black">
                                 {analytics.unpaidInvoices}
                             </span>
                         </div>
                         <div className="flex items-center justify-between">
                             <span className="text-[14px] text-black/60">En retard</span>
-                            <span className="text-[14px] font-medium text-red-600">
+                            <span className="text-[14px] font-medium text-black">
                                 {analytics.overdueInvoices}
                             </span>
                         </div>
@@ -200,11 +197,11 @@ export default function AnalyticsPage() {
                     </h3>
                     {analytics.overdueInvoices > 0 ? (
                         <div className="flex items-start gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-500/10">
-                                <Clock className="h-5 w-5 text-red-600" strokeWidth={2} />
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black/5">
+                                <Clock className="h-5 w-5 text-black/60" strokeWidth={2} />
                             </div>
                             <div>
-                                <div className="text-[20px] font-bold text-red-600">
+                                <div className="text-[20px] font-bold text-black">
                                     {analytics.overdueInvoices}
                                 </div>
                                 <div className="text-[13px] text-black/60 mt-1">
@@ -215,7 +212,7 @@ export default function AnalyticsPage() {
                     ) : (
                         <div className="flex items-center justify-center h-24">
                             <div className="text-center">
-                                <div className="text-[16px] font-medium text-green-600">
+                                <div className="text-[16px] font-medium text-black/70">
                                     ✓ Aucune facture en retard
                                 </div>
                             </div>

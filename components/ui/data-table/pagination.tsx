@@ -16,13 +16,21 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import type { PaginationInfo } from "./index";
+
+export interface PaginationInfo {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasMore: boolean;
+}
 
 interface DataTablePaginationProps<TData> {
     table: Table<TData>;
     pagination?: PaginationInfo;
     onPageChange?: (page: number) => void;
     onPageSizeChange?: (size: number) => void;
+    itemLabel?: string;
 }
 
 export function DataTablePagination<TData>({
@@ -30,15 +38,29 @@ export function DataTablePagination<TData>({
     pagination,
     onPageChange,
     onPageSizeChange,
+    itemLabel = "élément(s)",
 }: DataTablePaginationProps<TData>) {
     const isServerSide = !!pagination;
 
-    const currentPage = isServerSide ? pagination.page : table.getState().pagination.pageIndex + 1;
-    const pageSize = isServerSide ? pagination.limit : table.getState().pagination.pageSize;
-    const totalPages = isServerSide ? pagination.totalPages : table.getPageCount();
-    const totalItems = isServerSide ? pagination.total : table.getFilteredRowModel().rows.length;
-    const canPreviousPage = isServerSide ? currentPage > 1 : table.getCanPreviousPage();
-    const canNextPage = isServerSide ? currentPage < totalPages : table.getCanNextPage();
+    // For server-side pagination, use the provided values
+    const currentPage = isServerSide
+        ? pagination.page
+        : table.getState().pagination.pageIndex + 1;
+    const pageSize = isServerSide
+        ? pagination.limit
+        : table.getState().pagination.pageSize;
+    const totalPages = isServerSide
+        ? pagination.totalPages
+        : table.getPageCount();
+    const totalItems = isServerSide
+        ? pagination.total
+        : table.getFilteredRowModel().rows.length;
+    const canPreviousPage = isServerSide
+        ? currentPage > 1
+        : table.getCanPreviousPage();
+    const canNextPage = isServerSide
+        ? currentPage < totalPages
+        : table.getCanNextPage();
 
     const handlePageSizeChange = (value: string) => {
         const newSize = Number(value);
@@ -92,7 +114,7 @@ export function DataTablePagination<TData>({
                 )}
                 {table.getFilteredSelectedRowModel().rows.length === 0 && (
                     <>
-                        Affichage de {totalItems} devis
+                        Affichage de {totalItems} {itemLabel}
                     </>
                 )}
             </div>

@@ -15,7 +15,16 @@ import { CLIENT_CSV_MAPPINGS } from "@/lib/constants/csv-mappings";
 import { Plus, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Suspense } from "react";
-import { DataTable } from "./_components/data-table";
+import { DataTable } from "@/components/ui/data-table";
+
+const CLIENT_COLUMN_LABELS: Record<string, string> = {
+    nom: "Client",
+    telephone: "Téléphone",
+    ville: "Localisation",
+    pays: "Pays",
+    createdAt: "Créé le",
+    actions: "Actions",
+};
 
 function ClientsPageContent() {
     const router = useRouter();
@@ -114,6 +123,8 @@ function ClientsPageContent() {
                     onPageChange={handlers.handlePageChange}
                     onPageSizeChange={handlers.handlePageSizeChange}
                     onRowClick={handlers.handleView}
+                    itemLabel="client(s)"
+                    columnLabels={CLIENT_COLUMN_LABELS}
                 />
             )}
 

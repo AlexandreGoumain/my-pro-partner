@@ -123,14 +123,14 @@ export const createColumns = (
                     <span
                         className={
                             isLowStock
-                                ? "font-semibold text-orange-600"
+                                ? "font-semibold text-black/70"
                                 : "font-semibold"
                         }
                     >
                         {stock}
                     </span>
                     {isLowStock && (
-                        <AlertTriangle className="w-4 h-4 text-orange-600" />
+                        <AlertTriangle className="w-4 h-4 text-black/60" />
                     )}
                 </div>
             );

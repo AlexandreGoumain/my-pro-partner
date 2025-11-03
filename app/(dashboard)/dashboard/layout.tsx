@@ -409,7 +409,7 @@ export default function DashboardLayout({
                         </div>
                     </div>
                 </header>
-                <div className="flex flex-1 flex-col gap-4 p-4">{children}</div>
+                <div className="flex flex-1 flex-col gap-4 p-4 bg-black/[0.04]">{children}</div>
                 <ChatbotWidget />
             </SidebarInset>
         </SidebarProvider>

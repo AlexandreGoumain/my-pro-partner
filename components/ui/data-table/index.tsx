@@ -23,16 +23,8 @@ import {
     TableRow,
 } from "@/components/ui/table";
 
-import { DataTablePagination } from "./pagination";
+import { DataTablePagination, PaginationInfo } from "./pagination";
 import { DataTableToolbar } from "./toolbar";
-
-export interface PaginationInfo {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-    hasMore: boolean;
-}
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
@@ -42,6 +34,8 @@ interface DataTableProps<TData, TValue> {
     onPageChange?: (page: number) => void;
     onPageSizeChange?: (size: number) => void;
     onRowClick?: (row: TData) => void;
+    itemLabel?: string;
+    columnLabels?: Record<string, string>;
 }
 
 export function DataTable<TData, TValue>({
@@ -52,6 +46,8 @@ export function DataTable<TData, TValue>({
     onPageChange,
     onPageSizeChange,
     onRowClick,
+    itemLabel = "élément(s)",
+    columnLabels,
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = React.useState<SortingState>([]);
     const [columnFilters, setColumnFilters] =
@@ -94,8 +90,8 @@ export function DataTable<TData, TValue>({
 
     return (
         <div className="space-y-4">
-            <DataTableToolbar table={table} />
-            <div className="rounded-lg border border-black/8">
+            <DataTableToolbar table={table} columnLabels={columnLabels} />
+            <div className="rounded-lg border border-black/8 bg-white">
                 <Table>
                     <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (
@@ -122,7 +118,9 @@ export function DataTable<TData, TValue>({
                                     data-state={
                                         row.getIsSelected() && "selected"
                                     }
-                                    className={onRowClick ? "cursor-pointer" : ""}
+                                    className={
+                                        onRowClick ? "cursor-pointer" : ""
+                                    }
                                     onClick={() => onRowClick?.(row.original)}
                                 >
                                     {row.getVisibleCells().map((cell) => (
@@ -153,7 +151,10 @@ export function DataTable<TData, TValue>({
                 pagination={pagination}
                 onPageChange={onPageChange}
                 onPageSizeChange={onPageSizeChange}
+                itemLabel={itemLabel}
             />
         </div>
     );
 }
+
+export type { PaginationInfo };

@@ -17,7 +17,7 @@ datasource db {
 // ============================================
 
 model Entreprise {
-  id    String @id @default(cuid())
+  id    String  @id @default(cuid())
   nom   String
   siret String? @unique
   email String  @unique
@@ -29,19 +29,20 @@ model Entreprise {
   dateExpiration  DateTime?
 
   // Relations (toutes les données de l'entreprise)
-  users             User[]
-  categories        Categorie[]
-  articles          Article[]
-  clients           Client[]
-  documents         Document[]
-  mouvements        MouvementStock[]
-  parametres        ParametresEntreprise?
-  niveauxFidelite   NiveauFidelite[]
-  mouvementsPoints  MouvementPoints[]
-  segments          Segment[]
-  automations       Automation[]
-  campaigns         Campaign[]
-  conversations     Conversation[]
+  users            User[]
+  categories       Categorie[]
+  articles         Article[]
+  clients          Client[]
+  documents        Document[]
+  mouvements       MouvementStock[]
+  parametres       ParametresEntreprise?
+  seriesDocuments  SerieDocument[]
+  niveauxFidelite  NiveauFidelite[]
+  mouvementsPoints MouvementPoints[]
+  segments         Segment[]
+  automations      Automation[]
+  campaigns        Campaign[]
+  conversations    Conversation[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -63,11 +64,11 @@ enum PlanAbonnement {
 // ============================================
 
 model User {
-  id       String @id @default(cuid())
-  email    String @unique
+  id       String  @id @default(cuid())
+  email    String  @unique
   password String
   name     String?
-  role     String @default("user")
+  role     String  @default("user")
 
   // Multi-tenant: chaque user appartient à une entreprise
   entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
@@ -102,9 +103,9 @@ model Client {
   notes      String?
 
   // Programme de fidélité
-  points_solde      Int     @default(0)
-  niveauFidelite    NiveauFidelite? @relation(fields: [niveauFideliteId], references: [id])
-  niveauFideliteId  String?
+  points_solde     Int             @default(0)
+  niveauFidelite   NiveauFidelite? @relation(fields: [niveauFideliteId], references: [id])
+  niveauFideliteId String?
 
   // Multi-tenant
   entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
@@ -139,8 +140,8 @@ model Categorie {
   entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
   entrepriseId String
 
-  parent       Categorie?           @relation("CategoriesToParent", fields: [parentId], references: [id])
-  enfants      Categorie[]          @relation("CategoriesToParent")
+  parent       Categorie?          @relation("CategoriesToParent", fields: [parentId], references: [id])
+  enfants      Categorie[]         @relation("CategoriesToParent")
   articles     Article[]
   champsCustom ChampPersonnalise[]
 
@@ -248,6 +249,10 @@ model Document {
   client   Client @relation(fields: [clientId], references: [id])
   clientId String
 
+  // Série de numérotation (optionnel pour rétrocompatibilité)
+  serie   SerieDocument? @relation(fields: [serieId], references: [id])
+  serieId String?
+
   total_ht  Decimal @default(0) @db.Decimal(10, 2)
   total_tva Decimal @default(0) @db.Decimal(10, 2)
   total_ttc Decimal @default(0) @db.Decimal(10, 2)
@@ -274,6 +279,7 @@ model Document {
   @@index([numero])
   @@index([type])
   @@index([clientId])
+  @@index([serieId])
   @@index([statut])
   @@index([dateEmission])
   @@index([dateEcheance])
@@ -418,6 +424,49 @@ model ParametresEntreprise {
   @@index([entrepriseId])
 }
 
+// Séries de numérotation personnalisées pour les documents
+model SerieDocument {
+  id          String  @id @default(cuid())
+  code        String // "ART", "SER", "CONS", etc.
+  nom         String // "Vente de produits", "Prestations", etc.
+  description String?
+  couleur     String? @default("#000000") // Couleur pour l'UI
+
+  // Types de documents supportés par cette série
+  pour_devis    Boolean @default(true)
+  pour_factures Boolean @default(true)
+  pour_avoirs   Boolean @default(false)
+
+  // Numérotation indépendante
+  prochain_numero Int       @default(1)
+  format_numero   String    @default("{CODE}{NUM5}") // Variables: {CODE}, {NUM5}, {YEAR}, {MONTH}, {TYPE}
+  reset_compteur  String    @default("AUCUN") // "AUCUN", "ANNUEL", "MENSUEL"
+  derniere_reset  DateTime? // Date du dernier reset (pour tracking)
+
+  // Configuration - Séries par défaut par type
+  est_defaut_devis    Boolean @default(false) // Série par défaut pour les devis
+  est_defaut_factures Boolean @default(false) // Série par défaut pour les factures
+  est_defaut_avoirs   Boolean @default(false) // Série par défaut pour les avoirs
+  active              Boolean @default(true)
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Relations
+  documents Document[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([entrepriseId, code])
+  @@index([entrepriseId])
+  @@index([entrepriseId, est_defaut_devis])
+  @@index([entrepriseId, est_defaut_factures])
+  @@index([entrepriseId, est_defaut_avoirs])
+  @@index([active])
+}
+
 // ============================================
 // PROGRAMME DE FIDÉLITÉ
 // ============================================
@@ -452,12 +501,12 @@ model NiveauFidelite {
 }
 
 model MouvementPoints {
-  id          String              @id @default(cuid())
-  type        TypeMouvementPoints
-  points      Int
-  description String?
-  reference   String?
-  dateExpiration DateTime?       @db.Date
+  id             String              @id @default(cuid())
+  type           TypeMouvementPoints
+  points         Int
+  description    String?
+  reference      String?
+  dateExpiration DateTime?           @db.Date
 
   // Multi-tenant
   entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
@@ -491,8 +540,8 @@ model Segment {
   nom         String
   description String?
   type        TypeSegment @default(CUSTOM)
-  icone       String?     // Nom de l'icône lucide-react (ex: "Users", "Mail", "MapPin")
-  couleur     String?     // Couleur de fond (ex: "#f3f4f6")
+  icone       String? // Nom de l'icône lucide-react (ex: "Users", "Mail", "MapPin")
+  couleur     String? // Couleur de fond (ex: "#f3f4f6")
 
   // Critères de filtrage stockés en JSON
   // Format pour segments prédéfinis: { type: "all" } ou { type: "with-email" }
@@ -524,7 +573,7 @@ model Segment {
 
 enum TypeSegment {
   PREDEFINED // Segments système (tous clients, avec email, etc.)
-  CUSTOM     // Segments créés par l'utilisateur
+  CUSTOM // Segments créés par l'utilisateur
 }
 
 // ============================================
@@ -532,17 +581,17 @@ enum TypeSegment {
 // ============================================
 
 model Automation {
-  id          String          @id @default(cuid())
+  id          String  @id @default(cuid())
   nom         String
   description String?
-  actif       Boolean         @default(true)
+  actif       Boolean @default(true)
 
   // Trigger
-  triggerType TriggerType
+  triggerType   TriggerType
   triggerConfig Json // Configuration du trigger
 
   // Action
-  actionType ActionType
+  actionType   ActionType
   actionConfig Json // Configuration de l'action
 
   // Statistiques
@@ -657,7 +706,7 @@ enum CampaignStatut {
 // ============================================
 
 model Conversation {
-  id     String @id @default(cuid())
+  id     String  @id @default(cuid())
   titre  String // Auto-généré à partir du premier message
   pinned Boolean @default(false) // Conversations épinglées
 
@@ -679,7 +728,7 @@ model Conversation {
 }
 
 model Message {
-  id             String @id @default(cuid())
+  id             String       @id @default(cuid())
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   conversationId String
 

@@ -27,6 +27,7 @@ export interface Article {
 
 export interface DocumentFormData {
     clientId: string;
+    serieId?: string; // Optional serie ID for custom numbering
     dateEmission: string;
     dateEcheance: string;
     validite_jours: number;
