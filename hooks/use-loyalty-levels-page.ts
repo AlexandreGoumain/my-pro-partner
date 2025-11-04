@@ -71,7 +71,6 @@ export function useLoyaltyLevelsPage(): LoyaltyLevelsPageHandlers {
         defaultValues: {
             nom: "",
             description: "",
-            ordre: 0,
             seuilPoints: 0,
             remise: 0,
             couleur: "#000000",
@@ -87,7 +86,6 @@ export function useLoyaltyLevelsPage(): LoyaltyLevelsPageHandlers {
             form.reset({
                 nom: "",
                 description: "",
-                ordre: niveaux.length,
                 seuilPoints: 0,
                 remise: 0,
                 couleur: "#000000",
@@ -96,7 +94,7 @@ export function useLoyaltyLevelsPage(): LoyaltyLevelsPageHandlers {
                 actif: true,
             });
         }
-    }, [createDialogOpen, form, niveaux.length]);
+    }, [createDialogOpen, form]);
 
     // Reset form when opening edit dialog
     useEffect(() => {
@@ -104,7 +102,6 @@ export function useLoyaltyLevelsPage(): LoyaltyLevelsPageHandlers {
             form.reset({
                 nom: selectedLevel.nom,
                 description: selectedLevel.description || "",
-                ordre: selectedLevel.ordre,
                 seuilPoints: selectedLevel.seuilPoints,
                 remise: Number(selectedLevel.remise),
                 couleur: selectedLevel.couleur,

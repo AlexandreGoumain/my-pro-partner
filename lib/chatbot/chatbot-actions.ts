@@ -505,6 +505,175 @@ export const chatbotTools: ChatCompletionTool[] = [
             },
         },
     },
+    {
+        type: "function",
+        function: {
+            name: "query_unpaid_invoices",
+            description:
+                "Rechercher et analyser les factures impayées. Retourne la liste des factures en attente de paiement avec détails clients, montants dus, jours de retard, etc.",
+            parameters: {
+                type: "object",
+                properties: {
+                    overdueOnly: {
+                        type: "boolean",
+                        description:
+                            "Si true, retourne uniquement les factures en retard (après date d'échéance)",
+                    },
+                    minAmount: {
+                        type: "number",
+                        description:
+                            "Montant minimum du reste à payer pour filtrer",
+                    },
+                    clientId: {
+                        type: "string",
+                        description:
+                            "Filtrer par ID de client spécifique (optionnel)",
+                    },
+                    sortBy: {
+                        type: "string",
+                        enum: [
+                            "dateEcheance",
+                            "dateEmission",
+                            "reste_a_payer",
+                            "numero",
+                        ],
+                        description:
+                            "Champ de tri (défaut: dateEcheance)",
+                    },
+                    sortOrder: {
+                        type: "string",
+                        enum: ["asc", "desc"],
+                        description: "Ordre de tri (défaut: asc)",
+                    },
+                },
+                required: [],
+            },
+        },
+    },
+    {
+        type: "function",
+        function: {
+            name: "query_top_debtors",
+            description:
+                "Identifier les clients avec le plus de factures impayées. Retourne une analyse détaillée des débiteurs avec montants dus, nombre de factures, retards moyens, score de risque.",
+            parameters: {
+                type: "object",
+                properties: {
+                    limit: {
+                        type: "number",
+                        description:
+                            "Nombre maximum de clients à retourner (défaut: 10)",
+                    },
+                },
+                required: [],
+            },
+        },
+    },
+    {
+        type: "function",
+        function: {
+            name: "analyze_profitability",
+            description:
+                "Analyser la rentabilité par type de produit/service et par catégorie. Retourne la répartition des revenus entre PRODUIT et SERVICE, ainsi que le détail par catégorie avec les meilleurs articles.",
+            parameters: {
+                type: "object",
+                properties: {
+                    period: {
+                        type: "string",
+                        enum: ["month", "quarter", "year", "all"],
+                        description:
+                            "Période d'analyse (défaut: all = toute la période)",
+                    },
+                    topLimit: {
+                        type: "number",
+                        description:
+                            "Nombre de top articles par catégorie (défaut: 10)",
+                    },
+                },
+                required: [],
+            },
+        },
+    },
+    {
+        type: "function",
+        function: {
+            name: "identify_best_clients",
+            description:
+                "Identifier les meilleurs clients en fonction du chiffre d'affaires généré, nombre d'achats, délais de paiement. Utile pour récompenser la fidélité ou cibler des actions commerciales.",
+            parameters: {
+                type: "object",
+                properties: {
+                    limit: {
+                        type: "number",
+                        description:
+                            "Nombre de clients à retourner (défaut: 10)",
+                    },
+                    period: {
+                        type: "string",
+                        enum: ["month", "quarter", "year", "all"],
+                        description:
+                            "Période pour le calcul (défaut: year)",
+                    },
+                    sortBy: {
+                        type: "string",
+                        enum: ["revenue", "count", "loyalty"],
+                        description:
+                            "Critère de tri: revenue (CA), count (nombre d'achats), loyalty (points de fidélité)",
+                    },
+                },
+                required: [],
+            },
+        },
+    },
+    {
+        type: "function",
+        function: {
+            name: "predict_revenue",
+            description:
+                "Prédire le chiffre d'affaires futur basé sur les tendances historiques. Analyse les données des périodes précédentes pour estimer le CA des prochains mois.",
+            parameters: {
+                type: "object",
+                properties: {
+                    months: {
+                        type: "number",
+                        description:
+                            "Nombre de mois à prédire (défaut: 1)",
+                    },
+                    includeSeasonality: {
+                        type: "boolean",
+                        description:
+                            "Prendre en compte la saisonnalité (défaut: true)",
+                    },
+                },
+                required: [],
+            },
+        },
+    },
+    {
+        type: "function",
+        function: {
+            name: "generate_payment_reminder",
+            description:
+                "Générer un email de rappel de paiement personnalisé pour une facture impayée. L'IA crée un message professionnel et courtois adapté à la situation.",
+            parameters: {
+                type: "object",
+                properties: {
+                    invoiceId: {
+                        type: "string",
+                        description:
+                            "ID de la facture pour laquelle générer le rappel",
+                    },
+                    tone: {
+                        type: "string",
+                        enum: ["friendly", "formal", "urgent"],
+                        description:
+                            "Ton du message (défaut: friendly)",
+                    },
+                },
+                required: ["invoiceId"],
+            },
+        },
+    },
 
     // ============================================
     // DOCUMENTS

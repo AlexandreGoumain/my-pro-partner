@@ -58,52 +58,25 @@ export function LoyaltyLevelDialog({
                         onSubmit={form.handleSubmit(onSubmit)}
                         className="space-y-6"
                     >
-                        <div className="grid grid-cols-2 gap-4">
-                            <FormField
-                                control={form.control}
-                                name="nom"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="text-[13px] text-black/60">
-                                            Nom du niveau *
-                                        </FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                {...field}
-                                                placeholder="Bronze, Argent, Or..."
-                                                className="h-11 border-black/10"
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-
-                            <FormField
-                                control={form.control}
-                                name="ordre"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="text-[13px] text-black/60">
-                                            Ordre *
-                                        </FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                {...field}
-                                                type="number"
-                                                onChange={(e) =>
-                                                    field.onChange(
-                                                        parseInt(e.target.value)
-                                                    )
-                                                }
-                                                className="h-11 border-black/10"
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
+                        <FormField
+                            control={form.control}
+                            name="nom"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className="text-[13px] text-black/60">
+                                        Nom du niveau *
+                                    </FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            {...field}
+                                            placeholder="Bronze, Argent, Or..."
+                                            className="h-11 border-black/10"
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
 
                         <FormField
                             control={form.control}

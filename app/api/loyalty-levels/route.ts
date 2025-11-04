@@ -10,6 +10,27 @@ import {
 } from "@/lib/middleware/tenant-isolation";
 import { NextRequest, NextResponse } from "next/server";
 
+/**
+ * Recalcule automatiquement l'ordre de tous les niveaux de fidélité
+ * en fonction de leur seuil de points (tri croissant)
+ */
+async function recalculateOrdres(entrepriseId: string) {
+    const niveaux = await prisma.niveauFidelite.findMany({
+        where: { entrepriseId },
+        orderBy: { seuilPoints: "asc" },
+    });
+
+    // Mettre à jour l'ordre de chaque niveau
+    const updatePromises = niveaux.map((niveau, index) =>
+        prisma.niveauFidelite.update({
+            where: { id: niveau.id },
+            data: { ordre: index + 1 },
+        })
+    );
+
+    await Promise.all(updatePromises);
+}
+
 export async function GET(req: NextRequest) {
     try {
         const { entrepriseId } = await requireTenantAuth();
@@ -80,29 +101,24 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Vérifier si l'ordre existe déjà
-        const existingOrdre = await prisma.niveauFidelite.findFirst({
-            where: {
-                entrepriseId,
-                ordre: validation.data.ordre,
-            },
-        });
-
-        if (existingOrdre) {
-            return NextResponse.json(
-                { message: "Un niveau avec cet ordre existe déjà" },
-                { status: 400 }
-            );
-        }
-
+        // Créer le niveau avec un ordre temporaire
         const niveau = await prisma.niveauFidelite.create({
             data: {
                 ...validation.data,
+                ordre: 0, // Temporaire, sera recalculé
                 entrepriseId,
             },
         });
 
-        return NextResponse.json(niveau, { status: 201 });
+        // Recalculer automatiquement les ordres de tous les niveaux
+        await recalculateOrdres(entrepriseId);
+
+        // Récupérer le niveau avec son ordre final
+        const niveauFinal = await prisma.niveauFidelite.findUnique({
+            where: { id: niveau.id },
+        });
+
+        return NextResponse.json(niveauFinal, { status: 201 });
     } catch (error) {
         return handleTenantError(error);
     }

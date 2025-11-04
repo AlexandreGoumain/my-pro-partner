@@ -321,12 +321,6 @@ export const niveauFideliteBaseSchema = z.object({
         .max(500, "La description ne peut pas dépasser 500 caractères")
         .optional()
         .or(z.literal("")),
-    ordre: z
-        .number({
-            invalid_type_error: "L'ordre doit être un nombre",
-        })
-        .int("L'ordre doit être un nombre entier")
-        .default(0),
     seuilPoints: z
         .number({
             required_error: "Le seuil de points est requis",

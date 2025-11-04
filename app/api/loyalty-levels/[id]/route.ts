@@ -6,6 +6,27 @@ import {
 } from "@/lib/middleware/tenant-isolation";
 import { NextRequest, NextResponse } from "next/server";
 
+/**
+ * Recalcule automatiquement l'ordre de tous les niveaux de fidélité
+ * en fonction de leur seuil de points (tri croissant)
+ */
+async function recalculateOrdres(entrepriseId: string) {
+    const niveaux = await prisma.niveauFidelite.findMany({
+        where: { entrepriseId },
+        orderBy: { seuilPoints: "asc" },
+    });
+
+    // Mettre à jour l'ordre de chaque niveau
+    const updatePromises = niveaux.map((niveau, index) =>
+        prisma.niveauFidelite.update({
+            where: { id: niveau.id },
+            data: { ordre: index + 1 },
+        })
+    );
+
+    await Promise.all(updatePromises);
+}
+
 export async function GET(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -86,30 +107,22 @@ export async function PUT(
             }
         }
 
-        // Vérifier si l'ordre existe déjà (autre que le niveau actuel)
-        if (validation.data.ordre !== undefined) {
-            const existingOrdre = await prisma.niveauFidelite.findFirst({
-                where: {
-                    entrepriseId,
-                    ordre: validation.data.ordre,
-                    id: { not: (await params).id },
-                },
-            });
-
-            if (existingOrdre) {
-                return NextResponse.json(
-                    { message: "Un niveau avec cet ordre existe déjà" },
-                    { status: 400 }
-                );
-            }
-        }
-
         const niveau = await prisma.niveauFidelite.update({
             where: { id: (await params).id },
             data: validation.data,
         });
 
-        return NextResponse.json(niveau);
+        // Recalculer automatiquement les ordres si le seuil de points a changé
+        if (validation.data.seuilPoints !== undefined) {
+            await recalculateOrdres(entrepriseId);
+        }
+
+        // Récupérer le niveau avec son ordre final
+        const niveauFinal = await prisma.niveauFidelite.findUnique({
+            where: { id: (await params).id },
+        });
+
+        return NextResponse.json(niveauFinal);
     } catch (error) {
         return handleTenantError(error);
     }
@@ -157,6 +170,9 @@ export async function DELETE(
         await prisma.niveauFidelite.delete({
             where: { id: (await params).id },
         });
+
+        // Recalculer automatiquement les ordres après la suppression
+        await recalculateOrdres(entrepriseId);
 
         return NextResponse.json({ message: "Niveau supprimé avec succès" });
     } catch (error) {

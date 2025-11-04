@@ -52,9 +52,15 @@ import {
 } from "./executors/segment-actions";
 
 import {
+    analyzeProfitability,
+    generatePaymentReminder,
     getDashboardKpis,
     getRecentActivity,
     getStatistics,
+    identifyBestClients,
+    predictRevenue,
+    queryTopDebtors,
+    queryUnpaidInvoices,
     quickInvoice,
     searchAll,
 } from "./executors/analytics-actions";
@@ -173,6 +179,18 @@ export async function executeAction(
                 return await quickInvoice(parameters, baseUrl);
             case "get_recent_activity":
                 return await getRecentActivity(parameters, baseUrl);
+            case "query_unpaid_invoices":
+                return await queryUnpaidInvoices(parameters, baseUrl);
+            case "query_top_debtors":
+                return await queryTopDebtors(parameters, baseUrl);
+            case "analyze_profitability":
+                return await analyzeProfitability(parameters, baseUrl);
+            case "identify_best_clients":
+                return await identifyBestClients(parameters, baseUrl);
+            case "predict_revenue":
+                return await predictRevenue(parameters, baseUrl);
+            case "generate_payment_reminder":
+                return await generatePaymentReminder(parameters, baseUrl);
 
             // ============================================
             // LOYALTY
