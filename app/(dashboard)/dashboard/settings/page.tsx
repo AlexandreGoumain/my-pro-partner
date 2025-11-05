@@ -17,7 +17,7 @@ import { SubscriptionTab } from "./_components/subscription-tab";
 import { useCompanySettings, useUpdateCompanySettings } from "@/hooks/use-company-settings";
 import { useNotificationSettings, useUpdateNotificationSettings } from "@/hooks/use-notification-settings";
 
-import { CompanySettings, NotificationPreferences, PreferenceSettings } from "@/lib/types/settings";
+import { CompanySettings } from "@/lib/types/settings";
 
 export default function SettingsPage() {
     const { data: session } = useSession();
@@ -59,12 +59,14 @@ export default function SettingsPage() {
     // Synchroniser l'état local avec les données de React Query
     useEffect(() => {
         if (companyData) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setSettings(companyData);
         }
     }, [companyData]);
 
     useEffect(() => {
         if (notificationData) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setNotifications(notificationData);
         }
     }, [notificationData]);

@@ -12,28 +12,35 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { Mail, Loader2, Users, Send } from "lucide-react";
+import { Mail, Loader2, User, Send } from "lucide-react";
 import { toast } from "sonner";
-import { Segment } from "@/lib/types";
 
-interface BulkEmailDialogProps {
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
-    segment: Segment | null;
-    clientCount: number;
+interface Client {
+    id: string;
+    nom: string | null;
+    prenom: string | null;
+    email: string;
 }
 
-export function BulkEmailDialog({
+interface ClientEmailDialogProps {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    client: Client | null;
+}
+
+export function ClientEmailDialog({
     open,
     onOpenChange,
-    segment,
-    clientCount,
-}: BulkEmailDialogProps) {
+    client,
+}: ClientEmailDialogProps) {
     const [subject, setSubject] = useState("");
     const [body, setBody] = useState("");
     const [sending, setSending] = useState(false);
+
+    const nomComplet = client
+        ? [client.prenom, client.nom].filter(Boolean).join(" ") || "Client"
+        : "Client";
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -48,30 +55,45 @@ export function BulkEmailDialog({
             return;
         }
 
-        if (!segment) {
-            toast.error("Aucun segment sélectionné");
+        if (!client) {
+            toast.error("Aucun client sélectionné");
+            return;
+        }
+
+        if (!client.email) {
+            toast.error("Ce client n'a pas d'adresse email");
             return;
         }
 
         setSending(true);
 
         try {
-            const response = await fetch(`/api/segments/${segment.id}/send-email`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ subject, body }),
-            });
+            const response = await fetch(
+                `/api/clients/${client.id}/send-email`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ subject, body }),
+                }
+            );
 
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.message || "Erreur lors de l'envoi des emails");
+                throw new Error(
+                    data.message || "Erreur lors de l'envoi de l'email"
+                );
             }
 
-            toast.success(data.message || `Email envoyé avec succès à ${data.recipientsSent} client${data.recipientsSent > 1 ? "s" : ""}`);
+            toast.success(
+                data.message || `Email envoyé avec succès à ${client.email}`
+            );
             handleClose();
         } catch (error: unknown) {
-            const errorMessage = error instanceof Error ? error.message : "Erreur lors de l'envoi des emails";
+            const errorMessage =
+                error instanceof Error
+                    ? error.message
+                    : "Erreur lors de l'envoi de l'email";
             toast.error(errorMessage);
         } finally {
             setSending(false);
@@ -84,17 +106,17 @@ export function BulkEmailDialog({
         onOpenChange(false);
     };
 
-    if (!segment) return null;
+    if (!client) return null;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-2xl">
                 <DialogHeader>
                     <DialogTitle className="text-[20px] font-semibold tracking-[-0.01em]">
-                        Envoyer un email groupé
+                        Envoyer un email
                     </DialogTitle>
                     <DialogDescription className="text-[14px] text-black/60">
-                        Envoyez un email à tous les clients du segment "{segment.nom}"
+                        Envoyez un email personnalisé à {nomComplet}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -104,31 +126,34 @@ export function BulkEmailDialog({
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2.5">
                                 <div className="h-9 w-9 rounded-lg bg-black/10 flex items-center justify-center">
-                                    <Users className="h-4 w-4 text-black/60" strokeWidth={2} />
+                                    <User
+                                        className="h-4 w-4 text-black/60"
+                                        strokeWidth={2}
+                                    />
                                 </div>
                                 <div>
                                     <p className="text-[14px] font-medium text-black">
-                                        Destinataires
+                                        {nomComplet}
                                     </p>
                                     <p className="text-[13px] text-black/60">
-                                        {clientCount} client{clientCount > 1 ? "s" : ""} dans ce
-                                        segment
+                                        {client.email}
                                     </p>
                                 </div>
                             </div>
-                            <Badge
-                                variant="secondary"
-                                className="bg-black/10 text-black/80 border-0 text-[13px]"
-                            >
-                                {clientCount}
-                            </Badge>
+                            <Mail
+                                className="h-5 w-5 text-black/40"
+                                strokeWidth={2}
+                            />
                         </div>
                     </Card>
 
                     {/* Email Content */}
                     <div className="space-y-4">
                         <div>
-                            <Label htmlFor="subject" className="text-[14px] font-medium mb-2">
+                            <Label
+                                htmlFor="subject"
+                                className="text-[14px] font-medium mb-2"
+                            >
                                 Sujet de l'email *
                             </Label>
                             <Input
@@ -142,7 +167,10 @@ export function BulkEmailDialog({
                         </div>
 
                         <div>
-                            <Label htmlFor="body" className="text-[14px] font-medium mb-2">
+                            <Label
+                                htmlFor="body"
+                                className="text-[14px] font-medium mb-2"
+                            >
                                 Message *
                             </Label>
                             <Textarea
@@ -154,24 +182,27 @@ export function BulkEmailDialog({
                                 disabled={sending}
                             />
                             <p className="text-[12px] text-black/40 mt-2">
-                                Vous pouvez utiliser des variables : {"{nom}"}, {"{prenom}"},{" "}
-                                {"{email}"}
+                                Vous pouvez utiliser des variables : {"{nom}"},{" "}
+                                {"{prenom}"}, {"{email}"}
                             </p>
                         </div>
                     </div>
 
-                    {/* Warning */}
+                    {/* Info */}
                     <Card className="p-4 border-black/20 bg-black/2">
                         <div className="flex items-start gap-3">
-                            <Mail className="h-5 w-5 text-black/60 mt-0.5" strokeWidth={2} />
+                            <Mail
+                                className="h-5 w-5 text-black/60 mt-0.5"
+                                strokeWidth={2}
+                            />
                             <div>
                                 <p className="text-[14px] font-medium text-black mb-1">
-                                    Avant d'envoyer
+                                    Email personnalisé
                                 </p>
                                 <p className="text-[13px] text-black/60">
-                                    Assurez-vous que votre message est correct. L'email sera
-                                    envoyé à {clientCount} client{clientCount > 1 ? "s" : ""} et
-                                    cette action ne pourra pas être annulée.
+                                    L'email sera envoyé au nom de votre
+                                    entreprise. Le client pourra vous répondre
+                                    directement.
                                 </p>
                             </div>
                         </div>
@@ -203,8 +234,11 @@ export function BulkEmailDialog({
                                 </>
                             ) : (
                                 <>
-                                    <Send className="w-4 h-4 mr-2" strokeWidth={2} />
-                                    Envoyer {clientCount > 0 && `(${clientCount})`}
+                                    <Send
+                                        className="w-4 h-4 mr-2"
+                                        strokeWidth={2}
+                                    />
+                                    Envoyer
                                 </>
                             )}
                         </Button>

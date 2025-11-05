@@ -58,8 +58,39 @@ export default function UnpaidInvoicesPage() {
     });
 
     const handleSendReminder = async (invoiceId: string) => {
-        // TODO: Implement email reminder functionality
-        toast.success("Rappel envoyé avec succès");
+        try {
+            // Find the invoice to get the client ID
+            const invoice = data?.invoices.find((inv) => inv.id === invoiceId);
+            if (!invoice) {
+                toast.error("Facture non trouvée");
+                return;
+            }
+
+            const response = await fetch(
+                `/api/clients/${invoice.clientId}/send-reminder`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                }
+            );
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.message || "Erreur lors de l'envoi du rappel");
+            }
+
+            toast.success(
+                result.message ||
+                    `Rappel envoyé avec succès (${result.invoiceCount} facture${result.invoiceCount > 1 ? "s" : ""})`
+            );
+        } catch (error) {
+            const errorMessage =
+                error instanceof Error ? error.message : "Erreur lors de l'envoi du rappel";
+            toast.error(errorMessage);
+        }
     };
 
     const formatCurrency = (value: number) => {
