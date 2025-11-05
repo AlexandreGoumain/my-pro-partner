@@ -48,6 +48,8 @@ export interface ClientDetailPageHandlers {
     setEditDialogOpen: (open: boolean) => void;
     deleteDialogOpen: boolean;
     setDeleteDialogOpen: (open: boolean) => void;
+    emailDialogOpen: boolean;
+    setEmailDialogOpen: (open: boolean) => void;
 
     handleEdit: () => void;
     handleEditSuccess: () => void;
@@ -68,6 +70,7 @@ export function useClientDetailPage(
     const deleteClient = useDeleteClient();
 
     const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [emailDialogOpen, setEmailDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
     // Calcul du statut et score santé
@@ -162,16 +165,14 @@ export function useClientDetailPage(
     }, [client, deleteClient, router]);
 
     const handleSendEmail = useCallback(() => {
-        if (client?.email) {
-            window.location.href = `mailto:${client.email}`;
-        }
-    }, [client?.email]);
+        setEmailDialogOpen(true);
+    }, []);
 
     const handleCall = useCallback(() => {
         if (client?.telephone) {
             window.location.href = `tel:${client.telephone}`;
         }
-    }, [client?.telephone]);
+    }, [client]);
 
     return {
         client,
@@ -184,6 +185,8 @@ export function useClientDetailPage(
         setEditDialogOpen,
         deleteDialogOpen,
         setDeleteDialogOpen,
+        emailDialogOpen,
+        setEmailDialogOpen,
         handleEdit,
         handleEditSuccess,
         handleDelete,

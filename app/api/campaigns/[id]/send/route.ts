@@ -5,6 +5,10 @@ import {
 } from "@/lib/middleware/tenant-isolation";
 import { NextRequest, NextResponse } from "next/server";
 import { applySegmentCriteria } from "@/lib/types/segment";
+import { emailService } from "@/lib/email/email-service";
+import { render } from "@react-email/render";
+import { CampaignEmail } from "@/lib/email/templates/campaign";
+import { generateUnsubscribeLink, getClientVariables } from "@/lib/email/email-utils";
 
 // ============================================
 // POST /api/campaigns/[id]/send - Send campaign immediately
@@ -88,22 +92,64 @@ export async function POST(
       },
     });
 
-    // TODO: Implement actual sending logic here
-    // For now, we'll just simulate it
-    // In production, you would:
-    // 1. Queue the messages in a job queue (Bull, BullMQ, etc.)
-    // 2. Use email service (SendGrid, AWS SES, etc.)
-    // 3. Use SMS service (Twilio, etc.)
+    // Get entreprise info for email branding
+    const entreprise = await prisma.entreprise.findUnique({
+      where: { id: entrepriseId },
+      select: { nom: true, email: true },
+    });
 
-    // Simulate sending delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    // Send emails to all recipients
+    let successCount = 0;
+    let failureCount = 0;
+
+    for (const recipient of recipients) {
+      try {
+        // Generate unsubscribe link
+        const unsubscribeUrl = generateUnsubscribeLink(recipient.id, entrepriseId);
+
+        // Render email HTML from React template
+        const emailHtml = await render(
+          CampaignEmail({
+            subject: campaign.subject!,
+            body: campaign.body!,
+            clientName: recipient.nom || '',
+            clientFirstName: recipient.prenom || '',
+            clientEmail: recipient.email,
+            entrepriseName: entreprise?.nom || 'MyProPartner',
+            unsubscribeUrl,
+          })
+        );
+
+        // Send email
+        const result = await emailService.sendEmail({
+          to: recipient.email,
+          subject: campaign.subject!,
+          html: emailHtml,
+          fromName: entreprise?.nom || 'MyProPartner',
+          replyTo: entreprise?.email || undefined,
+        });
+
+        if (result.success) {
+          successCount++;
+        } else {
+          failureCount++;
+          console.error(`Failed to send email to ${recipient.email}:`, result.error);
+        }
+
+        // Add small delay to avoid rate limiting (100ms between emails)
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      } catch (error) {
+        failureCount++;
+        console.error(`Error sending email to ${recipient.email}:`, error);
+      }
+    }
 
     // Update campaign status to sent
     const updatedCampaign = await prisma.campaign.update({
       where: { id },
       data: {
         statut: "SENT",
-        sentCount: recipients.length,
+        sentCount: successCount,
       },
       include: {
         segment: {
@@ -118,8 +164,10 @@ export async function POST(
 
     return NextResponse.json({
       campaign: updatedCampaign,
-      recipientsSent: recipients.length,
-      message: `Campagne envoyée à ${recipients.length} destinataire(s)`,
+      recipientsSent: successCount,
+      recipientsFailed: failureCount,
+      totalRecipients: recipients.length,
+      message: `Campagne envoyée à ${successCount} destinataire(s)${failureCount > 0 ? ` (${failureCount} échec(s))` : ''}`,
     });
   } catch (error) {
     // If error occurs, mark campaign as failed

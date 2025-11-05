@@ -48,8 +48,7 @@ export interface ChampPersonnaliseCreateInput {
     validation?: ValidationRules;
 }
 
-export interface ChampPersonnaliseUpdateInput
-    extends Partial<ChampPersonnaliseCreateInput> {}
+export type ChampPersonnaliseUpdateInput = Partial<ChampPersonnaliseCreateInput>;
 
 export type ChampsCustomValues = Record<string, unknown>;
 

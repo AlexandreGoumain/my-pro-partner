@@ -6,6 +6,7 @@ import {
 } from "@/components/client-detail";
 import { ClientEditDialog } from "@/components/client-edit-dialog";
 import { DeleteConfirmDialog } from "@/components/delete-confirm-dialog";
+import { ClientEmailDialog } from "@/components/client-email-dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -127,6 +128,17 @@ export default function ClientDetailPage() {
                             </div>
                         </div>
                         <div className="flex gap-2">
+                            <Button
+                                onClick={handlers.handleSendEmail}
+                                variant="outline"
+                                className="h-10 px-4 text-[14px] font-medium border-black/10 hover:bg-black/5"
+                            >
+                                <Mail
+                                    className="w-4 h-4 mr-2 text-black/60"
+                                    strokeWidth={2}
+                                />
+                                <span className="text-black/80">Envoyer un email</span>
+                            </Button>
                             <Button
                                 onClick={handlers.handleEdit}
                                 variant="outline"
@@ -531,6 +543,11 @@ export default function ClientDetailPage() {
                 isLoading={handlers.isDeleting}
                 title="Supprimer le client"
                 description={`Êtes-vous sûr de vouloir supprimer le client "${nomComplet}" ? Cette action est irréversible.`}
+            />
+            <ClientEmailDialog
+                open={handlers.emailDialogOpen}
+                onOpenChange={handlers.setEmailDialogOpen}
+                client={client}
             />
         </div>
     );
