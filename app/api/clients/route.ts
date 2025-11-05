@@ -8,6 +8,7 @@ import {
     handleTenantError,
     requireTenantAuth,
 } from "@/lib/middleware/tenant-isolation";
+import { validateLimit } from "@/lib/middleware/feature-validation";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
@@ -49,7 +50,11 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
     try {
-        const { entrepriseId } = await requireTenantAuth();
+        const { entrepriseId, entreprise } = await requireTenantAuth();
+
+        // Check if user has reached maxClients limit
+        const limitCheck = await validateLimit(entreprise.plan, entrepriseId, "maxClients");
+        if (limitCheck) return limitCheck;
 
         const body = await req.json();
         const validation = clientCreateSchema.safeParse(body);

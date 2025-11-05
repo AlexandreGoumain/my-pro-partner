@@ -7,6 +7,7 @@ import {
   handleTenantError,
   requireTenantAuth,
 } from "@/lib/middleware/tenant-isolation";
+import { validateFeatureAccess } from "@/lib/middleware/feature-validation";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { TypeSegment } from "@/lib/generated/prisma";
@@ -101,7 +102,11 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { entrepriseId } = await requireTenantAuth();
+    const { entrepriseId, entreprise } = await requireTenantAuth();
+
+    // Check if user's plan allows client segmentation (PRO+ only)
+    const featureCheck = await validateFeatureAccess(entreprise.plan, "canSegmentClients");
+    if (featureCheck) return featureCheck;
 
     const body = await req.json();
     const validation = segmentCreateSchema.safeParse(body);

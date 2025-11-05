@@ -2,13 +2,14 @@
 // CHATBOT MESSAGE API - Streaming with OpenAI
 // ============================================
 
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/api/auth-middleware';
 import { prisma } from '@/lib/prisma';
 import { getSystemPrompt } from '@/lib/chatbot/chatbot-prompts';
 import { chatbotTools } from '@/lib/chatbot/chatbot-actions';
 import { createOpenAIStream } from '@/lib/chatbot/api/stream-handler';
 import { nanoid } from 'nanoid';
+import { canAccessFeature, getCurrentUsage, isLimitReached, mapDatabasePlanToPricingPlan, getLimitErrorMessage } from '@/lib/middleware/feature-validation';
 
 interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
@@ -22,6 +23,35 @@ interface RequestBody {
 
 export const POST = withAuth(async (req: NextRequest, session: unknown) => {
   try {
+    // Check if user has access to the assistant (STARTER+ only)
+    if (!canAccessFeature(session.user.plan, "hasAssistant")) {
+      return NextResponse.json(
+        {
+          error: "Assistant not available in your plan",
+          code: "FEATURE_NOT_AVAILABLE",
+          currentPlan: mapDatabasePlanToPricingPlan(session.user.plan),
+          message: "L'assistant n'est pas disponible dans votre plan. Passez au plan STARTER ou supérieur pour débloquer cette fonctionnalité.",
+        },
+        { status: 403 }
+      );
+    }
+
+    // Check quota for maxQuestionsPerMonth (except if unlimited = -1)
+    const currentUsage = await getCurrentUsage(session.user.entrepriseId, "maxQuestionsPerMonth");
+    if (isLimitReached(session.user.plan, "maxQuestionsPerMonth", currentUsage)) {
+      const pricingPlan = mapDatabasePlanToPricingPlan(session.user.plan);
+      const message = getLimitErrorMessage(pricingPlan, "maxQuestionsPerMonth");
+      return NextResponse.json(
+        {
+          error: message,
+          code: "LIMIT_REACHED",
+          currentPlan: pricingPlan,
+          currentUsage,
+        },
+        { status: 403 }
+      );
+    }
+
     const body: RequestBody = await req.json();
     const { messages, conversationId } = body;
 

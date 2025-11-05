@@ -3,6 +3,7 @@ import {
   handleTenantError,
   requireTenantAuth,
 } from "@/lib/middleware/tenant-isolation";
+import { validateFeatureAccess } from "@/lib/middleware/feature-validation";
 import { NextRequest, NextResponse } from "next/server";
 import { applySegmentCriteria } from "@/lib/types/segment";
 import { emailService } from "@/lib/email/email-service";
@@ -19,7 +20,12 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { entrepriseId } = await requireTenantAuth();
+    const { entrepriseId, entreprise } = await requireTenantAuth();
+
+    // Check if user's plan allows campaign creation/sending (PRO+ only)
+    const featureCheck = await validateFeatureAccess(entreprise.plan, "canCreateCampaigns");
+    if (featureCheck) return featureCheck;
+
     const { id } = await params;
 
     const campaign = await prisma.campaign.findUnique({
