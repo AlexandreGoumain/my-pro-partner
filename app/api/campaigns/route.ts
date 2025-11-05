@@ -2,6 +2,7 @@ import {
     handleTenantError,
     requireTenantAuth,
 } from "@/lib/middleware/tenant-isolation";
+import { validateFeatureAccess } from "@/lib/middleware/feature-validation";
 import { prisma } from "@/lib/prisma";
 import { applySegmentCriteria } from "@/lib/types/segment";
 import { NextRequest, NextResponse } from "next/server";
@@ -64,7 +65,12 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
     try {
-        const { entrepriseId } = await requireTenantAuth();
+        const { entrepriseId, entreprise } = await requireTenantAuth();
+
+        // Check if user's plan allows campaign creation (PRO+ only)
+        const featureCheck = await validateFeatureAccess(entreprise.plan, "canCreateCampaigns");
+        if (featureCheck) return featureCheck;
+
         const body = await req.json();
 
         const validation = campaignCreateSchema.safeParse(body);

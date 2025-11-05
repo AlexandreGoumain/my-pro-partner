@@ -2,6 +2,7 @@ import {
     handleTenantError,
     requireTenantAuth,
 } from "@/lib/middleware/tenant-isolation";
+import { validateFeatureAccess } from "@/lib/middleware/feature-validation";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
@@ -49,7 +50,12 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
     try {
-        const { entrepriseId } = await requireTenantAuth();
+        const { entrepriseId, entreprise } = await requireTenantAuth();
+
+        // Check if user's plan allows automations (PRO+ only)
+        const featureCheck = await validateFeatureAccess(entreprise.plan, "hasAutomatedReminders");
+        if (featureCheck) return featureCheck;
+
         const body = await req.json();
         const validation = automationCreateSchema.safeParse(body);
 

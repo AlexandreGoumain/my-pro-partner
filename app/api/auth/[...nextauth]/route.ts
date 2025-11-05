@@ -50,6 +50,7 @@ export const authOptions: NextAuthOptions = {
                     role: user.role,
                     entrepriseId: user.entrepriseId,
                     onboardingComplete: user.onboardingComplete,
+                    plan: user.entreprise.plan,
                 };
             },
         }),
@@ -155,6 +156,7 @@ export const authOptions: NextAuthOptions = {
                 token.role = user.role || "user";
                 token.entrepriseId = (user as unknown).entrepriseId;
                 token.onboardingComplete = (user as unknown).onboardingComplete;
+                token.plan = user.plan || "FREE";
             }
 
             // For OAuth users, fetch from database on first sign in
@@ -164,23 +166,32 @@ export const authOptions: NextAuthOptions = {
                     include: { entreprise: true },
                 });
 
-                if (dbUser) {
+                if (dbUser && dbUser.entreprise) {
                     token.id = dbUser.id;
                     token.role = dbUser.role;
                     token.entrepriseId = dbUser.entrepriseId;
                     token.onboardingComplete = dbUser.onboardingComplete;
+                    token.plan = dbUser.entreprise.plan;
                 }
             }
 
-            // Refetch onboarding status from DB when session is updated
+            // Refetch onboarding status and plan from DB when session is updated
             if (trigger === "update" && token.id) {
                 const dbUser = await prisma.user.findUnique({
                     where: { id: token.id as string },
-                    select: { onboardingComplete: true },
+                    select: {
+                        onboardingComplete: true,
+                        entreprise: {
+                            select: { plan: true }
+                        }
+                    },
                 });
 
                 if (dbUser) {
                     token.onboardingComplete = dbUser.onboardingComplete;
+                    if (dbUser.entreprise) {
+                        token.plan = dbUser.entreprise.plan;
+                    }
                 }
             }
 
@@ -190,6 +201,7 @@ export const authOptions: NextAuthOptions = {
             if (session.user) {
                 session.user.id = token.id as string;
                 session.user.role = token.role as string;
+                session.user.plan = token.plan as string;
                 (session.user as unknown).entrepriseId = token.entrepriseId as string;
                 (session.user as unknown).onboardingComplete = token.onboardingComplete as boolean;
             }

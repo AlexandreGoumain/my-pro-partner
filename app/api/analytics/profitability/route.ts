@@ -1,29 +1,18 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth/next";
 import { NextRequest, NextResponse } from "next/server";
+import {
+    handleTenantError,
+    requireTenantAuth,
+} from "@/lib/middleware/tenant-isolation";
+import { validateFeatureAccess } from "@/lib/middleware/feature-validation";
 
 export async function GET(req: NextRequest) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.email) {
-            return NextResponse.json(
-                { message: "Non autorisé" },
-                { status: 401 }
-            );
-        }
+        const { entrepriseId, entreprise } = await requireTenantAuth();
 
-        const user = await prisma.user.findUnique({
-            where: { email: session.user.email },
-            select: { entrepriseId: true },
-        });
-
-        if (!user) {
-            return NextResponse.json(
-                { message: "Utilisateur non trouvé" },
-                { status: 404 }
-            );
-        }
+        // Check if user's plan allows advanced analytics (PRO+ only)
+        const featureCheck = await validateFeatureAccess(entreprise.plan, "hasAdvancedAnalytics");
+        if (featureCheck) return featureCheck;
 
         const searchParams = req.nextUrl.searchParams;
         const period = searchParams.get("period") || "all"; // all, year, quarter, month
@@ -49,7 +38,7 @@ export async function GET(req: NextRequest) {
         // Get all paid invoices with their lines and articles
         const invoices = await prisma.document.findMany({
             where: {
-                entrepriseId: user.entrepriseId,
+                entrepriseId,
                 type: "FACTURE",
                 statut: "PAYE",
                 ...(dateFrom && {
@@ -270,7 +259,7 @@ export async function GET(req: NextRequest) {
 
             const previousInvoices = await prisma.document.findMany({
                 where: {
-                    entrepriseId: user.entrepriseId,
+                    entrepriseId,
                     type: "FACTURE",
                     statut: "PAYE",
                     dateEmission: {
@@ -311,10 +300,6 @@ export async function GET(req: NextRequest) {
             },
         });
     } catch (error) {
-        console.error("Erreur lors de l'analyse de rentabilité:", error);
-        return NextResponse.json(
-            { message: "Erreur interne du serveur" },
-            { status: 500 }
-        );
+        return handleTenantError(error);
     }
 }
