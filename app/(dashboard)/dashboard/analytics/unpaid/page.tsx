@@ -1,14 +1,9 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
 import { PageHeader } from "@/components/ui/page-header";
 import { LoadingCard } from "@/components/ui/loading-card";
 import { AnalyticsKPICard } from "@/components/analytics/analytics-kpi-card";
-import {
-    UnpaidInvoiceTable,
-    UnpaidInvoice,
-} from "@/components/analytics/unpaid-invoice-table";
+import { UnpaidInvoiceTable } from "@/components/analytics/unpaid-invoice-table";
 import { Button } from "@/components/ui/button";
 import {
     Select,
@@ -18,87 +13,23 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { AlertCircle, Clock, Euro, FileText } from "lucide-react";
-import { toast } from "sonner";
-
-interface UnpaidInvoicesResponse {
-    invoices: UnpaidInvoice[];
-    summary: {
-        totalInvoices: number;
-        totalUnpaid: number;
-        overdueCount: number;
-        totalOverdue: number;
-        averageOverdueDays: number;
-    };
-}
+import { useUnpaidInvoices } from "@/hooks/use-unpaid-invoices";
 
 export default function UnpaidInvoicesPage() {
-    const [sortBy, setSortBy] = useState("dateEcheance");
-    const [sortOrder, setSortOrder] = useState("asc");
-    const [overdueOnly, setOverdueOnly] = useState(false);
-
-    const { data, isLoading, error } = useQuery<UnpaidInvoicesResponse>({
-        queryKey: ["unpaid-invoices", sortBy, sortOrder, overdueOnly],
-        queryFn: async () => {
-            const params = new URLSearchParams({
-                sortBy,
-                sortOrder,
-                overdueOnly: overdueOnly.toString(),
-            });
-
-            const response = await fetch(
-                `/api/analytics/unpaid-invoices?${params}`
-            );
-
-            if (!response.ok) {
-                throw new Error("Erreur lors de la récupération des données");
-            }
-
-            return response.json();
-        },
-    });
-
-    const handleSendReminder = async (invoiceId: string) => {
-        try {
-            // Find the invoice to get the client ID
-            const invoice = data?.invoices.find((inv) => inv.id === invoiceId);
-            if (!invoice) {
-                toast.error("Facture non trouvée");
-                return;
-            }
-
-            const response = await fetch(
-                `/api/clients/${invoice.clientId}/send-reminder`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                }
-            );
-
-            const result = await response.json();
-
-            if (!response.ok) {
-                throw new Error(result.message || "Erreur lors de l'envoi du rappel");
-            }
-
-            toast.success(
-                result.message ||
-                    `Rappel envoyé avec succès (${result.invoiceCount} facture${result.invoiceCount > 1 ? "s" : ""})`
-            );
-        } catch (error) {
-            const errorMessage =
-                error instanceof Error ? error.message : "Erreur lors de l'envoi du rappel";
-            toast.error(errorMessage);
-        }
-    };
-
-    const formatCurrency = (value: number) => {
-        return new Intl.NumberFormat("fr-FR", {
-            style: "currency",
-            currency: "EUR",
-        }).format(value);
-    };
+    const {
+        invoices,
+        summary,
+        isLoading,
+        error,
+        sortBy,
+        setSortBy,
+        sortOrder,
+        setSortOrder,
+        overdueOnly,
+        setOverdueOnly,
+        handleSendReminder,
+        formatAmount,
+    } = useUnpaidInvoices();
 
     if (isLoading) {
         return (
@@ -128,7 +59,7 @@ export default function UnpaidInvoicesPage() {
         );
     }
 
-    if (!data) {
+    if (!summary) {
         return null;
     }
 
@@ -143,21 +74,21 @@ export default function UnpaidInvoicesPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <AnalyticsKPICard
                     title="Total impayé"
-                    value={formatCurrency(data.summary.totalUnpaid)}
-                    subtitle={`${data.summary.totalInvoices} facture${data.summary.totalInvoices > 1 ? "s" : ""}`}
+                    value={formatAmount(summary.totalUnpaid)}
+                    subtitle={`${summary.totalInvoices} facture${summary.totalInvoices > 1 ? "s" : ""}`}
                     icon={Euro}
                 />
                 <AnalyticsKPICard
                     title="Factures en retard"
-                    value={data.summary.overdueCount}
-                    subtitle={formatCurrency(data.summary.totalOverdue)}
+                    value={summary.overdueCount}
+                    subtitle={formatAmount(summary.totalOverdue)}
                     icon={AlertCircle}
                 />
                 <AnalyticsKPICard
                     title="Retard moyen"
-                    value={`${data.summary.averageOverdueDays} j`}
+                    value={`${summary.averageOverdueDays} j`}
                     subtitle={
-                        data.summary.overdueCount > 0
+                        summary.overdueCount > 0
                             ? "Pour les factures en retard"
                             : "Aucune facture en retard"
                     }
@@ -165,12 +96,8 @@ export default function UnpaidInvoicesPage() {
                 />
                 <AnalyticsKPICard
                     title="En attente"
-                    value={
-                        data.summary.totalInvoices - data.summary.overdueCount
-                    }
-                    subtitle={formatCurrency(
-                        data.summary.totalUnpaid - data.summary.totalOverdue
-                    )}
+                    value={summary.totalInvoices - summary.overdueCount}
+                    subtitle={formatAmount(summary.totalUnpaid - summary.totalOverdue)}
                     icon={FileText}
                 />
             </div>
@@ -235,7 +162,7 @@ export default function UnpaidInvoicesPage() {
 
             {/* Invoice Table */}
             <UnpaidInvoiceTable
-                invoices={data.invoices}
+                invoices={invoices}
                 onSendReminder={handleSendReminder}
             />
         </div>

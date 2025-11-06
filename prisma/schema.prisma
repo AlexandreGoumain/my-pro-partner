@@ -411,6 +411,12 @@ model ParametresEntreprise {
   prochain_numero_devis   Int    @default(1)
   prochain_numero_facture Int    @default(1)
 
+  // Configuration références articles/services
+  prefixe_produit         String @default("PRD")
+  prefixe_service         String @default("SRV")
+  prochain_numero_produit Int    @default(1)
+  prochain_numero_service Int    @default(1)
+
   conditions_paiement_defaut String?
   mentions_legales           String?
 

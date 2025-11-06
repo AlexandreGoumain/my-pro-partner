@@ -6,59 +6,35 @@ import { PageHeader } from "@/components/ui/page-header";
 import { DocumentStatusBadge } from "@/components/ui/document-status-badge";
 import { DocumentTypeBadge } from "@/components/ui/document-type-badge";
 import { DocumentPdfDialog } from "@/components/pdf/document-pdf-dialog";
+import { DocumentStatusManager } from "@/components/document-status-manager";
 import { ArrowLeft, Receipt, Trash2, Download } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
-import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { useDocument, useDeleteDocument, useConvertQuoteToInvoice } from "@/hooks/use-documents";
 import { useCompanySettings } from "@/hooks/use-company-settings";
+import { useDocumentDetail } from "@/hooks/use-document-detail";
 
 export default function QuoteDetailPage() {
     const params = useParams();
     const router = useRouter();
-    const [isPdfDialogOpen, setIsPdfDialogOpen] = useState(false);
-
-    const { data: quote, isLoading } = useDocument(params.id as string);
     const { data: companySettings } = useCompanySettings();
-    const deleteDocument = useDeleteDocument();
-    const convertToInvoice = useConvertQuoteToInvoice();
 
-    const canConvert = useMemo(() => quote?.statut === "ACCEPTE", [quote?.statut]);
-
-    const handleDelete = async () => {
-        if (!quote || !confirm("Êtes-vous sûr de vouloir supprimer ce devis ?")) return;
-
-        try {
-            await deleteDocument.mutateAsync(quote.id);
-            toast.success("Devis supprimé avec succès");
-            router.push("/dashboard/documents/quotes");
-        } catch (error) {
-            console.error("Error deleting quote:", error);
-            toast.error("Impossible de supprimer le devis");
-        }
-    };
-
-    const handleConvertToInvoice = async () => {
-        if (!quote) return;
-
-        try {
-            const result = await convertToInvoice.mutateAsync(quote.id);
-            toast.success("Devis converti en facture avec succès");
-            router.push(`/dashboard/documents/invoices/${result.invoice.id}`);
-        } catch (error) {
-            console.error("Error converting quote:", error);
-            toast.error("Impossible de convertir le devis");
-        }
-    };
-
-    const formatCurrency = (value: number) => {
-        return new Intl.NumberFormat("fr-FR", {
-            style: "currency",
-            currency: "EUR",
-        }).format(value);
-    };
+    const {
+        document: quote,
+        isLoading,
+        isPdfDialogOpen,
+        setIsPdfDialogOpen,
+        clientName,
+        canConvert,
+        handleStatusChanged,
+        handleDelete,
+        handleConvertToInvoice,
+        formatAmount,
+    } = useDocumentDetail({
+        documentId: params.id as string,
+        documentType: "DEVIS",
+        redirectPath: "/dashboard/documents/quotes",
+    });
 
     if (isLoading) {
         return (
@@ -76,10 +52,6 @@ export default function QuoteDetailPage() {
     if (!quote) {
         return null;
     }
-
-    const clientName = quote.client.prenom
-        ? `${quote.client.nom} ${quote.client.prenom}`
-        : quote.client.nom;
 
     return (
         <div className="space-y-6">
@@ -104,6 +76,12 @@ export default function QuoteDetailPage() {
                             <Download className="w-4 h-4 mr-2" strokeWidth={2} />
                             Générer PDF
                         </Button>
+                        <DocumentStatusManager
+                            documentId={quote.id}
+                            currentStatus={quote.statut}
+                            documentType="DEVIS"
+                            onStatusChanged={handleStatusChanged}
+                        />
                         {canConvert && (
                             <Button
                                 onClick={handleConvertToInvoice}
@@ -227,10 +205,10 @@ export default function QuoteDetailPage() {
                                                 )}
                                             </td>
                                             <td className="p-3 text-right">{ligne.quantite}</td>
-                                            <td className="p-3 text-right">{formatCurrency(ligne.prix_unitaire_ht)}</td>
+                                            <td className="p-3 text-right">{formatAmount(ligne.prix_unitaire_ht)}</td>
                                             <td className="p-3 text-right">{ligne.tva_taux}%</td>
                                             <td className="p-3 text-right">{ligne.remise_pourcent}%</td>
-                                            <td className="p-3 text-right font-medium">{formatCurrency(ligne.montant_ht)}</td>
+                                            <td className="p-3 text-right font-medium">{formatAmount(ligne.montant_ht)}</td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -247,16 +225,16 @@ export default function QuoteDetailPage() {
                         <div className="space-y-3">
                             <div className="flex items-center justify-between text-[14px]">
                                 <span className="text-black/60">Total HT</span>
-                                <span className="font-medium">{formatCurrency(quote.total_ht)}</span>
+                                <span className="font-medium">{formatAmount(quote.total_ht)}</span>
                             </div>
                             <div className="flex items-center justify-between text-[14px]">
                                 <span className="text-black/60">TVA</span>
-                                <span className="font-medium">{formatCurrency(quote.total_tva)}</span>
+                                <span className="font-medium">{formatAmount(quote.total_tva)}</span>
                             </div>
                             <div className="h-px bg-black/8" />
                             <div className="flex items-center justify-between text-[18px]">
                                 <span className="font-semibold">Total TTC</span>
-                                <span className="font-bold">{formatCurrency(quote.total_ttc)}</span>
+                                <span className="font-bold">{formatAmount(quote.total_ttc)}</span>
                             </div>
                         </div>
                     </Card>

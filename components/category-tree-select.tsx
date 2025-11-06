@@ -193,6 +193,25 @@ export function CategoryTreeSelect({
 
     const selectedCategory = categories.find((cat) => cat.id === value);
 
+    // Fonction pour construire le chemin complet de la catégorie
+    const getCategoryPath = (categoryId: string): string => {
+        const category = categories.find((c) => c.id === categoryId);
+        if (!category) return "";
+
+        const path: string[] = [category.nom];
+        let currentCategory = category;
+
+        // Remonter la hiérarchie jusqu'à la racine
+        while (currentCategory.parentId) {
+            const parent = categories.find((c) => c.id === currentCategory.parentId);
+            if (!parent) break;
+            path.unshift(parent.nom);
+            currentCategory = parent;
+        }
+
+        return path.join(" → ");
+    };
+
     const handleToggleExpand = (id: string) => {
         const newExpanded = new Set(expandedIds);
         if (newExpanded.has(id)) {
@@ -235,11 +254,11 @@ export function CategoryTreeSelect({
                     )}
                     disabled={disabled}
                 >
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
                         {selectedCategory ? (
                             <>
-                                <FolderTree className="h-4 w-4 text-amber-500" />
-                                <span>{selectedCategory.nom}</span>
+                                <FolderTree className="h-4 w-4 text-amber-500 shrink-0" />
+                                <span className="truncate">{getCategoryPath(value)}</span>
                             </>
                         ) : (
                             <>

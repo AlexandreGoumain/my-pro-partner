@@ -4,6 +4,7 @@ import {
     ClientDetailLoading,
     ClientDetailNotFound,
 } from "@/components/client-detail";
+import { ClientDocumentsTab } from "@/components/client-detail/client-documents-tab";
 import { ClientEditDialog } from "@/components/client-edit-dialog";
 import { DeleteConfirmDialog } from "@/components/delete-confirm-dialog";
 import { ClientEmailDialog } from "@/components/client-email-dialog";
@@ -13,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useClientDetailPage } from "@/hooks/use-client-detail-page";
+import { useClientDocuments } from "@/hooks/use-documents";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
@@ -37,6 +39,7 @@ export default function ClientDetailPage() {
     const params = useParams();
     const clientId = params.id as string;
     const handlers = useClientDetailPage(clientId);
+    const { data: documents = [] } = useClientDocuments(clientId);
 
     if (handlers.isLoading) {
         return <ClientDetailLoading />;
@@ -48,6 +51,19 @@ export default function ClientDetailPage() {
 
     const { client, clientHealth, nomComplet, initiales, currentStatus } =
         handlers;
+
+    // Calculer le CA total et la dernière commande
+    const totalCA = documents.reduce(
+        (sum, doc) => sum + Number(doc.total_ttc || 0),
+        0
+    );
+    const lastDocument = documents
+        .filter((doc) => doc.type === "FACTURE")
+        .sort(
+            (a, b) =>
+                new Date(b.dateEmission).getTime() -
+                new Date(a.dateEmission).getTime()
+        )[0];
 
     return (
         <div className="space-y-6">
@@ -203,7 +219,7 @@ export default function ClientDetailPage() {
                                     Documents
                                 </p>
                                 <p className="text-[20px] font-semibold tracking-[-0.01em] text-black">
-                                    0
+                                    {documents.length}
                                 </p>
                             </div>
                         </div>
@@ -224,7 +240,10 @@ export default function ClientDetailPage() {
                                     CA Total
                                 </p>
                                 <p className="text-[20px] font-semibold tracking-[-0.01em] text-black">
-                                    0€
+                                    {new Intl.NumberFormat("fr-FR", {
+                                        style: "currency",
+                                        currency: "EUR",
+                                    }).format(totalCA)}
                                 </p>
                             </div>
                         </div>
@@ -245,7 +264,13 @@ export default function ClientDetailPage() {
                                     Dernière commande
                                 </p>
                                 <p className="text-[14px] font-medium text-black/60">
-                                    Aucune
+                                    {lastDocument
+                                        ? format(
+                                              new Date(lastDocument.dateEmission),
+                                              "dd MMM yyyy",
+                                              { locale: fr }
+                                          )
+                                        : "Aucune"}
                                 </p>
                             </div>
                         </div>
@@ -312,7 +337,7 @@ export default function ClientDetailPage() {
                             variant="secondary"
                             className="ml-2 bg-black/5 text-black/60 border-0 text-[11px] h-5 px-1.5"
                         >
-                            0
+                            {documents.length}
                         </Badge>
                     </TabsTrigger>
                     <TabsTrigger value="notes">Notes</TabsTrigger>
@@ -468,32 +493,10 @@ export default function ClientDetailPage() {
                 </TabsContent>
 
                 <TabsContent value="documents">
-                    <Card className="p-12 border-black/8 shadow-sm">
-                        <div className="flex flex-col items-center text-center space-y-5">
-                            <div className="rounded-full h-20 w-20 bg-black/5 flex items-center justify-center">
-                                <FileText
-                                    className="w-10 h-10 text-black/40"
-                                    strokeWidth={2}
-                                />
-                            </div>
-                            <div>
-                                <h3 className="text-[17px] font-semibold tracking-[-0.01em] text-black mb-2">
-                                    Aucun document
-                                </h3>
-                                <p className="text-[14px] text-black/60 max-w-md">
-                                    Les devis, factures et autres documents liés
-                                    à ce client apparaîtront ici.
-                                </p>
-                            </div>
-                            <Button className="h-11 px-6 text-[14px] font-medium bg-black hover:bg-black/90 text-white rounded-md shadow-sm mt-2">
-                                <FilePlus
-                                    className="w-4 h-4 mr-2"
-                                    strokeWidth={2}
-                                />
-                                Créer un document
-                            </Button>
-                        </div>
-                    </Card>
+                    <ClientDocumentsTab
+                        clientId={clientId}
+                        clientName={nomComplet}
+                    />
                 </TabsContent>
 
                 <TabsContent value="notes">

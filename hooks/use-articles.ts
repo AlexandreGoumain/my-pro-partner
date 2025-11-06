@@ -8,6 +8,7 @@ import type { ArticleCreateInput, ArticleUpdateInput } from "@/lib/validation";
 export const articleKeys = {
     all: ["articles"] as const,
     detail: (id: string) => ["articles", id] as const,
+    nextReference: (type: "PRODUIT" | "SERVICE") => ["articles", "next-reference", type] as const,
 };
 
 // Hook pour récupérer tous les articles
@@ -87,6 +88,15 @@ export function useDuplicateArticle() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: articleKeys.all });
         },
+    });
+}
+
+// Hook pour récupérer la prochaine référence disponible
+export function useNextArticleReference(type: "PRODUIT" | "SERVICE" | null) {
+    return useQuery({
+        queryKey: articleKeys.nextReference(type || "PRODUIT"),
+        queryFn: async () => api.get<{ reference: string; type: string }>(`/api/articles/next-reference?type=${type}`),
+        enabled: !!type, // Ne lance la requête que si le type existe
     });
 }
 

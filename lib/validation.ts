@@ -58,7 +58,7 @@ export const articleBaseSchema = z.object({
         .min(0, "Le taux de TVA ne peut pas être négatif")
         .max(100, "Le taux de TVA ne peut pas dépasser 100%")
         .default(20),
-    categorieId: z.string().optional().or(z.literal("")),
+    categorieId: z.string().min(1, "La catégorie est requise"),
     stock_actuel: z
         .number({
             invalid_type_error: "Le stock doit être un nombre",
@@ -77,8 +77,8 @@ export const articleBaseSchema = z.object({
     actif: z.boolean().default(true),
 });
 
-// Schema pour la création (tous les champs requis)
-export const articleCreateSchema = articleBaseSchema;
+// Schema pour la création (référence optionnelle car générée côté backend)
+export const articleCreateSchema = articleBaseSchema.omit({ reference: true });
 
 // Schema pour la mise à jour (tous les champs optionnels sauf validation)
 export const articleUpdateSchema = articleBaseSchema.partial();

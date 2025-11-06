@@ -25,8 +25,8 @@ interface Article {
     nom: string;
     reference?: string;
     type: "PRODUIT" | "SERVICE";
-    prix_ht: number;
-    tva_taux: number;
+    prix: number;
+    tva: number;
 }
 
 interface ArticleComboboxProps {
@@ -127,7 +127,7 @@ export function ArticleCombobox({
                                                     )}
                                                 </div>
                                                 <span className="text-xs text-muted-foreground">
-                                                    {formatPrice(article.prix_ht)} HT • TVA {article.tva_taux}%
+                                                    {formatPrice(article.prix)} HT • TVA {article.tva}%
                                                 </span>
                                             </div>
                                             <Check
@@ -166,7 +166,7 @@ export function ArticleCombobox({
                                                     )}
                                                 </div>
                                                 <span className="text-xs text-muted-foreground">
-                                                    {formatPrice(article.prix_ht)} HT • TVA {article.tva_taux}%
+                                                    {formatPrice(article.prix)} HT • TVA {article.tva}%
                                                 </span>
                                             </div>
                                             <Check

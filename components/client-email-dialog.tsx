@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import {
     Dialog,
     DialogContent,
@@ -14,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Mail, Loader2, User, Send } from "lucide-react";
-import { toast } from "sonner";
+import { useEmailSender } from "@/hooks/use-email-sender";
 
 interface Client {
     id: string;
@@ -34,77 +33,23 @@ export function ClientEmailDialog({
     onOpenChange,
     client,
 }: ClientEmailDialogProps) {
-    const [subject, setSubject] = useState("");
-    const [body, setBody] = useState("");
-    const [sending, setSending] = useState(false);
-
     const nomComplet = client
         ? [client.prenom, client.nom].filter(Boolean).join(" ") || "Client"
         : "Client";
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (!subject.trim()) {
-            toast.error("Le sujet est requis");
-            return;
-        }
-
-        if (!body.trim()) {
-            toast.error("Le message est requis");
-            return;
-        }
-
-        if (!client) {
-            toast.error("Aucun client sélectionné");
-            return;
-        }
-
-        if (!client.email) {
-            toast.error("Ce client n'a pas d'adresse email");
-            return;
-        }
-
-        setSending(true);
-
-        try {
-            const response = await fetch(
-                `/api/clients/${client.id}/send-email`,
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ subject, body }),
-                }
-            );
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    data.message || "Erreur lors de l'envoi de l'email"
-                );
-            }
-
-            toast.success(
-                data.message || `Email envoyé avec succès à ${client.email}`
-            );
-            handleClose();
-        } catch (error: unknown) {
-            const errorMessage =
-                error instanceof Error
-                    ? error.message
-                    : "Erreur lors de l'envoi de l'email";
-            toast.error(errorMessage);
-        } finally {
-            setSending(false);
-        }
-    };
-
     const handleClose = () => {
-        setSubject("");
-        setBody("");
+        resetForm();
         onOpenChange(false);
     };
+
+    const { subject, body, sending, setSubject, setBody, handleSubmit, resetForm } =
+        useEmailSender({
+            recipientId: client?.id || "",
+            recipientType: "client",
+            recipientName: nomComplet,
+            recipientEmail: client?.email || "",
+            onSuccess: handleClose,
+        });
 
     if (!client) return null;
 

@@ -14,6 +14,7 @@ interface InvoiceEmailProps {
   entrepriseEmail?: string;
   paymentInstructions?: string;
   viewUrl?: string;
+  paymentUrl?: string;
 }
 
 /**
@@ -32,6 +33,7 @@ export function InvoiceEmail({
   entrepriseEmail,
   paymentInstructions,
   viewUrl,
+  paymentUrl,
 }: InvoiceEmailProps) {
   const docTypeLabel =
     documentType === 'FACTURE'
@@ -94,14 +96,19 @@ export function InvoiceEmail({
           </tbody>
         </table>
 
-        {/* View Button */}
-        {viewUrl && (
-          <Section style={{ marginTop: '24px' }}>
-            <Button href={viewUrl} style={styles.button}>
+        {/* Action Buttons */}
+        <Section style={{ marginTop: '24px' }}>
+          {documentType === 'FACTURE' && paymentUrl && (
+            <Button href={paymentUrl} style={styles.primaryButton}>
+              Payer maintenant
+            </Button>
+          )}
+          {viewUrl && (
+            <Button href={viewUrl} style={documentType === 'FACTURE' && paymentUrl ? styles.secondaryButton : styles.button}>
               Voir le {docTypeLabel.toLowerCase()}
             </Button>
-          </Section>
-        )}
+          )}
+        </Section>
       </Section>
 
       {/* Payment Instructions */}
@@ -200,6 +207,30 @@ const styles = {
     backgroundColor: '#000000',
     borderRadius: '6px',
     color: '#ffffff',
+    fontSize: '14px',
+    fontWeight: '500',
+    textDecoration: 'none',
+    textAlign: 'center' as const,
+    display: 'inline-block',
+    padding: '12px 24px',
+  },
+  primaryButton: {
+    backgroundColor: '#000000',
+    borderRadius: '6px',
+    color: '#ffffff',
+    fontSize: '14px',
+    fontWeight: '600',
+    textDecoration: 'none',
+    textAlign: 'center' as const,
+    display: 'inline-block',
+    padding: '14px 32px',
+    marginRight: '12px',
+  },
+  secondaryButton: {
+    backgroundColor: 'transparent',
+    border: '1px solid rgba(0, 0, 0, 0.2)',
+    borderRadius: '6px',
+    color: '#000000',
     fontSize: '14px',
     fontWeight: '500',
     textDecoration: 'none',

@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { CompanySettings } from "@/lib/types/settings";
 import { Label } from "@/components/ui/label";
 import { SettingsSection } from "@/components/ui/settings-section";
-import { Building2 } from "lucide-react";
+import { Building2, Hash } from "lucide-react";
 
 interface GeneralTabProps {
     settings: CompanySettings;
@@ -173,6 +173,56 @@ export function GeneralTab({ settings, onChange }: GeneralTabProps) {
                             placeholder="https://monentreprise.fr"
                             className="h-11 border-black/10"
                         />
+                    </div>
+                </div>
+            </SettingsSection>
+
+            <SettingsSection
+                icon={Hash}
+                title="Références articles"
+                description="Configuration des préfixes pour la génération automatique"
+            >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label
+                            htmlFor="prefixe_produit"
+                            className="text-[14px] font-medium"
+                        >
+                            Préfixe produits
+                        </Label>
+                        <Input
+                            id="prefixe_produit"
+                            value={settings.prefixe_produit || "PRD"}
+                            onChange={(e) =>
+                                onChange("prefixe_produit", e.target.value)
+                            }
+                            placeholder="PRD"
+                            className="h-11 border-black/10"
+                        />
+                        <p className="text-[12px] text-black/60">
+                            Préfixe pour les produits (ex: PRD → PRD-001)
+                        </p>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label
+                            htmlFor="prefixe_service"
+                            className="text-[14px] font-medium"
+                        >
+                            Préfixe services
+                        </Label>
+                        <Input
+                            id="prefixe_service"
+                            value={settings.prefixe_service || "SRV"}
+                            onChange={(e) =>
+                                onChange("prefixe_service", e.target.value)
+                            }
+                            placeholder="SRV"
+                            className="h-11 border-black/10"
+                        />
+                        <p className="text-[12px] text-black/60">
+                            Préfixe pour les services (ex: SRV → SRV-001)
+                        </p>
                     </div>
                 </div>
             </SettingsSection>

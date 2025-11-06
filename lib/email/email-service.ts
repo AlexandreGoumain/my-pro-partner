@@ -80,7 +80,7 @@ export class EmailService {
         messageId: result.data?.id,
       };
     } catch (error) {
-      console.error('Email sending error:', error);
+      console.error('[Email Service] Email sending error:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',

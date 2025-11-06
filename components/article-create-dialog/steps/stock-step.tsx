@@ -1,5 +1,4 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
     FormControl,
     FormDescription,
@@ -79,44 +78,35 @@ export function StockStep({ form }: StepProps) {
             </div>
 
             <Card className="bg-black/2 border-black/10">
-                <CardContent className="p-5">
+                <CardContent className="p-5 space-y-4">
                     <div className="flex gap-3">
                         <Info className="h-5 w-5 text-black/40 shrink-0 mt-0.5" />
                         <div className="space-y-1">
                             <p className="text-[14px] font-semibold text-black">
-                                À propos du seuil d&apos;alerte
+                                Gestion automatique du stock
+                            </p>
+                            <p className="text-[13px] text-black/60 leading-relaxed">
+                                Le stock sera automatiquement déduit lors des ventes et des
+                                facturations. Cette fonctionnalité est activée par défaut
+                                pour tous les produits.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="flex gap-3 pt-2 border-t border-black/8">
+                        <Info className="h-5 w-5 text-black/40 shrink-0 mt-0.5" />
+                        <div className="space-y-1">
+                            <p className="text-[14px] font-semibold text-black">
+                                Seuil d&apos;alerte
                             </p>
                             <p className="text-[13px] text-black/60 leading-relaxed">
                                 Vous recevrez une notification lorsque le stock
-                                atteindra ou passera sous ce seuil.
+                                atteindra ou passera sous le seuil configuré.
                             </p>
                         </div>
                     </div>
                 </CardContent>
             </Card>
-
-            <FormField
-                control={form.control}
-                name="gestion_stock"
-                render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-black/10 p-4">
-                        <FormControl>
-                            <Checkbox
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                            />
-                        </FormControl>
-                        <div className="space-y-0.5 leading-none">
-                            <FormLabel className="text-[13px]">
-                                Activer la gestion automatique du stock
-                            </FormLabel>
-                            <FormDescription className="text-[12px]">
-                                Le stock sera automatiquement déduit lors des ventes
-                            </FormDescription>
-                        </div>
-                    </FormItem>
-                )}
-            />
         </div>
     );
 }

@@ -28,8 +28,8 @@ interface LineItemsEditorProps {
         nom: string;
         reference?: string;
         type: "PRODUIT" | "SERVICE";
-        prix_ht: number;
-        tva_taux: number;
+        prix: number;
+        tva: number;
     }>;
 }
 
@@ -95,8 +95,8 @@ export function LineItemsEditor({
             ...newLines[index],
             articleId: article.id,
             designation: article.nom,
-            prix_unitaire_ht: Number(article.prix_ht),
-            tva_taux: Number(article.tva_taux),
+            prix_unitaire_ht: Number(article.prix),
+            tva_taux: Number(article.tva),
         });
         onChange(newLines);
     };
@@ -140,7 +140,7 @@ export function LineItemsEditor({
                                     <th className="text-right p-3 font-medium text-black/60 w-32">Prix unitaire HT</th>
                                     <th className="text-right p-3 font-medium text-black/60 w-24">TVA (%)</th>
                                     <th className="text-right p-3 font-medium text-black/60 w-28">Remise (%)</th>
-                                    <th className="text-right p-3 font-medium text-black/60 w-32">Total HT</th>
+                                    <th className="text-right p-3 font-medium text-black/60 w-32">Total TTC</th>
                                     <th className="w-12 p-3"></th>
                                 </tr>
                             </thead>
@@ -192,7 +192,8 @@ export function LineItemsEditor({
                                                         parseFloat(e.target.value) || 0
                                                     )
                                                 }
-                                                className="h-9 text-[13px] text-right border-black/10"
+                                                disabled={!!line.articleId}
+                                                className="h-9 text-[13px] text-right border-black/10 disabled:opacity-70 disabled:cursor-not-allowed"
                                             />
                                         </td>
                                         <td className="p-2">
@@ -207,7 +208,8 @@ export function LineItemsEditor({
                                                         parseFloat(e.target.value) || 0
                                                     )
                                                 }
-                                                className="h-9 text-[13px] text-right border-black/10"
+                                                disabled={!!line.articleId}
+                                                className="h-9 text-[13px] text-right border-black/10 disabled:opacity-70 disabled:cursor-not-allowed"
                                             />
                                         </td>
                                         <td className="p-2">
@@ -222,11 +224,12 @@ export function LineItemsEditor({
                                                         parseFloat(e.target.value) || 0
                                                     )
                                                 }
-                                                className="h-9 text-[13px] text-right border-black/10"
+                                                disabled={!!line.articleId}
+                                                className="h-9 text-[13px] text-right border-black/10 disabled:opacity-70 disabled:cursor-not-allowed"
                                             />
                                         </td>
                                         <td className="p-2 text-right font-medium">
-                                            {line.montant_ht.toFixed(2)} €
+                                            {Number(line.montant_ttc || 0).toFixed(2)} €
                                         </td>
                                         <td className="p-2 text-center">
                                             <Button
