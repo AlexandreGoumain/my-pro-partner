@@ -9,7 +9,6 @@ import {
     ClientStatsGrid,
 } from "@/components/clients";
 import { PendingClientsSection } from "@/components/pending-clients-section";
-import { RegistrationLinkCard } from "@/components/registration-link-card";
 import { InviteClientDialog } from "@/components/invite-client-dialog";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
@@ -109,8 +108,6 @@ function ClientsPageContent() {
                     router.push("/dashboard/clients/import-export")
                 }
             />
-
-            <RegistrationLinkCard />
 
             <PendingClientsSection />
 

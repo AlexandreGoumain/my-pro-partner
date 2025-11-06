@@ -9,7 +9,8 @@ import { getSystemPrompt } from '@/lib/chatbot/chatbot-prompts';
 import { chatbotTools } from '@/lib/chatbot/chatbot-actions';
 import { createOpenAIStream } from '@/lib/chatbot/api/stream-handler';
 import { nanoid } from 'nanoid';
-import { canAccessFeature, getCurrentUsage, isLimitReached, mapDatabasePlanToPricingPlan, getLimitErrorMessage } from '@/lib/middleware/feature-validation';
+import { canAccessFeature, getCurrentUsage, isLimitReached, mapDatabasePlanToPricingPlan } from '@/lib/middleware/feature-validation';
+import { getLimitErrorMessage } from '@/lib/pricing-config';
 
 interface ChatMessage {
   role: 'user' | 'assistant' | 'system';

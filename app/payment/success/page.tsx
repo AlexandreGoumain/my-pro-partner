@@ -1,11 +1,12 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { CheckCircle } from "lucide-react";
 import { usePaymentSuccess } from "@/hooks/use-payment-success";
 
-export default function PaymentSuccessPage() {
+function PaymentSuccessContent() {
     const searchParams = useSearchParams();
     const sessionId = searchParams.get("session_id");
     const { isLoading } = usePaymentSuccess();
@@ -55,5 +56,17 @@ export default function PaymentSuccessPage() {
                 </div>
             </Card>
         </div>
+    );
+}
+
+export default function PaymentSuccessPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-black/2 flex items-center justify-center p-4">
+                <p className="text-[14px] text-black/60">Chargement...</p>
+            </div>
+        }>
+            <PaymentSuccessContent />
+        </Suspense>
     );
 }
