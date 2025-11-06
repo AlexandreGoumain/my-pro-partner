@@ -36,6 +36,7 @@ const documentSchema = z.object({
     total_ht: z.number(),
     total_tva: z.number(),
     total_ttc: z.number(),
+    acompte_montant: z.number().default(0), // Down payment amount
     lignes: z.array(lineItemSchema).min(1, "Au moins une ligne requise"),
 });
 
@@ -43,10 +44,23 @@ const documentSchema = z.object({
 export async function GET(req: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
-        if (!session) {
+        if (!session || !session.user?.email) {
             return NextResponse.json(
                 { message: "Non autorisé" },
                 { status: 401 }
+            );
+        }
+
+        // Récupérer l'entrepriseId de l'utilisateur
+        const user = await prisma.user.findUnique({
+            where: { email: session.user.email },
+            select: { entrepriseId: true },
+        });
+
+        if (!user?.entrepriseId) {
+            return NextResponse.json(
+                { message: "Entreprise non trouvée" },
+                { status: 404 }
             );
         }
 
@@ -55,9 +69,10 @@ export async function GET(req: NextRequest) {
         const clientId = searchParams.get("clientId");
         const statutParam = searchParams.get("statut");
 
-        // Type-safe enum validation
+        // Type-safe enum validation - DocumentType is a type, not a runtime enum
+        const validTypes: DocumentType[] = ["DEVIS", "FACTURE", "AVOIR"];
         const type =
-            typeParam && Object.values(DocumentType).includes(typeParam as DocumentType)
+            typeParam && validTypes.includes(typeParam as DocumentType)
                 ? (typeParam as DocumentType)
                 : undefined;
         const statut =
@@ -67,6 +82,7 @@ export async function GET(req: NextRequest) {
 
         const documents = await prisma.document.findMany({
             where: {
+                entrepriseId: user.entrepriseId,
                 ...(type && { type }),
                 ...(clientId && { clientId }),
                 ...(statut && { statut }),
@@ -279,6 +295,10 @@ export async function POST(req: NextRequest) {
         // Extract lignes from validation data
         const { lignes, ...documentData } = validation.data;
 
+        // Calculate reste_a_payer taking down payment into account
+        const acompteMontant = documentData.acompte_montant || 0;
+        const resteAPayer = documentData.total_ttc - acompteMontant;
+
         // Create document with lignes
         const document = await prisma.document.create({
             data: {
@@ -295,7 +315,8 @@ export async function POST(req: NextRequest) {
                 total_ht: documentData.total_ht,
                 total_tva: documentData.total_tva,
                 total_ttc: documentData.total_ttc,
-                reste_a_payer: documentData.total_ttc,
+                acompte_montant: acompteMontant,
+                reste_a_payer: resteAPayer,
                 entrepriseId: client.entrepriseId,
                 lignes: {
                     create: lignes,

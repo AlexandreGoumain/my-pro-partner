@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import {
     Dialog,
     DialogContent,
@@ -15,8 +14,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Mail, Loader2, Users, Send } from "lucide-react";
-import { toast } from "sonner";
 import { Segment } from "@/lib/types";
+import { useEmailSender } from "@/hooks/use-email-sender";
 
 interface BulkEmailDialogProps {
     open: boolean;
@@ -31,58 +30,18 @@ export function BulkEmailDialog({
     segment,
     clientCount,
 }: BulkEmailDialogProps) {
-    const [subject, setSubject] = useState("");
-    const [body, setBody] = useState("");
-    const [sending, setSending] = useState(false);
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (!subject.trim()) {
-            toast.error("Le sujet est requis");
-            return;
-        }
-
-        if (!body.trim()) {
-            toast.error("Le message est requis");
-            return;
-        }
-
-        if (!segment) {
-            toast.error("Aucun segment sélectionné");
-            return;
-        }
-
-        setSending(true);
-
-        try {
-            const response = await fetch(`/api/segments/${segment.id}/send-email`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ subject, body }),
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || "Erreur lors de l'envoi des emails");
-            }
-
-            toast.success(data.message || `Email envoyé avec succès à ${data.recipientsSent} client${data.recipientsSent > 1 ? "s" : ""}`);
-            handleClose();
-        } catch (error: unknown) {
-            const errorMessage = error instanceof Error ? error.message : "Erreur lors de l'envoi des emails";
-            toast.error(errorMessage);
-        } finally {
-            setSending(false);
-        }
-    };
-
     const handleClose = () => {
-        setSubject("");
-        setBody("");
+        resetForm();
         onOpenChange(false);
     };
+
+    const { subject, body, sending, setSubject, setBody, handleSubmit, resetForm } =
+        useEmailSender({
+            recipientId: segment?.id || "",
+            recipientType: "segment",
+            recipientCount: clientCount,
+            onSuccess: handleClose,
+        });
 
     if (!segment) return null;
 

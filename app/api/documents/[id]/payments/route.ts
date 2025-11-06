@@ -1,19 +1,13 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth/next";
-import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 
-const paymentSchema = z.object({
-    montant: z.number().positive("Le montant doit être positif"),
-    moyen_paiement: z.enum(["ESPECES", "CHEQUE", "VIREMENT", "CARTE", "PRELEVEMENT"]),
-    date_paiement: z.string().transform((s) => new Date(s)),
-    reference: z.string().optional().nullable(),
-    notes: z.string().optional().nullable(),
-});
-
-// POST: Ajouter un paiement à une facture
-export async function POST(
+/**
+ * GET /api/documents/[id]/payments
+ * Fetch all payments for a specific document
+ */
+export async function GET(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
@@ -27,98 +21,21 @@ export async function POST(
         }
 
         const { id } = await params;
-        const body = await req.json();
 
-        const validation = paymentSchema.safeParse(body);
-        if (!validation.success) {
-            return NextResponse.json(
-                {
-                    message: "Données invalides",
-                    errors: validation.error.errors,
-                },
-                { status: 400 }
-            );
-        }
-
-        // Récupérer le document
-        const document = await prisma.document.findUnique({
-            where: { id },
-            include: {
-                paiements: true,
+        const payments = await prisma.paiement.findMany({
+            where: {
+                documentId: id,
+            },
+            orderBy: {
+                date_paiement: "desc",
             },
         });
 
-        if (!document) {
-            return NextResponse.json(
-                { message: "Document non trouvé" },
-                { status: 404 }
-            );
-        }
-
-        if (document.type !== "FACTURE") {
-            return NextResponse.json(
-                { message: "Seules les factures peuvent recevoir des paiements" },
-                { status: 400 }
-            );
-        }
-
-        if (document.statut === "ANNULE") {
-            return NextResponse.json(
-                { message: "Impossible d'ajouter un paiement à une facture annulée" },
-                { status: 400 }
-            );
-        }
-
-        // Vérifier que le montant ne dépasse pas le reste à payer
-        if (validation.data.montant > Number(document.reste_a_payer)) {
-            return NextResponse.json(
-                { message: "Le montant du paiement dépasse le reste à payer" },
-                { status: 400 }
-            );
-        }
-
-        // Créer le paiement
-        const paiement = await prisma.paiement.create({
-            data: {
-                documentId: document.id,
-                montant: validation.data.montant,
-                moyen_paiement: validation.data.moyen_paiement,
-                date_paiement: validation.data.date_paiement,
-                reference: validation.data.reference || null,
-                notes: validation.data.notes || null,
-            },
-        });
-
-        // Calculer le nouveau reste à payer
-        const nouveauResteAPayer = Number(document.reste_a_payer) - validation.data.montant;
-
-        // Mettre à jour le document
-        const updatedDocument = await prisma.document.update({
-            where: { id },
-            data: {
-                reste_a_payer: nouveauResteAPayer,
-                statut: nouveauResteAPayer === 0 ? "PAYE" : document.statut,
-            },
-            include: {
-                client: true,
-                lignes: true,
-                paiements: {
-                    orderBy: { date_paiement: "desc" },
-                },
-            },
-        });
-
-        return NextResponse.json(
-            {
-                paiement,
-                document: updatedDocument,
-            },
-            { status: 201 }
-        );
+        return NextResponse.json({ payments });
     } catch (error) {
-        console.error("Erreur lors de l'ajout du paiement:", error);
+        console.error("[Payments API] Error fetching payments:", error);
         return NextResponse.json(
-            { message: "Erreur interne du serveur" },
+            { message: "Erreur lors de la récupération des paiements" },
             { status: 500 }
         );
     }

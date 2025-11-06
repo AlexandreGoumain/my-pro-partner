@@ -6,47 +6,34 @@ import { Card } from "@/components/ui/card";
 import { DocumentStatusBadge } from "@/components/ui/document-status-badge";
 import { DocumentTypeBadge } from "@/components/ui/document-type-badge";
 import { PageHeader } from "@/components/ui/page-header";
+import { PaymentHistory } from "@/components/payment-history";
+import { DocumentStatusManager } from "@/components/document-status-manager";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { ArrowLeft, Download, Trash2 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
-import { toast } from "sonner";
-import { useDocument, useDeleteDocument } from "@/hooks/use-documents";
 import { useCompanySettings } from "@/hooks/use-company-settings";
+import { useDocumentDetail } from "@/hooks/use-document-detail";
 
 export default function InvoiceDetailPage() {
     const params = useParams();
     const router = useRouter();
-    const [isPdfDialogOpen, setIsPdfDialogOpen] = useState(false);
-
-    const { data: invoice, isLoading } = useDocument(params.id as string);
     const { data: companySettings } = useCompanySettings();
-    const deleteDocument = useDeleteDocument();
 
-    const handleDelete = async () => {
-        if (
-            !invoice ||
-            !confirm("Êtes-vous sûr de vouloir supprimer cette facture ?")
-        )
-            return;
-
-        try {
-            await deleteDocument.mutateAsync(invoice.id);
-            toast.success("Facture supprimée avec succès");
-            router.push("/dashboard/documents/invoices");
-        } catch (error) {
-            console.error("Error deleting invoice:", error);
-            toast.error("Impossible de supprimer la facture");
-        }
-    };
-
-    const formatCurrency = (value: number) => {
-        return new Intl.NumberFormat("fr-FR", {
-            style: "currency",
-            currency: "EUR",
-        }).format(value);
-    };
+    const {
+        document: invoice,
+        isLoading,
+        isPdfDialogOpen,
+        setIsPdfDialogOpen,
+        clientName,
+        handleStatusChanged,
+        handleDelete,
+        formatAmount,
+    } = useDocumentDetail({
+        documentId: params.id as string,
+        documentType: "FACTURE",
+        redirectPath: "/dashboard/documents/invoices",
+    });
 
     if (isLoading) {
         return (
@@ -66,10 +53,6 @@ export default function InvoiceDetailPage() {
     if (!invoice) {
         return null;
     }
-
-    const clientName = invoice.client.prenom
-        ? `${invoice.client.nom} ${invoice.client.prenom}`
-        : invoice.client.nom;
 
     return (
         <div className="space-y-6">
@@ -104,6 +87,12 @@ export default function InvoiceDetailPage() {
                             />
                             Générer PDF
                         </Button>
+                        <DocumentStatusManager
+                            documentId={invoice.id}
+                            currentStatus={invoice.statut}
+                            documentType="FACTURE"
+                            onStatusChanged={handleStatusChanged}
+                        />
                         <Button
                             onClick={handleDelete}
                             variant="outline"
@@ -189,14 +178,6 @@ export default function InvoiceDetailPage() {
                                             </span>
                                         </div>
                                     )}
-                                    <div className="flex justify-between">
-                                        <span className="text-black/60">
-                                            Validité:
-                                        </span>
-                                        <span className="font-medium">
-                                            {invoice.validite_jours} jours
-                                        </span>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -272,9 +253,7 @@ export default function InvoiceDetailPage() {
                                                 {ligne.quantite}
                                             </td>
                                             <td className="p-3 text-right">
-                                                {formatCurrency(
-                                                    ligne.prix_unitaire_ht
-                                                )}
+                                                {formatAmount(ligne.prix_unitaire_ht)}
                                             </td>
                                             <td className="p-3 text-right">
                                                 {ligne.tva_taux}%
@@ -283,9 +262,7 @@ export default function InvoiceDetailPage() {
                                                 {ligne.remise_pourcent}%
                                             </td>
                                             <td className="p-3 text-right font-medium">
-                                                {formatCurrency(
-                                                    ligne.montant_ht
-                                                )}
+                                                {formatAmount(ligne.montant_ht)}
                                             </td>
                                         </tr>
                                     ))}
@@ -293,6 +270,8 @@ export default function InvoiceDetailPage() {
                             </table>
                         </div>
                     </Card>
+
+                    <PaymentHistory documentId={invoice.id} />
                 </div>
 
                 <div>
@@ -304,22 +283,36 @@ export default function InvoiceDetailPage() {
                             <div className="flex items-center justify-between text-[14px]">
                                 <span className="text-black/60">Total HT</span>
                                 <span className="font-medium">
-                                    {formatCurrency(invoice.total_ht)}
+                                    {formatAmount(invoice.total_ht)}
                                 </span>
                             </div>
                             <div className="flex items-center justify-between text-[14px]">
                                 <span className="text-black/60">TVA</span>
                                 <span className="font-medium">
-                                    {formatCurrency(invoice.total_tva)}
+                                    {formatAmount(invoice.total_tva)}
                                 </span>
                             </div>
                             <div className="h-px bg-black/8" />
                             <div className="flex items-center justify-between text-[18px]">
                                 <span className="font-semibold">Total TTC</span>
                                 <span className="font-bold">
-                                    {formatCurrency(invoice.total_ttc)}
+                                    {formatAmount(invoice.total_ttc)}
                                 </span>
                             </div>
+
+                            {invoice.reste_a_payer > 0 && (
+                                <>
+                                    <div className="h-px bg-black/8" />
+                                    <div className="flex items-center justify-between text-[16px] text-orange-600">
+                                        <span className="font-semibold">
+                                            Reste à payer
+                                        </span>
+                                        <span className="font-bold">
+                                            {formatAmount(invoice.reste_a_payer)}
+                                        </span>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </Card>
                 </div>

@@ -59,6 +59,24 @@ export function useDocumentPage<T extends { id: string }>({
             loadingError: "Erreur lors du chargement des devis",
             notFound: "Aucun devis trouvé",
         },
+        AVOIR: {
+            singular: "avoir",
+            plural: "avoirs",
+            article: "l'",
+            articleUpper: "L'",
+            new: "Nouvel avoir",
+            title: "Avoirs",
+            description: "Gérez vos avoirs et remboursements clients",
+            emptyTitle: "Aucun avoir",
+            emptyDescription: "Commencez par créer votre premier avoir pour vos clients",
+            createButton: "Créer un avoir",
+            deleteConfirm: "Êtes-vous sûr de vouloir supprimer cet avoir ?",
+            deleteSuccess: "Avoir supprimé avec succès",
+            deleteError: "Impossible de supprimer l'avoir",
+            fetchError: "Impossible de charger les avoirs",
+            loadingError: "Erreur lors du chargement des avoirs",
+            notFound: "Aucun avoir trouvé",
+        },
     };
 
     const label = labels[documentType];
@@ -68,7 +86,7 @@ export function useDocumentPage<T extends { id: string }>({
     };
 
     const handleEdit = (document: T) => {
-        router.push(`${basePath}/${document.id}`);
+        router.push(`${basePath}/${document.id}/edit`);
     };
 
     const handleDelete = async (document: T) => {

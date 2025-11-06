@@ -24,25 +24,29 @@ Application ERP complète développée en utilisant les dernières technologies 
 
 ### 📊 État d'avancement du projet
 
-**Modules complétés (70%):**
+**Modules complétés (85%):**
 
 -   ✅ Authentification complète (JWT + OAuth Google)
 -   ✅ Gestion des articles (CRUD, UI, stocks, catégories)
--   ✅ API Clients (backend complet)
--   ✅ API Documents (backend complet)
+-   ✅ API Clients complète avec interfaces
+-   ✅ API Documents complète (Devis, Factures, Avoirs)
+-   ✅ Interface documents commerciaux (création, édition, liste)
 -   ✅ Système de gestion des stocks avec alertes
+-   ✅ Génération et envoi de PDF professionnels
+-   ✅ Paiements en ligne via Stripe
+-   ✅ Système d'emails transactionnels
+-   ✅ Analytics et tableaux de bord
+-   ✅ Architecture avec Custom Hooks et Services
 
-**En cours de développement (20%):**
+**En cours de développement (10%):**
 
--   🚧 Interface utilisateur pour la gestion des clients
--   🚧 Interface utilisateur pour les documents commerciaux
--   🚧 Logique métier des calculs et paiements
+-   🚧 Optimisations de performance
+-   🚧 Tests automatisés
 
-**Planifié (10%):**
+**Planifié (5%):**
 
--   ⏳ Génération PDF et exports
--   ⏳ Upload d'images
--   ⏳ Fonctionnalités avancées (conversions, emails, stats)
+-   ⏳ Upload d'images produits
+-   ⏳ Programme de fidélité
 
 ## 🎯 Compétences démontrées
 
@@ -54,6 +58,8 @@ Application ERP complète développée en utilisant les dernières technologies 
 -   **Shadcn/ui** - Composants accessibles et personnalisables
 -   **Tailwind CSS v4** - Styling moderne et responsive
 -   **React Hook Form + Zod** - Validation de formulaires robuste
+-   **TanStack Query (React Query)** - Cache et synchronisation serveur
+-   **Custom Hooks Architecture** - Séparation logique métier/présentation (14+ hooks réutilisables)
 -   **Gestion d'état** - Hooks React et Context API
 
 ### Backend
@@ -64,15 +70,21 @@ Application ERP complète développée en utilisant les dernières technologies 
 -   **NextAuth.js v4** - Authentication complète (JWT + OAuth)
 -   **RESTful API** - Design d'API standardisé et paginé
 -   **Error Handling** - Gestion centralisée des erreurs
+-   **Stripe Integration** - Paiements en ligne sécurisés avec webhooks
+-   **Service Layer** - Architecture en couches (Services métier réutilisables)
+-   **Email Service** - Emails transactionnels avec templates React
+-   **PDF Generation** - Génération de documents professionnels (@react-pdf/renderer)
 
 ### Architecture & Best Practices
 
--   **Clean Architecture** - Séparation des responsabilités
+-   **Clean Architecture** - Séparation des responsabilités (Présentation / Logique métier / Services / Data)
+-   **Custom Hooks Pattern** - 100% séparation UI/logique avec 14+ hooks réutilisables
+-   **Service Layer Pattern** - Services métier encapsulés et testables
 -   **Type Safety** - TypeScript strict avec validation runtime (Zod)
 -   **Security First** - CSRF protection, validation stricte, sessions JWT
--   **DRY Principle** - Code réutilisable et maintenable
--   **Error Management** - Gestion unifiée des erreurs Prisma
--   **API Pagination** - Optimisation des performances
+-   **DRY Principle** - Utilitaires centralisés, types partagés, code réutilisable
+-   **Error Management** - Gestion unifiée des erreurs avec logging structuré
+-   **API Pagination** - Optimisation des performances avec React Query
 
 ## ✨ Fonctionnalités principales
 
@@ -86,12 +98,15 @@ Application ERP complète développée en utilisant les dernières technologies 
 -   ✅ Protection CSRF et validation des entrées
 -   ✅ Middleware de protection des routes API
 
-### 👥 Gestion des Clients 🚧
+### 👥 Gestion des Clients ✅
 
 -   ✅ API REST complète (CRUD avec validation Zod)
 -   ✅ Recherche multi-critères (nom, email, ville)
 -   ✅ Filtrage et pagination optimisée
--   🚧 Interface utilisateur dashboard
+-   ✅ Interface utilisateur complète (liste, détails, édition)
+-   ✅ Segmentation clients pour emails groupés
+-   ✅ Envoi d'emails personnalisés par client
+-   ✅ Historique des documents par client
 -   ⏳ Export de données (CSV/Excel)
 
 ### 📦 Catalogue d'Articles ✅
@@ -104,30 +119,40 @@ Application ERP complète développée en utilisant les dernières technologies 
 -   ✅ Pagination et recherche en temps réel
 -   ⏳ Upload et gestion d'images produits
 
-### 📄 Documents Commerciaux 🚧
+### 📄 Documents Commerciaux ✅
 
 -   ✅ Modèle de données complet (Devis, Factures, Avoirs)
--   ✅ API REST pour CRUD documents
--   ✅ Statuts multiples (Brouillon, Envoyé, Accepté, Payé...)
--   🚧 Interface de création/édition de documents
--   🚧 Calculs automatiques (HT, TVA, TTC, remises)
--   🚧 Suivi des paiements (modèle prêt, API à créer)
--   ⏳ Workflow de conversion devis → facture
--   ⏳ Génération PDF avec template professionnel
--   ⏳ Numérotation automatique incrémentale
+-   ✅ API REST complète pour CRUD documents
+-   ✅ Statuts multiples avec workflows (Brouillon, Envoyé, Accepté, Payé, Annulé...)
+-   ✅ Interface de création/édition complète avec formulaire dynamique
+-   ✅ Calculs automatiques en temps réel (HT, TVA, TTC, remises)
+-   ✅ Suivi des paiements avec historique détaillé
+-   ✅ Workflow de conversion devis → facture
+-   ✅ Génération PDF professionnelle avec templates personnalisés
+-   ✅ Numérotation automatique incrémentale avec séries
+-   ✅ Envoi par email avec PDF en pièce jointe
+-   ✅ Paiement en ligne via Stripe (lien de paiement dans facture)
+-   ✅ Gestion des statuts avec transitions validées
+-   ✅ Vue grille/liste avec filtres et recherche
+-   ✅ Analytics des impayés avec relances clients
 
 ## 🛠️ Stack technique
 
-| Catégorie      | Technologies                        |
-| -------------- | ----------------------------------- |
-| **Framework**  | Next.js 16 (App Router), React 19   |
-| **Language**   | TypeScript 5.x (strict mode)        |
-| **Styling**    | Tailwind CSS v4, Shadcn/ui          |
-| **Database**   | PostgreSQL 16 + Prisma ORM          |
-| **Auth**       | NextAuth.js v4 (JWT + OAuth Google) |
-| **Validation** | Zod + React Hook Form               |
-| **State**      | React Hooks, Context API            |
-| **API**        | Next.js API Routes (RESTful)        |
+| Catégorie       | Technologies                             |
+| --------------- | ---------------------------------------- |
+| **Framework**   | Next.js 16 (App Router), React 19        |
+| **Language**    | TypeScript 5.x (strict mode)             |
+| **Styling**     | Tailwind CSS v4, Shadcn/ui               |
+| **Database**    | PostgreSQL 16 + Prisma ORM               |
+| **Auth**        | NextAuth.js v4 (JWT + OAuth Google)      |
+| **Validation**  | Zod + React Hook Form                    |
+| **State**       | TanStack Query, React Hooks, Context API |
+| **API**         | Next.js API Routes (RESTful)             |
+| **Payments**    | Stripe (Checkout + Webhooks)             |
+| **PDF**         | @react-pdf/renderer                      |
+| **Email**       | Resend + React Email                     |
+| **Date/Time**   | date-fns                                 |
+| **Icons**       | Lucide React                             |
 
 ## 🏗️ Architecture du projet
 
@@ -138,25 +163,54 @@ my-pro-partner/
 │   │   └── dashboard/
 │   │       ├── articles/         # Gestion catalogue
 │   │       ├── clients/          # CRM clients
-│   │       └── documents/        # Devis/Factures
+│   │       ├── documents/        # Devis/Factures/Avoirs
+│   │       ├── analytics/        # Tableaux de bord
+│   │       └── settings/         # Paramètres entreprise
 │   ├── api/                      # API Routes REST
 │   │   ├── auth/                 # Endpoints auth
 │   │   ├── articles/             # CRUD articles
 │   │   ├── clients/              # CRUD clients
-│   │   └── documents/            # CRUD documents
-│   └── auth/                     # Pages login/register
+│   │   ├── documents/            # CRUD documents + PDF + paiements
+│   │   ├── analytics/            # Endpoints analytics
+│   │   └── webhooks/             # Stripe webhooks
+│   ├── auth/                     # Pages login/register
+│   ├── pay/                      # Pages paiement public Stripe
+│   └── payment/                  # Pages success/cancel paiement
 ├── components/
 │   ├── ui/                       # Design system (Shadcn)
-│   ├── skeletons/                # Loading states
+│   ├── pdf/                      # Templates PDF
+│   ├── document-form/            # Formulaires documents
+│   ├── analytics/                # Composants analytics
 │   └── providers/                # Context providers
+├── hooks/                        # Custom Hooks (14+)
+│   ├── use-documents.ts          # Gestion documents (React Query)
+│   ├── use-document-detail.ts    # Détail document (delete, convert)
+│   ├── use-document-pdf.ts       # Opérations PDF
+│   ├── use-payment-dialog.ts     # Dialogue paiement
+│   ├── use-document-status.ts    # Gestion statuts
+│   ├── use-email-sender.ts       # Envoi emails
+│   ├── use-unpaid-invoices.ts    # Analytics impayés
+│   └── ...                       # 7+ autres hooks
 ├── lib/
 │   ├── auth.ts                   # NextAuth config
 │   ├── db.ts                     # Prisma client singleton
 │   ├── validation.ts             # Schémas Zod réutilisables
+│   ├── services/                 # Services métier
+│   │   ├── document-number-generator.service.ts
+│   │   └── document-converter.service.ts
+│   ├── stripe/                   # Configuration Stripe
+│   │   ├── stripe-config.ts
+│   │   └── stripe-constants.ts
+│   ├── email/                    # Service email
+│   │   ├── email-service.ts
+│   │   └── templates/            # Templates React Email
 │   ├── constants/                # Config & constantes
-│   ├── errors/                   # Error handling utilities
 │   ├── types/                    # Types TypeScript globaux
+│   │   ├── payment.types.ts
+│   │   └── ...
 │   └── utils/                    # Helpers & utilities
+│       ├── payment-utils.ts
+│       └── ...
 └── prisma/
     ├── schema.prisma             # Modèle de données
     └── migrations/               # Historique migrations
@@ -164,19 +218,21 @@ my-pro-partner/
 
 ## 📊 Modèle de données
 
-Le schéma Prisma comprend **8 entités principales** avec relations complexes :
+Le schéma Prisma comprend **11 entités principales actives** avec relations complexes :
 
-| Entité                   | État              | Description                                                               |
-| ------------------------ | ----------------- | ------------------------------------------------------------------------- |
-| **User**                 | ✅ Utilisé        | Utilisateurs avec rôles (ADMIN/USER), authentification                    |
-| **Client**               | ✅ Utilisé        | Données clients BtoB/BtoC avec API complète                               |
-| **Article**              | ✅ Utilisé        | Produits/Services avec stocks et catégories                               |
-| **Categorie**            | ✅ Utilisé        | Hiérarchie parent/enfant pour articles                                    |
-| **MouvementStock**       | ✅ Utilisé        | Traçabilité complète des stocks (ENTREE, SORTIE, etc.)                    |
-| **Document**             | 🚧 Partiel        | Devis/Factures/Avoirs (API prête, UI en cours)                            |
-| **LigneDocument**        | 🚧 Partiel        | Lignes de documents (modèle prêt, API à créer)                            |
-| **Paiement**             | ⏳ Prévu          | Historique paiements multi-méthodes                                       |
-| **ParametresEntreprise** | ⏳ Prévu          | Configuration entreprise (TVA, CGV, numérotation)                         |
+| Entité                   | État       | Description                                                      |
+| ------------------------ | ---------- | ---------------------------------------------------------------- |
+| **User**                 | ✅ Utilisé | Utilisateurs avec rôles (ADMIN/USER), authentification           |
+| **Client**               | ✅ Utilisé | Données clients BtoB/BtoC avec API et UI complète                |
+| **Article**              | ✅ Utilisé | Produits/Services avec stocks et catégories                      |
+| **Categorie**            | ✅ Utilisé | Hiérarchie parent/enfant pour articles                           |
+| **MouvementStock**       | ✅ Utilisé | Traçabilité complète des stocks (ENTREE, SORTIE, etc.)           |
+| **Document**             | ✅ Utilisé | Devis/Factures/Avoirs avec workflow complet                      |
+| **LigneDocument**        | ✅ Utilisé | Lignes de documents avec calculs automatiques                    |
+| **Paiement**             | ✅ Utilisé | Historique paiements multi-méthodes + Stripe                     |
+| **ParametresEntreprise** | ✅ Utilisé | Configuration entreprise (TVA, CGV, numérotation, coordonnées)   |
+| **SerieDocument**        | ✅ Utilisé | Séries de numérotation avec reset annuel/mensuel                 |
+| **Segment**              | ✅ Utilisé | Segmentation clients pour emails groupés et analytics            |
 | **CompteClient**         | 💡 Planifié v1.0  | Gestion débit/crédit, solde, échéances                                    |
 | **MouvementPoints**      | 💡 Planifié v1.0  | Traçabilité programme fidélité (gain/dépense/expiration)                  |
 | **NiveauFidelite**       | 💡 Planifié v1.0  | Table configurable (nom, seuil points, remise, avantages) avec CRUD admin |
@@ -232,11 +288,26 @@ L'application sera disponible sur **http://localhost:3000**
 ### Variables d'environnement requises
 
 ```env
+# Database
 DATABASE_URL="postgresql://user:password@localhost:5432/mypropartner"
+
+# Auth
 NEXTAUTH_SECRET="<générer avec: openssl rand -base64 32>"
 NEXTAUTH_URL="http://localhost:3000"
 GOOGLE_CLIENT_ID="<votre-google-oauth-client-id>"
 GOOGLE_CLIENT_SECRET="<votre-google-oauth-secret>"
+
+# Stripe (Paiements)
+STRIPE_SECRET_KEY="sk_test_..."
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
+STRIPE_WEBHOOK_SECRET="whsec_..."
+
+# Email (Resend)
+RESEND_API_KEY="re_..."
+EMAIL_FROM="noreply@votre-domaine.com"
+
+# App
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
 ```
 
 ## 📚 Concepts techniques mis en œuvre
@@ -418,15 +489,26 @@ Ce projet est un **projet portfolio en développement actif** démontrant mes co
 
 **Développé avec :** Next.js • React • TypeScript • PostgreSQL • Prisma
 
-### 📝 Note pour les recruteurs
+### 📝 Note
 
-Ce projet représente environ **~70% d'avancement** :
+Ce projet représente environ **~85% d'avancement** vers une version 1.0 :
 
--   ✅ L'architecture, l'authentification, et le module Articles sont **entièrement fonctionnels**
--   🚧 Les modules Clients et Documents ont une **API complète** mais leur interface utilisateur est en cours de développement
--   📚 Le code démontre ma capacité à architecturer une application complexe avec des **patterns professionnels** (type safety, error handling, validation, pagination, etc.)
+-   ✅ **Architecture complète** avec séparation stricte des responsabilités (14+ custom hooks, services métier)
+-   ✅ **Authentification** robuste (JWT + OAuth Google)
+-   ✅ **Module Clients** entièrement fonctionnel (CRUD, segmentation, emails)
+-   ✅ **Module Documents** complet (Devis, Factures, Avoirs avec workflow)
+-   ✅ **Module Articles** avec gestion stocks et catégories
+-   ✅ **Paiements en ligne** via Stripe avec webhooks
+-   ✅ **Génération PDF** professionnelle et envoi par email
+-   ✅ **Analytics** avec tableaux de bord (impayés, débiteurs)
+-   📚 Le code démontre ma capacité à :
+    -   Architecturer une application complexe avec **Clean Architecture**
+    -   Implémenter des **patterns professionnels** (Custom Hooks, Service Layer, Type Safety)
+    -   Gérer des **intégrations tierces** (Stripe, Resend, PDF)
+    -   Optimiser les **performances** (React Query, pagination)
+    -   Maintenir une **qualité de code** élevée (DRY, types stricts, error handling)
 
-Je continue activement le développement pour atteindre une version 1.0 complète.
+**Prochaines étapes** : Upload d'images produits, tests E2E, optimisations de performance
 
 ---
 

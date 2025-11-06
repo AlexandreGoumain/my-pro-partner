@@ -6,12 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageHeader } from "@/components/ui/page-header";
 import { Textarea } from "@/components/ui/textarea";
+import { DatePicker } from "@/components/ui/date-picker";
 import { LineItemsEditor } from "./line-items-editor";
 import { DocumentTotals } from "./document-totals";
 import { ClientCombobox } from "./client-combobox";
 import { SerieCombobox } from "./serie-combobox";
 import { ArrowLeft, Save, Send } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useDocumentForm } from "@/hooks/use-document-form";
 import type { DocumentType } from "@/lib/types/document.types";
 
@@ -20,6 +21,7 @@ interface DocumentFormPageProps {
     title: string;
     description: string;
     redirectPath: string;
+    mode?: "create" | "edit";
 }
 
 export function DocumentFormPage({
@@ -27,8 +29,12 @@ export function DocumentFormPage({
     title,
     description,
     redirectPath,
+    mode = "create",
 }: DocumentFormPageProps) {
     const router = useRouter();
+    const params = useParams();
+    const documentId = mode === "edit" ? (params.id as string) : undefined;
+
     const {
         formData,
         setFormData,
@@ -39,8 +45,23 @@ export function DocumentFormPage({
         setLines,
         totals,
         isSubmitting,
+        isLoadingDocument,
         handleSubmit,
-    } = useDocumentForm({ documentType, redirectPath });
+    } = useDocumentForm({ documentType, redirectPath, documentId });
+
+    // Afficher un état de chargement si on est en mode édition et que le document se charge
+    if (mode === "edit" && isLoadingDocument) {
+        return (
+            <div className="space-y-6">
+                <PageHeader title={title} description={description} />
+                <Card className="p-12 border-black/8 shadow-sm">
+                    <div className="flex items-center justify-center">
+                        <div className="text-[14px] text-black/40">Chargement du document...</div>
+                    </div>
+                </Card>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">
@@ -101,17 +122,15 @@ export function DocumentFormPage({
                                 <Label htmlFor="dateEmission" className="text-[14px] font-medium">
                                     Date d&apos;émission
                                 </Label>
-                                <Input
-                                    id="dateEmission"
-                                    type="date"
-                                    value={formData.dateEmission}
-                                    onChange={(e) =>
+                                <DatePicker
+                                    date={formData.dateEmission ? new Date(formData.dateEmission) : undefined}
+                                    onSelect={(date) =>
                                         setFormData((prev) => ({
                                             ...prev,
-                                            dateEmission: e.target.value,
+                                            dateEmission: date ? date.toISOString().split("T")[0] : "",
                                         }))
                                     }
-                                    className="h-11 border-black/10"
+                                    placeholder="Sélectionner la date d'émission"
                                 />
                             </div>
 
@@ -119,17 +138,15 @@ export function DocumentFormPage({
                                 <Label htmlFor="dateEcheance" className="text-[14px] font-medium">
                                     Date d&apos;échéance
                                 </Label>
-                                <Input
-                                    id="dateEcheance"
-                                    type="date"
-                                    value={formData.dateEcheance}
-                                    onChange={(e) =>
+                                <DatePicker
+                                    date={formData.dateEcheance ? new Date(formData.dateEcheance) : undefined}
+                                    onSelect={(date) =>
                                         setFormData((prev) => ({
                                             ...prev,
-                                            dateEcheance: e.target.value,
+                                            dateEcheance: date ? date.toISOString().split("T")[0] : "",
                                         }))
                                     }
-                                    className="h-11 border-black/10"
+                                    placeholder="Sélectionner la date d'échéance"
                                 />
                             </div>
 
@@ -207,7 +224,11 @@ export function DocumentFormPage({
                             className="w-full h-11 px-6 text-[14px] font-medium bg-black hover:bg-black/90 text-white rounded-md shadow-sm"
                         >
                             <Send className="w-4 h-4 mr-2" strokeWidth={2} />
-                            {isSubmitting ? "Enregistrement..." : "Créer et envoyer"}
+                            {isSubmitting
+                                ? "Enregistrement..."
+                                : mode === "edit"
+                                ? "Mettre à jour et envoyer"
+                                : "Créer et envoyer"}
                         </Button>
                         <Button
                             onClick={() => handleSubmit("BROUILLON")}
@@ -216,7 +237,7 @@ export function DocumentFormPage({
                             className="w-full h-11 px-6 text-[14px] font-medium border-black/10 hover:bg-black/5"
                         >
                             <Save className="w-4 h-4 mr-2" strokeWidth={2} />
-                            Enregistrer en brouillon
+                            {mode === "edit" ? "Mettre à jour en brouillon" : "Enregistrer en brouillon"}
                         </Button>
                     </div>
                 </div>

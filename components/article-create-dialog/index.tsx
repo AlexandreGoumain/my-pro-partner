@@ -37,7 +37,6 @@ export function ArticleCreateDialog({ open, onOpenChange, onSuccess }: ArticleCr
     const form = useForm<ArticleFormValues>({
         resolver: zodResolver(articleCreateSchema),
         defaultValues: {
-            reference: "",
             nom: "",
             description: "",
             type: "PRODUIT",
@@ -46,7 +45,7 @@ export function ArticleCreateDialog({ open, onOpenChange, onSuccess }: ArticleCr
             categorieId: "",
             stock_actuel: 0,
             stock_min: 0,
-            gestion_stock: false,
+            gestion_stock: true,
             actif: true,
         },
     });
@@ -57,7 +56,6 @@ export function ArticleCreateDialog({ open, onOpenChange, onSuccess }: ArticleCr
             setCurrentStep(1);
             setArticleType(null);
             form.reset({
-                reference: "",
                 nom: "",
                 description: "",
                 type: "PRODUIT",
@@ -66,7 +64,7 @@ export function ArticleCreateDialog({ open, onOpenChange, onSuccess }: ArticleCr
                 categorieId: "",
                 stock_actuel: 0,
                 stock_min: 0,
-                gestion_stock: false,
+                gestion_stock: true,
                 actif: true,
             });
         }
@@ -88,7 +86,7 @@ export function ArticleCreateDialog({ open, onOpenChange, onSuccess }: ArticleCr
         if (currentStep === 1 && !articleType) return;
 
         if (currentStep === 2) {
-            const fields = ["reference", "nom", "categorieId"] as const;
+            const fields = ["nom", "categorieId"] as const;
             isValid = await form.trigger(fields);
         }
 
@@ -129,6 +127,11 @@ export function ArticleCreateDialog({ open, onOpenChange, onSuccess }: ArticleCr
     };
 
     function onSubmit(values: ArticleFormValues) {
+        // Empêcher le submit si on n'est pas au dernier step (résumé)
+        if (currentStep < totalSteps) {
+            return;
+        }
+
         createArticle.mutate(values, {
             onSuccess: () => {
                 onSuccess();
@@ -204,7 +207,16 @@ export function ArticleCreateDialog({ open, onOpenChange, onSuccess }: ArticleCr
                 <Separator />
 
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                    <form
+                        onSubmit={form.handleSubmit(onSubmit)}
+                        onKeyDown={(e) => {
+                            // Empêcher le submit avec Enter si on n'est pas au dernier step
+                            if (e.key === "Enter" && currentStep < totalSteps) {
+                                e.preventDefault();
+                            }
+                        }}
+                        className="space-y-6"
+                    >
                         <div className="overflow-hidden">
                             {currentStep === 1 && (
                                 <div
@@ -315,7 +327,8 @@ export function ArticleCreateDialog({ open, onOpenChange, onSuccess }: ArticleCr
                                 </Button>
                             ) : (
                                 <Button
-                                    type="submit"
+                                    type="button"
+                                    onClick={() => form.handleSubmit(onSubmit)()}
                                     disabled={createArticle.isPending}
                                     className="bg-black hover:bg-black/90 text-white ml-auto"
                                 >

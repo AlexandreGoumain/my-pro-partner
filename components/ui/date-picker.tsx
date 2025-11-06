@@ -40,13 +40,13 @@ export function DatePicker({
           variant="outline"
           disabled={disabled}
           className={cn(
-            "w-full justify-start text-left font-normal",
-            !date && "text-muted-foreground",
+            "w-full justify-start text-left font-normal h-11 border-black/10 text-[14px]",
+            !date && "text-black/40",
             className
           )}
         >
-          <CalendarIcon className="mr-2 h-4 w-4" />
-          {date ? format(date, "PPP", { locale: fr }) : placeholder}
+          <CalendarIcon className="mr-2 h-4 w-4" strokeWidth={2} />
+          {date ? format(date, "dd MMMM yyyy", { locale: fr }) : placeholder}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
@@ -105,20 +105,20 @@ export function DateRangePicker({
           variant="outline"
           disabled={disabled}
           className={cn(
-            "w-full justify-start text-left font-normal",
-            !range.from && "text-muted-foreground",
+            "w-full justify-start text-left font-normal h-11 border-black/10 text-[14px]",
+            !range.from && "text-black/40",
             className
           )}
         >
-          <CalendarIcon className="mr-2 h-4 w-4" />
+          <CalendarIcon className="mr-2 h-4 w-4" strokeWidth={2} />
           {range.from ? (
             range.to ? (
               <>
-                {format(range.from, "PPP", { locale: fr })} -{" "}
-                {format(range.to, "PPP", { locale: fr })}
+                {format(range.from, "dd MMM yyyy", { locale: fr })} -{" "}
+                {format(range.to, "dd MMM yyyy", { locale: fr })}
               </>
             ) : (
-              format(range.from, "PPP", { locale: fr })
+              format(range.from, "dd MMM yyyy", { locale: fr })
             )
           ) : (
             placeholder

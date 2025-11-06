@@ -18,8 +18,10 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
-import { toast } from "sonner";
+import { DatePicker } from "@/components/ui/date-picker";
+import { PAYMENT_METHOD_LABELS, type PaymentMethod } from "@/lib/types/payment.types";
+import { formatCurrency } from "@/lib/utils/payment-utils";
+import { usePaymentDialog } from "@/hooks/use-payment-dialog";
 
 interface AddPaymentDialogProps {
     isOpen: boolean;
@@ -32,15 +34,12 @@ interface AddPaymentDialogProps {
     onSuccess: () => void;
 }
 
-type PaymentMethod = "ESPECES" | "CHEQUE" | "VIREMENT" | "CARTE" | "PRELEVEMENT";
-
-const paymentMethods: { value: PaymentMethod; label: string }[] = [
-    { value: "ESPECES", label: "Espèces" },
-    { value: "CHEQUE", label: "Chèque" },
-    { value: "VIREMENT", label: "Virement" },
-    { value: "CARTE", label: "Carte bancaire" },
-    { value: "PRELEVEMENT", label: "Prélèvement" },
-];
+const paymentMethods: { value: PaymentMethod; label: string }[] = Object.entries(
+    PAYMENT_METHOD_LABELS
+).map(([value, label]) => ({
+    value: value as PaymentMethod,
+    label,
+}));
 
 export function AddPaymentDialog({
     isOpen,
@@ -48,51 +47,14 @@ export function AddPaymentDialog({
     invoice,
     onSuccess,
 }: AddPaymentDialogProps) {
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [formData, setFormData] = useState({
-        montant: invoice.reste_a_payer,
-        moyen_paiement: "VIREMENT" as PaymentMethod,
-        date_paiement: new Date().toISOString().split("T")[0],
-        reference: "",
-        notes: "",
-    });
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (formData.montant <= 0) {
-            toast.error("Le montant doit être supérieur à 0");
-            return;
-        }
-
-        if (formData.montant > invoice.reste_a_payer) {
-            toast.error("Le montant ne peut pas dépasser le reste à payer");
-            return;
-        }
-
-        setIsSubmitting(true);
-
-        try {
-            const response = await fetch(`/api/documents/${invoice.id}/payments`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(formData),
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || "Erreur lors de l'enregistrement du paiement");
-            }
-
-            toast.success("Paiement enregistré avec succès");
+    const { formData, isSubmitting, handleSubmit, updateFormData } = usePaymentDialog({
+        invoiceId: invoice.id,
+        resteAPayer: invoice.reste_a_payer,
+        onSuccess: () => {
             onSuccess();
-        } catch (error: unknown) {
-            console.error("Error adding payment:", error);
-            toast.error(error.message || "Impossible d'enregistrer le paiement");
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
+            onClose();
+        },
+    });
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -103,10 +65,7 @@ export function AddPaymentDialog({
                     </DialogTitle>
                     <DialogDescription className="text-[14px] text-black/60">
                         Facture {invoice.numero} - Reste à payer:{" "}
-                        {new Intl.NumberFormat("fr-FR", {
-                            style: "currency",
-                            currency: "EUR",
-                        }).format(invoice.reste_a_payer)}
+                        {formatCurrency(invoice.reste_a_payer)}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -121,10 +80,7 @@ export function AddPaymentDialog({
                             step="0.01"
                             value={formData.montant}
                             onChange={(e) =>
-                                setFormData((prev) => ({
-                                    ...prev,
-                                    montant: parseFloat(e.target.value) || 0,
-                                }))
+                                updateFormData("montant", parseFloat(e.target.value) || 0)
                             }
                             className="h-11 border-black/10"
                             required
@@ -138,7 +94,7 @@ export function AddPaymentDialog({
                         <Select
                             value={formData.moyen_paiement}
                             onValueChange={(value: PaymentMethod) =>
-                                setFormData((prev) => ({ ...prev, moyen_paiement: value }))
+                                updateFormData("moyen_paiement", value)
                             }
                         >
                             <SelectTrigger id="moyen" className="h-11 border-black/10">
@@ -158,15 +114,15 @@ export function AddPaymentDialog({
                         <Label htmlFor="date" className="text-[14px] font-medium">
                             Date du paiement *
                         </Label>
-                        <Input
-                            id="date"
-                            type="date"
-                            value={formData.date_paiement}
-                            onChange={(e) =>
-                                setFormData((prev) => ({ ...prev, date_paiement: e.target.value }))
+                        <DatePicker
+                            date={formData.date_paiement ? new Date(formData.date_paiement) : undefined}
+                            onSelect={(date) =>
+                                updateFormData(
+                                    "date_paiement",
+                                    date ? date.toISOString().split("T")[0] : new Date().toISOString().split("T")[0]
+                                )
                             }
-                            className="h-11 border-black/10"
-                            required
+                            placeholder="Sélectionner la date du paiement"
                         />
                     </div>
 
@@ -177,9 +133,7 @@ export function AddPaymentDialog({
                         <Input
                             id="reference"
                             value={formData.reference}
-                            onChange={(e) =>
-                                setFormData((prev) => ({ ...prev, reference: e.target.value }))
-                            }
+                            onChange={(e) => updateFormData("reference", e.target.value)}
                             placeholder="Ex: Numéro de chèque, référence virement..."
                             className="h-11 border-black/10"
                         />
@@ -192,9 +146,7 @@ export function AddPaymentDialog({
                         <Textarea
                             id="notes"
                             value={formData.notes}
-                            onChange={(e) =>
-                                setFormData((prev) => ({ ...prev, notes: e.target.value }))
-                            }
+                            onChange={(e) => updateFormData("notes", e.target.value)}
                             placeholder="Notes additionnelles..."
                             className="min-h-[80px] border-black/10"
                         />

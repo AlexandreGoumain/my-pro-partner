@@ -9,8 +9,8 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { DocumentTemplate } from "./document-template";
-import { Download, Printer } from "lucide-react";
-import { useRef } from "react";
+import { Download, Printer, Send } from "lucide-react";
+import { useDocumentPdf } from "@/hooks/use-document-pdf";
 
 interface DocumentPdfDialogProps {
     isOpen: boolean;
@@ -25,48 +25,19 @@ export function DocumentPdfDialog({
     document,
     company,
 }: DocumentPdfDialogProps) {
-    const contentRef = useRef<HTMLDivElement>(null);
-
-    const handlePrint = () => {
-        const printContent = contentRef.current;
-        if (!printContent) return;
-
-        const printWindow = window.open("", "", "width=800,height=600");
-        if (!printWindow) return;
-
-        printWindow.document.write(`
-            <html>
-                <head>
-                    <title>${document.type} ${document.numero}</title>
-                    <style>
-                        @media print {
-                            @page {
-                                margin: 0;
-                            }
-                            body {
-                                margin: 0;
-                                padding: 0;
-                            }
-                        }
-                        body {
-                            font-family: system-ui, -apple-system, sans-serif;
-                        }
-                    </style>
-                </head>
-                <body>
-                    ${printContent.innerHTML}
-                </body>
-            </html>
-        `);
-
-        printWindow.document.close();
-        printWindow.focus();
-
-        setTimeout(() => {
-            printWindow.print();
-            printWindow.close();
-        }, 250);
-    };
+    const {
+        contentRef,
+        isDownloading,
+        isSending,
+        handleDownloadPdf,
+        handlePrint,
+        handleSendEmail,
+    } = useDocumentPdf({
+        documentId: document.id,
+        documentType: document.type,
+        documentNumero: document.numero,
+        onClose,
+    });
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -83,7 +54,25 @@ export function DocumentPdfDialog({
                 <div className="space-y-4">
                     <div className="flex gap-3 justify-end">
                         <Button
+                            onClick={handleSendEmail}
+                            disabled={isSending || isDownloading}
+                            className="h-10 px-4 text-[14px] font-medium bg-black hover:bg-black/90 text-white"
+                        >
+                            <Send className="w-4 h-4 mr-2" strokeWidth={2} />
+                            {isSending ? "Envoi..." : "Envoyer par email"}
+                        </Button>
+                        <Button
+                            onClick={handleDownloadPdf}
+                            disabled={isDownloading || isSending}
+                            variant="outline"
+                            className="h-10 px-4 text-[14px] font-medium border-black/10 hover:bg-black/5"
+                        >
+                            <Download className="w-4 h-4 mr-2" strokeWidth={2} />
+                            {isDownloading ? "Génération..." : "Télécharger PDF"}
+                        </Button>
+                        <Button
                             onClick={handlePrint}
+                            disabled={isSending || isDownloading}
                             variant="outline"
                             className="h-10 px-4 text-[14px] font-medium border-black/10 hover:bg-black/5"
                         >

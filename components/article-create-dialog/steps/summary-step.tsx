@@ -16,8 +16,26 @@ export function SummaryStep({ form, articleType, categories }: StepProps) {
     const tvaTaux = form.watch("tva_taux");
     const prixTTC = prixHT * (1 + tvaTaux / 100);
 
-    const categorieName =
-        categories.find((c) => c.id === form.watch("categorieId"))?.nom || "-";
+    // Fonction pour construire le chemin complet de la catégorie (avec parents)
+    const getCategoryPath = (categoryId: string): string => {
+        const category = categories.find((c) => c.id === categoryId);
+        if (!category) return "-";
+
+        const path: string[] = [category.nom];
+        let currentCategory = category;
+
+        // Remonter la hiérarchie jusqu'à la racine
+        while (currentCategory.parentId) {
+            const parent = categories.find((c) => c.id === currentCategory.parentId);
+            if (!parent) break;
+            path.unshift(parent.nom);
+            currentCategory = parent;
+        }
+
+        return path.join(" → ");
+    };
+
+    const categorieName = getCategoryPath(form.watch("categorieId"));
 
     return (
         <div className="space-y-3 py-4">
@@ -78,28 +96,20 @@ export function SummaryStep({ form, articleType, categories }: StepProps) {
                             </h4>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1">
-                                <span className="text-[13px] text-black/50 font-medium">
-                                    Référence
-                                </span>
-                                <p className="font-semibold text-[15px] text-black">
-                                    {form.watch("reference")}
-                                </p>
-                            </div>
-                            <div className="space-y-1">
-                                <span className="text-[13px] text-black/50 font-medium">
-                                    Catégorie
-                                </span>
-                                <p className="font-semibold text-[15px] text-black">
-                                    {categorieName}
-                                </p>
-                            </div>
                             <div className="col-span-2 space-y-1">
                                 <span className="text-[13px] text-black/50 font-medium">
                                     Nom
                                 </span>
                                 <p className="font-semibold text-[15px] text-black">
                                     {form.watch("nom")}
+                                </p>
+                            </div>
+                            <div className="col-span-2 space-y-1">
+                                <span className="text-[13px] text-black/50 font-medium">
+                                    Catégorie
+                                </span>
+                                <p className="font-semibold text-[15px] text-black">
+                                    {categorieName}
                                 </p>
                             </div>
                             {form.watch("description") && (
@@ -186,22 +196,11 @@ export function SummaryStep({ form, articleType, categories }: StepProps) {
                                         {form.watch("stock_min")} unités
                                     </p>
                                 </div>
-                                <div className="col-span-2 space-y-1">
-                                    <span className="text-[13px] text-black/50 font-medium">
-                                        Gestion automatique
-                                    </span>
+                                <div className="col-span-2 space-y-1 pt-2 border-t border-black/8">
                                     <div className="flex items-center gap-2">
-                                        <div
-                                            className={`w-2 h-2 rounded-full ${
-                                                form.watch("gestion_stock")
-                                                    ? "bg-black"
-                                                    : "bg-black/20"
-                                            }`}
-                                        />
-                                        <p className="font-semibold text-[15px] text-black">
-                                            {form.watch("gestion_stock")
-                                                ? "Activée"
-                                                : "Désactivée"}
+                                        <div className="w-2 h-2 rounded-full bg-black" />
+                                        <p className="text-[13px] text-black/60">
+                                            Gestion automatique activée - Le stock sera déduit lors des ventes
                                         </p>
                                     </div>
                                 </div>

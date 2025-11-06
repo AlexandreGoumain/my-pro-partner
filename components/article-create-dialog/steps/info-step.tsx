@@ -32,64 +32,35 @@ export function InfoStep({
             </div>
 
             <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                        control={form.control}
-                        name="reference"
-                        render={({ field }) => (
-                            <FormItem className="space-y-1.5">
-                                <FormLabel className="text-[13px] font-medium">
-                                    Référence *
-                                </FormLabel>
-                                <FormControl>
-                                    <Input
-                                        placeholder={
-                                            articleType === "SERVICE"
-                                                ? "SRV-001"
-                                                : "PRD-001"
-                                        }
-                                        className="h-10"
-                                        {...field}
-                                    />
-                                </FormControl>
-                                <FormDescription className="text-[12px]">
-                                    Identifiant unique
-                                </FormDescription>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    <FormField
-                        control={form.control}
-                        name="nom"
-                        render={({ field }) => (
-                            <FormItem className="space-y-1.5">
-                                <FormLabel className="text-[13px] font-medium">
-                                    Nom *
-                                </FormLabel>
-                                <FormControl>
-                                    <Input
-                                        placeholder={
-                                            articleType === "SERVICE"
-                                                ? "Ex: Installation électrique"
-                                                : "Ex: Tournevis électrique"
-                                        }
-                                        className="h-10"
-                                        {...field}
-                                    />
-                                </FormControl>
-                                <FormDescription className="text-[12px]">
-                                    Nom commercial du{" "}
-                                    {articleType === "SERVICE"
-                                        ? "service"
-                                        : "produit"}
-                                </FormDescription>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </div>
+                <FormField
+                    control={form.control}
+                    name="nom"
+                    render={({ field }) => (
+                        <FormItem className="space-y-1.5">
+                            <FormLabel className="text-[13px] font-medium">
+                                Nom *
+                            </FormLabel>
+                            <FormControl>
+                                <Input
+                                    placeholder={
+                                        articleType === "SERVICE"
+                                            ? "Ex: Installation électrique"
+                                            : "Ex: Tournevis électrique"
+                                    }
+                                    className="h-10"
+                                    {...field}
+                                />
+                            </FormControl>
+                            <FormDescription className="text-[12px]">
+                                Nom commercial du{" "}
+                                {articleType === "SERVICE"
+                                    ? "service"
+                                    : "produit"} (la référence sera générée automatiquement)
+                            </FormDescription>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
 
                 <FormField
                     control={form.control}

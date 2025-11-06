@@ -164,6 +164,11 @@ export interface CompanySettings {
     site_web?: string | null;
     logo_url?: string | null;
     mentions_legales?: string | null;
+    // Configuration références articles
+    prefixe_produit?: string | null;
+    prefixe_service?: string | null;
+    prochain_numero_produit?: number | null;
+    prochain_numero_service?: number | null;
 }
 
 // Type pour les informations utilisateur

@@ -7,6 +7,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { emailService } from "@/lib/email/email-service";
 import { render } from "@react-email/render";
 import { InvoiceEmail } from "@/lib/email/templates/invoice";
+import { DocumentPdfRenderer } from "@/components/pdf/document-pdf-renderer";
+import { renderToBuffer } from "@react-pdf/renderer";
 
 // ============================================
 // POST /api/documents/[id]/send - Send document by email
@@ -86,6 +88,49 @@ export async function POST(
     // Generate document view URL (if you have a public view page)
     const viewUrl = `${process.env.NEXT_PUBLIC_APP_URL}/documents/${document.id}/view`;
 
+    // Generate payment URL for invoices
+    const paymentUrl = document.type === "FACTURE"
+      ? `${process.env.NEXT_PUBLIC_APP_URL}/pay/${document.id}`
+      : undefined;
+
+    // Get company settings for PDF generation
+    let companySettings = await prisma.parametresEntreprise.findUnique({
+      where: { entrepriseId: document.entrepriseId },
+    });
+
+    if (!companySettings) {
+      companySettings = await prisma.parametresEntreprise.create({
+        data: {
+          entrepriseId: document.entrepriseId,
+          nom_entreprise: document.entreprise.nom,
+        },
+      });
+    }
+
+    // Generate PDF attachment
+    const pdfBuffer = await renderToBuffer(
+      DocumentPdfRenderer({
+        document: {
+          ...document,
+          total_ht: Number(document.total_ht),
+          total_tva: Number(document.total_tva),
+          total_ttc: Number(document.total_ttc),
+          reste_a_payer: Number(document.reste_a_payer),
+          lignes: document.lignes.map((ligne) => ({
+            ...ligne,
+            quantite: Number(ligne.quantite),
+            prix_unitaire_ht: Number(ligne.prix_unitaire_ht),
+            tva_taux: Number(ligne.tva_taux),
+            remise_pourcent: Number(ligne.remise_pourcent),
+            montant_ht: Number(ligne.montant_ht),
+            montant_tva: Number(ligne.montant_tva),
+            montant_ttc: Number(ligne.montant_ttc),
+          })),
+        },
+        company: companySettings,
+      })
+    );
+
     // Render email HTML from React template
     const emailHtml = await render(
       InvoiceEmail({
@@ -100,19 +145,19 @@ export async function POST(
         entrepriseEmail: document.entreprise.email || undefined,
         paymentInstructions: document.conditions_paiement || undefined,
         viewUrl,
+        paymentUrl,
       })
     );
 
-    // Send email
+    // Send email with PDF attachment
     const result = await emailService.sendEmail({
       to: document.client.email,
       subject: `${docTypeLabel} n°${document.numero} - ${document.entreprise.nom || "MyProPartner"}`,
       html: emailHtml,
-      // TODO: Add PDF attachment when PDF generation is implemented
-      // attachments: [{
-      //   filename: `${docTypeLabel}-${document.numero}.pdf`,
-      //   content: pdfBuffer,
-      // }],
+      attachments: [{
+        filename: `${docTypeLabel}_${document.numero}.pdf`,
+        content: pdfBuffer,
+      }],
       fromName: document.entreprise.nom || 'MyProPartner',
       replyTo: document.entreprise.email || undefined,
     });

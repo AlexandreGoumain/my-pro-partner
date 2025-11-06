@@ -11,7 +11,10 @@ export interface Document {
     dateEmission: Date;
     dateEcheance: Date | null;
     statut: DocumentStatus;
+    clientId?: string;
+    serieId?: string | null;
     client: {
+        id?: string;
         nom: string;
         prenom: string | null;
         email: string | null;
@@ -26,6 +29,7 @@ export interface Document {
     validite_jours: number;
     lignes: Array<{
         id: string;
+        articleId?: string | null;
         designation: string;
         description: string | null;
         quantite: number;
@@ -55,6 +59,18 @@ export function useDocuments(type: DocumentType) {
             const result = await api.get<{ documents: Document[] }>(`/api/documents?type=${type}`);
             return result.documents || [];
         },
+    });
+}
+
+// Hook pour récupérer les documents d'un client
+export function useClientDocuments(clientId: string) {
+    return useQuery({
+        queryKey: [...documentKeys.all, "client", clientId] as const,
+        queryFn: async () => {
+            const result = await api.get<{ documents: Document[] }>(`/api/documents?clientId=${clientId}`);
+            return result.documents || [];
+        },
+        enabled: !!clientId,
     });
 }
 

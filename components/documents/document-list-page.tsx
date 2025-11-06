@@ -96,6 +96,8 @@ export function DocumentListPage<T>({
                 }
             />
 
+            {additionalContent}
+
             <DataTable
                 columns={columns}
                 data={documents}
@@ -103,8 +105,6 @@ export function DocumentListPage<T>({
                 itemLabel={itemLabel}
                 columnLabels={columnLabels}
             />
-
-            {additionalContent}
         </div>
     );
 }
