@@ -8,11 +8,21 @@ import {
     ClientSegmentBanner,
     ClientStatsGrid,
 } from "@/components/clients";
+import { PendingClientsSection } from "@/components/pending-clients-section";
+import { RegistrationLinkCard } from "@/components/registration-link-card";
+import { InviteClientDialog } from "@/components/invite-client-dialog";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useClientsPage } from "@/hooks/use-clients-page";
 import { CLIENT_CSV_MAPPINGS } from "@/lib/constants/csv-mappings";
-import { Plus, Upload } from "lucide-react";
+import { Plus, Upload, ChevronDown, UserPlus, Mail } from "lucide-react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { DataTable } from "@/components/ui/data-table";
@@ -29,6 +39,7 @@ const CLIENT_COLUMN_LABELS: Record<string, string> = {
 function ClientsPageContent() {
     const router = useRouter();
     const handlers = useClientsPage();
+    const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
 
     return (
         <div className="space-y-6">
@@ -45,13 +56,31 @@ function ClientsPageContent() {
                             <Upload className="w-4 h-4 mr-2" strokeWidth={2} />
                             Importer CSV
                         </Button>
-                        <Button
-                            onClick={handlers.handleCreate}
-                            className="h-11 px-6 text-[14px] font-medium bg-black hover:bg-black/90 text-white rounded-md shadow-sm cursor-pointer"
-                        >
-                            <Plus className="w-4 h-4 mr-2" strokeWidth={2} />
-                            Nouveau client
-                        </Button>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button className="h-11 px-6 text-[14px] font-medium bg-black hover:bg-black/90 text-white rounded-md shadow-sm cursor-pointer">
+                                    <Plus className="w-4 h-4 mr-2" strokeWidth={2} />
+                                    Nouveau client
+                                    <ChevronDown className="w-4 h-4 ml-2" strokeWidth={2} />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-56">
+                                <DropdownMenuItem
+                                    onClick={handlers.handleCreate}
+                                    className="cursor-pointer"
+                                >
+                                    <UserPlus className="w-4 h-4 mr-2" strokeWidth={2} />
+                                    Créer manuellement
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    onClick={() => setInviteDialogOpen(true)}
+                                    className="cursor-pointer"
+                                >
+                                    <Mail className="w-4 h-4 mr-2" strokeWidth={2} />
+                                    Inviter par email
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </>
                 }
             />
@@ -80,6 +109,10 @@ function ClientsPageContent() {
                     router.push("/dashboard/clients/import-export")
                 }
             />
+
+            <RegistrationLinkCard />
+
+            <PendingClientsSection />
 
             {handlers.segmentId && handlers.segment && (
                 <ClientSegmentBanner
@@ -144,6 +177,14 @@ function ClientsPageContent() {
                 onImport={handlers.handleImport}
                 csvMappings={CLIENT_CSV_MAPPINGS}
                 selectedClient={handlers.selectedClient}
+            />
+
+            <InviteClientDialog
+                open={inviteDialogOpen}
+                onOpenChange={setInviteDialogOpen}
+                onSuccess={() => {
+                    setInviteDialogOpen(false);
+                }}
             />
         </div>
     );
