@@ -99,7 +99,7 @@ export async function POST(
     });
 
     // Get entreprise info for email branding
-    const entreprise = await prisma.entreprise.findUnique({
+    const entrepriseInfo = await prisma.entreprise.findUnique({
       where: { id: entrepriseId },
       select: { nom: true, email: true },
     });
@@ -121,7 +121,7 @@ export async function POST(
             clientName: recipient.nom || '',
             clientFirstName: recipient.prenom || '',
             clientEmail: recipient.email,
-            entrepriseName: entreprise?.nom || 'MyProPartner',
+            entrepriseName: entrepriseInfo?.nom || 'MyProPartner',
             unsubscribeUrl,
           })
         );
@@ -131,8 +131,8 @@ export async function POST(
           to: recipient.email,
           subject: campaign.subject!,
           html: emailHtml,
-          fromName: entreprise?.nom || 'MyProPartner',
-          replyTo: entreprise?.email || undefined,
+          fromName: entrepriseInfo?.nom || 'MyProPartner',
+          replyTo: entrepriseInfo?.email || undefined,
         });
 
         if (result.success) {

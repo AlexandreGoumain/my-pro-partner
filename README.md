@@ -24,7 +24,7 @@ Application ERP complète développée en utilisant les dernières technologies 
 
 ### 📊 État d'avancement du projet
 
-**Modules complétés (85%):**
+**Modules complétés (90%):**
 
 -   ✅ Authentification complète (JWT + OAuth Google)
 -   ✅ Gestion des articles (CRUD, UI, stocks, catégories)
@@ -37,8 +37,9 @@ Application ERP complète développée en utilisant les dernières technologies 
 -   ✅ Système d'emails transactionnels
 -   ✅ Analytics et tableaux de bord
 -   ✅ Architecture avec Custom Hooks et Services
+-   ✅ **Programme de fidélité complet**
 
-**En cours de développement (10%):**
+**En cours de développement (5%):**
 
 -   🚧 Optimisations de performance
 -   🚧 Tests automatisés
@@ -46,7 +47,7 @@ Application ERP complète développée en utilisant les dernières technologies 
 **Planifié (5%):**
 
 -   ⏳ Upload d'images produits
--   ⏳ Programme de fidélité
+-   ⏳ Gestion des comptes clients (débiteur/créditeur)
 
 ## 🎯 Compétences démontrées
 
@@ -135,6 +136,21 @@ Application ERP complète développée en utilisant les dernières technologies 
 -   ✅ Gestion des statuts avec transitions validées
 -   ✅ Vue grille/liste avec filtres et recherche
 -   ✅ Analytics des impayés avec relances clients
+
+### 🎁 Programme de Fidélité ✅
+
+-   ✅ Système de points basé sur les achats (1€ = 1 point)
+-   ✅ Gestion complète des niveaux de fidélité (CRUD admin)
+-   ✅ Configuration des niveaux : seuil, remise, couleur, icône, avantages
+-   ✅ Attribution automatique du niveau selon les points
+-   ✅ Application automatique des remises par niveau
+-   ✅ Gain automatique de points lors du paiement (Stripe webhook)
+-   ✅ Historique complet des mouvements de points
+-   ✅ Expiration automatique des points (configurable)
+-   ✅ Dashboard client : solde, niveau, progression
+-   ✅ Statistiques : participation, distribution par niveau
+-   ✅ API REST complète pour points et niveaux
+-   ✅ Gestion manuelle des points (ajustements admin)
 
 ## 🛠️ Stack technique
 

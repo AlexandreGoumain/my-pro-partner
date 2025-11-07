@@ -1,12 +1,13 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { XCircle } from "lucide-react";
 import { usePaymentRetry } from "@/hooks/use-payment-retry";
 
-export default function PaymentCancelPage() {
+function PaymentCancelContent() {
     const searchParams = useSearchParams();
     const documentId = searchParams.get("document_id");
     const { isRetrying, handleRetry } = usePaymentRetry(documentId);
@@ -44,5 +45,17 @@ export default function PaymentCancelPage() {
                 </div>
             </Card>
         </div>
+    );
+}
+
+export default function PaymentCancelPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-black/2 flex items-center justify-center p-4">
+                <p className="text-[14px] text-black/60">Chargement...</p>
+            </div>
+        }>
+            <PaymentCancelContent />
+        </Suspense>
     );
 }

@@ -360,3 +360,40 @@ export const niveauFideliteUpdateSchema = niveauFideliteBaseSchema.partial();
 
 export type NiveauFideliteCreateInput = z.infer<typeof niveauFideliteCreateSchema>;
 export type NiveauFideliteUpdateInput = z.infer<typeof niveauFideliteUpdateSchema>;
+
+// Loyalty points movement validation schemas
+export const mouvementPointsBaseSchema = z.object({
+    clientId: z.string().min(1, "Le client est requis"),
+    type: z.enum(["GAIN", "DEPENSE", "EXPIRATION", "AJUSTEMENT"], {
+        required_error: "Le type de mouvement est requis",
+        invalid_type_error: "Type de mouvement invalide",
+    }),
+    points: z
+        .number({
+            required_error: "Le nombre de points est requis",
+            invalid_type_error: "Le nombre de points doit être un nombre",
+        })
+        .int("Le nombre de points doit être un nombre entier")
+        .refine((val) => val !== 0, {
+            message: "Le nombre de points ne peut pas être zéro",
+        }),
+    description: z
+        .string()
+        .max(500, "La description ne peut pas dépasser 500 caractères")
+        .optional()
+        .or(z.literal("")),
+    reference: z
+        .string()
+        .max(100, "La référence ne peut pas dépasser 100 caractères")
+        .optional()
+        .or(z.literal("")),
+    dateExpiration: z
+        .string()
+        .optional()
+        .or(z.literal("")),
+});
+
+// Schema pour la création de mouvement de points
+export const mouvementPointsCreateSchema = mouvementPointsBaseSchema;
+
+export type MouvementPointsCreateInput = z.infer<typeof mouvementPointsCreateSchema>;

@@ -4,6 +4,7 @@ import { stripe, STRIPE_WEBHOOK_SECRET } from "@/lib/stripe/stripe-config";
 import { STRIPE_EVENTS, STRIPE_ERRORS } from "@/lib/stripe/stripe-constants";
 import { prisma } from "@/lib/prisma";
 import { centsToEuros, toNumber, calculateRemainingAmount } from "@/lib/utils/payment-utils";
+import { LoyaltyService } from "@/lib/services/loyalty.service";
 import type Stripe from "stripe";
 
 /**
@@ -72,9 +73,12 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promis
         throw new Error("No documentId in session metadata");
     }
 
-    // Fetch document
+    // Fetch document with client info
     const document = await prisma.document.findUnique({
         where: { id: documentId },
+        include: {
+            client: true,
+        },
     });
 
     if (!document) {
@@ -120,4 +124,23 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promis
         `[Stripe Webhook] Payment recorded for document ${document.numero}:`,
         `${paidAmount}€, remaining: ${remainingAmount}€`
     );
+
+    // Add loyalty points to the client for this payment
+    try {
+        await LoyaltyService.addPoints({
+            clientId: document.clientId,
+            entrepriseId: document.entrepriseId,
+            montant: Number(paidAmount),
+            reference: document.numero,
+            description: `Paiement de ${paidAmount}€ pour ${document.type === "FACTURE" ? "la facture" : "le document"} ${document.numero}`,
+        });
+
+        console.log(
+            `[Stripe Webhook] Loyalty points added for client ${document.client.nom}:`,
+            `${LoyaltyService.calculatePoints(Number(paidAmount))} points for ${paidAmount}€`
+        );
+    } catch (loyaltyError) {
+        // Log error but don't fail the webhook - payment was successful
+        console.error("[Stripe Webhook] Failed to add loyalty points:", loyaltyError);
+    }
 }

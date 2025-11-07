@@ -19,6 +19,7 @@ datasource db {
 model Entreprise {
   id    String  @id @default(cuid())
   nom   String
+  slug  String? @unique // URL-friendly identifier for client portal registration
   siret String? @unique
   email String  @unique
 
@@ -48,6 +49,7 @@ model Entreprise {
   updatedAt DateTime @updatedAt
 
   @@index([email])
+  @@index([slug])
   @@index([siret])
   @@index([abonnementActif])
 }
@@ -102,6 +104,12 @@ model Client {
   pays       String  @default("France")
   notes      String?
 
+  // Authentification portail client
+  password        String? // Hashed password for client portal access
+  clientPortalEnabled Boolean @default(false) // Enable/disable portal access
+  pendingApproval Boolean @default(false) // Client waiting for admin approval after self-registration
+  lastLoginAt     DateTime? // Track last portal login
+
   // Programme de fidélité
   points_solde     Int             @default(0)
   niveauFidelite   NiveauFidelite? @relation(fields: [niveauFideliteId], references: [id])
@@ -113,6 +121,7 @@ model Client {
 
   documents        Document[]
   mouvementsPoints MouvementPoints[]
+  notifications    ClientNotification[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -123,6 +132,77 @@ model Client {
   @@index([ville])
   @@index([niveauFideliteId])
   @@index([points_solde])
+  @@index([clientPortalEnabled])
+  @@index([pendingApproval])
+  @@index([entrepriseId, pendingApproval])
+}
+
+// Tokens de réinitialisation de mot de passe pour le portail client
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  clientId  String
+  email     String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  usedAt    DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([clientId])
+  @@index([email])
+  @@index([expiresAt])
+}
+
+// Tokens d'invitation pour créer un compte portail client
+model InvitationToken {
+  id           String   @id @default(cuid())
+  token        String   @unique
+  email        String
+  nom          String?
+  prenom       String?
+  telephone    String?
+  entrepriseId String
+  expiresAt    DateTime
+  used         Boolean  @default(false)
+  usedAt       DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([email])
+  @@index([entrepriseId])
+  @@index([expiresAt])
+}
+
+// Notifications pour le portail client
+model ClientNotification {
+  id       String               @id @default(cuid())
+  type     NotificationType
+  titre    String
+  message  String?
+  lue      Boolean              @default(false)
+  metadata Json?                // Données additionnelles (documentId, points, etc.)
+
+  client   Client               @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId String
+
+  createdAt DateTime @default(now())
+  lueAt     DateTime?
+
+  @@index([clientId])
+  @@index([lue])
+  @@index([createdAt])
+  @@index([clientId, lue])
+}
+
+enum NotificationType {
+  NOUVEAU_DOCUMENT
+  POINTS_EXPIRATION
+  NIVEAU_FIDELITE
+  PAIEMENT_RECU
+  GENERAL
 }
 
 // ============================================
