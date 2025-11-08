@@ -8,6 +8,7 @@ import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { AccountTab } from "./_components/account-tab";
+import { ExportTab } from "./_components/export-tab";
 import { GeneralTab } from "./_components/general-tab";
 import { NotificationsTab } from "./_components/notifications-tab";
 import { PreferencesTab } from "./_components/preferences-tab";
@@ -113,6 +114,12 @@ export default function SettingsPage() {
                     <TabsContent value="subscription" className="mt-0">
                         <SettingsContentWrapper>
                             <SubscriptionTab entreprise={null} />
+                        </SettingsContentWrapper>
+                    </TabsContent>
+
+                    <TabsContent value="export" className="mt-0">
+                        <SettingsContentWrapper>
+                            <ExportTab />
                         </SettingsContentWrapper>
                     </TabsContent>
                 </Tabs>
