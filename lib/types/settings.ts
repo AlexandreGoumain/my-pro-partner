@@ -182,7 +182,7 @@ export interface UserSettings {
 // Type pour les informations d'entreprise (abonnement)
 export interface EntrepriseSettings {
     id?: string;
-    plan?: "FREE" | "BASIC" | "PREMIUM" | "ENTERPRISE" | null;
+    plan?: "FREE" | "STARTER" | "PRO" | "ENTERPRISE" | null;
 }
 
 // Type pour les préférences de l'utilisateur

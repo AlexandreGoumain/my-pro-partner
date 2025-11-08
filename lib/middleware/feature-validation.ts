@@ -3,33 +3,16 @@ import { PlanType, PRICING_PLANS, PlanLimits, getLimitErrorMessage, getRecommend
 import { prisma } from "@/lib/prisma";
 
 /**
- * Map database plan names to pricing config plan names
- * Database uses: FREE, BASIC, PREMIUM, ENTERPRISE
- * Pricing config uses: FREE, STARTER, PRO, ENTERPRISE
- */
-export function mapDatabasePlanToPricingPlan(dbPlan: string): PlanType {
-    const mapping: Record<string, PlanType> = {
-        FREE: "FREE",
-        BASIC: "STARTER",      // Map BASIC to STARTER
-        PREMIUM: "PRO",        // Map PREMIUM to PRO
-        ENTERPRISE: "ENTERPRISE",
-    };
-
-    const mapped = mapping[dbPlan];
-    if (!mapped) {
-        console.warn(`Unknown plan type from database: ${dbPlan}, defaulting to FREE`);
-        return "FREE";
-    }
-
-    return mapped;
-}
-
-/**
  * Get plan limits for a user's plan
+ * Database and pricing config now use the same plan names: FREE, STARTER, PRO, ENTERPRISE
  */
 export function getPlanLimitsFromSession(plan: string): PlanLimits {
-    const pricingPlan = mapDatabasePlanToPricingPlan(plan);
-    return PRICING_PLANS[pricingPlan];
+    const planType = plan as PlanType;
+    if (!PRICING_PLANS[planType]) {
+        console.warn(`Unknown plan type: ${plan}, defaulting to FREE`);
+        return PRICING_PLANS.FREE;
+    }
+    return PRICING_PLANS[planType];
 }
 
 /**
@@ -92,13 +75,13 @@ export function isLimitReached(plan: string, limitKey: keyof PlanLimits, current
  */
 export function requireFeature(plan: string, feature: keyof PlanLimits): void {
     if (!canAccessFeature(plan, feature)) {
-        const pricingPlan = mapDatabasePlanToPricingPlan(plan);
-        const recommendedPlan = getRecommendedUpgrade(pricingPlan, feature);
+        const planType = plan as PlanType;
+        const recommendedPlan = getRecommendedUpgrade(planType, feature);
 
         throw new FeatureNotAvailableError(
             `This feature is not available in your current plan.`,
             feature,
-            pricingPlan,
+            planType,
             recommendedPlan
         );
     }
@@ -113,11 +96,11 @@ export function requireFeature(plan: string, feature: keyof PlanLimits): void {
  */
 export function requireWithinLimit(plan: string, limitKey: keyof PlanLimits, currentUsage: number): void {
     if (isLimitReached(plan, limitKey, currentUsage)) {
-        const pricingPlan = mapDatabasePlanToPricingPlan(plan);
-        const message = getLimitErrorMessage(pricingPlan, limitKey);
-        const recommendedPlan = getRecommendedUpgrade(pricingPlan, limitKey);
+        const planType = plan as PlanType;
+        const message = getLimitErrorMessage(planType, limitKey);
+        const recommendedPlan = getRecommendedUpgrade(planType, limitKey);
 
-        throw new LimitReachedError(message, limitKey, pricingPlan, recommendedPlan);
+        throw new LimitReachedError(message, limitKey, planType, recommendedPlan);
     }
 }
 

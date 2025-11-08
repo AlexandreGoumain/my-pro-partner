@@ -21,19 +21,19 @@ export function SubscriptionTab({ entreprise }: SubscriptionTabProps) {
             current: entreprise?.plan === "FREE",
         },
         {
-            name: "BASIC",
+            name: "STARTER",
             price: "29€",
             period: "par mois",
             features: ["50 clients", "Docs illimités", "3 utilisateurs"],
-            current: entreprise?.plan === "BASIC",
+            current: entreprise?.plan === "STARTER",
             popular: false,
         },
         {
-            name: "PREMIUM",
+            name: "PRO",
             price: "79€",
             period: "par mois",
             features: ["Clients illimités", "Docs illimités", "10 utilisateurs", "Support prioritaire"],
-            current: entreprise?.plan === "PREMIUM",
+            current: entreprise?.plan === "PRO",
             popular: true,
         },
         {
@@ -114,7 +114,7 @@ export function SubscriptionTab({ entreprise }: SubscriptionTabProps) {
                                 <div className="text-[20px] font-semibold tracking-[-0.01em] text-black">
                                     {entreprise?.stats?.clients || 0}
                                     <span className="text-[14px] font-normal text-black/40 ml-1">
-                                        / {entreprise?.plan === "FREE" ? "5" : entreprise?.plan === "BASIC" ? "50" : "∞"}
+                                        / {entreprise?.plan === "FREE" ? "5" : entreprise?.plan === "STARTER" ? "50" : "∞"}
                                     </span>
                                 </div>
                             </div>

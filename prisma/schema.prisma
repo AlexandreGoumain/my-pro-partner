@@ -44,6 +44,11 @@ model Entreprise {
   automations      Automation[]
   campaigns        Campaign[]
   conversations    Conversation[]
+  subscription     Subscription? // Un abonnement Stripe (optionnel)
+  usageCounters    UsageCounter[] // Compteurs d'usage mensuels
+  paymentLinks     PaymentLink[] // Liens de paiement
+  terminals        Terminal[] // Terminaux de paiement physiques
+  bankTransactions BankTransaction[] // Transactions bancaires pour rapprochement
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -56,9 +61,96 @@ model Entreprise {
 
 enum PlanAbonnement {
   FREE
-  BASIC
-  PREMIUM
+  STARTER
+  PRO
   ENTERPRISE
+}
+
+// ============================================
+// GESTION D'ABONNEMENTS STRIPE
+// ============================================
+
+model Subscription {
+  id String @id @default(cuid())
+
+  // Relation avec l'entreprise
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String     @unique // Une entreprise = un abonnement
+
+  // Informations Stripe
+  stripeCustomerId     String  @unique
+  stripeSubscriptionId String  @unique
+  stripePriceId        String // Prix Stripe (monthly ou annual)
+  stripeProductId      String? // Produit Stripe
+
+  // Plan et statut
+  plan   PlanAbonnement
+  status SubscriptionStatus @default(ACTIVE)
+
+  // Période de facturation
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+
+  // Trial
+  trialStart DateTime?
+  trialEnd   DateTime?
+
+  // Annulation
+  cancelAtPeriodEnd Boolean   @default(false)
+  canceledAt        DateTime?
+  cancelReason      String?
+
+  // Métadonnées
+  metadata Json? // Données additionnelles (coupon, promo, etc.)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([stripeCustomerId])
+  @@index([stripeSubscriptionId])
+  @@index([status])
+  @@index([plan])
+  @@index([currentPeriodEnd])
+}
+
+enum SubscriptionStatus {
+  ACTIVE // Abonnement actif
+  TRIALING // En période d'essai
+  PAST_DUE // Paiement en retard
+  CANCELED // Annulé
+  INCOMPLETE // Paiement initial incomplet
+  INCOMPLETE_EXPIRED // Paiement initial expiré
+  UNPAID // Impayé
+  PAUSED // En pause
+}
+
+// Compteurs d'usage mensuels pour les limites
+model UsageCounter {
+  id String @id @default(cuid())
+
+  // Relation avec l'entreprise
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Période de comptage
+  periodStart DateTime
+  periodEnd   DateTime
+
+  // Compteurs
+  documentsCreated Int @default(0) // Documents créés ce mois
+  questionsAsked   Int @default(0) // Questions assistant ce mois
+
+  // Métadonnées JSON pour tracking additionnel si besoin
+  metadata Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([entrepriseId, periodStart]) // Un compteur par entreprise par période
+  @@index([entrepriseId])
+  @@index([periodStart])
+  @@index([periodEnd])
 }
 
 // ============================================
@@ -350,6 +442,7 @@ model Document {
 
   lignes    LigneDocument[]
   paiements Paiement[]
+  bankTransactions BankTransaction[] // Transactions bancaires rapprochées
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -842,4 +935,137 @@ enum MessageRole {
   USER
   ASSISTANT
   SYSTEM
+}
+
+// ============================================
+// LIENS DE PAIEMENT (PAYMENT LINKS)
+// ============================================
+
+model PaymentLink {
+  id          String  @id @default(cuid())
+  slug        String  @unique // URL-friendly slug (ex: "facture-mars-2025")
+  titre       String // Titre du lien (ex: "Facture Mars 2025")
+  description String? // Description optionnelle
+
+  montant     Decimal @db.Decimal(10, 2)
+  devise      String  @default("EUR")
+
+  // Options
+  quantiteMax     Int?      @default(1) // Nombre de paiements max (null = illimité)
+  quantitePaye    Int       @default(0) // Nombre de paiements effectués
+  dateExpiration  DateTime? // Date d'expiration du lien
+  actif           Boolean   @default(true)
+
+  // Personnalisation
+  imageCouverture String? // URL de l'image de couverture
+  messageSucces   String? // Message affiché après paiement
+
+  // Métadonnées
+  metadata Json? // Données additionnelles (référence commande, etc.)
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Statistiques
+  nombreVues      Int @default(0) // Nombre de fois que le lien a été consulté
+  nombrePaiements Int @default(0) // Nombre de paiements réussis
+  totalCollecte   Decimal @default(0) @db.Decimal(10, 2) // Montant total collecté
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([slug])
+  @@index([actif])
+  @@index([dateExpiration])
+}
+
+enum PaymentLinkStatus {
+  ACTIVE
+  EXPIRED
+  COMPLETED
+  DISABLED
+}
+
+// ============================================
+// STRIPE TERMINAL (TPE PHYSIQUES)
+// ============================================
+
+model Terminal {
+  id              String         @id @default(cuid())
+  stripeTerminalId String        @unique // ID du terminal dans Stripe
+  label           String // Nom du terminal (ex: "Caisse 1")
+  location        String? // Emplacement physique
+  status          TerminalStatus @default(OFFLINE)
+
+  // Informations matériel
+  device_type     String? // Type de terminal (bbpos_wisepad3, verifone_p400, etc.)
+  serial_number   String?
+  ip_address      String?
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Dernière activité
+  lastUsedAt   DateTime?
+  lastSyncAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([status])
+  @@index([stripeTerminalId])
+}
+
+enum TerminalStatus {
+  ONLINE
+  OFFLINE
+  BUSY
+  ERROR
+}
+
+// ============================================
+// RAPPROCHEMENT BANCAIRE
+// ============================================
+
+model BankTransaction {
+  id             String    @id @default(cuid())
+
+  // Informations transaction bancaire
+  date           DateTime  @db.Date
+  libelle        String // Libellé de la transaction
+  montant        Decimal   @db.Decimal(10, 2)
+  reference      String? // Référence bancaire
+
+  // Rapprochement
+  statut         ReconciliationStatus @default(PENDING)
+  documentId     String? // Document associé (si trouvé)
+  document       Document? @relation(fields: [documentId], references: [id])
+
+  // Notes et métadonnées
+  notes          String?
+  metadata       Json? // Infos additionnelles du relevé bancaire
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([statut])
+  @@index([date])
+  @@index([documentId])
+}
+
+enum ReconciliationStatus {
+  PENDING // En attente de rapprochement
+  MATCHED // Rapproché automatiquement
+  MANUAL // Rapproché manuellement
+  IGNORED // Ignoré
+  ANOMALY // Anomalie détectée
 }

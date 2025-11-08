@@ -9,7 +9,7 @@ import { getSystemPrompt } from '@/lib/chatbot/chatbot-prompts';
 import { chatbotTools } from '@/lib/chatbot/chatbot-actions';
 import { createOpenAIStream } from '@/lib/chatbot/api/stream-handler';
 import { nanoid } from 'nanoid';
-import { canAccessFeature, getCurrentUsage, isLimitReached, mapDatabasePlanToPricingPlan } from '@/lib/middleware/feature-validation';
+import { canAccessFeature, getCurrentUsage, isLimitReached } from '@/lib/middleware/feature-validation';
 import { getLimitErrorMessage } from '@/lib/pricing-config';
 
 interface ChatMessage {
@@ -30,7 +30,7 @@ export const POST = withAuth(async (req: NextRequest, session: unknown) => {
         {
           error: "Assistant not available in your plan",
           code: "FEATURE_NOT_AVAILABLE",
-          currentPlan: mapDatabasePlanToPricingPlan(session.user.plan),
+          currentPlan: session.user.plan,
           message: "L'assistant n'est pas disponible dans votre plan. Passez au plan STARTER ou supérieur pour débloquer cette fonctionnalité.",
         },
         { status: 403 }
@@ -40,13 +40,12 @@ export const POST = withAuth(async (req: NextRequest, session: unknown) => {
     // Check quota for maxQuestionsPerMonth (except if unlimited = -1)
     const currentUsage = await getCurrentUsage(session.user.entrepriseId, "maxQuestionsPerMonth");
     if (isLimitReached(session.user.plan, "maxQuestionsPerMonth", currentUsage)) {
-      const pricingPlan = mapDatabasePlanToPricingPlan(session.user.plan);
-      const message = getLimitErrorMessage(pricingPlan, "maxQuestionsPerMonth");
+      const message = getLimitErrorMessage(session.user.plan, "maxQuestionsPerMonth");
       return NextResponse.json(
         {
           error: message,
           code: "LIMIT_REACHED",
-          currentPlan: pricingPlan,
+          currentPlan: session.user.plan,
           currentUsage,
         },
         { status: 403 }
