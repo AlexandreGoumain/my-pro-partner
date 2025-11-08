@@ -182,30 +182,250 @@ model UsageCounter {
 }
 
 // ============================================
-// AUTHENTIFICATION
+// AUTHENTIFICATION & GESTION DU PERSONNEL
 // ============================================
+
+enum UserRole {
+  OWNER       // Propriétaire (créateur de l'entreprise)
+  ADMIN       // Administrateur (accès complet)
+  MANAGER     // Manager (gestion équipe + clients)
+  EMPLOYEE    // Employé standard
+  CASHIER     // Caissier (ventes uniquement)
+  ACCOUNTANT  // Comptable (finances uniquement)
+}
+
+enum UserStatus {
+  ACTIVE      // Actif
+  INACTIVE    // Inactif
+  SUSPENDED   // Suspendu
+  INVITED     // Invité (pas encore accepté)
+}
 
 model User {
   id       String  @id @default(cuid())
   email    String  @unique
   password String
   name     String?
-  role     String  @default("user")
+
+  // Rôle et statut
+  role   UserRole   @default(EMPLOYEE)
+  status UserStatus @default(INVITED)
 
   // Multi-tenant: chaque user appartient à une entreprise
   entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
   entrepriseId String
 
+  // Informations personnelles
+  prenom       String?
+  telephone    String?
+  dateNaissance DateTime? @db.Date
+  adresse      String?
+  codePostal   String?
+  ville        String?
+  photoUrl     String?
+
+  // Informations professionnelles
+  poste          String? // Titre du poste (ex: "Chef de caisse", "Vendeur")
+  departement    String? // Département (ex: "Ventes", "Comptabilité")
+  dateEmbauche   DateTime? @db.Date
+  dateFinContrat DateTime? @db.Date // Pour CDD
+  salaireHoraire Decimal?  @db.Decimal(10, 2) // Pour calcul des commissions
+  numeroSecu     String? // Numéro de sécurité sociale
+  iban           String? // Pour virements salaire
+
+  // Permissions détaillées
+  permissions UserPermissions?
+
+  // Horaires et planning
+  schedules UserSchedule[]
+
+  // Tracking temps de travail
+  timeEntries TimeEntry[]
+
+  // Activité
+  lastLoginAt    DateTime?
+  lastActivityAt DateTime?
+
   // Onboarding: tracking si l'utilisateur a complété son profil
   onboardingComplete Boolean @default(false)
 
-  conversations Conversation[]
+  // Relations
+  conversations     Conversation[]
+  mouvementsStock   MouvementStock[]  @relation("UserStockMovements")
+  activitiesCreated UserActivity[]    @relation("CreatedActivities")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([entrepriseId])
   @@index([email])
+  @@index([role])
+  @@index([status])
+  @@index([entrepriseId, status])
+  @@index([entrepriseId, role])
+}
+
+// Permissions granulaires par utilisateur
+model UserPermissions {
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @unique
+
+  // Permissions Clients
+  canViewClients   Boolean @default(false)
+  canCreateClients Boolean @default(false)
+  canEditClients   Boolean @default(false)
+  canDeleteClients Boolean @default(false)
+
+  // Permissions Documents (Devis, Factures)
+  canViewDocuments   Boolean @default(false)
+  canCreateDocuments Boolean @default(false)
+  canEditDocuments   Boolean @default(false)
+  canDeleteDocuments Boolean @default(false)
+  canValidateDocuments Boolean @default(false) // Valider/Accepter devis
+
+  // Permissions Stock
+  canViewStock       Boolean @default(false)
+  canEditStock       Boolean @default(false)
+  canManageStock     Boolean @default(false) // Mouvements stock
+
+  // Permissions Produits/Services
+  canViewProducts    Boolean @default(false)
+  canCreateProducts  Boolean @default(false)
+  canEditProducts    Boolean @default(false)
+  canDeleteProducts  Boolean @default(false)
+
+  // Permissions Finances
+  canViewFinances    Boolean @default(false)
+  canManagePayments  Boolean @default(false)
+  canViewReports     Boolean @default(false)
+  canExportData      Boolean @default(false)
+
+  // Permissions Personnel
+  canViewUsers       Boolean @default(false)
+  canManageUsers     Boolean @default(false) // Créer/Modifier users
+  canViewTimeTracking Boolean @default(false)
+
+  // Permissions Paramètres
+  canViewSettings    Boolean @default(false)
+  canEditSettings    Boolean @default(false)
+
+  // Permissions Avancées
+  canAccessAPI       Boolean @default(false)
+  canManageBilling   Boolean @default(false) // Gérer abonnement
+  canViewAuditLog    Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// Horaires de travail (planning)
+model UserSchedule {
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  // Jour de la semaine (0 = Dimanche, 1 = Lundi, ..., 6 = Samedi)
+  dayOfWeek Int
+
+  // Heures de travail
+  startTime String // Format "HH:mm" (ex: "09:00")
+  endTime   String // Format "HH:mm" (ex: "18:00")
+
+  // Pause déjeuner
+  breakStart String? // Format "HH:mm"
+  breakEnd   String? // Format "HH:mm"
+
+  // Actif ou non (pour gérer les exceptions)
+  active Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, dayOfWeek])
+  @@index([userId])
+  @@index([dayOfWeek])
+}
+
+// Suivi du temps de travail (pointage)
+model TimeEntry {
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  // Date et heures
+  date      DateTime @db.Date
+  clockIn   DateTime // Heure d'arrivée
+  clockOut  DateTime? // Heure de départ (null si en cours)
+
+  // Pause
+  breakDuration Int @default(0) // Durée de pause en minutes
+
+  // Heures travaillées (calculé automatiquement)
+  hoursWorked Decimal? @db.Decimal(5, 2) // Ex: 8.50 heures
+
+  // Notes
+  notes String?
+
+  // Type de journée
+  type TimeEntryType @default(REGULAR)
+
+  // Validation
+  validated   Boolean   @default(false)
+  validatedBy String? // ID du manager qui a validé
+  validatedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([date])
+  @@index([userId, date])
+  @@index([validated])
+}
+
+enum TimeEntryType {
+  REGULAR     // Journée normale
+  OVERTIME    // Heures supplémentaires
+  SICK_LEAVE  // Arrêt maladie
+  VACATION    // Congés
+  REMOTE      // Télétravail
+}
+
+// Log d'activité utilisateur
+model UserActivity {
+  id        String       @id @default(cuid())
+  user      User         @relation("CreatedActivities", fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  action    ActivityType
+  resource  String? // Type de ressource (ex: "Client", "Document", "Article")
+  resourceId String? // ID de la ressource
+  details   Json? // Détails additionnels
+  ipAddress String?
+  userAgent String?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@index([userId, createdAt])
+}
+
+enum ActivityType {
+  LOGIN
+  LOGOUT
+  CREATE
+  UPDATE
+  DELETE
+  VIEW
+  EXPORT
+  PRINT
+  SEND_EMAIL
+  PAYMENT_RECEIVED
+  SETTINGS_CHANGED
 }
 
 // ============================================
@@ -573,13 +793,17 @@ model MouvementStock {
   article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
   articleId String
 
+  // Tracking utilisateur qui a créé le mouvement
+  createdByUser User?   @relation("UserStockMovements", fields: [createdBy], references: [id])
+  createdBy     String?
+
   createdAt DateTime @default(now())
-  createdBy String?
 
   @@index([entrepriseId])
   @@index([articleId])
   @@index([type])
   @@index([createdAt])
+  @@index([createdBy])
 }
 
 enum TypeMouvement {
