@@ -16,12 +16,39 @@ datasource db {
 // MULTI-TENANCY
 // ============================================
 
+enum BusinessType {
+  GENERAL           // Entreprise générique
+  PLOMBERIE         // Plombier
+  ELECTRICITE       // Électricien
+  CHAUFFAGE         // Chauffagiste
+  MENUISERIE        // Menuisier
+  PEINTURE          // Peintre
+  MACONNERIE        // Maçon
+  RESTAURATION      // Restaurant, café, bar
+  BOULANGERIE       // Boulangerie, pâtisserie
+  COIFFURE          // Salon de coiffure
+  ESTHETIQUE        // Institut de beauté, spa
+  FITNESS           // Salle de sport, coaching
+  GARAGE            // Garage automobile
+  INFORMATIQUE      // Services informatiques
+  CONSULTING        // Conseil, formation
+  COMMERCE_DETAIL   // Commerce de détail
+  IMMOBILIER        // Agence immobilière
+  SANTE             // Professions médicales/paramédicales
+  JURIDIQUE         // Avocat, notaire
+  COMPTABILITE      // Expert-comptable
+}
+
 model Entreprise {
   id    String  @id @default(cuid())
   nom   String
   slug  String? @unique // URL-friendly identifier for client portal registration
   siret String? @unique
   email String  @unique
+
+  // Type de business pour personnalisation
+  businessType BusinessType @default(GENERAL)
+  secteur      String?      // Secteur d'activité détaillé
 
   // Gestion d'abonnement
   plan            PlanAbonnement @default(FREE)
@@ -57,6 +84,7 @@ model Entreprise {
   @@index([slug])
   @@index([siret])
   @@index([abonnementActif])
+  @@index([businessType])
 }
 
 enum PlanAbonnement {
