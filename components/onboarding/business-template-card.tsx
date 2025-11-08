@@ -1,9 +1,10 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { BusinessTemplate } from "@/lib/services/business-template.service";
-import { Check } from "lucide-react";
+import { Check, Sparkles } from "lucide-react";
 
 interface BusinessTemplateCardProps {
   template: BusinessTemplate;
@@ -16,86 +17,68 @@ export function BusinessTemplateCard({
   isSelected,
   onSelect,
 }: BusinessTemplateCardProps) {
+  const iconMap: Record<string, string> = {
+    Building2: "🏢", Wrench: "🔧", Zap: "⚡", Flame: "🔥",
+    Hammer: "🔨", PaintbrushIcon: "🎨", HardHat: "👷",
+    UtensilsCrossed: "🍽️", Croissant: "🥐", Scissors: "✂️",
+    Sparkles: "✨", Dumbbell: "💪", Car: "🚗", Monitor: "💻",
+    BriefcaseIcon: "💼", ShoppingCart: "🛒", Home: "🏠",
+    Heart: "❤️", Scale: "⚖️", Calculator: "🧮",
+  };
+
   return (
-    <button
+    <Card
       onClick={onSelect}
       className={cn(
-        "relative group w-full text-left rounded-xl border-2 p-6 transition-all duration-200 hover:shadow-lg hover:scale-[1.02]",
+        "relative cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-1",
         isSelected
-          ? "border-black bg-black/5 shadow-md"
-          : "border-black/10 bg-white hover:border-black/30"
+          ? "ring-2 ring-primary shadow-md border-primary bg-primary/5"
+          : "hover:border-primary/50"
       )}
     >
-      {/* Badge de sélection */}
       {isSelected && (
-        <div className="absolute top-3 right-3 h-6 w-6 rounded-full bg-black flex items-center justify-center">
-          <Check className="h-4 w-4 text-white" strokeWidth={3} />
+        <div className="absolute -top-2 -right-2 z-10">
+          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg">
+            <Check className="h-4 w-4" strokeWidth={3} />
+          </div>
         </div>
       )}
 
-      {/* Icône et contenu */}
-      <div className="space-y-3">
-        {/* Icône avec fond coloré */}
-        <div
-          className="inline-flex h-12 w-12 items-center justify-center rounded-lg text-white text-xl font-bold"
-          style={{ backgroundColor: template.color }}
-        >
-          {template.icon === "Building2" && "🏢"}
-          {template.icon === "Wrench" && "🔧"}
-          {template.icon === "Zap" && "⚡"}
-          {template.icon === "Flame" && "🔥"}
-          {template.icon === "Hammer" && "🔨"}
-          {template.icon === "PaintbrushIcon" && "🎨"}
-          {template.icon === "HardHat" && "👷"}
-          {template.icon === "UtensilsCrossed" && "🍽️"}
-          {template.icon === "Croissant" && "🥐"}
-          {template.icon === "Scissors" && "✂️"}
-          {template.icon === "Sparkles" && "✨"}
-          {template.icon === "Dumbbell" && "💪"}
-          {template.icon === "Car" && "🚗"}
-          {template.icon === "Monitor" && "💻"}
-          {template.icon === "BriefcaseIcon" && "💼"}
-          {template.icon === "ShoppingCart" && "🛒"}
-          {template.icon === "Home" && "🏠"}
-          {template.icon === "Heart" && "❤️"}
-          {template.icon === "Scale" && "⚖️"}
-          {template.icon === "Calculator" && "🧮"}
-        </div>
-
-        {/* Titre et description */}
-        <div>
-          <h3 className="text-[16px] font-semibold text-black mb-1">
-            {template.label}
-          </h3>
-          <p className="text-[13px] text-black/60 leading-relaxed">
-            {template.description}
-          </p>
-        </div>
-
-        {/* Catégories incluses */}
-        {template.categories && template.categories.length > 0 && (
-          <div className="pt-2 border-t border-black/5">
-            <p className="text-[12px] font-medium text-black/40 mb-2">
-              Catégories incluses :
-            </p>
-            <div className="flex flex-wrap gap-1.5">
-              {template.categories.slice(0, 3).map((cat, idx) => (
-                <span
-                  key={idx}
-                  className="text-[11px] px-2 py-0.5 rounded-full bg-black/5 text-black/60"
-                >
-                  {cat.nom}
-                </span>
-              ))}
-              {template.categories.length > 3 && (
-                <span className="text-[11px] px-2 py-0.5 text-black/40">
-                  +{template.categories.length - 3}
-                </span>
-              )}
-            </div>
+      <CardHeader className="pb-3">
+        <div className="flex items-start gap-3">
+          <div
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg text-2xl shadow-sm"
+            style={{ backgroundColor: template.color }}
+          >
+            {iconMap[template.icon] || "🏢"}
           </div>
-        )}
-      </div>
-    </button>
+          <div className="flex-1 space-y-1">
+            <CardTitle className="text-base leading-tight">
+              {template.label}
+            </CardTitle>
+            <CardDescription className="text-xs leading-relaxed">
+              {template.description}
+            </CardDescription>
+          </div>
+        </div>
+      </CardHeader>
+
+      {template.categories && template.categories.length > 0 && (
+        <CardContent className="pt-0">
+          <div className="flex flex-wrap gap-1.5">
+            {template.categories.slice(0, 3).map((cat, idx) => (
+              <Badge key={idx} variant="secondary" className="text-[10px] font-normal">
+                {cat.nom}
+              </Badge>
+            ))}
+            {template.categories.length > 3 && (
+              <Badge variant="outline" className="text-[10px]">
+                +{template.categories.length - 3}
+              </Badge>
+            )}
+          </div>
+        </CardContent>
+      )}
+    </Card>
   );
 }

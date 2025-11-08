@@ -1,7 +1,11 @@
 "use client";
 
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import type { BusinessTemplate } from "@/lib/services/business-template.service";
-import { Check, Package, Star, FileText, Gift } from "lucide-react";
+import { Check, Gift, Lightbulb, Package, Star, FileText } from "lucide-react";
 
 interface BusinessTemplatePreviewProps {
   template: BusinessTemplate;
@@ -10,67 +14,62 @@ interface BusinessTemplatePreviewProps {
 export function BusinessTemplatePreview({
   template,
 }: BusinessTemplatePreviewProps) {
-  return (
-    <div className="rounded-xl border border-black/10 bg-white p-6 space-y-6">
-      {/* En-tête */}
-      <div className="flex items-start gap-4">
-        <div
-          className="flex h-14 w-14 items-center justify-center rounded-xl text-white text-2xl shadow-sm"
-          style={{ backgroundColor: template.color }}
-        >
-          {template.icon === "Building2" && "🏢"}
-          {template.icon === "Wrench" && "🔧"}
-          {template.icon === "Zap" && "⚡"}
-          {template.icon === "Flame" && "🔥"}
-          {template.icon === "Hammer" && "🔨"}
-          {template.icon === "PaintbrushIcon" && "🎨"}
-          {template.icon === "HardHat" && "👷"}
-          {template.icon === "UtensilsCrossed" && "🍽️"}
-          {template.icon === "Croissant" && "🥐"}
-          {template.icon === "Scissors" && "✂️"}
-          {template.icon === "Sparkles" && "✨"}
-          {template.icon === "Dumbbell" && "💪"}
-          {template.icon === "Car" && "🚗"}
-          {template.icon === "Monitor" && "💻"}
-          {template.icon === "BriefcaseIcon" && "💼"}
-          {template.icon === "ShoppingCart" && "🛒"}
-          {template.icon === "Home" && "🏠"}
-          {template.icon === "Heart" && "❤️"}
-          {template.icon === "Scale" && "⚖️"}
-          {template.icon === "Calculator" && "🧮"}
-        </div>
-        <div className="flex-1">
-          <h3 className="text-[18px] font-semibold text-black mb-1">
-            {template.label}
-          </h3>
-          <p className="text-[14px] text-black/60">{template.description}</p>
-        </div>
-      </div>
+  const iconMap: Record<string, string> = {
+    Building2: "🏢", Wrench: "🔧", Zap: "⚡", Flame: "🔥",
+    Hammer: "🔨", PaintbrushIcon: "🎨", HardHat: "👷",
+    UtensilsCrossed: "🍽️", Croissant: "🥐", Scissors: "✂️",
+    Sparkles: "✨", Dumbbell: "💪", Car: "🚗", Monitor: "💻",
+    BriefcaseIcon: "💼", ShoppingCart: "🛒", Home: "🏠",
+    Heart: "❤️", Scale: "⚖️", Calculator: "🧮",
+  };
 
-      {/* Ce que vous allez obtenir */}
-      <div className="space-y-4">
-        <h4 className="text-[14px] font-semibold text-black flex items-center gap-2">
-          <Gift className="h-4 w-4" />
-          Ce qui sera configuré automatiquement
-        </h4>
+  return (
+    <Card className="sticky top-6">
+      <CardHeader>
+        <div className="flex items-start gap-3">
+          <div
+            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl text-3xl shadow-sm"
+            style={{ backgroundColor: template.color }}
+          >
+            {iconMap[template.icon] || "🏢"}
+          </div>
+          <div className="flex-1 space-y-1">
+            <CardTitle className="text-lg">{template.label}</CardTitle>
+            <CardDescription>{template.description}</CardDescription>
+          </div>
+        </div>
+      </CardHeader>
+
+      <Separator />
+
+      <CardContent className="pt-6 space-y-6">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 text-sm font-semibold">
+            <Gift className="h-4 w-4 text-primary" />
+            Configuration automatique
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Tout sera prêt dès votre première connexion
+          </p>
+        </div>
+
+        <Separator />
 
         {/* Catégories */}
         {template.categories && template.categories.length > 0 && (
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-[13px] text-black/70">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-sm font-medium">
               <Package className="h-4 w-4" />
-              <span className="font-medium">
-                {template.categories.length} catégories de produits/services
-              </span>
+              {template.categories.length} catégories
             </div>
-            <div className="ml-6 space-y-1">
+            <div className="space-y-2">
               {template.categories.map((cat, idx) => (
-                <div key={idx} className="flex items-start gap-2 text-[12px]">
-                  <Check className="h-3.5 w-3.5 text-green-600 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <span className="font-medium text-black/80">{cat.nom}</span>
+                <div key={idx} className="flex items-start gap-2 text-xs">
+                  <Check className="h-3.5 w-3.5 text-green-600 mt-0.5 shrink-0" />
+                  <div className="flex-1">
+                    <span className="font-medium">{cat.nom}</span>
                     {cat.description && (
-                      <span className="text-black/50"> - {cat.description}</span>
+                      <span className="text-muted-foreground"> - {cat.description}</span>
                     )}
                   </div>
                 </div>
@@ -81,82 +80,84 @@ export function BusinessTemplatePreview({
 
         {/* Programme de fidélité */}
         {template.niveauxFidelite && template.niveauxFidelite.length > 0 && (
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-[13px] text-black/70">
-              <Star className="h-4 w-4" />
-              <span className="font-medium">
+          <>
+            <Separator />
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <Star className="h-4 w-4" />
                 {template.niveauxFidelite.length} niveaux de fidélité
-              </span>
-            </div>
-            <div className="ml-6 space-y-1">
-              {template.niveauxFidelite.map((niveau, idx) => (
-                <div key={idx} className="flex items-start gap-2 text-[12px]">
-                  <Check className="h-3.5 w-3.5 text-green-600 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <span className="font-medium text-black/80">{niveau.nom}</span>
-                    <span className="text-black/50">
-                      {" "}
-                      - {niveau.remise}% de remise dès {niveau.seuil}€
-                    </span>
+              </div>
+              <div className="space-y-2">
+                {template.niveauxFidelite.map((niveau, idx) => (
+                  <div key={idx} className="flex items-start gap-2 text-xs">
+                    <Check className="h-3.5 w-3.5 text-green-600 mt-0.5 shrink-0" />
+                    <div className="flex-1">
+                      <span className="font-medium">{niveau.nom}</span>
+                      <span className="text-muted-foreground">
+                        {" "}
+                        - {niveau.remise}% dès {niveau.seuil}€
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          </>
         )}
 
         {/* Séries de documents */}
         {template.seriesDocuments && template.seriesDocuments.length > 0 && (
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-[13px] text-black/70">
-              <FileText className="h-4 w-4" />
-              <span className="font-medium">Numérotation des documents</span>
-            </div>
-            <div className="ml-6 space-y-1">
-              {template.seriesDocuments.map((serie, idx) => (
-                <div key={idx} className="flex items-start gap-2 text-[12px]">
-                  <Check className="h-3.5 w-3.5 text-green-600 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <span className="font-medium text-black/80">{serie.nom}</span>
-                    <span className="text-black/50">
-                      {" "}
-                      - Format: {serie.format}
-                    </span>
+          <>
+            <Separator />
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <FileText className="h-4 w-4" />
+                Numérotation
+              </div>
+              <div className="space-y-2">
+                {template.seriesDocuments.map((serie, idx) => (
+                  <div key={idx} className="flex items-start gap-2 text-xs">
+                    <Check className="h-3.5 w-3.5 text-green-600 mt-0.5 shrink-0" />
+                    <div className="flex-1">
+                      <span className="font-medium">{serie.nom}</span>
+                      <span className="text-muted-foreground"> - {serie.format}</span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          </>
         )}
 
-        {/* Fonctionnalités spéciales */}
+        {/* Fonctionnalités */}
         {template.features && template.features.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-black/5">
-            <p className="text-[12px] font-medium text-black/60 mb-2">
-              Fonctionnalités incluses :
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {template.features.map((feature, idx) => (
-                <span
-                  key={idx}
-                  className="text-[11px] px-2.5 py-1 rounded-full bg-green-50 text-green-700 border border-green-200"
-                >
-                  {feature}
-                </span>
-              ))}
+          <>
+            <Separator />
+            <div className="space-y-3">
+              <div className="text-xs font-medium text-muted-foreground">
+                Fonctionnalités incluses
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {template.features.map((feature, idx) => (
+                  <Badge key={idx} variant="outline" className="text-[10px]">
+                    {feature}
+                  </Badge>
+                ))}
+              </div>
             </div>
-          </div>
+          </>
         )}
-      </div>
 
-      {/* Note */}
-      <div className="mt-4 p-3 rounded-lg bg-blue-50 border border-blue-200">
-        <p className="text-[12px] text-blue-900">
-          💡 <strong>Bonne nouvelle :</strong> Vous pourrez toujours
-          personnaliser ces paramètres plus tard dans les réglages de
-          l&apos;application.
-        </p>
-      </div>
-    </div>
+        <Separator />
+
+        {/* Note */}
+        <Alert>
+          <Lightbulb className="h-4 w-4" />
+          <AlertDescription className="text-xs">
+            Vous pourrez personnaliser ces paramètres à tout moment dans les réglages.
+          </AlertDescription>
+        </Alert>
+      </CardContent>
+    </Card>
   );
 }

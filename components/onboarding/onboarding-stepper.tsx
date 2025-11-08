@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
 interface OnboardingStepperProps {
   currentStep: number;
@@ -16,22 +17,27 @@ export function OnboardingStepper({
   currentStep,
   steps,
 }: OnboardingStepperProps) {
+  const progressPercentage = ((currentStep - 1) / (steps.length - 1)) * 100;
+
   return (
-    <div className="w-full">
-      {/* Version desktop */}
+    <div className="w-full space-y-4">
+      {/* Progress bar */}
+      <Progress value={progressPercentage} className="h-2" />
+
+      {/* Desktop stepper */}
       <div className="hidden md:flex items-center justify-between">
         {steps.map((step, index) => (
           <div key={step.number} className="flex items-center flex-1">
-            {/* Étape */}
+            {/* Step circle */}
             <div className="flex flex-col items-center">
               <div
                 className={cn(
-                  "flex h-12 w-12 items-center justify-center rounded-full border-2 font-semibold text-[14px] transition-all duration-300",
+                  "flex h-10 w-10 items-center justify-center rounded-full border-2 font-semibold text-sm transition-all duration-300",
                   currentStep > step.number
-                    ? "bg-black border-black text-white"
+                    ? "bg-primary border-primary text-primary-foreground"
                     : currentStep === step.number
-                    ? "bg-black border-black text-white shadow-lg scale-110"
-                    : "bg-white border-black/20 text-black/40"
+                    ? "bg-primary border-primary text-primary-foreground shadow-lg scale-110 ring-4 ring-primary/20"
+                    : "bg-background border-muted-foreground/20 text-muted-foreground"
                 )}
               >
                 {currentStep > step.number ? (
@@ -40,23 +46,23 @@ export function OnboardingStepper({
                   step.number
                 )}
               </div>
-              <div className="mt-3 text-center">
+              <div className="mt-3 text-center max-w-[120px]">
                 <p
                   className={cn(
-                    "text-[13px] font-medium transition-colors",
+                    "text-sm font-medium transition-colors",
                     currentStep >= step.number
-                      ? "text-black"
-                      : "text-black/40"
+                      ? "text-foreground"
+                      : "text-muted-foreground"
                   )}
                 >
                   {step.title}
                 </p>
                 <p
                   className={cn(
-                    "text-[11px] mt-0.5 transition-colors",
+                    "text-xs mt-0.5 transition-colors",
                     currentStep >= step.number
-                      ? "text-black/60"
-                      : "text-black/30"
+                      ? "text-muted-foreground"
+                      : "text-muted-foreground/50"
                   )}
                 >
                   {step.description}
@@ -64,15 +70,15 @@ export function OnboardingStepper({
               </div>
             </div>
 
-            {/* Ligne de connexion */}
+            {/* Connector line */}
             {index < steps.length - 1 && (
-              <div className="flex-1 mx-4 mb-10">
+              <div className="flex-1 mx-4 mb-14">
                 <div
                   className={cn(
                     "h-0.5 w-full transition-all duration-500",
                     currentStep > step.number
-                      ? "bg-black"
-                      : "bg-black/10"
+                      ? "bg-primary"
+                      : "bg-muted-foreground/20"
                   )}
                 />
               </div>
@@ -81,26 +87,26 @@ export function OnboardingStepper({
         ))}
       </div>
 
-      {/* Version mobile */}
-      <div className="md:hidden">
-        <div className="flex items-center justify-center gap-2 mb-6">
+      {/* Mobile stepper */}
+      <div className="md:hidden text-center space-y-2">
+        <div className="flex items-center justify-center gap-2">
           {steps.map((step) => (
             <div
               key={step.number}
               className={cn(
                 "h-2 rounded-full transition-all duration-300",
                 currentStep >= step.number
-                  ? "w-8 bg-black"
-                  : "w-2 bg-black/20"
+                  ? "w-8 bg-primary"
+                  : "w-2 bg-muted-foreground/20"
               )}
             />
           ))}
         </div>
-        <div className="text-center">
-          <p className="text-[14px] font-medium text-black">
+        <div>
+          <p className="text-sm font-medium">
             Étape {currentStep} sur {steps.length}
           </p>
-          <p className="text-[13px] text-black/60 mt-1">
+          <p className="text-xs text-muted-foreground mt-1">
             {steps.find((s) => s.number === currentStep)?.title}
           </p>
         </div>
