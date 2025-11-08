@@ -46,14 +46,16 @@ const PLANS: Plan[] = [
         id: "STARTER",
         description: "Pour les artisans qui démarrent",
         priceMonthly: 29,
-        priceYearly: 290, // Économie de 2 mois
+        priceYearly: 290, // Économie de 58€/an
         features: [
             { text: "50 clients", included: true },
+            { text: "100 articles", included: true },
             { text: "Documents illimités", included: true },
             { text: "3 utilisateurs", included: true },
             { text: "Gestion de stock avancée", included: true },
             { text: "Assistant IA (100 questions/mois)", included: true },
             { text: "Programme de fidélité", included: true },
+            { text: "Export Excel/PDF", included: true },
             { text: "Support email", included: true },
             { text: "Support prioritaire", included: false },
         ],
@@ -63,10 +65,11 @@ const PLANS: Plan[] = [
         id: "PRO",
         description: "Pour les entreprises en croissance",
         priceMonthly: 79,
-        priceYearly: 790,
+        priceYearly: 790, // Économie de 158€/an
         popular: true,
         features: [
             { text: "Clients illimités", included: true },
+            { text: "Articles illimités", included: true },
             { text: "Documents illimités", included: true },
             { text: "10 utilisateurs", included: true },
             { text: "Gestion de stock complète", included: true },
@@ -74,8 +77,9 @@ const PLANS: Plan[] = [
             { text: "Programme de fidélité avancé", included: true },
             { text: "Segmentation clients", included: true },
             { text: "Campagnes marketing", included: true },
-            { text: "Support prioritaire", included: true },
             { text: "Analytics avancées", included: true },
+            { text: "Support prioritaire", included: true },
+            { text: "API REST", included: true },
         ],
     },
     {
@@ -83,7 +87,7 @@ const PLANS: Plan[] = [
         id: "ENTERPRISE",
         description: "Pour les grandes organisations",
         priceMonthly: 299,
-        priceYearly: 2990,
+        priceYearly: 2990, // Économie de 598€/an
         features: [
             { text: "Tout illimité", included: true },
             { text: "Utilisateurs illimités", included: true },
@@ -94,6 +98,7 @@ const PLANS: Plan[] = [
             { text: "Onboarding personnalisé", included: true },
             { text: "Formations incluses", included: true },
             { text: "Intégrations sur mesure", included: true },
+            { text: "Marque blanche", included: true },
         ],
     },
 ];

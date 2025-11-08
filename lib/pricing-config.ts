@@ -157,13 +157,13 @@ export const PRICING_PLANS: Record<PlanType, PlanLimits> = {
 
     STARTER: {
         // Limites de base
-        maxClients: 100,
+        maxClients: 50,
         maxProducts: 100,
         maxDocumentsPerMonth: -1, // Illimité
-        maxUsers: 1,
+        maxUsers: 3,
 
         // Assistant
-        maxQuestionsPerMonth: 50,
+        maxQuestionsPerMonth: 100,
         hasAssistant: true,
         assistantResponseTime: "standard",
 
@@ -230,10 +230,10 @@ export const PRICING_PLANS: Record<PlanType, PlanLimits> = {
 
     PRO: {
         // Limites de base
-        maxClients: 500,
+        maxClients: -1, // Illimité
         maxProducts: -1, // Illimité
         maxDocumentsPerMonth: -1, // Illimité
-        maxUsers: 5,
+        maxUsers: 10,
 
         // Assistant
         maxQuestionsPerMonth: -1, // Illimité
@@ -388,29 +388,29 @@ export const PLAN_PRICING = {
     },
     STARTER: {
         name: "Starter",
-        price: 39,
-        annualPrice: 32,
+        price: 29,
+        annualPrice: 24.17, // 290€/an ÷ 12 mois
         tagline: "L'essentiel pour démarrer",
         ideal: "Artisans",
-        savings: "Économisez 84€/an",
+        savings: "Économisez 58€/an",
     },
     PRO: {
         name: "Pro",
-        price: 69,
-        annualPrice: 57,
+        price: 79,
+        annualPrice: 65.83, // 790€/an ÷ 12 mois
         tagline: "Le plus populaire",
         ideal: "PME en croissance",
         popular: true,
-        savings: "Économisez 144€/an",
+        savings: "Économisez 158€/an",
     },
     ENTERPRISE: {
         name: "Entreprise",
-        price: 179,
-        annualPrice: 149,
+        price: 299,
+        annualPrice: 249.17, // 2990€/an ÷ 12 mois
         tagline: "Performance max",
         ideal: "Grandes équipes",
         premium: true,
-        savings: "Économisez 360€/an",
+        savings: "Économisez 598€/an",
     },
 } as const;
 
@@ -519,41 +519,44 @@ export const PLAN_FEATURES = {
         "10 clients max",
         "10 articles",
         "10 documents/mois",
+        "1 utilisateur",
         "Gestion stock basique",
-        "Pas d'assistant",
+        "Pas d'assistant IA",
     ],
     STARTER: [
-        "100 clients",
+        "50 clients",
         "100 articles",
         "Documents illimités",
-        "Stock complet",
-        "50 questions/mois",
-        "Analytics basiques",
-        "Support email 24h",
+        "3 utilisateurs",
+        "Gestion stock avancée",
+        "Assistant IA (100 questions/mois)",
+        "Programme de fidélité",
+        "Support email",
         "Export Excel/PDF",
     ],
     PRO: [
-        "500 clients",
-        "Tout illimité",
-        "Assistant illimité (40+ actions)",
-        "Analytics & prédictions",
-        "Analyse rentabilité auto",
+        "Clients illimités",
+        "Articles illimités",
+        "Documents illimités",
+        "10 utilisateurs",
+        "Assistant IA illimité",
+        "Programme de fidélité avancé",
         "Segmentation clients",
-        "Campagnes email/SMS",
-        "Relances automatiques",
-        "Multi-users (5)",
+        "Campagnes marketing",
+        "Analytics avancées",
+        "Support prioritaire",
         "API REST complète",
     ],
     ENTERPRISE: [
         "Tout illimité",
-        "Réponses ultra-rapides (<1s)",
-        "Users illimités",
-        "Support 24/7 dédié",
-        "Gestionnaire compte",
+        "Utilisateurs illimités",
+        "Support dédié 24/7",
+        "Gestionnaire de compte",
+        "API avancée",
+        "SLA 99.9% garanti",
+        "Onboarding personnalisé",
         "Formations incluses",
         "Intégrations sur mesure",
-        "SLA 99.9% garanti",
-        "Onboarding perso",
         "Accès early features",
     ],
 } as const;
