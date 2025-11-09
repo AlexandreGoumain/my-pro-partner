@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { UserPlus, CheckCircle } from "lucide-react";
+import { UserPlus } from "lucide-react";
 import { useClientRegister } from "@/hooks/use-client-register";
 import { useInvitationVerification } from "@/hooks/use-invitation-verification";
 import { useRegisterForm } from "@/hooks/use-register-form";
@@ -80,35 +80,12 @@ function RegisterForm() {
     });
   };
 
-  if (success) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center p-4">
-        <Card className="w-full max-w-md border-black/8 shadow-sm p-8">
-          <div className="text-center space-y-6">
-            <div className="flex justify-center">
-              <div className="w-16 h-16 rounded-full bg-black/5 flex items-center justify-center">
-                <CheckCircle className="w-8 h-8 text-black" />
-              </div>
-            </div>
-            <div>
-              <h2 className="text-[24px] font-semibold tracking-[-0.02em] text-black mb-2">
-                Compte créé avec succès !
-              </h2>
-              <p className="text-[15px] text-black/60">
-                Vous pouvez maintenant vous connecter à votre espace client.
-              </p>
-            </div>
-            <Button
-              onClick={() => router.push("/client/login")}
-              className="w-full h-11 text-[14px] font-medium bg-black hover:bg-black/90 text-white rounded-md shadow-sm"
-            >
-              Se connecter
-            </Button>
-          </div>
-        </Card>
-      </div>
-    );
-  }
+  // Redirect to welcome page on success (handled by useClientRegister hook)
+  useEffect(() => {
+    if (success) {
+      router.push("/client/welcome");
+    }
+  }, [success, router]);
 
   if (isVerifying) {
     return (
@@ -144,8 +121,10 @@ function RegisterForm() {
               {invitationData && (
                 <div className="rounded-lg bg-black/5 border border-black/10 p-4">
                   <p className="text-[14px] text-black/80">
-                    ✓ Vous avez été invité(e) à créer un compte. Certaines
-                    informations sont pré-remplies.
+                    ✓ Vous avez été invité(e) à créer un compte.
+                  </p>
+                  <p className="text-[13px] text-black/60 mt-1">
+                    Seuls les champs marqués d&apos;un * sont obligatoires. Vous pourrez compléter votre profil plus tard.
                   </p>
                 </div>
               )}
@@ -194,92 +173,103 @@ function RegisterForm() {
                 />
               </div>
 
-              {/* Prénom */}
-              <div className="space-y-2">
-                <Label htmlFor="prenom" className="text-[14px] font-medium">
-                  Prénom
-                </Label>
-                <Input
-                  id="prenom"
-                  name="prenom"
-                  type="text"
-                  value={formData.prenom}
-                  onChange={handleChange}
-                  placeholder="Votre prénom"
-                  disabled={!!invitationData?.prenom}
-                  className="h-11 border-black/10 focus:border-black disabled:bg-black/5 disabled:text-black/60 disabled:cursor-not-allowed"
-                />
-              </div>
+              {/* Optional fields - Collapsed by default for speed */}
+              <details className="group">
+                <summary className="cursor-pointer text-[14px] text-black/60 hover:text-black transition-colors py-2 list-none">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[13px]">▸</span>
+                    <span>Informations complémentaires (optionnel)</span>
+                  </div>
+                </summary>
 
-              {/* Téléphone */}
-              <div className="space-y-2">
-                <Label htmlFor="telephone" className="text-[14px] font-medium">
-                  Téléphone *
-                </Label>
-                <Input
-                  id="telephone"
-                  name="telephone"
-                  type="tel"
-                  value={formData.telephone}
-                  onChange={handleChange}
-                  placeholder="06 12 34 56 78"
-                  required
-                  disabled={!!invitationData?.telephone}
-                  className="h-11 border-black/10 focus:border-black disabled:bg-black/5 disabled:text-black/60 disabled:cursor-not-allowed"
-                />
-              </div>
+                <div className="mt-4 space-y-5 animate-in fade-in duration-200">
+                  {/* Prénom */}
+                  <div className="space-y-2">
+                    <Label htmlFor="prenom" className="text-[14px] font-medium">
+                      Prénom
+                    </Label>
+                    <Input
+                      id="prenom"
+                      name="prenom"
+                      type="text"
+                      value={formData.prenom}
+                      onChange={handleChange}
+                      placeholder="Votre prénom"
+                      disabled={!!invitationData?.prenom}
+                      className="h-11 border-black/10 focus:border-black disabled:bg-black/5 disabled:text-black/60 disabled:cursor-not-allowed"
+                    />
+                  </div>
 
-              {/* Adresse */}
-              <div className="space-y-2">
-                <Label htmlFor="adresse" className="text-[14px] font-medium">
-                  Adresse
-                </Label>
-                <Input
-                  id="adresse"
-                  name="adresse"
-                  type="text"
-                  value={formData.adresse}
-                  onChange={handleChange}
-                  placeholder="123 rue de la République"
-                  className="h-11 border-black/10 focus:border-black"
-                />
-              </div>
+                  {/* Téléphone */}
+                  <div className="space-y-2">
+                    <Label htmlFor="telephone" className="text-[14px] font-medium">
+                      Téléphone
+                    </Label>
+                    <Input
+                      id="telephone"
+                      name="telephone"
+                      type="tel"
+                      value={formData.telephone}
+                      onChange={handleChange}
+                      placeholder="06 12 34 56 78"
+                      disabled={!!invitationData?.telephone}
+                      className="h-11 border-black/10 focus:border-black disabled:bg-black/5 disabled:text-black/60 disabled:cursor-not-allowed"
+                    />
+                  </div>
 
-              {/* Code postal & Ville */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="codePostal"
-                    className="text-[14px] font-medium"
-                  >
-                    Code postal
-                  </Label>
-                  <Input
-                    id="codePostal"
-                    name="codePostal"
-                    type="text"
-                    value={formData.codePostal}
-                    onChange={handleChange}
-                    placeholder="75001"
-                    className="h-11 border-black/10 focus:border-black"
-                  />
+                  {/* Adresse */}
+                  <div className="space-y-2">
+                    <Label htmlFor="adresse" className="text-[14px] font-medium">
+                      Adresse
+                    </Label>
+                    <Input
+                      id="adresse"
+                      name="adresse"
+                      type="text"
+                      value={formData.adresse}
+                      onChange={handleChange}
+                      placeholder="123 rue de la République"
+                      className="h-11 border-black/10 focus:border-black"
+                    />
+                  </div>
+
+                  {/* Code postal & Ville */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="codePostal"
+                        className="text-[14px] font-medium"
+                      >
+                        Code postal
+                      </Label>
+                      <Input
+                        id="codePostal"
+                        name="codePostal"
+                        type="text"
+                        value={formData.codePostal}
+                        onChange={handleChange}
+                        placeholder="75001"
+                        className="h-11 border-black/10 focus:border-black"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="ville" className="text-[14px] font-medium">
+                        Ville
+                      </Label>
+                      <Input
+                        id="ville"
+                        name="ville"
+                        type="text"
+                        value={formData.ville}
+                        onChange={handleChange}
+                        placeholder="Paris"
+                        className="h-11 border-black/10 focus:border-black"
+                      />
+                    </div>
+                  </div>
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="ville" className="text-[14px] font-medium">
-                    Ville
-                  </Label>
-                  <Input
-                    id="ville"
-                    name="ville"
-                    type="text"
-                    value={formData.ville}
-                    onChange={handleChange}
-                    placeholder="Paris"
-                    className="h-11 border-black/10 focus:border-black"
-                  />
-                </div>
-              </div>
+              </details>
 
               {/* Password */}
               <div className="space-y-2">

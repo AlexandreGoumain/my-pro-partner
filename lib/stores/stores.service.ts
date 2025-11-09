@@ -3,7 +3,7 @@
  * Handles CRUD for stores, registers, and stock transfers
  */
 
-import { prisma } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 
 // ============================================
 // STORES

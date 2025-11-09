@@ -37,144 +37,20 @@ import {
     SidebarTrigger,
 } from "@/components/ui/sidebar";
 import {
-    Award,
-    Building2,
-    CalendarDays,
     ChevronRight,
     CreditCard,
-    FileText,
     HelpCircle,
     Keyboard,
-    LayoutDashboard,
     LogOut,
-    Package,
-    Plug,
-    Plus,
     Settings,
-    Store,
     User,
-    Users,
-    UtensilsCrossed,
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-
-// Navigation items
-const items = [
-    {
-        title: "Tableau de bord",
-        url: "/dashboard",
-        icon: LayoutDashboard,
-    },
-    {
-        title: "Clients",
-        url: "/dashboard/clients",
-        icon: Users,
-        items: [
-            {
-                title: "Liste des clients",
-                url: "/dashboard/clients",
-            },
-            {
-                title: "Segments",
-                url: "/dashboard/clients/segments",
-            },
-            {
-                title: "Statistiques",
-                url: "/dashboard/clients/statistiques",
-            },
-            {
-                title: "Import/Export",
-                url: "/dashboard/clients/import-export",
-            },
-        ],
-    },
-    {
-        title: "Fidélité",
-        url: "/dashboard/fidelite",
-        icon: Award,
-        items: [
-            {
-                title: "Niveaux de fidélité",
-                url: "/dashboard/fidelite/niveaux",
-            },
-        ],
-    },
-    {
-        title: "Personnel",
-        url: "/dashboard/personnel",
-        icon: Users,
-    },
-    {
-        title: "Magasins",
-        url: "/dashboard/stores",
-        icon: Store,
-    },
-    {
-        title: "Tables",
-        url: "/dashboard/tables",
-        icon: UtensilsCrossed,
-    },
-    {
-        title: "Réservations",
-        url: "/dashboard/reservations",
-        icon: CalendarDays,
-    },
-    {
-        title: "Articles",
-        url: "/dashboard/articles",
-        icon: Package,
-        items: [
-            {
-                title: "Catalogue & Services",
-                url: "/dashboard/articles",
-            },
-            {
-                title: "Stock",
-                url: "/dashboard/articles/stock",
-            },
-            {
-                title: "Catégories",
-                url: "/dashboard/articles/categories",
-            },
-        ],
-    },
-    {
-        title: "Documents",
-        url: "/dashboard/documents",
-        icon: FileText,
-        items: [
-            {
-                title: "Devis",
-                url: "/dashboard/documents/quotes",
-            },
-            {
-                title: "Factures",
-                url: "/dashboard/documents/invoices",
-            },
-            {
-                title: "Avoirs",
-                url: "/dashboard/documents/credits",
-            },
-        ],
-    },
-    {
-        title: "Entreprise",
-        url: "/dashboard/entreprise",
-        icon: Building2,
-    },
-    {
-        title: "Intégrations",
-        url: "/dashboard/integrations",
-        icon: Plug,
-    },
-    {
-        title: "Paramètres",
-        url: "/dashboard/settings",
-        icon: Settings,
-    },
-];
+import { useBusinessNavigation } from "@/hooks/use-business-navigation";
+import { getIcon } from "@/lib/navigation/utils/icon-map";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function DashboardLayout({
     children,
@@ -183,6 +59,9 @@ export default function DashboardLayout({
 }) {
     const pathname = usePathname();
     const { data: session } = useSession();
+
+    // Get business-adapted navigation
+    const { navigation, isLoading: navLoading } = useBusinessNavigation();
 
     const userName = session?.user?.name || "Utilisateur";
     const userEmail = session?.user?.email || "";
@@ -216,116 +95,99 @@ export default function DashboardLayout({
                     </SidebarMenuButton>
                 </SidebarHeader>
                 <SidebarContent>
-                    <SidebarGroup>
-                        <SidebarGroupLabel>Application</SidebarGroupLabel>
-                        <SidebarGroupContent>
-                            <SidebarMenu>
-                                {items.map((item) => (
-                                    <SidebarMenuItem key={item.title}>
-                                        {item.items ? (
-                                            <Collapsible
-                                                defaultOpen={pathname.startsWith(
-                                                    item.url
-                                                )}
-                                                className="group/collapsible"
-                                            >
-                                                <CollapsibleTrigger asChild>
-                                                    <SidebarMenuButton
-                                                        isActive={pathname.startsWith(
-                                                            item.url
-                                                        )}
-                                                        tooltip={item.title}
-                                                    >
-                                                        <item.icon />
-                                                        <span>
-                                                            {item.title}
-                                                        </span>
-                                                        <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                                                    </SidebarMenuButton>
-                                                </CollapsibleTrigger>
-                                                <CollapsibleContent>
-                                                    <SidebarMenuSub>
-                                                        {item.items?.map(
-                                                            (subItem) => (
-                                                                <SidebarMenuSubItem
-                                                                    key={
-                                                                        subItem.title
-                                                                    }
+                    {navLoading ? (
+                        <div className="flex items-center justify-center p-8">
+                            <Spinner className="h-6 w-6" />
+                        </div>
+                    ) : (
+                        <>
+                            <SidebarGroup>
+                                <SidebarGroupLabel>Application</SidebarGroupLabel>
+                                <SidebarGroupContent>
+                                    <SidebarMenu>
+                                        {navigation?.items.map((item) => {
+                                            const Icon = getIcon(item.icon);
+                                            return (
+                                                <SidebarMenuItem key={item.key}>
+                                                    {item.items && item.items.length > 0 ? (
+                                                        <Collapsible
+                                                            defaultOpen={pathname.startsWith(
+                                                                item.href
+                                                            )}
+                                                            className="group/collapsible"
+                                                        >
+                                                            <CollapsibleTrigger asChild>
+                                                                <SidebarMenuButton
+                                                                    isActive={pathname.startsWith(
+                                                                        item.href
+                                                                    )}
+                                                                    tooltip={item.label}
                                                                 >
-                                                                    <SidebarMenuSubButton
-                                                                        asChild
-                                                                        isActive={
-                                                                            pathname ===
-                                                                            subItem.url
-                                                                        }
-                                                                    >
-                                                                        <Link
-                                                                            href={
-                                                                                subItem.url
-                                                                            }
-                                                                        >
-                                                                            <span>
-                                                                                {
-                                                                                    subItem.title
-                                                                                }
-                                                                            </span>
-                                                                        </Link>
-                                                                    </SidebarMenuSubButton>
-                                                                </SidebarMenuSubItem>
-                                                            )
-                                                        )}
-                                                    </SidebarMenuSub>
-                                                </CollapsibleContent>
-                                            </Collapsible>
-                                        ) : (
-                                            <SidebarMenuButton
-                                                asChild
-                                                isActive={pathname === item.url}
-                                                tooltip={item.title}
-                                            >
-                                                <Link href={item.url}>
-                                                    <item.icon />
-                                                    <span>{item.title}</span>
-                                                </Link>
-                                            </SidebarMenuButton>
-                                        )}
-                                    </SidebarMenuItem>
-                                ))}
-                            </SidebarMenu>
-                        </SidebarGroupContent>
-                    </SidebarGroup>
+                                                                    <Icon />
+                                                                    <span>{item.label}</span>
+                                                                    <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                                                                </SidebarMenuButton>
+                                                            </CollapsibleTrigger>
+                                                            <CollapsibleContent>
+                                                                <SidebarMenuSub>
+                                                                    {item.items.map((subItem) => (
+                                                                        <SidebarMenuSubItem key={subItem.key}>
+                                                                            <SidebarMenuSubButton
+                                                                                asChild
+                                                                                isActive={pathname === subItem.href}
+                                                                            >
+                                                                                <Link href={subItem.href}>
+                                                                                    <span>{subItem.label}</span>
+                                                                                </Link>
+                                                                            </SidebarMenuSubButton>
+                                                                        </SidebarMenuSubItem>
+                                                                    ))}
+                                                                </SidebarMenuSub>
+                                                            </CollapsibleContent>
+                                                        </Collapsible>
+                                                    ) : (
+                                                        <SidebarMenuButton
+                                                            asChild
+                                                            isActive={pathname === item.href}
+                                                            tooltip={item.label}
+                                                        >
+                                                            <Link href={item.href}>
+                                                                <Icon />
+                                                                <span>{item.label}</span>
+                                                            </Link>
+                                                        </SidebarMenuButton>
+                                                    )}
+                                                </SidebarMenuItem>
+                                            );
+                                        })}
+                                    </SidebarMenu>
+                                </SidebarGroupContent>
+                            </SidebarGroup>
 
-                    <SidebarGroup>
-                        <SidebarGroupLabel>Création rapide</SidebarGroupLabel>
-                        <SidebarGroupContent>
-                            <SidebarMenu>
-                                <SidebarMenuItem>
-                                    <SidebarMenuButton asChild>
-                                        <Link href="/dashboard/clients/new">
-                                            <Plus className="size-4" />
-                                            <span>Nouveau client</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                                <SidebarMenuItem>
-                                    <SidebarMenuButton asChild>
-                                        <Link href="/dashboard/documents/quotes/new">
-                                            <Plus className="size-4" />
-                                            <span>Nouveau devis</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                                <SidebarMenuItem>
-                                    <SidebarMenuButton asChild>
-                                        <Link href="/dashboard/documents/invoices/new">
-                                            <Plus className="size-4" />
-                                            <span>Nouvelle facture</span>
-                                        </Link>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                            </SidebarMenu>
-                        </SidebarGroupContent>
-                    </SidebarGroup>
+                            {navigation?.quickActions && navigation.quickActions.length > 0 && (
+                                <SidebarGroup>
+                                    <SidebarGroupLabel>Création rapide</SidebarGroupLabel>
+                                    <SidebarGroupContent>
+                                        <SidebarMenu>
+                                            {navigation.quickActions.map((action) => {
+                                                const Icon = getIcon(action.icon);
+                                                return (
+                                                    <SidebarMenuItem key={action.key}>
+                                                        <SidebarMenuButton asChild>
+                                                            <Link href={action.href}>
+                                                                <Icon className="size-4" />
+                                                                <span>{action.label}</span>
+                                                            </Link>
+                                                        </SidebarMenuButton>
+                                                    </SidebarMenuItem>
+                                                );
+                                            })}
+                                        </SidebarMenu>
+                                    </SidebarGroupContent>
+                                </SidebarGroup>
+                            )}
+                        </>
+                    )}
                 </SidebarContent>
                 <SidebarFooter>
                     <SidebarMenu>
@@ -346,15 +208,15 @@ export default function DashboardLayout({
                     <div className="flex flex-1 items-center justify-between">
                         <div className="flex items-center gap-2">
                             <h1 className="text-lg font-semibold">
-                                {items.find(
+                                {navigation?.items.find(
                                     (item) =>
-                                        item.url === pathname ||
+                                        item.href === pathname ||
                                         (item.items &&
                                             item.items.some(
                                                 (subItem) =>
-                                                    subItem.url === pathname
+                                                    subItem.href === pathname
                                             ))
-                                )?.title || "Tableau de bord"}
+                                )?.label || "Tableau de bord"}
                             </h1>
                         </div>
                         <div className="flex items-center gap-2">

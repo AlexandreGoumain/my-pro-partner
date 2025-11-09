@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * Page affichée quand l'utilisateur est hors ligne
  */

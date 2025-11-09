@@ -10,7 +10,7 @@
  * - Audit des activités
  */
 
-import { prisma } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { UserRole, UserStatus } from "@prisma/client";
 import { DEFAULT_ROLE_PERMISSIONS, getDefaultPermissions } from "./roles-config";
