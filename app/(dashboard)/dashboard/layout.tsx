@@ -39,6 +39,7 @@ import {
 import {
     Award,
     Building2,
+    CalendarDays,
     ChevronRight,
     CreditCard,
     FileText,
@@ -47,10 +48,13 @@ import {
     LayoutDashboard,
     LogOut,
     Package,
+    Plug,
     Plus,
     Settings,
+    Store,
     User,
     Users,
+    UtensilsCrossed,
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
@@ -98,6 +102,26 @@ const items = [
         ],
     },
     {
+        title: "Personnel",
+        url: "/dashboard/personnel",
+        icon: Users,
+    },
+    {
+        title: "Magasins",
+        url: "/dashboard/stores",
+        icon: Store,
+    },
+    {
+        title: "Tables",
+        url: "/dashboard/tables",
+        icon: UtensilsCrossed,
+    },
+    {
+        title: "Réservations",
+        url: "/dashboard/reservations",
+        icon: CalendarDays,
+    },
+    {
         title: "Articles",
         url: "/dashboard/articles",
         icon: Package,
@@ -139,6 +163,11 @@ const items = [
         title: "Entreprise",
         url: "/dashboard/entreprise",
         icon: Building2,
+    },
+    {
+        title: "Intégrations",
+        url: "/dashboard/integrations",
+        icon: Plug,
     },
     {
         title: "Paramètres",
