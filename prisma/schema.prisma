@@ -16,12 +16,39 @@ datasource db {
 // MULTI-TENANCY
 // ============================================
 
+enum BusinessType {
+  GENERAL           // Entreprise générique
+  PLOMBERIE         // Plombier
+  ELECTRICITE       // Électricien
+  CHAUFFAGE         // Chauffagiste
+  MENUISERIE        // Menuisier
+  PEINTURE          // Peintre
+  MACONNERIE        // Maçon
+  RESTAURATION      // Restaurant, café, bar
+  BOULANGERIE       // Boulangerie, pâtisserie
+  COIFFURE          // Salon de coiffure
+  ESTHETIQUE        // Institut de beauté, spa
+  FITNESS           // Salle de sport, coaching
+  GARAGE            // Garage automobile
+  INFORMATIQUE      // Services informatiques
+  CONSULTING        // Conseil, formation
+  COMMERCE_DETAIL   // Commerce de détail
+  IMMOBILIER        // Agence immobilière
+  SANTE             // Professions médicales/paramédicales
+  JURIDIQUE         // Avocat, notaire
+  COMPTABILITE      // Expert-comptable
+}
+
 model Entreprise {
   id    String  @id @default(cuid())
   nom   String
   slug  String? @unique // URL-friendly identifier for client portal registration
   siret String? @unique
   email String  @unique
+
+  // Type de business pour personnalisation
+  businessType BusinessType @default(GENERAL)
+  secteur      String?      // Secteur d'activité détaillé
 
   // Gestion d'abonnement
   plan            PlanAbonnement @default(FREE)
@@ -31,6 +58,7 @@ model Entreprise {
 
   // Relations (toutes les données de l'entreprise)
   users            User[]
+  stores           Store[] // Magasins/Points de vente
   categories       Categorie[]
   articles         Article[]
   clients          Client[]
@@ -49,6 +77,7 @@ model Entreprise {
   paymentLinks     PaymentLink[] // Liens de paiement
   terminals        Terminal[] // Terminaux de paiement physiques
   bankTransactions BankTransaction[] // Transactions bancaires pour rapprochement
+  stockTransfers   StockTransfer[] // Transferts de stock inter-magasins
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -57,6 +86,7 @@ model Entreprise {
   @@index([slug])
   @@index([siret])
   @@index([abonnementActif])
+  @@index([businessType])
 }
 
 enum PlanAbonnement {
@@ -64,6 +94,258 @@ enum PlanAbonnement {
   STARTER
   PRO
   ENTERPRISE
+}
+
+// ============================================
+// MULTI-MAGASINS & MULTI-CAISSES
+// ============================================
+
+enum StoreStatus {
+  ACTIVE    // Magasin actif
+  INACTIVE  // Magasin temporairement fermé
+  CLOSED    // Magasin fermé définitivement
+}
+
+enum RegisterStatus {
+  ONLINE    // Caisse en ligne
+  OFFLINE   // Caisse hors ligne
+  BUSY      // Caisse occupée (transaction en cours)
+  CLOSED    // Caisse fermée
+}
+
+enum TransferStatus {
+  PENDING   // En attente de validation
+  APPROVED  // Approuvé, en transit
+  RECEIVED  // Reçu au magasin destination
+  REJECTED  // Rejeté
+  CANCELLED // Annulé
+}
+
+model Store {
+  id   String @id @default(cuid())
+  nom  String
+  code String // Code court du magasin (ex: "PAR01", "LYO01")
+
+  // Localisation
+  adresse    String?
+  codePostal String?
+  ville      String?
+  pays       String  @default("France")
+  latitude   Float?
+  longitude  Float?
+
+  // Contact
+  telephone String?
+  email     String?
+
+  // Configuration
+  isMainStore Boolean      @default(false) // Magasin principal
+  status      StoreStatus  @default(ACTIVE)
+  timezone    String       @default("Europe/Paris")
+
+  // Horaires d'ouverture (JSON)
+  // Format: { "1": { "open": "09:00", "close": "19:00" }, ... }
+  openingHours Json?
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Relations
+  registers       Register[] // Caisses de ce magasin
+  documents       Document[] // Documents émis depuis ce magasin
+  mouvementsStock MouvementStock[] // Mouvements de stock de ce magasin
+  stockItems      StoreStockItem[] // Stock par magasin
+  transfersFrom   StockTransfer[]  @relation("TransferFrom")
+  transfersTo     StockTransfer[]  @relation("TransferTo")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([entrepriseId, code])
+  @@index([entrepriseId])
+  @@index([status])
+  @@index([isMainStore])
+}
+
+model Register {
+  id   String @id @default(cuid())
+  nom  String // Nom de la caisse (ex: "Caisse 1", "Caisse principale")
+  code String // Code court (ex: "C01", "C02")
+
+  // Configuration
+  status       RegisterStatus @default(OFFLINE)
+  isActive     Boolean        @default(true)
+  deviceId     String?        @unique // ID unique de l'appareil
+  ipAddress    String?
+  terminalId   String?        @unique // ID du terminal Stripe/physique associé
+
+  // Options
+  canProcessCash    Boolean @default(true)
+  canProcessCard    Boolean @default(true)
+  canProcessCheck   Boolean @default(true)
+  requiresSignature Boolean @default(false)
+
+  // Multi-tenant
+  store   Store  @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  storeId String
+
+  // Relations
+  documents Document[] // Documents créés depuis cette caisse
+  sessions  RegisterSession[] // Sessions d'ouverture/fermeture de caisse
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([storeId, code])
+  @@index([storeId])
+  @@index([status])
+  @@index([deviceId])
+  @@index([isActive])
+}
+
+// Session de caisse (ouverture/fermeture)
+model RegisterSession {
+  id String @id @default(cuid())
+
+  register   Register @relation(fields: [registerId], references: [id], onDelete: Cascade)
+  registerId String
+
+  // Session info
+  openedBy   String // User ID
+  closedBy   String? // User ID
+  openedAt   DateTime @default(now())
+  closedAt   DateTime?
+
+  // Montants
+  startingCash Decimal  @default(0) @db.Decimal(10, 2) // Fond de caisse
+  expectedCash Decimal? @db.Decimal(10, 2) // Attendu (calculé)
+  actualCash   Decimal? @db.Decimal(10, 2) // Réel (compté)
+  difference   Decimal? @db.Decimal(10, 2) // Écart
+
+  // Statistiques de la session
+  totalSales       Decimal @default(0) @db.Decimal(10, 2)
+  totalTransactions Int    @default(0)
+  cashSales        Decimal @default(0) @db.Decimal(10, 2)
+  cardSales        Decimal @default(0) @db.Decimal(10, 2)
+  checkSales       Decimal @default(0) @db.Decimal(10, 2)
+
+  // Notes
+  openingNotes String?
+  closingNotes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([registerId])
+  @@index([openedAt])
+  @@index([closedAt])
+}
+
+// Stock par magasin (pour gérer le stock indépendamment par magasin)
+model StoreStockItem {
+  id String @id @default(cuid())
+
+  store   Store  @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  storeId String
+
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  articleId String
+
+  // Quantités
+  quantite    Int @default(0)
+  stockMin    Int @default(0) // Seuil d'alerte spécifique au magasin
+  stockMax    Int @default(0) // Stock maximum recommandé
+
+  // Emplacement dans le magasin
+  emplacement String? // Ex: "Rayon A - Étagère 3"
+  zoneStockage String? // Ex: "Réserve", "Vitrine"
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([storeId, articleId])
+  @@index([storeId])
+  @@index([articleId])
+  @@index([quantite]) // Pour les alertes de stock bas
+}
+
+// Transferts de stock entre magasins
+model StockTransfer {
+  id        String   @id @default(cuid())
+  numero    String   @unique // Numéro de transfert (auto-généré)
+  reference String? // Référence externe
+
+  // Magasins
+  fromStore   Store  @relation("TransferFrom", fields: [fromStoreId], references: [id])
+  fromStoreId String
+
+  toStore   Store  @relation("TransferTo", fields: [toStoreId], references: [id])
+  toStoreId String
+
+  // Statut
+  status TransferStatus @default(PENDING)
+
+  // Dates
+  requestedAt  DateTime  @default(now())
+  approvedAt   DateTime?
+  shippedAt    DateTime?
+  receivedAt   DateTime?
+  rejectedAt   DateTime?
+  cancelledAt  DateTime?
+
+  // Utilisateurs
+  requestedBy String  // User ID
+  approvedBy  String? // User ID
+  receivedBy  String? // User ID
+
+  // Informations de transport
+  trackingNumber String?
+  carrier        String? // Transporteur
+  estimatedDelivery DateTime?
+
+  // Notes
+  notes          String?
+  rejectionReason String?
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Relations
+  items StockTransferItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([fromStoreId])
+  @@index([toStoreId])
+  @@index([status])
+  @@index([requestedAt])
+}
+
+// Articles dans un transfert
+model StockTransferItem {
+  id String @id @default(cuid())
+
+  transfer   StockTransfer @relation(fields: [transferId], references: [id], onDelete: Cascade)
+  transferId String
+
+  article   Article @relation(fields: [articleId], references: [id])
+  articleId String
+
+  quantiteRequested Int // Quantité demandée
+  quantiteSent      Int @default(0) // Quantité expédiée
+  quantiteReceived  Int @default(0) // Quantité reçue
+
+  notes String? // Notes spécifiques à cet article
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([transferId])
+  @@index([articleId])
 }
 
 // ============================================
@@ -154,30 +436,250 @@ model UsageCounter {
 }
 
 // ============================================
-// AUTHENTIFICATION
+// AUTHENTIFICATION & GESTION DU PERSONNEL
 // ============================================
+
+enum UserRole {
+  OWNER       // Propriétaire (créateur de l'entreprise)
+  ADMIN       // Administrateur (accès complet)
+  MANAGER     // Manager (gestion équipe + clients)
+  EMPLOYEE    // Employé standard
+  CASHIER     // Caissier (ventes uniquement)
+  ACCOUNTANT  // Comptable (finances uniquement)
+}
+
+enum UserStatus {
+  ACTIVE      // Actif
+  INACTIVE    // Inactif
+  SUSPENDED   // Suspendu
+  INVITED     // Invité (pas encore accepté)
+}
 
 model User {
   id       String  @id @default(cuid())
   email    String  @unique
   password String
   name     String?
-  role     String  @default("user")
+
+  // Rôle et statut
+  role   UserRole   @default(EMPLOYEE)
+  status UserStatus @default(INVITED)
 
   // Multi-tenant: chaque user appartient à une entreprise
   entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
   entrepriseId String
 
+  // Informations personnelles
+  prenom       String?
+  telephone    String?
+  dateNaissance DateTime? @db.Date
+  adresse      String?
+  codePostal   String?
+  ville        String?
+  photoUrl     String?
+
+  // Informations professionnelles
+  poste          String? // Titre du poste (ex: "Chef de caisse", "Vendeur")
+  departement    String? // Département (ex: "Ventes", "Comptabilité")
+  dateEmbauche   DateTime? @db.Date
+  dateFinContrat DateTime? @db.Date // Pour CDD
+  salaireHoraire Decimal?  @db.Decimal(10, 2) // Pour calcul des commissions
+  numeroSecu     String? // Numéro de sécurité sociale
+  iban           String? // Pour virements salaire
+
+  // Permissions détaillées
+  permissions UserPermissions?
+
+  // Horaires et planning
+  schedules UserSchedule[]
+
+  // Tracking temps de travail
+  timeEntries TimeEntry[]
+
+  // Activité
+  lastLoginAt    DateTime?
+  lastActivityAt DateTime?
+
   // Onboarding: tracking si l'utilisateur a complété son profil
   onboardingComplete Boolean @default(false)
 
-  conversations Conversation[]
+  // Relations
+  conversations     Conversation[]
+  mouvementsStock   MouvementStock[]  @relation("UserStockMovements")
+  activitiesCreated UserActivity[]    @relation("CreatedActivities")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([entrepriseId])
   @@index([email])
+  @@index([role])
+  @@index([status])
+  @@index([entrepriseId, status])
+  @@index([entrepriseId, role])
+}
+
+// Permissions granulaires par utilisateur
+model UserPermissions {
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @unique
+
+  // Permissions Clients
+  canViewClients   Boolean @default(false)
+  canCreateClients Boolean @default(false)
+  canEditClients   Boolean @default(false)
+  canDeleteClients Boolean @default(false)
+
+  // Permissions Documents (Devis, Factures)
+  canViewDocuments   Boolean @default(false)
+  canCreateDocuments Boolean @default(false)
+  canEditDocuments   Boolean @default(false)
+  canDeleteDocuments Boolean @default(false)
+  canValidateDocuments Boolean @default(false) // Valider/Accepter devis
+
+  // Permissions Stock
+  canViewStock       Boolean @default(false)
+  canEditStock       Boolean @default(false)
+  canManageStock     Boolean @default(false) // Mouvements stock
+
+  // Permissions Produits/Services
+  canViewProducts    Boolean @default(false)
+  canCreateProducts  Boolean @default(false)
+  canEditProducts    Boolean @default(false)
+  canDeleteProducts  Boolean @default(false)
+
+  // Permissions Finances
+  canViewFinances    Boolean @default(false)
+  canManagePayments  Boolean @default(false)
+  canViewReports     Boolean @default(false)
+  canExportData      Boolean @default(false)
+
+  // Permissions Personnel
+  canViewUsers       Boolean @default(false)
+  canManageUsers     Boolean @default(false) // Créer/Modifier users
+  canViewTimeTracking Boolean @default(false)
+
+  // Permissions Paramètres
+  canViewSettings    Boolean @default(false)
+  canEditSettings    Boolean @default(false)
+
+  // Permissions Avancées
+  canAccessAPI       Boolean @default(false)
+  canManageBilling   Boolean @default(false) // Gérer abonnement
+  canViewAuditLog    Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// Horaires de travail (planning)
+model UserSchedule {
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  // Jour de la semaine (0 = Dimanche, 1 = Lundi, ..., 6 = Samedi)
+  dayOfWeek Int
+
+  // Heures de travail
+  startTime String // Format "HH:mm" (ex: "09:00")
+  endTime   String // Format "HH:mm" (ex: "18:00")
+
+  // Pause déjeuner
+  breakStart String? // Format "HH:mm"
+  breakEnd   String? // Format "HH:mm"
+
+  // Actif ou non (pour gérer les exceptions)
+  active Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, dayOfWeek])
+  @@index([userId])
+  @@index([dayOfWeek])
+}
+
+// Suivi du temps de travail (pointage)
+model TimeEntry {
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  // Date et heures
+  date      DateTime @db.Date
+  clockIn   DateTime // Heure d'arrivée
+  clockOut  DateTime? // Heure de départ (null si en cours)
+
+  // Pause
+  breakDuration Int @default(0) // Durée de pause en minutes
+
+  // Heures travaillées (calculé automatiquement)
+  hoursWorked Decimal? @db.Decimal(5, 2) // Ex: 8.50 heures
+
+  // Notes
+  notes String?
+
+  // Type de journée
+  type TimeEntryType @default(REGULAR)
+
+  // Validation
+  validated   Boolean   @default(false)
+  validatedBy String? // ID du manager qui a validé
+  validatedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([date])
+  @@index([userId, date])
+  @@index([validated])
+}
+
+enum TimeEntryType {
+  REGULAR     // Journée normale
+  OVERTIME    // Heures supplémentaires
+  SICK_LEAVE  // Arrêt maladie
+  VACATION    // Congés
+  REMOTE      // Télétravail
+}
+
+// Log d'activité utilisateur
+model UserActivity {
+  id        String       @id @default(cuid())
+  user      User         @relation("CreatedActivities", fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  action    ActivityType
+  resource  String? // Type de ressource (ex: "Client", "Document", "Article")
+  resourceId String? // ID de la ressource
+  details   Json? // Détails additionnels
+  ipAddress String?
+  userAgent String?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@index([userId, createdAt])
+}
+
+enum ActivityType {
+  LOGIN
+  LOGOUT
+  CREATE
+  UPDATE
+  DELETE
+  VIEW
+  EXPORT
+  PRINT
+  SEND_EMAIL
+  PAYMENT_RECEIVED
+  SETTINGS_CHANGED
 }
 
 // ============================================
@@ -384,6 +886,8 @@ model Article {
   categorieId String?
   lignes      LigneDocument[]
   mouvements  MouvementStock[]
+  storeStockItems StoreStockItem[] // Stock par magasin
+  transferItems   StockTransferItem[] // Items dans les transferts
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -424,6 +928,13 @@ model Document {
   // Série de numérotation (optionnel pour rétrocompatibilité)
   serie   SerieDocument? @relation(fields: [serieId], references: [id])
   serieId String?
+
+  // Multi-magasins
+  store   Store?    @relation(fields: [storeId], references: [id])
+  storeId String? // Magasin où le document a été créé
+
+  register   Register? @relation(fields: [registerId], references: [id])
+  registerId String? // Caisse où le document a été créé
 
   total_ht  Decimal @default(0) @db.Decimal(10, 2)
   total_tva Decimal @default(0) @db.Decimal(10, 2)
@@ -545,13 +1056,22 @@ model MouvementStock {
   article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
   articleId String
 
+  // Multi-magasins
+  store   Store?  @relation(fields: [storeId], references: [id])
+  storeId String? // Magasin concerné par le mouvement
+
+  // Tracking utilisateur qui a créé le mouvement
+  createdByUser User?   @relation("UserStockMovements", fields: [createdBy], references: [id])
+  createdBy     String?
+
   createdAt DateTime @default(now())
-  createdBy String?
 
   @@index([entrepriseId])
   @@index([articleId])
+  @@index([storeId])
   @@index([type])
   @@index([createdAt])
+  @@index([createdBy])
 }
 
 enum TypeMouvement {

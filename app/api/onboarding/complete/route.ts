@@ -3,9 +3,15 @@ import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { authOptions } from "../../auth/[...nextauth]/route";
+import {
+  BusinessTemplateService,
+  BusinessType,
+} from "@/lib/services/business-template.service";
 
 const onboardingSchema = z.object({
     nomEntreprise: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
+    businessType: z.string().min(1, "Le type de business est requis"),
+    secteur: z.string().optional(),
     siret: z.string().optional(),
     adresse: z.string().optional(),
     telephone: z.string().optional(),
@@ -33,7 +39,8 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const { nomEntreprise, siret, adresse, telephone } = validation.data;
+        const { nomEntreprise, businessType, secteur, siret, adresse, telephone } =
+            validation.data;
 
         // Get user with entreprise
         const user = await prisma.user.findUnique({
@@ -55,6 +62,8 @@ export async function POST(req: NextRequest) {
                 where: { id: user.entrepriseId },
                 data: {
                     nom: nomEntreprise,
+                    businessType: businessType as BusinessType,
+                    secteur: secteur || null,
                     siret: siret || null,
                 },
             });
@@ -92,6 +101,17 @@ export async function POST(req: NextRequest) {
 
             return { user: updatedUser, entreprise: updatedEntreprise };
         });
+
+        // Apply business template (categories, loyalty levels, etc.)
+        try {
+            await BusinessTemplateService.applyTemplate(
+                user.entrepriseId,
+                businessType as BusinessType
+            );
+        } catch (error) {
+            console.error("Erreur lors de l'application du template:", error);
+            // Continue even if template application fails
+        }
 
         return NextResponse.json(
             {

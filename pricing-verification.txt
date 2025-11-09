@@ -1,0 +1,92 @@
+# Pricing Harmonization Verification Report
+Generated: 2025-11-08
+
+## Summary of Changes
+
+All pricing across the codebase has been harmonized to match the Stripe configuration as the source of truth.
+
+## Unified Pricing Structure
+
+### FREE Plan
+- Monthly: 0€
+- Annual: 0€
+- Limits: 10 clients, 10 products, 10 docs/month, 1 user
+
+### STARTER Plan
+- Monthly: 29€
+- Annual: 290€ (save 58€/year)
+- Limits: 50 clients, 100 products, unlimited docs, 3 users
+- Features: 100 AI questions/month, loyalty program, advanced stock, email support
+
+### PRO Plan
+- Monthly: 79€
+- Annual: 790€ (save 158€/year)
+- Limits: Unlimited clients/products/docs, 10 users
+- Features: Unlimited AI, advanced loyalty, segmentation, campaigns, analytics, priority support, API
+
+### ENTERPRISE Plan
+- Monthly: 299€
+- Annual: 2990€ (save 598€/year)
+- Limits: Everything unlimited
+- Features: 24/7 support, account manager, SLA, custom integrations, training, white label
+
+## Files Updated
+
+### 1. lib/pricing-config.ts
+✅ PLAN_PRICING prices updated:
+   - STARTER: 29€/month (was 39€)
+   - PRO: 79€/month (was 69€)
+   - ENTERPRISE: 299€/month (was 179€)
+
+✅ PRICING_PLANS limits updated:
+   - STARTER: 50 clients (was 100), 3 users (was 1), 100 AI questions (was 50)
+   - PRO: Unlimited clients (was 500), 10 users (was 5)
+
+✅ PLAN_FEATURES updated to match current offerings
+
+### 2. app/pricing/page.tsx
+✅ All plan prices match Stripe config
+✅ Features lists enhanced with complete details
+✅ Annual savings calculations verified
+✅ Added missing features (articles, API, etc.)
+
+### 3. lib/stripe/subscription-config.ts
+✅ Already correct (source of truth)
+   - STARTER: 2900 cents (29€), 29000 cents (290€)
+   - PRO: 7900 cents (79€), 79000 cents (790€)
+   - ENTERPRISE: 29900 cents (299€), 299000 cents (2990€)
+
+## Files Verified (No Changes Needed)
+
+- hooks/use-plan-limits.ts - Uses PRICING_PLANS config ✅
+- components/paywall/upgrade-card.tsx - Uses PLAN_PRICING config ✅
+- components/paywall/feature-badge.tsx - Uses config ✅
+- components/paywall/limit-indicator.tsx - Uses config ✅
+- components/paywall/plan-gate.tsx - Uses config ✅
+- lib/middleware/feature-validation.ts - Uses config ✅
+- INSTALLATION.md - Already has correct pricing (29€, 79€, 299€) ✅
+- NEXT_STEPS.md - Already has correct pricing (29€, 79€, 299€) ✅
+
+## Verification Checklist
+
+✅ All pricing is consistent across files
+✅ Stripe config matches display prices
+✅ Annual savings calculations are accurate
+✅ Feature limits are harmonized
+✅ Documentation reflects current pricing
+✅ No hardcoded prices in component files
+✅ All components use centralized config
+
+## Annual Savings Verification
+
+- STARTER: 29€ × 12 = 348€ → 290€ annual = 58€ saved ✅
+- PRO: 79€ × 12 = 948€ → 790€ annual = 158€ saved ✅
+- ENTERPRISE: 299€ × 12 = 3588€ → 2990€ annual = 598€ saved ✅
+
+## Conclusion
+
+✅ All pricing inconsistencies have been resolved
+✅ Single source of truth: lib/stripe/subscription-config.ts
+✅ All display files use centralized pricing-config.ts
+✅ Documentation is up to date
+✅ Ready for commit and deployment
