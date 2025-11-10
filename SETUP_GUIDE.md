@@ -114,32 +114,6 @@ Ouvrir [http://localhost:3000](http://localhost:3000)
    - `invoice.payment_failed`
 4. Copier le **Signing secret** → `STRIPE_WEBHOOK_SECRET`
 
-## 🛍️ Configuration des Intégrations E-commerce
-
-### Shopify
-
-1. Dans votre admin Shopify → **Apps** → **Develop apps**
-2. Créer une nouvelle app
-3. Configurer les **API scopes** :
-   - `read_products`
-   - `write_products`
-   - `read_orders`
-   - `write_orders`
-   - `read_inventory`
-   - `write_inventory`
-4. Installer l'app et récupérer :
-   - `SHOPIFY_API_KEY`
-   - `SHOPIFY_API_SECRET`
-   - `SHOPIFY_ACCESS_TOKEN`
-
-### WooCommerce
-
-1. Admin WordPress → **WooCommerce** → **Settings** → **Advanced** → **REST API**
-2. Créer une nouvelle clé API avec permissions **Read/Write**
-3. Récupérer :
-   - `WOOCOMMERCE_CONSUMER_KEY`
-   - `WOOCOMMERCE_CONSUMER_SECRET`
-
 ## 📱 Configuration PWA (Mode Offline)
 
 ### Créer les icônes
@@ -269,8 +243,6 @@ npm start
 - [Prisma Docs](https://www.prisma.io/docs)
 - [Next.js Docs](https://nextjs.org/docs)
 - [Stripe Docs](https://stripe.com/docs)
-- [Shopify API](https://shopify.dev/api)
-- [WooCommerce API](https://woocommerce.github.io/woocommerce-rest-api-docs/)
 
 ## 🤝 Support
 

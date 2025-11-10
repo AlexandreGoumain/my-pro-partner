@@ -141,7 +141,6 @@ const RestaurantPreset: BusinessPreset = {
     "invoices",
     "analytics",
     "personnel",
-    "integrations",
     "settings",
   ],
 
@@ -493,7 +492,6 @@ const CommerceDetailPreset: BusinessPreset = {
     "invoices",
     "analytics",
     "stores",
-    "integrations",
     "settings",
   ],
 
