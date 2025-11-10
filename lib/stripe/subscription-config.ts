@@ -109,7 +109,9 @@ export function getStripePriceId(
  * Vérifier si un Price ID est valide (pas un placeholder)
  */
 export function isValidStripePriceId(priceId: string): boolean {
-  return priceId.startsWith("price_") && !priceId.includes("placeholder");
+  return priceId.startsWith("price_") &&
+         !priceId.includes("placeholder") &&
+         !priceId.includes("REMPLACER");
 }
 
 /**
@@ -180,7 +182,22 @@ export const STRIPE_BILLING_PORTAL_CONFIG = {
  * Messages d'erreur liés aux abonnements
  */
 export const SUBSCRIPTION_ERROR_MESSAGES = {
-  INVALID_PRICE_ID: "Price ID Stripe invalide. Veuillez configurer vos Price IDs dans .env",
+  INVALID_PRICE_ID: `
+⚠️ Configuration Stripe incomplète
+
+Les Price IDs Stripe n'ont pas été configurés dans le fichier .env.
+Pour activer les paiements, vous devez :
+
+1. Créer vos produits et prix dans Stripe Dashboard
+   → https://dashboard.stripe.com/test/products
+
+2. Copier les Price IDs dans votre fichier .env
+   (format: price_xxxxxxxxxxxxx)
+
+3. Redémarrer le serveur de développement
+
+📖 Guide complet: docs/STRIPE_SETUP.md
+`.trim(),
   SUBSCRIPTION_NOT_FOUND: "Aucun abonnement actif trouvé",
   SUBSCRIPTION_ALREADY_EXISTS: "Un abonnement existe déjà pour cette entreprise",
   STRIPE_CUSTOMER_NOT_FOUND: "Client Stripe introuvable",

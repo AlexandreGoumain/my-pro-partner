@@ -17,9 +17,12 @@ import { useCategories } from "@/hooks/use-categories";
 import { ARTICLE_SORT_OPTIONS } from "@/lib/constants/article-sort-options";
 import { expandCategoryIds } from "@/lib/types/category";
 import { getArticleEmptyStateMessage } from "@/lib/utils/article-helpers";
-import { Plus } from "lucide-react";
+import { Plus, Package } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { createColumns } from "./_components/data-table/columns";
+import { LimitIndicator } from "@/components/paywall";
+import { useLimitDialog } from "@/components/providers/limit-dialog-provider";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function CataloguePage() {
     // React Query hooks
@@ -28,6 +31,10 @@ export default function CataloguePage() {
 
     // Article handlers and modal states
     const handlers = useArticleHandlers();
+
+    // Pricing limit check - maintenant global via provider
+    const { checkLimit, userPlan } = useLimitDialog();
+    const articlesCount = articles.length;
 
     // UI states
     const [searchTerm, setSearchTerm] = useState("");
@@ -88,6 +95,14 @@ export default function CataloguePage() {
         [typeFilter, articles.length]
     );
 
+    // Wrapper pour vérifier la limite avant de créer
+    const handleCreateWithLimitCheck = () => {
+        if (!checkLimit("maxProducts", articlesCount)) {
+            return; // Limite atteinte - dialog s'affiche automatiquement
+        }
+        handlers.handleCreate();
+    };
+
     return (
         <div className="space-y-6">
             <PageHeader
@@ -95,7 +110,7 @@ export default function CataloguePage() {
                 description="Gérez votre catalogue de produits et services"
                 actions={
                     <Button
-                        onClick={handlers.handleCreate}
+                        onClick={handleCreateWithLimitCheck}
                         className="cursor-pointer"
                     >
                         <Plus className="w-4 h-4 mr-2" />
@@ -110,6 +125,26 @@ export default function CataloguePage() {
                 typeFilter={typeFilter}
                 onTypeFilterToggle={handleTypeFilterToggle}
             />
+
+            {/* Indicateur de limite de plan */}
+            <Card className="border-black/10">
+                <CardHeader>
+                    <CardTitle className="text-[16px] font-semibold text-black flex items-center gap-2">
+                        <Package className="w-5 h-5 text-black/60" strokeWidth={2} />
+                        Utilisation
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <LimitIndicator
+                        userPlan={userPlan}
+                        limitKey="maxProducts"
+                        currentValue={articlesCount}
+                        label="Articles"
+                        showProgress
+                        showUpgradeLink
+                    />
+                </CardContent>
+            </Card>
 
             {/* Filtres et recherche */}
             <ArticleFiltersBar
@@ -166,6 +201,8 @@ export default function CataloguePage() {
                 isDeleting={handlers.isDeleting}
                 selectedArticle={handlers.selectedArticle}
             />
+
+            {/* Dialog de limite atteinte géré globalement par le LimitDialogProvider */}
         </div>
     );
 }

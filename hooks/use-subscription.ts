@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
 /**
@@ -8,6 +9,7 @@ import { toast } from "sonner";
 export function useSubscription() {
     const [loading, setLoading] = useState(false);
     const router = useRouter();
+    const { update: updateSession } = useSession();
 
     /**
      * Créer une session checkout pour souscrire à un plan
@@ -35,7 +37,6 @@ export function useSubscription() {
                 throw new Error("URL de checkout manquante");
             }
         } catch (error: any) {
-            console.error("[SUBSCRIBE_ERROR]", error);
             toast.error(error.message || "Erreur lors de la souscription");
             setLoading(false);
         }
@@ -61,9 +62,11 @@ export function useSubscription() {
             }
 
             toast.success(data.message || "Abonnement annulé avec succès");
+
+            // Rafraîchir la session NextAuth pour mettre à jour le plan
+            await updateSession();
             router.refresh();
         } catch (error: any) {
-            console.error("[CANCEL_SUBSCRIPTION_ERROR]", error);
             toast.error(error.message || "Erreur lors de l'annulation");
         } finally {
             setLoading(false);
@@ -88,9 +91,11 @@ export function useSubscription() {
             }
 
             toast.success(data.message || "Abonnement réactivé avec succès");
+
+            // Rafraîchir la session NextAuth pour mettre à jour le plan
+            await updateSession();
             router.refresh();
         } catch (error: any) {
-            console.error("[RESUME_SUBSCRIPTION_ERROR]", error);
             toast.error(error.message || "Erreur lors de la réactivation");
         } finally {
             setLoading(false);
@@ -121,9 +126,11 @@ export function useSubscription() {
             }
 
             toast.success(data.message || "Plan modifié avec succès");
+
+            // Rafraîchir la session NextAuth pour mettre à jour le plan
+            await updateSession();
             router.refresh();
         } catch (error: any) {
-            console.error("[CHANGE_PLAN_ERROR]", error);
             toast.error(error.message || "Erreur lors du changement de plan");
         } finally {
             setLoading(false);
@@ -151,7 +158,6 @@ export function useSubscription() {
                 throw new Error("URL du portail manquante");
             }
         } catch (error: any) {
-            console.error("[BILLING_PORTAL_ERROR]", error);
             toast.error(error.message || "Erreur lors de l'accès au portail");
             setLoading(false);
         }

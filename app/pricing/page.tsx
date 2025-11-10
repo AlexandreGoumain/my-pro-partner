@@ -254,7 +254,7 @@ export default function PricingPage() {
                                     ) : plan.id === "FREE" ? (
                                         "Commencer gratuitement"
                                     ) : (
-                                        "Commencer l'essai gratuit"
+                                        `Obtenir ${plan.name}`
                                     )}
                                 </Button>
 

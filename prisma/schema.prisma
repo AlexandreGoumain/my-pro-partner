@@ -267,7 +267,8 @@ model StoreStockItem {
   @@unique([storeId, articleId])
   @@index([storeId])
   @@index([articleId])
-  @@index([quantite]) // Pour les alertes de stock bas
+  @@index([quantite]) // Pour les alertes de stock bas  @@index([storeId, articleId])
+
 }
 
 // Transferts de stock entre magasins
@@ -728,7 +729,9 @@ model Client {
   @@index([points_solde])
   @@index([clientPortalEnabled])
   @@index([pendingApproval])
-  @@index([entrepriseId, pendingApproval])
+  @@index([entrepriseId, pendingApproval])  @@index([entrepriseId, niveauFideliteId])
+  @@index([telephone])
+
 }
 
 // Tokens de réinitialisation de mot de passe pour le portail client
@@ -921,7 +924,9 @@ model Article {
   @@index([nom])
   @@index([type])
   @@index([categorieId])
-  @@index([actif])
+  @@index([actif])  @@index([entrepriseId, actif])
+  @@index([categorieId, actif])
+
 }
 
 enum ArticleType {
@@ -990,6 +995,9 @@ model Document {
   @@index([statut])
   @@index([dateEmission])
   @@index([dateEcheance])
+  @@index([entrepriseId, statut]) // Index composite pour requêtes par entreprise + statut  @@index([entrepriseId, type])
+  @@index([clientId, statut])
+
 }
 
 enum DocumentType {
@@ -1030,7 +1038,8 @@ model LigneDocument {
 
   @@index([documentId])
   @@index([articleId])
-  @@index([ordre])
+  @@index([ordre])  @@index([documentId, articleId])
+
 }
 
 model Paiement {
@@ -1048,6 +1057,7 @@ model Paiement {
   @@index([documentId])
   @@index([date_paiement])
   @@index([moyen_paiement])
+
 }
 
 enum MoyenPaiement {
@@ -1095,6 +1105,9 @@ model MouvementStock {
   @@index([type])
   @@index([createdAt])
   @@index([createdBy])
+  @@index([articleId, createdAt])
+  @@index([entrepriseId, createdAt])
+
 }
 
 enum TypeMouvement {

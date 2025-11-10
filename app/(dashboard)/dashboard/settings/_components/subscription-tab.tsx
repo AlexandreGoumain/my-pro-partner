@@ -2,230 +2,177 @@
 
 import { Button } from "@/components/ui/button";
 import { SettingsSection } from "@/components/ui/settings-section";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { CreditCard, TrendingUp, Users, FileText, Package, Zap } from "lucide-react";
-import { EntrepriseSettings } from "@/lib/types/settings";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+    CreditCard,
+    TrendingUp,
+    Users,
+    FileText,
+    Package,
+    ArrowRight,
+    Sparkles,
+} from "lucide-react";
+import { useLimitDialog } from "@/components/providers";
+import { LimitIndicator } from "@/components/paywall";
+import { PRICING_PLANS } from "@/lib/pricing-config";
+import { useClients } from "@/hooks/use-clients";
+import { useArticles } from "@/hooks/use-articles";
+import Link from "next/link";
 
 interface SubscriptionTabProps {
-    entreprise: EntrepriseSettings | null;
+    entreprise: any | null;
 }
 
 export function SubscriptionTab({ entreprise }: SubscriptionTabProps) {
-    const plans = [
-        {
-            name: "FREE",
-            price: "0€",
-            period: "gratuit",
-            features: ["5 clients max", "10 documents/mois", "1 utilisateur"],
-            current: entreprise?.plan === "FREE",
-        },
-        {
-            name: "STARTER",
-            price: "29€",
-            period: "par mois",
-            features: ["50 clients", "Docs illimités", "3 utilisateurs"],
-            current: entreprise?.plan === "STARTER",
-            popular: false,
-        },
-        {
-            name: "PRO",
-            price: "79€",
-            period: "par mois",
-            features: ["Clients illimités", "Docs illimités", "10 utilisateurs", "Support prioritaire"],
-            current: entreprise?.plan === "PRO",
-            popular: true,
-        },
-        {
-            name: "ENTERPRISE",
-            price: "Sur mesure",
-            period: "",
-            features: ["Tout illimité", "Support dédié", "API avancée", "SLA garanti"],
-            current: entreprise?.plan === "ENTERPRISE",
-        },
-    ];
+    const { userPlan } = useLimitDialog();
+    const { data: clients = [] } = useClients();
+    const { data: articles = [] } = useArticles();
 
-    const currentPlan = plans.find(p => p.current);
+    const currentPlanLimits = PRICING_PLANS[userPlan];
 
     return (
-        <div className="space-y-6">
-            <SettingsSection
-                icon={CreditCard}
-                title="Plan actuel"
-                description="Gérez votre abonnement et votre facturation"
-            >
-                <div className="max-w-3xl">
-                    <Card className="p-6 border-black/8 shadow-sm">
-                        <div className="flex items-start justify-between">
-                            <div>
-                                <div className="flex items-center gap-3">
-                                    <h3 className="text-[20px] font-semibold tracking-[-0.01em] text-black">
-                                        Plan {currentPlan?.name}
-                                    </h3>
-                                    {currentPlan?.current && (
-                                        <Badge className="bg-black text-white">
-                                            Plan actuel
-                                        </Badge>
-                                    )}
-                                </div>
-                                <div className="text-[28px] font-bold tracking-[-0.02em] text-black mt-2">
-                                    {currentPlan?.price}
-                                    {currentPlan?.period && (
-                                        <span className="text-[14px] font-normal text-black/40 ml-2">
-                                            {currentPlan.period}
-                                        </span>
-                                    )}
-                                </div>
-                                <ul className="mt-4 space-y-2">
-                                    {currentPlan?.features.map((feature, index) => (
-                                        <li key={index} className="flex items-center gap-2 text-[14px] text-black/60">
-                                            <span className="text-black">✓</span>
-                                            {feature}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                            {entreprise?.plan !== "ENTERPRISE" && (
-                                <Button className="bg-black hover:bg-black/90 text-white h-10 px-4">
-                                    <Zap className="h-4 w-4 mr-2" strokeWidth={2} />
-                                    Upgrader
-                                </Button>
-                            )}
-                        </div>
-                    </Card>
-                </div>
-            </SettingsSection>
-
+        <div className="space-y-10">
+            {/* Statistiques d'utilisation */}
             <SettingsSection
                 icon={TrendingUp}
                 title="Utilisation"
-                description="Suivez votre consommation actuelle"
+                description="Suivez votre consommation actuelle par rapport aux limites"
             >
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl">
-                    <Card className="p-4 border-black/8 shadow-sm">
-                        <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black/5">
-                                <Users className="h-5 w-5 text-black/60" strokeWidth={2} />
-                            </div>
-                            <div>
-                                <div className="text-[12px] text-black/40 font-medium uppercase tracking-wide">
-                                    Clients
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Clients */}
+                    <Card className="border-black/8 shadow-sm overflow-hidden">
+                        <div className="bg-gradient-to-br from-black/[0.02] to-black/[0.04] p-5 border-b border-black/8">
+                            <div className="flex items-center gap-3">
+                                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white shadow-sm border border-black/8">
+                                    <Users className="w-5 h-5 text-black" strokeWidth={2} />
                                 </div>
-                                <div className="text-[20px] font-semibold tracking-[-0.01em] text-black">
-                                    {entreprise?.stats?.clients || 0}
-                                    <span className="text-[14px] font-normal text-black/40 ml-1">
-                                        / {entreprise?.plan === "FREE" ? "5" : entreprise?.plan === "STARTER" ? "50" : "∞"}
-                                    </span>
+                                <div>
+                                    <h4 className="text-[13px] font-medium text-black/60 tracking-[-0.01em] uppercase">
+                                        Clients
+                                    </h4>
+                                    <p className="text-[22px] font-bold text-black tracking-[-0.02em] mt-0.5">
+                                        {clients.length}
+                                    </p>
                                 </div>
                             </div>
                         </div>
+                        <CardContent className="p-5">
+                            <LimitIndicator
+                                userPlan={userPlan}
+                                limitKey="maxClients"
+                                currentValue={clients.length}
+                                label="Clients"
+                                showProgress
+                                showUpgradeLink={false}
+                            />
+                        </CardContent>
                     </Card>
 
-                    <Card className="p-4 border-black/8 shadow-sm">
-                        <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black/5">
-                                <FileText className="h-5 w-5 text-black/60" strokeWidth={2} />
-                            </div>
-                            <div>
-                                <div className="text-[12px] text-black/40 font-medium uppercase tracking-wide">
-                                    Documents
+                    {/* Articles */}
+                    <Card className="border-black/8 shadow-sm overflow-hidden">
+                        <div className="bg-gradient-to-br from-black/[0.02] to-black/[0.04] p-5 border-b border-black/8">
+                            <div className="flex items-center gap-3">
+                                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white shadow-sm border border-black/8">
+                                    <Package className="w-5 h-5 text-black" strokeWidth={2} />
                                 </div>
-                                <div className="text-[20px] font-semibold tracking-[-0.01em] text-black">
-                                    {entreprise?.stats?.documents || 0}
-                                    <span className="text-[14px] font-normal text-black/40 ml-1">
-                                        / mois
-                                    </span>
+                                <div>
+                                    <h4 className="text-[13px] font-medium text-black/60 tracking-[-0.01em] uppercase">
+                                        Articles
+                                    </h4>
+                                    <p className="text-[22px] font-bold text-black tracking-[-0.02em] mt-0.5">
+                                        {articles.length}
+                                    </p>
                                 </div>
                             </div>
                         </div>
+                        <CardContent className="p-5">
+                            <LimitIndicator
+                                userPlan={userPlan}
+                                limitKey="maxProducts"
+                                currentValue={articles.length}
+                                label="Articles"
+                                showProgress
+                                showUpgradeLink={false}
+                            />
+                        </CardContent>
                     </Card>
 
-                    <Card className="p-4 border-black/8 shadow-sm">
-                        <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black/5">
-                                <Package className="h-5 w-5 text-black/60" strokeWidth={2} />
-                            </div>
-                            <div>
-                                <div className="text-[12px] text-black/40 font-medium uppercase tracking-wide">
-                                    Articles
+                    {/* Documents */}
+                    <Card className="border-black/8 shadow-sm overflow-hidden">
+                        <div className="bg-gradient-to-br from-black/[0.02] to-black/[0.04] p-5 border-b border-black/8">
+                            <div className="flex items-center gap-3">
+                                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white shadow-sm border border-black/8">
+                                    <FileText className="w-5 h-5 text-black" strokeWidth={2} />
                                 </div>
-                                <div className="text-[20px] font-semibold tracking-[-0.01em] text-black">
-                                    {entreprise?.stats?.articles || 0}
+                                <div>
+                                    <h4 className="text-[13px] font-medium text-black/60 tracking-[-0.01em] uppercase">
+                                        Documents
+                                    </h4>
+                                    <p className="text-[22px] font-bold text-black tracking-[-0.02em] mt-0.5">
+                                        {currentPlanLimits.maxDocumentsPerMonth === -1
+                                            ? "∞"
+                                            : currentPlanLimits.maxDocumentsPerMonth}
+                                    </p>
                                 </div>
                             </div>
                         </div>
+                        <CardContent className="p-5">
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[13px] text-black/60">Limite mensuelle</span>
+                                    <span className="text-[13px] font-semibold text-black">
+                                        {currentPlanLimits.maxDocumentsPerMonth === -1
+                                            ? "Illimité"
+                                            : `${currentPlanLimits.maxDocumentsPerMonth} docs`}
+                                    </span>
+                                </div>
+                                <p className="text-[12px] text-black/40 leading-relaxed">
+                                    {currentPlanLimits.maxDocumentsPerMonth === -1
+                                        ? "Créez autant de devis et factures que nécessaire"
+                                        : "Devis et factures combinés"}
+                                </p>
+                            </div>
+                        </CardContent>
                     </Card>
                 </div>
             </SettingsSection>
 
-            {entreprise?.plan !== "FREE" && (
-                <SettingsSection
-                    icon={FileText}
-                    title="Historique de facturation"
-                    description="Consultez vos factures précédentes"
-                >
-                    <div className="max-w-3xl">
-                        <div className="space-y-3">
-                            <div className="flex items-center justify-between py-3 border-b border-black/8">
-                                <div>
-                                    <div className="text-[14px] font-medium text-black">
-                                        Janvier 2025
-                                    </div>
-                                    <p className="text-[13px] text-black/40 mt-0.5">
-                                        Plan {currentPlan?.name} • Payée le 01/01/2025
-                                    </p>
+            {/* CTA vers la page des plans */}
+            <SettingsSection
+                icon={CreditCard}
+                title="Gérer mon abonnement"
+                description="Changer de plan, mettre à jour le paiement ou annuler"
+            >
+                <Card className="border-black/8 shadow-sm max-w-2xl">
+                    <CardContent className="p-8">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-black/5 to-black/10">
+                                    <Sparkles className="w-7 h-7 text-black" strokeWidth={2} />
                                 </div>
-                                <div className="flex items-center gap-3">
-                                    <span className="text-[14px] font-semibold text-black">
-                                        {currentPlan?.price}
-                                    </span>
-                                    <Button variant="outline" size="sm" className="h-8 border-black/10 hover:bg-black/5">
-                                        Télécharger
-                                    </Button>
+                                <div>
+                                    <h3 className="text-[20px] font-semibold tracking-[-0.02em] text-black mb-1">
+                                        Besoin de plus ?
+                                    </h3>
+                                    <p className="text-[14px] text-black/60 leading-relaxed">
+                                        Explorez nos plans et trouvez celui qui correspond à vos besoins
+                                    </p>
                                 </div>
                             </div>
 
-                            <div className="flex items-center justify-between py-3 border-b border-black/8">
-                                <div>
-                                    <div className="text-[14px] font-medium text-black">
-                                        Décembre 2024
-                                    </div>
-                                    <p className="text-[13px] text-black/40 mt-0.5">
-                                        Plan {currentPlan?.name} • Payée le 01/12/2024
-                                    </p>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <span className="text-[14px] font-semibold text-black">
-                                        {currentPlan?.price}
-                                    </span>
-                                    <Button variant="outline" size="sm" className="h-8 border-black/10 hover:bg-black/5">
-                                        Télécharger
-                                    </Button>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center justify-between py-3">
-                                <div>
-                                    <div className="text-[14px] font-medium text-black">
-                                        Novembre 2024
-                                    </div>
-                                    <p className="text-[13px] text-black/40 mt-0.5">
-                                        Plan {currentPlan?.name} • Payée le 01/11/2024
-                                    </p>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <span className="text-[14px] font-semibold text-black">
-                                        {currentPlan?.price}
-                                    </span>
-                                    <Button variant="outline" size="sm" className="h-8 border-black/10 hover:bg-black/5">
-                                        Télécharger
-                                    </Button>
-                                </div>
-                            </div>
+                            <Button
+                                asChild
+                                className="bg-black hover:bg-black/90 text-white h-11 px-6 text-[14px] font-medium rounded-md shadow-sm"
+                            >
+                                <Link href="/dashboard/pricing">
+                                    Voir les plans
+                                    <ArrowRight className="w-4 h-4 ml-2" strokeWidth={2} />
+                                </Link>
+                            </Button>
                         </div>
-                    </div>
-                </SettingsSection>
-            )}
+                    </CardContent>
+                </Card>
+            </SettingsSection>
         </div>
     );
 }

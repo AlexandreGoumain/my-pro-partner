@@ -25,6 +25,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { DataTable } from "@/components/ui/data-table";
+import { LimitIndicator } from "@/components/paywall";
+import { useLimitDialog } from "@/components/providers/limit-dialog-provider";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Users as UsersIcon } from "lucide-react";
 
 const CLIENT_COLUMN_LABELS: Record<string, string> = {
     nom: "Client",
@@ -39,6 +43,25 @@ function ClientsPageContent() {
     const router = useRouter();
     const handlers = useClientsPage();
     const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+
+    // Pricing limit check - maintenant global via provider
+    const { checkLimit, userPlan } = useLimitDialog();
+    const clientsCount = handlers.intelligence.total;
+
+    // Wrapper pour vérifier la limite avant de créer
+    const handleCreateWithLimitCheck = () => {
+        if (!checkLimit("maxClients", clientsCount)) {
+            return; // Limite atteinte - dialog s'affiche automatiquement
+        }
+        handlers.handleCreate();
+    };
+
+    const handleInviteWithLimitCheck = () => {
+        if (!checkLimit("maxClients", clientsCount)) {
+            return; // Limite atteinte - dialog s'affiche automatiquement
+        }
+        setInviteDialogOpen(true);
+    };
 
     return (
         <div className="space-y-6">
@@ -65,14 +88,14 @@ function ClientsPageContent() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="w-56">
                                 <DropdownMenuItem
-                                    onClick={handlers.handleCreate}
+                                    onClick={handleCreateWithLimitCheck}
                                     className="cursor-pointer"
                                 >
                                     <UserPlus className="w-4 h-4 mr-2" strokeWidth={2} />
                                     Créer manuellement
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
-                                    onClick={() => setInviteDialogOpen(true)}
+                                    onClick={handleInviteWithLimitCheck}
                                     className="cursor-pointer"
                                 >
                                     <Mail className="w-4 h-4 mr-2" strokeWidth={2} />
@@ -94,6 +117,26 @@ function ClientsPageContent() {
                     router.push("/dashboard/clients/segments")
                 }
             />
+
+            {/* Indicateur de limite de plan */}
+            <Card className="border-black/10">
+                <CardHeader>
+                    <CardTitle className="text-[16px] font-semibold text-black flex items-center gap-2">
+                        <UsersIcon className="w-5 h-5 text-black/60" strokeWidth={2} />
+                        Utilisation
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <LimitIndicator
+                        userPlan={userPlan}
+                        limitKey="maxClients"
+                        currentValue={clientsCount}
+                        label="Clients"
+                        showProgress
+                        showUpgradeLink
+                    />
+                </CardContent>
+            </Card>
 
             <ClientInsightsSection
                 completionRate={handlers.intelligence.completionRate}
@@ -183,6 +226,8 @@ function ClientsPageContent() {
                     setInviteDialogOpen(false);
                 }}
             />
+
+            {/* Dialog de limite atteinte géré globalement par le LimitDialogProvider */}
         </div>
     );
 }

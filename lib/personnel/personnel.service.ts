@@ -148,7 +148,6 @@ export async function createUser(
         createdByUserId
       );
     } catch (error) {
-      console.error('[Personnel Service] Failed to send invitation email:', error);
       // Ne pas échouer la création si l'email échoue
     }
   }
@@ -874,14 +873,11 @@ export async function sendUserInvitation(
     });
 
     if (!result.success) {
-      console.error('[Personnel Service] Failed to send invitation email:', result.error);
       return false;
     }
 
-    console.log(`[Personnel Service] Invitation email sent to ${email}`);
     return true;
   } catch (error) {
-    console.error('[Personnel Service] Error sending invitation:', error);
     return false;
   }
 }
@@ -906,6 +902,8 @@ function generateTemporaryPassword(): string {
  * Vérifier si l'entreprise peut ajouter un nouvel utilisateur (limite plan)
  */
 export async function canAddUser(entrepriseId: string): Promise<boolean> {
+  const { getPlanLimits, PlanType } = await import("@/lib/pricing-config");
+
   const entreprise = await prisma.entreprise.findUnique({
     where: { id: entrepriseId },
     select: { plan: true },
@@ -917,15 +915,9 @@ export async function canAddUser(entrepriseId: string): Promise<boolean> {
     where: { entrepriseId, status: { in: ["ACTIVE", "INVITED"] } },
   });
 
-  // Vérifier les limites selon le plan
-  const limits = {
-    FREE: 1,
-    STARTER: 3,
-    PRO: 10,
-    ENTERPRISE: -1, // illimité
-  };
-
-  const limit = limits[entreprise.plan];
+  // Utiliser la configuration centralisée du pricing
+  const planLimits = getPlanLimits(entreprise.plan as PlanType);
+  const limit = planLimits.maxUsers;
 
   if (limit === -1) return true; // illimité
 

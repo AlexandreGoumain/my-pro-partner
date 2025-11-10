@@ -31,8 +31,12 @@ import {
     Star,
     Users,
 } from "lucide-react";
+import { PlanGate } from "@/components/paywall";
+import { useLimitDialog } from "@/components/providers/limit-dialog-provider";
 
 export default function ClientSegmentsPage() {
+    const { userPlan } = useLimitDialog();
+
     const {
         segments,
         isLoading,
@@ -65,8 +69,13 @@ export default function ClientSegmentsPage() {
     } = useSegmentsPage();
 
     return (
-        <div className="space-y-6">
-            <PageHeader
+        <PlanGate
+            userPlan={userPlan}
+            feature="canSegmentClients"
+            upgradeMessage="La segmentation clients nécessite le plan Pro. Débloquez cette fonctionnalité pour organiser et analyser vos clients par segments."
+        >
+            <div className="space-y-6">
+                <PageHeader
                 title="Segments clients"
                 description="Organisez et analysez vos clients par segments"
                 actions={
@@ -309,6 +318,7 @@ export default function ClientSegmentsPage() {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-        </div>
+            </div>
+        </PlanGate>
     );
 }

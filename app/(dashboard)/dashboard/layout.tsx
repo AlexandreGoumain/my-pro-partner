@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { ChatbotProvider } from "@/lib/chatbot/chatbot-context";
 import { ChatbotWidget } from "@/components/chatbot/chatbot-widget";
+import { LimitDialogProvider } from "@/components/providers/limit-dialog-provider";
 import {
     Collapsible,
     CollapsibleContent,
@@ -74,8 +75,9 @@ export default function DashboardLayout({
 
     return (
         <ChatbotProvider>
-        <SidebarProvider>
-            <Sidebar>
+            <LimitDialogProvider>
+                <SidebarProvider>
+                    <Sidebar>
                 <SidebarHeader>
                     <SidebarMenuButton
                         size="lg"
@@ -300,10 +302,11 @@ export default function DashboardLayout({
                         </div>
                     </div>
                 </header>
-                <div className="flex flex-1 flex-col gap-4 p-4 bg-black/[0.04]">{children}</div>
-                <ChatbotWidget />
-            </SidebarInset>
-        </SidebarProvider>
+                    <div className="flex flex-1 flex-col gap-4 p-4 bg-black/[0.04]">{children}</div>
+                    <ChatbotWidget />
+                </SidebarInset>
+                </SidebarProvider>
+            </LimitDialogProvider>
         </ChatbotProvider>
     );
 }

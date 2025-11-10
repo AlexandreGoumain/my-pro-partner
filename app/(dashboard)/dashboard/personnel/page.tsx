@@ -64,6 +64,8 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
+import { useLimitDialog } from "@/components/providers";
+import { LimitIndicator } from "@/components/paywall";
 
 export default function PersonnelPage() {
   const {
@@ -81,10 +83,22 @@ export default function PersonnelPage() {
     toggleStatus,
   } = usePersonnel();
 
+  // Pricing limit check
+  const { checkLimit, userPlan } = useLimitDialog();
+  const usersCount = stats?.total || 0;
+
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+
+  // Wrapper pour vérifier la limite avant d'ouvrir le dialog
+  const handleOpenCreateDialog = () => {
+    if (!checkLimit("maxUsers", usersCount)) {
+      return; // Limite atteinte - dialog s'affiche automatiquement
+    }
+    setCreateDialogOpen(true);
+  };
 
   const handleCreate = async (data: any) => {
     const success = await createUser(data);
@@ -174,6 +188,26 @@ export default function PersonnelPage() {
         </div>
       )}
 
+      {/* Indicateur de limite de plan */}
+      <Card className="border-black/10">
+        <CardHeader>
+          <CardTitle className="text-[16px] font-semibold text-black flex items-center gap-2">
+            <Users className="w-5 h-5 text-black/60" strokeWidth={2} />
+            Utilisation
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <LimitIndicator
+            userPlan={userPlan}
+            limitKey="maxUsers"
+            currentValue={usersCount}
+            label="Employés"
+            showProgress
+            showUpgradeLink
+          />
+        </CardContent>
+      </Card>
+
       {/* Filters & Actions */}
       <Card>
         <CardContent className="pt-6">
@@ -231,7 +265,7 @@ export default function PersonnelPage() {
             </Select>
 
             {/* Add button */}
-            <Button onClick={() => setCreateDialogOpen(true)}>
+            <Button onClick={handleOpenCreateDialog}>
               <UserPlus className="h-4 w-4 mr-2" />
               Ajouter un employé
             </Button>
@@ -257,7 +291,7 @@ export default function PersonnelPage() {
               <p className="text-sm text-muted-foreground mb-4">
                 Commencez par ajouter votre premier employé
               </p>
-              <Button onClick={() => setCreateDialogOpen(true)}>
+              <Button onClick={handleOpenCreateDialog}>
                 <UserPlus className="h-4 w-4 mr-2" />
                 Ajouter un employé
               </Button>

@@ -36,9 +36,6 @@ export async function POST(req: NextRequest) {
                 STRIPE_WEBHOOK_SECRET
             );
         } catch (err) {
-            const error = err instanceof Error ? err.message : "Unknown error";
-            console.error("[Stripe Webhook] Signature verification failed:", error);
-
             return NextResponse.json(
                 { received: false, error: STRIPE_ERRORS.WEBHOOK_VERIFICATION_FAILED },
                 { status: 400 }
@@ -83,13 +80,11 @@ export async function POST(req: NextRequest) {
                 break;
 
             default:
-                console.log(`[Stripe Webhook] Unhandled event type: ${event.type}`);
+                break;
         }
 
         return NextResponse.json({ received: true });
     } catch (error) {
-        console.error("[Stripe Webhook] Unexpected error:", error);
-
         return NextResponse.json(
             {
                 received: false,
@@ -107,7 +102,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promis
     const documentId = session.metadata?.documentId;
 
     if (!documentId) {
-        console.error("[Stripe Webhook] No documentId in session metadata");
         throw new Error("No documentId in session metadata");
     }
 
@@ -120,7 +114,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promis
     });
 
     if (!document) {
-        console.error("[Stripe Webhook] Document not found:", documentId);
         throw new Error(`Document not found: ${documentId}`);
     }
 
@@ -158,11 +151,6 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promis
         },
     });
 
-    console.log(
-        `[Stripe Webhook] Payment recorded for document ${document.numero}:`,
-        `${paidAmount}€, remaining: ${remainingAmount}€`
-    );
-
     // Add loyalty points to the client for this payment
     try {
         await LoyaltyService.addPoints({
@@ -172,14 +160,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promis
             reference: document.numero,
             description: `Paiement de ${paidAmount}€ pour ${document.type === "FACTURE" ? "la facture" : "le document"} ${document.numero}`,
         });
-
-        console.log(
-            `[Stripe Webhook] Loyalty points added for client ${document.client.nom}:`,
-            `${LoyaltyService.calculatePoints(Number(paidAmount))} points for ${paidAmount}€`
-        );
     } catch (loyaltyError) {
-        // Log error but don't fail the webhook - payment was successful
-        console.error("[Stripe Webhook] Failed to add loyalty points:", loyaltyError);
+        // Ignore loyalty errors - payment was successful
     }
 }
 
@@ -190,7 +172,6 @@ async function handleSubscriptionCheckout(session: Stripe.Checkout.Session): Pro
     const entrepriseId = session.metadata?.entrepriseId;
 
     if (!entrepriseId) {
-        console.error("[Stripe Webhook] No entrepriseId in subscription checkout metadata");
         return;
     }
 
@@ -199,8 +180,6 @@ async function handleSubscriptionCheckout(session: Stripe.Checkout.Session): Pro
 
     // Créer l'abonnement en BDD
     const dbSubscription = await SubscriptionService.createSubscriptionFromStripe(subscription, entrepriseId);
-
-    console.log(`[Stripe Webhook] Subscription created for entreprise ${entrepriseId}`);
 
     // Envoyer email de confirmation
     try {
@@ -218,7 +197,7 @@ async function handleSubscriptionCheckout(session: Stripe.Checkout.Session): Pro
             });
         }
     } catch (error) {
-        console.error("[Email] Error sending subscription confirmation:", error);
+        // Ignore email errors
     }
 }
 
@@ -235,17 +214,15 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription): Prom
         if (existing) {
             // Mettre à jour
             await SubscriptionService.updateSubscriptionFromStripe(subscription);
-            console.log(`[Stripe Webhook] Subscription updated: ${subscription.id}`);
         } else {
             // Créer (si pas créé via checkout)
             const entrepriseId = subscription.metadata?.entrepriseId;
+
             if (entrepriseId) {
                 await SubscriptionService.createSubscriptionFromStripe(subscription, entrepriseId);
-                console.log(`[Stripe Webhook] Subscription created: ${subscription.id}`);
             }
         }
     } catch (error) {
-        console.error("[Stripe Webhook] Error handling subscription update:", error);
         throw error;
     }
 }
@@ -256,9 +233,7 @@ async function handleSubscriptionUpdate(subscription: Stripe.Subscription): Prom
 async function handleSubscriptionDeleted(subscription: Stripe.Subscription): Promise<void> {
     try {
         await SubscriptionService.deleteSubscriptionFromStripe(subscription.id);
-        console.log(`[Stripe Webhook] Subscription deleted: ${subscription.id}`);
     } catch (error) {
-        console.error("[Stripe Webhook] Error handling subscription deletion:", error);
         throw error;
     }
 }
@@ -278,13 +253,8 @@ async function handleTrialWillEnd(subscription: Stripe.Subscription): Promise<vo
         });
 
         if (!dbSubscription) {
-            console.error("[Stripe Webhook] Subscription not found for trial ending:", subscription.id);
             return;
         }
-
-        console.log(
-            `[Stripe Webhook] Trial will end soon for entreprise ${dbSubscription.entreprise.nom}`
-        );
 
         // Envoyer email d'alerte avant fin d'essai
         if (dbSubscription.entreprise.utilisateur?.email && dbSubscription.trialEnd) {
@@ -300,7 +270,6 @@ async function handleTrialWillEnd(subscription: Stripe.Subscription): Promise<vo
             });
         }
     } catch (error) {
-        console.error("[Stripe Webhook] Error handling trial ending:", error);
         // Ne pas throw pour ne pas faire échouer le webhook
     }
 }
@@ -314,11 +283,8 @@ async function handleInvoicePaid(invoice: Stripe.Invoice): Promise<void> {
         if (invoice.subscription) {
             const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
             await SubscriptionService.updateSubscriptionFromStripe(subscription);
-
-            console.log(`[Stripe Webhook] Invoice paid for subscription: ${subscription.id}`);
         }
     } catch (error) {
-        console.error("[Stripe Webhook] Error handling invoice paid:", error);
         // Ne pas throw pour ne pas faire échouer le webhook
     }
 }
@@ -342,10 +308,6 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice): Promise<void
             });
 
             if (dbSubscription) {
-                console.log(
-                    `[Stripe Webhook] Payment failed for entreprise ${dbSubscription.entreprise.nom}`
-                );
-
                 // Envoyer email de paiement échoué
                 if (dbSubscription.entreprise.utilisateur?.email) {
                     await EmailNotificationService.sendPaymentFailed({
@@ -358,7 +320,6 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice): Promise<void
             }
         }
     } catch (error) {
-        console.error("[Stripe Webhook] Error handling payment failed:", error);
         // Ne pas throw pour ne pas faire échouer le webhook
     }
 }

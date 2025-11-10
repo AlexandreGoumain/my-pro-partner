@@ -41,9 +41,20 @@ export class SubscriptionService {
       throw new Error("Entreprise introuvable");
     }
 
-    // Vérifier si un abonnement existe déjà
-    if (entreprise.subscription) {
+    // Vérifier si un abonnement actif existe déjà
+    const hasActiveSubscription = entreprise.subscription &&
+      (entreprise.subscription.status === "ACTIVE" ||
+       entreprise.subscription.status === "TRIALING");
+
+    if (hasActiveSubscription) {
       throw new Error(SUBSCRIPTION_ERROR_MESSAGES.SUBSCRIPTION_ALREADY_EXISTS);
+    }
+
+    // Si subscription existe mais est inactive/canceled, la supprimer
+    if (entreprise.subscription) {
+      await prisma.subscription.delete({
+        where: { id: entreprise.subscription.id },
+      });
     }
 
     // Récupérer le Price ID
@@ -121,7 +132,8 @@ export class SubscriptionService {
     stripeSubscription: Stripe.Subscription,
     entrepriseId: string
   ): Promise<void> {
-    const planInfo = getPlanFromPriceId(stripeSubscription.items.data[0].price.id);
+    const priceId = stripeSubscription.items.data[0].price.id;
+    const planInfo = getPlanFromPriceId(priceId);
 
     if (!planInfo) {
       throw new Error("Plan introuvable pour ce Price ID");
@@ -181,6 +193,15 @@ export class SubscriptionService {
 
     const status = this.mapStripeStatus(stripeSubscription.status);
 
+    // Gérer les dates qui peuvent être null/undefined
+    const currentPeriodStart = stripeSubscription.current_period_start
+      ? new Date(stripeSubscription.current_period_start * 1000)
+      : new Date();
+
+    const currentPeriodEnd = stripeSubscription.current_period_end
+      ? new Date(stripeSubscription.current_period_end * 1000)
+      : new Date();
+
     // Mettre à jour l'abonnement
     await prisma.subscription.update({
       where: { stripeSubscriptionId: stripeSubscription.id },
@@ -188,8 +209,8 @@ export class SubscriptionService {
         plan: planInfo.plan,
         status,
         stripePriceId: stripeSubscription.items.data[0].price.id,
-        currentPeriodStart: new Date(stripeSubscription.current_period_start * 1000),
-        currentPeriodEnd: new Date(stripeSubscription.current_period_end * 1000),
+        currentPeriodStart,
+        currentPeriodEnd,
         trialEnd: stripeSubscription.trial_end
           ? new Date(stripeSubscription.trial_end * 1000)
           : null,

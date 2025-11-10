@@ -4,10 +4,9 @@ import { authOptions } from "@/lib/auth";
 import { SubscriptionService } from "@/lib/services/subscription.service";
 
 /**
- * GET /api/subscription/portal
  * Créer une session Stripe Billing Portal et retourner l'URL
  */
-export async function GET(req: NextRequest) {
+async function handlePortalRequest() {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.entrepriseId) {
@@ -27,4 +26,18 @@ export async function GET(req: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+/**
+ * GET /api/subscription/portal
+ */
+export async function GET(req: NextRequest) {
+  return handlePortalRequest();
+}
+
+/**
+ * POST /api/subscription/portal
+ */
+export async function POST(req: NextRequest) {
+  return handlePortalRequest();
 }
