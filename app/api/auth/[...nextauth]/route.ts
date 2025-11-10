@@ -101,13 +101,14 @@ export const authOptions: NextAuthOptions = {
                                 });
                             }
 
-                            // Create user (onboardingComplete = false by default)
+                            // Create user (OWNER role for first user via OAuth)
                             const newUser = await tx.user.create({
                                 data: {
                                     email: user.email!,
                                     name: user.name || "",
                                     password: "", // Empty for OAuth users
-                                    role: "admin",
+                                    role: "OWNER",
+                                    status: "ACTIVE",
                                     entrepriseId: entreprise.id,
                                     onboardingComplete: false,
                                 },

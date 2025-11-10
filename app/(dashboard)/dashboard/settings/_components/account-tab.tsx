@@ -13,6 +13,18 @@ interface AccountTabProps {
     user: UserSettings;
 }
 
+const getRoleLabel = (role: string) => {
+    const roleLabels: Record<string, string> = {
+        OWNER: "Propriétaire",
+        ADMIN: "Administrateur",
+        MANAGER: "Manager",
+        EMPLOYEE: "Employé",
+        CASHIER: "Caissier",
+        ACCOUNTANT: "Comptable",
+    };
+    return roleLabels[role] || "Utilisateur";
+};
+
 export function AccountTab({ user }: AccountTabProps) {
     const [isChangingPassword, setIsChangingPassword] = useState(false);
     const [passwordData, setPasswordData] = useState({
@@ -75,9 +87,7 @@ export function AccountTab({ user }: AccountTabProps) {
                                 variant="outline"
                                 className="h-7 px-3 border-black/10"
                             >
-                                {user?.role === "admin"
-                                    ? "Administrateur"
-                                    : "Utilisateur"}
+                                {getRoleLabel(user?.role || "")}
                             </Badge>
                         </div>
                     </div>

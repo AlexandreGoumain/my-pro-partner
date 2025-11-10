@@ -169,6 +169,136 @@ export class EmailService {
   }
 
   /**
+   * Send team member invitation email
+   */
+  async sendTeamInvitation(options: {
+    to: string;
+    inviteeName: string;
+    inviterName: string;
+    entrepriseName: string;
+    role: string;
+    invitationToken: string;
+  }): Promise<SendEmailResult> {
+    const invitationLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/team/accept-invitation?token=${options.invitationToken}`;
+
+    const roleLabels: Record<string, string> = {
+      OWNER: 'Propriétaire',
+      ADMIN: 'Administrateur',
+      MANAGER: 'Manager',
+      EMPLOYEE: 'Employé',
+      CASHIER: 'Caissier',
+      ACCOUNTANT: 'Comptable',
+    };
+
+    const roleLabel = roleLabels[options.role] || 'Membre de l\'équipe';
+
+    const html = this.getTeamInvitationTemplate(
+      options.inviteeName,
+      options.inviterName,
+      options.entrepriseName,
+      roleLabel,
+      invitationLink
+    );
+
+    return this.sendEmail({
+      to: options.to,
+      subject: `Invitation à rejoindre ${options.entrepriseName}`,
+      html,
+      fromName: options.entrepriseName,
+    });
+  }
+
+  /**
+   * Team invitation email template (Apple-inspired design)
+   */
+  private getTeamInvitationTemplate(
+    inviteeName: string,
+    inviterName: string,
+    entrepriseName: string,
+    role: string,
+    invitationLink: string
+  ): string {
+    return `
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invitation à rejoindre l'équipe</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #ffffff; color: #000000;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 40px;">
+            <h1 style="font-size: 24px; font-weight: 600; letter-spacing: -0.5px; margin: 0;">Invitation à rejoindre l'équipe</h1>
+        </div>
+
+        <!-- Content -->
+        <div style="background-color: #fafafa; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; padding: 32px;">
+            <p style="font-size: 15px; line-height: 1.6; color: rgba(0,0,0,0.8); margin: 0 0 20px 0;">
+                Bonjour${inviteeName ? ' ' + inviteeName : ''},
+            </p>
+
+            <p style="font-size: 15px; line-height: 1.6; color: rgba(0,0,0,0.8); margin: 0 0 24px 0;">
+                <strong>${inviterName}</strong> vous invite à rejoindre <strong>${entrepriseName}</strong> sur MyProPartner en tant que <strong>${role}</strong>.
+            </p>
+
+            <!-- Info Box -->
+            <div style="background-color: #ffffff; border: 1px solid rgba(0,0,0,0.08); border-radius: 6px; padding: 20px; margin: 24px 0;">
+                <p style="font-size: 13px; color: rgba(0,0,0,0.5); margin: 0 0 12px 0; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;">
+                    Détails de l'invitation
+                </p>
+                <div style="margin-bottom: 12px;">
+                    <p style="font-size: 12px; color: rgba(0,0,0,0.5); margin: 0 0 4px 0;">Entreprise</p>
+                    <p style="font-size: 14px; color: #000000; font-weight: 500; margin: 0;">${entrepriseName}</p>
+                </div>
+                <div>
+                    <p style="font-size: 12px; color: rgba(0,0,0,0.5); margin: 0 0 4px 0;">Rôle</p>
+                    <p style="font-size: 14px; color: #000000; font-weight: 500; margin: 0;">${role}</p>
+                </div>
+            </div>
+
+            <p style="font-size: 15px; line-height: 1.6; color: rgba(0,0,0,0.8); margin: 0 0 24px 0;">
+                Pour accepter cette invitation et créer votre compte, cliquez sur le bouton ci-dessous :
+            </p>
+
+            <!-- CTA Button -->
+            <div style="text-align: center; margin: 32px 0;">
+                <a href="${invitationLink}" style="display: inline-block; background-color: #000000; color: #ffffff; text-decoration: none; padding: 12px 32px; border-radius: 6px; font-size: 14px; font-weight: 500;">
+                    Accepter l'invitation
+                </a>
+            </div>
+
+            <div style="background-color: rgba(0,0,0,0.03); border-radius: 6px; padding: 16px; margin-top: 24px;">
+                <p style="font-size: 13px; line-height: 1.6; color: rgba(0,0,0,0.6); margin: 0;">
+                    ℹ️ <strong>Important :</strong> Cette invitation est valable pendant 7 jours. Vous pourrez définir votre propre mot de passe lors de l'acceptation.
+                </p>
+            </div>
+        </div>
+
+        <!-- Alternative link -->
+        <div style="margin-top: 24px; padding: 16px; background-color: #fafafa; border-radius: 6px;">
+            <p style="font-size: 12px; color: rgba(0,0,0,0.5); margin: 0 0 8px 0;">
+                Si le bouton ne fonctionne pas, copiez et collez ce lien dans votre navigateur :
+            </p>
+            <p style="font-size: 12px; color: rgba(0,0,0,0.8); word-break: break-all; margin: 0;">
+                ${invitationLink}
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div style="text-align: center; margin-top: 40px;">
+            <p style="font-size: 12px; color: rgba(0,0,0,0.4); margin: 0;">
+                Cet email a été envoyé automatiquement, merci de ne pas y répondre.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
+    `.trim();
+  }
+
+  /**
    * Validate email address format
    */
   static isValidEmail(email: string): boolean {

@@ -7,7 +7,8 @@
         "build": "prisma generate && node scripts/generate-prisma-index.js && next build",
         "start": "next start",
         "lint": "eslint",
-        "postinstall": "prisma generate && node scripts/generate-prisma-index.js"
+        "postinstall": "prisma generate && node scripts/generate-prisma-index.js",
+        "db:clear": "tsx scripts/clear-database.ts"
     },
     "dependencies": {
         "@ai-sdk/openai": "^2.0.59",
@@ -79,6 +80,7 @@
         "postcss": "^8.4.49",
         "prisma": "^6.0.0",
         "tailwindcss": "^3.4.17",
+        "tsx": "^4.20.6",
         "typescript": "^5"
     }
 }

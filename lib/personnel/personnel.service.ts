@@ -14,6 +14,8 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { UserRole, UserStatus } from "@prisma/client";
 import { DEFAULT_ROLE_PERMISSIONS, getDefaultPermissions } from "./roles-config";
+import { emailService } from "@/lib/email/email-service";
+import { nanoid } from "nanoid";
 
 // ============================================
 // TYPES
@@ -134,7 +136,22 @@ export async function createUser(
     });
   }
 
-  // TODO: Envoyer l'email d'invitation si sendInvitation = true
+  // Envoyer l'email d'invitation si sendInvitation = true
+  if (data.sendInvitation && createdByUserId) {
+    try {
+      await sendUserInvitation(
+        entrepriseId,
+        data.email,
+        data.name,
+        data.prenom,
+        data.role,
+        createdByUserId
+      );
+    } catch (error) {
+      console.error('[Personnel Service] Failed to send invitation email:', error);
+      // Ne pas échouer la création si l'email échoue
+    }
+  }
 
   return user;
 }
@@ -764,6 +781,109 @@ export async function getPersonnelStats(entrepriseId: string) {
     invited: invitedUsers,
     byRole: usersByRole,
   };
+}
+
+// ============================================
+// INVITATIONS
+// ============================================
+
+/**
+ * Envoyer une invitation par email à un nouvel utilisateur
+ */
+export async function sendUserInvitation(
+  entrepriseId: string,
+  email: string,
+  name?: string,
+  prenom?: string,
+  role?: UserRole,
+  invitedByUserId?: string
+): Promise<boolean> {
+  try {
+    // Vérifier si une invitation existe déjà et est valide
+    const existingInvitation = await prisma.userInvitationToken.findFirst({
+      where: {
+        email: {
+          equals: email,
+          mode: "insensitive",
+        },
+        entrepriseId,
+        used: false,
+        expiresAt: {
+          gt: new Date(),
+        },
+      },
+    });
+
+    let token: string;
+    let invitationId: string;
+
+    if (existingInvitation) {
+      // Réutiliser le token existant
+      token = existingInvitation.token;
+      invitationId = existingInvitation.id;
+    } else {
+      // Créer un nouveau token d'invitation (valide 7 jours)
+      token = nanoid(32);
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 7);
+
+      const invitation = await prisma.userInvitationToken.create({
+        data: {
+          token,
+          email,
+          name: name || null,
+          prenom: prenom || null,
+          role: role || "EMPLOYEE",
+          entrepriseId,
+          invitedBy: invitedByUserId || "",
+          expiresAt,
+        },
+      });
+
+      invitationId = invitation.id;
+    }
+
+    // Récupérer les informations de l'entreprise et de l'inviteur
+    const entreprise = await prisma.entreprise.findUnique({
+      where: { id: entrepriseId },
+      select: { nom: true },
+    });
+
+    let inviterName = "L'équipe";
+    if (invitedByUserId) {
+      const inviter = await prisma.user.findUnique({
+        where: { id: invitedByUserId },
+        select: { name: true, prenom: true },
+      });
+
+      if (inviter) {
+        inviterName = inviter.prenom
+          ? `${inviter.prenom}${inviter.name ? ' ' + inviter.name : ''}`
+          : inviter.name || "L'équipe";
+      }
+    }
+
+    // Envoyer l'email d'invitation
+    const result = await emailService.sendTeamInvitation({
+      to: email,
+      inviteeName: prenom || name || "",
+      inviterName,
+      entrepriseName: entreprise?.nom || "Votre entreprise",
+      role: role || "EMPLOYEE",
+      invitationToken: token,
+    });
+
+    if (!result.success) {
+      console.error('[Personnel Service] Failed to send invitation email:', result.error);
+      return false;
+    }
+
+    console.log(`[Personnel Service] Invitation email sent to ${email}`);
+    return true;
+  } catch (error) {
+    console.error('[Personnel Service] Error sending invitation:', error);
+    return false;
+  }
 }
 
 // ============================================

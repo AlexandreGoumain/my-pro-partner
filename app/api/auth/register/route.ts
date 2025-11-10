@@ -57,15 +57,16 @@ export async function POST(req: NextRequest) {
                 },
             });
 
-            // Créer l'utilisateur admin
+            // Créer l'utilisateur propriétaire (premier utilisateur de l'entreprise)
             const user = await tx.user.create({
                 data: {
                     email,
                     password: hashedPassword,
                     name,
-                    role: "admin",
+                    role: "OWNER", // Premier utilisateur = propriétaire
+                    status: "ACTIVE", // Actif immédiatement
                     entrepriseId: entreprise.id,
-                    onboardingComplete: true, // Registration form = onboarding complete
+                    onboardingComplete: false, // Doit compléter l'onboarding
                 },
             });
 

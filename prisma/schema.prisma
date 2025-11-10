@@ -770,6 +770,29 @@ model InvitationToken {
   @@index([expiresAt])
 }
 
+// Tokens d'invitation pour les collaborateurs (équipe)
+model UserInvitationToken {
+  id           String   @id @default(cuid())
+  token        String   @unique
+  email        String
+  name         String?
+  prenom       String?
+  role         String   // UserRole as string
+  entrepriseId String
+  invitedBy    String   // User ID qui a envoyé l'invitation
+  expiresAt    DateTime
+  used         Boolean  @default(false)
+  usedAt       DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([email])
+  @@index([entrepriseId])
+  @@index([expiresAt])
+  @@index([used])
+}
+
 // Notifications pour le portail client
 model ClientNotification {
   id       String               @id @default(cuid())
