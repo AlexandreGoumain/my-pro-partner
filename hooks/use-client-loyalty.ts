@@ -1,66 +1,60 @@
-import { useLoyaltyPoints, useLoyaltyPointsStats } from "./use-loyalty-points";
-import { api } from "@/lib/api/fetch-client";
-import { useQuery } from "@tanstack/react-query";
+import type { ClientLoyaltyData } from "@/lib/types/loyalty";
+import { useEffect, useState } from "react";
 
-interface NextLevelInfo {
-    nextLevel: {
-        id: string;
-        nom: string;
-        seuilPoints: number;
-        remise: number;
-        couleur: string;
-    };
-    pointsNeeded: number;
-    currentPoints: number;
-    progress: number;
+interface UseClientLoyaltyReturn {
+    data: ClientLoyaltyData | null;
+    isLoading: boolean;
+    error: Error | null;
+    refetch: () => Promise<void>;
 }
 
-/**
- * Hook for managing client loyalty dashboard
- * Fetches points history, stats, and next level information
- */
-export function useClientLoyalty(clientId: string) {
-    // Fetch points movements history (paginated, first 10)
-    const {
-        data: mouvementsData,
-        isLoading: isLoadingMovements,
-    } = useLoyaltyPoints({
-        clientId,
-        limit: 10,
-    });
+export function useClientLoyalty(): UseClientLoyaltyReturn {
+    const [data, setData] = useState<ClientLoyaltyData | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<Error | null>(null);
 
-    // Fetch client-specific loyalty stats
-    const {
-        data: stats,
-        isLoading: isLoadingStats,
-    } = useLoyaltyPointsStats(clientId);
+    const fetchLoyaltyData = async () => {
+        try {
+            setIsLoading(true);
+            setError(null);
 
-    // Fetch next level information
-    const {
-        data: nextLevelData,
-        isLoading: isLoadingNextLevel,
-    } = useQuery<NextLevelInfo | null>({
-        queryKey: ["clientNextLevel", clientId],
-        queryFn: async () => {
-            try {
-                return await api.get<NextLevelInfo>(`/api/clients/${clientId}/next-level`);
-            } catch (error) {
-                // If endpoint doesn't exist or returns 404, return null
-                return null;
+            const token = localStorage.getItem("clientToken");
+            if (!token) {
+                throw new Error("No authentication token found");
             }
-        },
-        enabled: !!clientId,
-    });
 
-    const isLoading = isLoadingMovements || isLoadingStats || isLoadingNextLevel;
+            const res = await fetch("/api/client/loyalty", {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (!res.ok) {
+                throw new Error(`Failed to fetch loyalty data: ${res.status}`);
+            }
+
+            const loyaltyData = await res.json();
+            setData(loyaltyData);
+        } catch (err) {
+            const error =
+                err instanceof Error
+                    ? err
+                    : new Error("Failed to fetch loyalty data");
+            setError(error);
+            console.error("Failed to fetch loyalty data:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchLoyaltyData();
+    }, []);
 
     return {
-        mouvements: mouvementsData?.data || [],
-        stats,
-        nextLevel: nextLevelData,
+        data,
         isLoading,
-        currentLevel: stats?.client?.niveauFidelite || null,
-        currentPoints: stats?.client?.points_solde || 0,
-        pointsExpiringSoon: stats?.pointsExpiringSoon || 0,
+        error,
+        refetch: fetchLoyaltyData,
     };
 }
