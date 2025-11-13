@@ -33,12 +33,13 @@ import {
     useUpdateCategorie,
     type Categorie,
 } from "@/hooks/use-categories";
+import { useFormReset } from "@/hooks/use-form-reset";
 import {
     categorieUpdateSchema,
     type CategorieUpdateInput,
 } from "@/lib/validation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
+import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -59,27 +60,31 @@ export function CategoryEditDialog({
     const { data: categories = [], isLoading: loadingCategories } =
         useCategories();
 
-    const form = useForm<CategorieUpdateInput>({
-        resolver: zodResolver(categorieUpdateSchema),
-        defaultValues: {
-            nom: "",
-            description: "",
-            parentId: "",
-            ordre: 0,
-        },
-    });
-
-    // Charger les données de la catégorie quand elle change
-    useEffect(() => {
-        if (categorie && open) {
-            form.reset({
+    // Calculate form values from categorie using useMemo
+    const formValues = useMemo<CategorieUpdateInput>(() => {
+        if (categorie) {
+            return {
                 nom: categorie.nom,
                 description: categorie.description || "",
                 parentId: categorie.parentId || "",
                 ordre: categorie.ordre,
-            });
+            };
         }
-    }, [categorie, open, form]);
+        return {
+            nom: "",
+            description: "",
+            parentId: "",
+            ordre: 0,
+        };
+    }, [categorie]);
+
+    const form = useForm<CategorieUpdateInput>({
+        resolver: zodResolver(categorieUpdateSchema),
+        defaultValues: formValues,
+    });
+
+    // Reset form when dialog opens using custom hook
+    useFormReset(form, open, formValues);
 
     function onSubmit(values: CategorieUpdateInput) {
         if (!categorie) return;

@@ -1,11 +1,11 @@
 "use client";
 
 import {
-    ProfileEmptyState,
     ProfileFormCard,
     ProfileInfoCard,
     ProfileLoadingSkeleton,
 } from "@/components/client/profile";
+import { EmptyState } from "@/components/client-portal/shared/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
 import { useClientProfile } from "@/hooks/use-client-profile";
 
@@ -18,7 +18,7 @@ export default function ClientProfilPage() {
 
     if (!profile) {
         return (
-            <ProfileEmptyState message="Impossible de charger votre profil" />
+            <EmptyState message="Impossible de charger votre profil" />
         );
     }
 

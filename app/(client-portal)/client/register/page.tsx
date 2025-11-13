@@ -1,369 +1,440 @@
 "use client";
 
-import { Suspense, useEffect } from "react";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { ErrorAlert } from "@/components/client-portal/register/error-alert";
+import { InvitationSuccessBanner } from "@/components/client-portal/register/invitation-success-banner";
+import { LoadingState } from "@/components/client-portal/register/loading-state";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { UserPlus } from "lucide-react";
+import {
+    Form,
+    FormControl,
+    FormDescription,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { useClientRegister } from "@/hooks/use-client-register";
 import { useInvitationVerification } from "@/hooks/use-invitation-verification";
-import { useRegisterForm } from "@/hooks/use-register-form";
+import {
+    clientRegisterSchema,
+    type ClientRegisterInput,
+} from "@/lib/validation";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { UserPlus } from "lucide-react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useMemo } from "react";
+import { useForm } from "react-hook-form";
 
 function RegisterForm() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const invitationToken = searchParams.get("token") || "";
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const invitationToken = searchParams.get("token") || "";
 
-  const { register, isLoading, success } = useClientRegister();
-  const { invitationData, isVerifying, error: invitationError } =
-    useInvitationVerification(invitationToken);
-  const {
-    formData,
-    errors,
-    handleChange,
-    setFormData,
-    setErrors,
-    validateForm,
-  } = useRegisterForm();
+    const {
+        register: registerClient,
+        isLoading,
+        success,
+    } = useClientRegister();
+    const {
+        invitationData,
+        isVerifying,
+        error: invitationError,
+    } = useInvitationVerification(invitationToken);
 
-  // Pre-fill form with invitation data
-  useEffect(() => {
-    if (invitationData) {
-      setFormData((prev) => ({
-        ...prev,
-        email: invitationData.email || "",
-        nom: invitationData.nom || "",
-        prenom: invitationData.prenom || "",
-        telephone: invitationData.telephone || "",
-      }));
-    }
-  }, [invitationData, setFormData]);
+    // Calculate default values from invitation data using useMemo
+    const defaultValues = useMemo<ClientRegisterInput>(() => {
+        if (invitationData) {
+            return {
+                nom: invitationData.nom || "",
+                prenom: invitationData.prenom || "",
+                email: invitationData.email || "",
+                telephone: invitationData.telephone || "",
+                password: "",
+                confirmPassword: "",
+                adresse: "",
+                codePostal: "",
+                ville: "",
+            };
+        }
+        return {
+            nom: "",
+            prenom: "",
+            email: "",
+            telephone: "",
+            password: "",
+            confirmPassword: "",
+            adresse: "",
+            codePostal: "",
+            ville: "",
+        };
+    }, [invitationData]);
 
-  // Update invitation error in form errors
-  useEffect(() => {
-    if (invitationError) {
-      setErrors((prev) => ({ ...prev, invitation: invitationError }));
-    }
-  }, [invitationError, setErrors]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // Validate invitation
-    if (!invitationData || !invitationToken) {
-      setErrors((prev) => ({
-        ...prev,
-        invitation: "Invitation invalide",
-      }));
-      return;
-    }
-
-    // Validate form
-    if (!validateForm()) {
-      return;
-    }
-
-    // Register client
-    await register({
-      nom: formData.nom,
-      prenom: formData.prenom || undefined,
-      email: formData.email,
-      telephone: formData.telephone,
-      password: formData.password,
-      adresse: formData.adresse || undefined,
-      codePostal: formData.codePostal || undefined,
-      ville: formData.ville || undefined,
-      invitationToken: invitationToken,
+    const form = useForm<ClientRegisterInput>({
+        resolver: zodResolver(clientRegisterSchema),
+        defaultValues,
     });
-  };
 
-  // Redirect to welcome page on success (handled by useClientRegister hook)
-  useEffect(() => {
-    if (success) {
-      router.push("/client/welcome");
+    // Reset form when invitation data changes
+    useEffect(() => {
+        if (invitationData) {
+            form.reset({
+                nom: invitationData.nom || "",
+                prenom: invitationData.prenom || "",
+                email: invitationData.email || "",
+                telephone: invitationData.telephone || "",
+                password: "",
+                confirmPassword: "",
+                adresse: "",
+                codePostal: "",
+                ville: "",
+            });
+        }
+    }, [invitationData, form]);
+
+    // Redirect to welcome page on success
+    useEffect(() => {
+        if (success) {
+            router.push("/client/welcome");
+        }
+    }, [success, router]);
+
+    async function onSubmit(values: ClientRegisterInput) {
+        if (!invitationData || !invitationToken) {
+            form.setError("root", {
+                message: "Invitation invalide",
+            });
+            return;
+        }
+
+        await registerClient({
+            nom: values.nom,
+            prenom: values.prenom,
+            email: values.email,
+            telephone: values.telephone,
+            password: values.password,
+            adresse: values.adresse,
+            codePostal: values.codePostal,
+            ville: values.ville,
+            invitationToken,
+        });
     }
-  }, [success, router]);
 
-  if (isVerifying) {
+    if (isVerifying) {
+        return <LoadingState message="Vérification de l'invitation..." />;
+    }
+
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center p-4">
-        <p className="text-[14px] text-black/60">
-          Vérification de l&apos;invitation...
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-8">
-        {/* Header */}
-        <div className="text-center">
-          <h1 className="text-[32px] font-semibold tracking-[-0.02em] text-black mb-2">
-            {invitationData
-              ? `Bienvenue chez ${invitationData?.entrepriseName}`
-              : "Créer votre compte"}
-          </h1>
-          <p className="text-[15px] text-black/60">
-            {invitationData
-              ? "Complétez votre inscription pour accéder à votre espace client"
-              : "Vous devez être invité pour créer un compte"}
-          </p>
-        </div>
-
-        {/* Register Form */}
-        <Card className="border-black/8 shadow-sm">
-          <div className="p-8">
-            <form onSubmit={handleSubmit} className="space-y-5">
-              {invitationData && (
-                <div className="rounded-lg bg-black/5 border border-black/10 p-4">
-                  <p className="text-[14px] text-black/80">
-                    ✓ Vous avez été invité(e) à créer un compte.
-                  </p>
-                  <p className="text-[13px] text-black/60 mt-1">
-                    Seuls les champs marqués d&apos;un * sont obligatoires. Vous pourrez compléter votre profil plus tard.
-                  </p>
+        <div className="min-h-screen bg-white flex items-center justify-center p-4">
+            <div className="w-full max-w-md space-y-8">
+                {/* Header */}
+                <div className="text-center">
+                    <h1 className="text-[32px] font-semibold tracking-[-0.02em] text-black mb-2">
+                        {invitationData
+                            ? `Bienvenue chez ${invitationData.entrepriseName}`
+                            : "Créer votre compte"}
+                    </h1>
+                    <p className="text-[15px] text-black/60">
+                        {invitationData
+                            ? "Complétez votre inscription pour accéder à votre espace client"
+                            : "Vous devez être invité pour créer un compte"}
+                    </p>
                 </div>
-              )}
 
-              {errors.invitation && (
-                <div className="rounded-lg bg-red-50 border border-red-200 p-4">
-                  <p className="text-[14px] text-red-800">
-                    {errors.invitation}
-                  </p>
-                </div>
-              )}
+                {/* Register Form */}
+                <Card className="border-black/8 shadow-sm">
+                    <div className="p-8">
+                        <Form {...form}>
+                            <form
+                                onSubmit={form.handleSubmit(onSubmit)}
+                                className="space-y-5"
+                            >
+                                {invitationData && <InvitationSuccessBanner />}
 
-              {/* Email */}
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-[14px] font-medium">
-                  Email *
-                </Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="votre@email.com"
-                  required
-                  disabled={!!invitationData?.email}
-                  className="h-11 border-black/10 focus:border-black disabled:bg-black/5 disabled:text-black/60 disabled:cursor-not-allowed"
-                />
-              </div>
+                                {invitationError && (
+                                    <ErrorAlert message={invitationError} />
+                                )}
 
-              {/* Nom */}
-              <div className="space-y-2">
-                <Label htmlFor="nom" className="text-[14px] font-medium">
-                  Nom *
-                </Label>
-                <Input
-                  id="nom"
-                  name="nom"
-                  type="text"
-                  value={formData.nom}
-                  onChange={handleChange}
-                  placeholder="Votre nom"
-                  required
-                  disabled={!!invitationData?.nom}
-                  className="h-11 border-black/10 focus:border-black disabled:bg-black/5 disabled:text-black/60 disabled:cursor-not-allowed"
-                />
-              </div>
+                                {form.formState.errors.root && (
+                                    <ErrorAlert
+                                        message={
+                                            form.formState.errors.root
+                                                .message || ""
+                                        }
+                                    />
+                                )}
 
-              {/* Optional fields - Collapsed by default for speed */}
-              <details className="group">
-                <summary className="cursor-pointer text-[14px] text-black/60 hover:text-black transition-colors py-2 list-none">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[13px]">▸</span>
-                    <span>Informations complémentaires (optionnel)</span>
-                  </div>
-                </summary>
+                                {/* Email */}
+                                <FormField
+                                    control={form.control}
+                                    name="email"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-[14px] font-medium">
+                                                Email *
+                                            </FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    {...field}
+                                                    type="email"
+                                                    placeholder="votre@email.com"
+                                                    disabled={
+                                                        !!invitationData?.email
+                                                    }
+                                                    className="h-11 border-black/10 focus:border-black disabled:bg-black/5 disabled:text-black/60 disabled:cursor-not-allowed"
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
 
-                <div className="mt-4 space-y-5 animate-in fade-in duration-200">
-                  {/* Prénom */}
-                  <div className="space-y-2">
-                    <Label htmlFor="prenom" className="text-[14px] font-medium">
-                      Prénom
-                    </Label>
-                    <Input
-                      id="prenom"
-                      name="prenom"
-                      type="text"
-                      value={formData.prenom}
-                      onChange={handleChange}
-                      placeholder="Votre prénom"
-                      disabled={!!invitationData?.prenom}
-                      className="h-11 border-black/10 focus:border-black disabled:bg-black/5 disabled:text-black/60 disabled:cursor-not-allowed"
-                    />
-                  </div>
+                                {/* Nom */}
+                                <FormField
+                                    control={form.control}
+                                    name="nom"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-[14px] font-medium">
+                                                Nom *
+                                            </FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    {...field}
+                                                    placeholder="Votre nom"
+                                                    disabled={
+                                                        !!invitationData?.nom
+                                                    }
+                                                    className="h-11 border-black/10 focus:border-black disabled:bg-black/5 disabled:text-black/60 disabled:cursor-not-allowed"
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
 
-                  {/* Téléphone */}
-                  <div className="space-y-2">
-                    <Label htmlFor="telephone" className="text-[14px] font-medium">
-                      Téléphone
-                    </Label>
-                    <Input
-                      id="telephone"
-                      name="telephone"
-                      type="tel"
-                      value={formData.telephone}
-                      onChange={handleChange}
-                      placeholder="06 12 34 56 78"
-                      disabled={!!invitationData?.telephone}
-                      className="h-11 border-black/10 focus:border-black disabled:bg-black/5 disabled:text-black/60 disabled:cursor-not-allowed"
-                    />
-                  </div>
+                                {/* Téléphone */}
+                                <FormField
+                                    control={form.control}
+                                    name="telephone"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-[14px] font-medium">
+                                                Téléphone *
+                                            </FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    {...field}
+                                                    type="tel"
+                                                    placeholder="06 12 34 56 78"
+                                                    disabled={
+                                                        !!invitationData?.telephone
+                                                    }
+                                                    className="h-11 border-black/10 focus:border-black disabled:bg-black/5 disabled:text-black/60 disabled:cursor-not-allowed"
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
 
-                  {/* Adresse */}
-                  <div className="space-y-2">
-                    <Label htmlFor="adresse" className="text-[14px] font-medium">
-                      Adresse
-                    </Label>
-                    <Input
-                      id="adresse"
-                      name="adresse"
-                      type="text"
-                      value={formData.adresse}
-                      onChange={handleChange}
-                      placeholder="123 rue de la République"
-                      className="h-11 border-black/10 focus:border-black"
-                    />
-                  </div>
+                                {/* Optional fields - Collapsed by default */}
+                                <details className="group">
+                                    <summary className="cursor-pointer text-[14px] text-black/60 hover:text-black transition-colors py-2 list-none">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[13px]">
+                                                ▸
+                                            </span>
+                                            <span>
+                                                Informations complémentaires
+                                                (optionnel)
+                                            </span>
+                                        </div>
+                                    </summary>
 
-                  {/* Code postal & Ville */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label
-                        htmlFor="codePostal"
-                        className="text-[14px] font-medium"
-                      >
-                        Code postal
-                      </Label>
-                      <Input
-                        id="codePostal"
-                        name="codePostal"
-                        type="text"
-                        value={formData.codePostal}
-                        onChange={handleChange}
-                        placeholder="75001"
-                        className="h-11 border-black/10 focus:border-black"
-                      />
+                                    <div className="mt-4 space-y-5 animate-in fade-in duration-200">
+                                        {/* Prénom */}
+                                        <FormField
+                                            control={form.control}
+                                            name="prenom"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-[14px] font-medium">
+                                                        Prénom
+                                                    </FormLabel>
+                                                    <FormControl>
+                                                        <Input
+                                                            {...field}
+                                                            placeholder="Votre prénom"
+                                                            disabled={
+                                                                !!invitationData?.prenom
+                                                            }
+                                                            className="h-11 border-black/10 focus:border-black disabled:bg-black/5 disabled:text-black/60 disabled:cursor-not-allowed"
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+
+                                        {/* Adresse */}
+                                        <FormField
+                                            control={form.control}
+                                            name="adresse"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-[14px] font-medium">
+                                                        Adresse
+                                                    </FormLabel>
+                                                    <FormControl>
+                                                        <Input
+                                                            {...field}
+                                                            placeholder="123 rue de la République"
+                                                            className="h-11 border-black/10 focus:border-black"
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+
+                                        {/* Code postal & Ville */}
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <FormField
+                                                control={form.control}
+                                                name="codePostal"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel className="text-[14px] font-medium">
+                                                            Code postal
+                                                        </FormLabel>
+                                                        <FormControl>
+                                                            <Input
+                                                                {...field}
+                                                                placeholder="75001"
+                                                                className="h-11 border-black/10 focus:border-black"
+                                                            />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+
+                                            <FormField
+                                                control={form.control}
+                                                name="ville"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel className="text-[14px] font-medium">
+                                                            Ville
+                                                        </FormLabel>
+                                                        <FormControl>
+                                                            <Input
+                                                                {...field}
+                                                                placeholder="Paris"
+                                                                className="h-11 border-black/10 focus:border-black"
+                                                            />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                        </div>
+                                    </div>
+                                </details>
+
+                                {/* Password */}
+                                <FormField
+                                    control={form.control}
+                                    name="password"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-[14px] font-medium">
+                                                Mot de passe *
+                                            </FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    {...field}
+                                                    type="password"
+                                                    placeholder="••••••••"
+                                                    className="h-11 border-black/10 focus:border-black"
+                                                />
+                                            </FormControl>
+                                            <FormDescription className="text-[12px] text-black/40">
+                                                8 caractères minimum
+                                            </FormDescription>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                {/* Confirm Password */}
+                                <FormField
+                                    control={form.control}
+                                    name="confirmPassword"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-[14px] font-medium">
+                                                Confirmer le mot de passe *
+                                            </FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    {...field}
+                                                    type="password"
+                                                    placeholder="••••••••"
+                                                    className="h-11 border-black/10 focus:border-black"
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                <Button
+                                    type="submit"
+                                    disabled={
+                                        isLoading ||
+                                        isVerifying ||
+                                        !invitationData
+                                    }
+                                    className="w-full h-11 text-[14px] font-medium bg-black hover:bg-black/90 text-white rounded-md shadow-sm"
+                                >
+                                    {isLoading ? (
+                                        "Inscription..."
+                                    ) : (
+                                        <>
+                                            <UserPlus className="w-4 h-4 mr-2" />
+                                            Créer mon compte
+                                        </>
+                                    )}
+                                </Button>
+                            </form>
+                        </Form>
+
+                        <div className="mt-6 text-center">
+                            <p className="text-[13px] text-black/40">
+                                Vous avez déjà un compte ?{" "}
+                                <Link
+                                    href="/client/login"
+                                    className="text-black/60 hover:text-black transition-colors font-medium"
+                                >
+                                    Se connecter
+                                </Link>
+                            </p>
+                        </div>
                     </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="ville" className="text-[14px] font-medium">
-                        Ville
-                      </Label>
-                      <Input
-                        id="ville"
-                        name="ville"
-                        type="text"
-                        value={formData.ville}
-                        onChange={handleChange}
-                        placeholder="Paris"
-                        className="h-11 border-black/10 focus:border-black"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </details>
-
-              {/* Password */}
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-[14px] font-medium">
-                  Mot de passe *
-                </Label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="••••••••"
-                  required
-                  className="h-11 border-black/10 focus:border-black"
-                />
-                {errors.password ? (
-                  <p className="text-[12px] text-red-600">{errors.password}</p>
-                ) : (
-                  <p className="text-[12px] text-black/40">
-                    8 caractères minimum
-                  </p>
-                )}
-              </div>
-
-              {/* Confirm Password */}
-              <div className="space-y-2">
-                <Label
-                  htmlFor="confirmPassword"
-                  className="text-[14px] font-medium"
-                >
-                  Confirmer le mot de passe *
-                </Label>
-                <Input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  placeholder="••••••••"
-                  required
-                  className="h-11 border-black/10 focus:border-black"
-                />
-                {errors.confirmPassword && (
-                  <p className="text-[12px] text-red-600">
-                    {errors.confirmPassword}
-                  </p>
-                )}
-              </div>
-
-              <Button
-                type="submit"
-                disabled={isLoading || isVerifying || !invitationData}
-                className="w-full h-11 text-[14px] font-medium bg-black hover:bg-black/90 text-white rounded-md shadow-sm"
-              >
-                {isLoading ? (
-                  "Inscription..."
-                ) : (
-                  <>
-                    <UserPlus className="w-4 h-4 mr-2" />
-                    Créer mon compte
-                  </>
-                )}
-              </Button>
-            </form>
-
-            <div className="mt-6 text-center">
-              <p className="text-[13px] text-black/40">
-                Vous avez déjà un compte ?{" "}
-                <Link
-                  href="/client/login"
-                  className="text-black/60 hover:text-black transition-colors font-medium"
-                >
-                  Se connecter
-                </Link>
-              </p>
+                </Card>
             </div>
-          </div>
-        </Card>
-      </div>
-    </div>
-  );
+        </div>
+    );
 }
 
 export default function ClientRegisterPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-white flex items-center justify-center p-4">
-          <p className="text-[14px] text-black/60">Chargement...</p>
-        </div>
-      }
-    >
-      <RegisterForm />
-    </Suspense>
-  );
+    return (
+        <Suspense fallback={<LoadingState />}>
+            <RegisterForm />
+        </Suspense>
+    );
 }

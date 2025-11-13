@@ -2,11 +2,12 @@
 
 import {
     DocumentCard,
-    DocumentsEmptyState,
     DocumentsLoadingSkeleton,
 } from "@/components/client/documents";
+import { EmptyState } from "@/components/client-portal/shared/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
 import { useClientDocuments } from "@/hooks/use-client-documents";
+import { FileText } from "lucide-react";
 
 export default function ClientDocumentsPage() {
     const { documents, isLoading, downloadPDF } = useClientDocuments();
@@ -33,7 +34,12 @@ export default function ClientDocumentsPage() {
 
             {/* Documents List */}
             {documents.length === 0 ? (
-                <DocumentsEmptyState />
+                <EmptyState
+                    title="Aucun document"
+                    message="Vos documents apparaîtront ici"
+                    icon={FileText}
+                    withCard
+                />
             ) : (
                 <div className="space-y-3">
                     {documents.map((doc) => (

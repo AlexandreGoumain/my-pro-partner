@@ -1,24 +1,10 @@
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-
-export interface ClientRegisterData {
-  nom: string;
-  prenom?: string;
-  email: string;
-  telephone: string;
-  password: string;
-  adresse?: string;
-  codePostal?: string;
-  ville?: string;
-  invitationToken: string;
-}
-
-interface UseClientRegisterReturn {
-  isLoading: boolean;
-  success: boolean;
-  register: (data: ClientRegisterData) => Promise<boolean>;
-}
+import type {
+    ClientRegisterData,
+    UseClientRegisterReturn,
+} from "@/lib/types/auth";
 
 export function useClientRegister(): UseClientRegisterReturn {
   const router = useRouter();

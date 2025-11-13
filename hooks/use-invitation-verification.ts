@@ -1,19 +1,8 @@
-import { useState, useEffect } from "react";
-
-interface InvitationData {
-  email: string;
-  nom: string | null;
-  prenom: string | null;
-  telephone: string | null;
-  entrepriseName: string;
-  expiresAt: string;
-}
-
-interface UseInvitationVerificationReturn {
-  invitationData: InvitationData | null;
-  isVerifying: boolean;
-  error: string;
-}
+import { useState, useEffect, useCallback } from "react";
+import type {
+    InvitationData,
+    InvitationVerificationResult,
+} from "@/lib/types/auth";
 
 /**
  * Custom hook to verify invitation token
@@ -23,50 +12,50 @@ interface UseInvitationVerificationReturn {
  * @returns Invitation data, loading state, and error message
  */
 export function useInvitationVerification(
-  token: string
-): UseInvitationVerificationReturn {
-  const [invitationData, setInvitationData] = useState<InvitationData | null>(
-    null
-  );
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [error, setError] = useState("");
+    token: string
+): InvitationVerificationResult {
+    const [invitationData, setInvitationData] = useState<InvitationData | null>(
+        null
+    );
+    const [isVerifying, setIsVerifying] = useState(false);
+    const [error, setError] = useState("");
 
-  useEffect(() => {
-    if (!token) {
-      setError(
-        "Token d'invitation manquant. Vous devez être invité pour créer un compte."
-      );
-      return;
-    }
+    const verifyInvitation = useCallback(async () => {
+        setIsVerifying(true);
+        setError("");
 
-    verifyInvitation();
-  }, [token]);
+        try {
+            const res = await fetch("/api/client/auth/verify-invitation", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ token }),
+            });
 
-  const verifyInvitation = async () => {
-    setIsVerifying(true);
-    setError("");
+            const data = await res.json();
 
-    try {
-      const res = await fetch("/api/client/auth/verify-invitation", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token }),
-      });
+            if (!res.ok) {
+                setError(data.message || "Invitation invalide");
+                return;
+            }
 
-      const data = await res.json();
+            setInvitationData(data.invitation);
+        } catch (err) {
+            setError("Erreur lors de la vérification de l'invitation");
+        } finally {
+            setIsVerifying(false);
+        }
+    }, [token]);
 
-      if (!res.ok) {
-        setError(data.message || "Invitation invalide");
-        return;
-      }
+    useEffect(() => {
+        if (!token) {
+            setError(
+                "Token d'invitation manquant. Vous devez être invité pour créer un compte."
+            );
+            return;
+        }
 
-      setInvitationData(data.invitation);
-    } catch (err) {
-      setError("Erreur lors de la vérification de l'invitation");
-    } finally {
-      setIsVerifying(false);
-    }
-  };
+        verifyInvitation();
+    }, [token, verifyInvitation]);
 
-  return { invitationData, isVerifying, error };
+    return { invitationData, isVerifying, error };
 }

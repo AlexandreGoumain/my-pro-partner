@@ -1,14 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-    articleUpdateSchema,
-    type ArticleUpdateInput,
-} from "@/lib/validation";
-import { useUpdateArticle } from "@/hooks/use-articles";
-import { useCategories } from "@/hooks/use-categories";
+import { Button } from "@/components/ui/button";
+import { ButtonWithSpinner } from "@/components/ui/button-with-spinner";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
     Dialog,
     DialogContent,
@@ -25,6 +19,7 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import {
     Select,
     SelectContent,
@@ -32,11 +27,14 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { ButtonWithSpinner } from "@/components/ui/button-with-spinner";
+import { useUpdateArticle } from "@/hooks/use-articles";
+import { useCategories } from "@/hooks/use-categories";
+import { useFormReset } from "@/hooks/use-form-reset";
 import { ArticleDisplay } from "@/lib/types/article";
-import { Checkbox } from "@/components/ui/checkbox";
+import { articleUpdateSchema, type ArticleUpdateInput } from "@/lib/validation";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMemo } from "react";
+import { useForm } from "react-hook-form";
 
 interface ArticleEditDialogProps {
     article: ArticleDisplay | null;
@@ -52,44 +50,50 @@ export function ArticleEditDialog({
     onSuccess,
 }: ArticleEditDialogProps) {
     const updateArticle = useUpdateArticle();
-    const { data: categories = [], isLoading: loadingCategories } = useCategories();
+    const { data: categories = [], isLoading: loadingCategories } =
+        useCategories();
+
+    // Calculate form values from article using useMemo
+    const formValues = useMemo<ArticleUpdateInput>(() => {
+        if (!article) {
+            return {
+                reference: "",
+                nom: "",
+                description: "",
+                prix_ht: 0,
+                tva_taux: 20,
+                categorieId: "",
+                stock_actuel: 0,
+                stock_min: 0,
+                gestion_stock: false,
+                actif: true,
+            };
+        }
+
+        // Trouver l'ID de la catégorie
+        const category = categories.find((c) => c.nom === article.categorie);
+
+        return {
+            reference: article.reference,
+            nom: article.nom,
+            description: article.description || "",
+            prix_ht: article.prix,
+            tva_taux: article.tva,
+            categorieId: category?.id || "",
+            stock_actuel: article.stock,
+            stock_min: article.seuilAlerte,
+            gestion_stock: true,
+            actif: article.statut !== "INACTIF",
+        };
+    }, [article, categories]);
 
     const form = useForm<ArticleUpdateInput>({
         resolver: zodResolver(articleUpdateSchema),
-        defaultValues: {
-            reference: "",
-            nom: "",
-            description: "",
-            prix_ht: 0,
-            tva_taux: 20,
-            categorieId: "",
-            stock_actuel: 0,
-            stock_min: 0,
-            gestion_stock: false,
-            actif: true,
-        },
+        defaultValues: formValues,
     });
 
-    // Charger les données de l'article dans le formulaire
-    useEffect(() => {
-        if (article && open) {
-            // Trouver l'ID de la catégorie
-            const category = categories.find((c) => c.nom === article.categorie);
-
-            form.reset({
-                reference: article.reference,
-                nom: article.nom,
-                description: article.description || "",
-                prix_ht: article.prix,
-                tva_taux: article.tva,
-                categorieId: category?.id || "",
-                stock_actuel: article.stock,
-                stock_min: article.seuilAlerte,
-                gestion_stock: true,
-                actif: article.statut !== "INACTIF",
-            });
-        }
-    }, [article, open, categories, form]);
+    // Reset form when dialog opens with article data using custom hook
+    useFormReset(form, open, formValues);
 
     function onSubmit(values: ArticleUpdateInput) {
         if (!article) return;
@@ -129,7 +133,9 @@ export function ArticleEditDialog({
                     >
                         {/* Informations de base */}
                         <div className="space-y-4">
-                            <h3 className="font-semibold">Informations de base</h3>
+                            <h3 className="font-semibold">
+                                Informations de base
+                            </h3>
 
                             <div className="grid grid-cols-2 gap-4">
                                 <FormField
@@ -226,7 +232,9 @@ export function ArticleEditDialog({
                                                     {...field}
                                                     onChange={(e) =>
                                                         field.onChange(
-                                                            parseFloat(e.target.value)
+                                                            parseFloat(
+                                                                e.target.value
+                                                            )
                                                         )
                                                     }
                                                 />
@@ -249,7 +257,9 @@ export function ArticleEditDialog({
                                                     {...field}
                                                     onChange={(e) =>
                                                         field.onChange(
-                                                            parseFloat(e.target.value)
+                                                            parseFloat(
+                                                                e.target.value
+                                                            )
                                                         )
                                                     }
                                                 />
@@ -278,7 +288,10 @@ export function ArticleEditDialog({
                                                     {...field}
                                                     onChange={(e) =>
                                                         field.onChange(
-                                                            parseInt(e.target.value, 10)
+                                                            parseInt(
+                                                                e.target.value,
+                                                                10
+                                                            )
                                                         )
                                                     }
                                                 />
@@ -300,7 +313,10 @@ export function ArticleEditDialog({
                                                     {...field}
                                                     onChange={(e) =>
                                                         field.onChange(
-                                                            parseInt(e.target.value, 10)
+                                                            parseInt(
+                                                                e.target.value,
+                                                                10
+                                                            )
                                                         )
                                                     }
                                                 />
@@ -350,8 +366,8 @@ export function ArticleEditDialog({
                                     <div className="space-y-1 leading-none">
                                         <FormLabel>Article actif</FormLabel>
                                         <FormDescription>
-                                            Un article inactif n&apos;apparaît pas dans le
-                                            catalogue
+                                            Un article inactif n&apos;apparaît
+                                            pas dans le catalogue
                                         </FormDescription>
                                     </div>
                                 </FormItem>

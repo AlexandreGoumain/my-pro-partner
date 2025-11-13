@@ -1,6 +1,6 @@
 import { CLIENT_STORAGE_KEYS } from "@/lib/constants/client-storage";
 import { DashboardClient } from "@/lib/types/dashboard";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 interface UseProfileCompletionBannerReturn {
     showBanner: boolean;
@@ -10,28 +10,26 @@ interface UseProfileCompletionBannerReturn {
 export function useProfileCompletionBanner(
     client: DashboardClient | undefined
 ): UseProfileCompletionBannerReturn {
-    const [showBanner, setShowBanner] = useState(false);
+    const [isDismissed, setIsDismissed] = useState(false);
 
-    useEffect(() => {
-        if (!client) {
-            setShowBanner(false);
-            return;
-        }
+    // Calculate showBanner directly with useMemo instead of useEffect
+    const showBanner = useMemo(() => {
+        if (!client || isDismissed) return false;
 
         const hasIncompleteProfile = !client.telephone || !client.adresse;
         const hasSeenBanner = localStorage.getItem(
             CLIENT_STORAGE_KEYS.PROFILE_BANNER_DISMISSED
         );
 
-        setShowBanner(hasIncompleteProfile && !hasSeenBanner);
-    }, [client]);
+        return hasIncompleteProfile && !hasSeenBanner;
+    }, [client, isDismissed]);
 
     const dismissBanner = useCallback(() => {
         localStorage.setItem(
             CLIENT_STORAGE_KEYS.PROFILE_BANNER_DISMISSED,
             "true"
         );
-        setShowBanner(false);
+        setIsDismissed(true);
     }, []);
 
     return {

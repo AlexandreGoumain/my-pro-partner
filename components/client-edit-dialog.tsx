@@ -20,9 +20,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Client, useUpdateClient } from "@/hooks/use-clients";
+import { useFormReset } from "@/hooks/use-form-reset";
 import { clientUpdateSchema, type ClientUpdateInput } from "@/lib/validation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
+import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 
 interface ClientEditDialogProps {
@@ -40,37 +41,41 @@ export function ClientEditDialog({
 }: ClientEditDialogProps) {
     const updateClient = useUpdateClient();
 
+    // Calculate form values from client using useMemo
+    const formValues = useMemo<ClientUpdateInput>(() => {
+        if (!client) {
+            return {
+                nom: "",
+                prenom: "",
+                email: "",
+                telephone: "",
+                adresse: "",
+                codePostal: "",
+                ville: "",
+                pays: "France",
+                notes: "",
+            };
+        }
+        return {
+            nom: client.nom,
+            prenom: client.prenom || "",
+            email: client.email || "",
+            telephone: client.telephone || "",
+            adresse: client.adresse || "",
+            codePostal: client.codePostal || "",
+            ville: client.ville || "",
+            pays: client.pays || "France",
+            notes: client.notes || "",
+        };
+    }, [client]);
+
     const form = useForm<ClientUpdateInput>({
         resolver: zodResolver(clientUpdateSchema),
-        defaultValues: {
-            nom: "",
-            prenom: "",
-            email: "",
-            telephone: "",
-            adresse: "",
-            codePostal: "",
-            ville: "",
-            pays: "France",
-            notes: "",
-        },
+        defaultValues: formValues,
     });
 
-    // Reset form when client or dialog state changes
-    useEffect(() => {
-        if (open && client) {
-            form.reset({
-                nom: client.nom,
-                prenom: client.prenom || "",
-                email: client.email || "",
-                telephone: client.telephone || "",
-                adresse: client.adresse || "",
-                codePostal: client.codePostal || "",
-                ville: client.ville || "",
-                pays: client.pays || "France",
-                notes: client.notes || "",
-            });
-        }
-    }, [open, client, form]);
+    // Reset form when dialog opens with client data using custom hook
+    useFormReset(form, open, formValues);
 
     function onSubmit(values: ClientUpdateInput) {
         if (!client) return;
@@ -295,7 +300,9 @@ export function ClientEditDialog({
                                             <FormControl>
                                                 <Input
                                                     {...field}
-                                                    value={field.value || "France"}
+                                                    value={
+                                                        field.value || "France"
+                                                    }
                                                     placeholder="France"
                                                     className="h-11 border-black/10"
                                                 />

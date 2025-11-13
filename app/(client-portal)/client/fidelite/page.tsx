@@ -5,10 +5,8 @@ import {
     ClientLoyaltyOverview,
     ClientLoyaltyProgress,
 } from "@/components/client-loyalty";
-import {
-    FidelityEmptyState,
-    FidelityLoadingSkeleton,
-} from "@/components/client/loyalty";
+import { FidelityLoadingSkeleton } from "@/components/client/loyalty";
+import { EmptyState } from "@/components/client-portal/shared/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
 import { useClientLoyalty } from "@/hooks/use-client-loyalty";
 
@@ -21,7 +19,7 @@ export default function ClientFidelitePage() {
 
     if (!data) {
         return (
-            <FidelityEmptyState message="Impossible de charger vos informations de fidélité" />
+            <EmptyState message="Impossible de charger vos informations de fidélité" />
         );
     }
 

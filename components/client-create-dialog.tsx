@@ -20,9 +20,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreateClient } from "@/hooks/use-clients";
+import { useFormReset } from "@/hooks/use-form-reset";
 import { clientCreateSchema, type ClientCreateInput } from "@/lib/validation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 
 interface ClientCreateDialogProps {
@@ -30,6 +30,18 @@ interface ClientCreateDialogProps {
     onOpenChange: (open: boolean) => void;
     onSuccess: () => void;
 }
+
+const defaultValues: ClientCreateInput = {
+    nom: "",
+    prenom: "",
+    email: "",
+    telephone: "",
+    adresse: "",
+    codePostal: "",
+    ville: "",
+    pays: "France",
+    notes: "",
+};
 
 export function ClientCreateDialog({
     open,
@@ -40,35 +52,11 @@ export function ClientCreateDialog({
 
     const form = useForm<ClientCreateInput>({
         resolver: zodResolver(clientCreateSchema),
-        defaultValues: {
-            nom: "",
-            prenom: "",
-            email: "",
-            telephone: "",
-            adresse: "",
-            codePostal: "",
-            ville: "",
-            pays: "France",
-            notes: "",
-        },
+        defaultValues,
     });
 
-    // Reset form when dialog opens
-    useEffect(() => {
-        if (open) {
-            form.reset({
-                nom: "",
-                prenom: "",
-                email: "",
-                telephone: "",
-                adresse: "",
-                codePostal: "",
-                ville: "",
-                pays: "France",
-                notes: "",
-            });
-        }
-    }, [open, form]);
+    // Reset form when dialog opens using custom hook
+    useFormReset(form, open, defaultValues);
 
     function onSubmit(values: ClientCreateInput) {
         createClient.mutate(values, {
@@ -285,7 +273,9 @@ export function ClientCreateDialog({
                                             <FormControl>
                                                 <Input
                                                     {...field}
-                                                    value={field.value || "France"}
+                                                    value={
+                                                        field.value || "France"
+                                                    }
                                                     placeholder="France"
                                                     className="h-11 border-black/10"
                                                 />

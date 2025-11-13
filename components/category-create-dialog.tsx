@@ -29,12 +29,12 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useCategories, useCreateCategorie } from "@/hooks/use-categories";
+import { useFormReset } from "@/hooks/use-form-reset";
 import {
     categorieCreateSchema,
     type CategorieCreateInput,
 } from "@/lib/validation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -43,6 +43,13 @@ interface CategoryCreateDialogProps {
     onOpenChange: (open: boolean) => void;
     onSuccess?: () => void;
 }
+
+const defaultValues: CategorieCreateInput = {
+    nom: "",
+    description: "",
+    parentId: "",
+    ordre: 0,
+};
 
 export function CategoryCreateDialog({
     open,
@@ -55,24 +62,11 @@ export function CategoryCreateDialog({
 
     const form = useForm<CategorieCreateInput>({
         resolver: zodResolver(categorieCreateSchema),
-        defaultValues: {
-            nom: "",
-            description: "",
-            parentId: "",
-            ordre: 0,
-        },
+        defaultValues,
     });
 
-    useEffect(() => {
-        if (open) {
-            form.reset({
-                nom: "",
-                description: "",
-                parentId: "",
-                ordre: 0,
-            });
-        }
-    }, [open, form]);
+    // Reset form when dialog opens using custom hook
+    useFormReset(form, open, defaultValues);
 
     function onSubmit(values: CategorieCreateInput) {
         const cleanedValues = {
