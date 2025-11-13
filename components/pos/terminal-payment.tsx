@@ -2,41 +2,40 @@
 
 import { useState, useEffect } from "react";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { CreditCard, Loader2, CheckCircle, XCircle, RefreshCw } from "lucide-react";
+import {
+    CreditCard,
+    Loader2,
+    CheckCircle,
+    XCircle,
+    RefreshCw,
+} from "lucide-react";
 import { toast } from "sonner";
+import { Terminal, PaymentStatus } from "@/lib/types/pos";
+import { CartItem } from "@/hooks/use-pos-cart";
 
-interface Terminal {
-  id: string;
-  label: string;
-  status: "ONLINE" | "OFFLINE" | "BUSY" | "ERROR";
-  stripeTerminalId: string;
+export interface TerminalPaymentProps {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    amount: number;
+    onSuccess: (documentId: string) => void;
+    cartItems: CartItem[];
+    clientId: string | null;
+    remiseGlobale: number;
 }
-
-interface TerminalPaymentProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  amount: number;
-  onSuccess: (documentId: string) => void;
-  cartItems: any[];
-  clientId: string | null;
-  remiseGlobale: number;
-}
-
-type PaymentStatus = "idle" | "selecting" | "creating_intent" | "processing" | "success" | "error";
 
 export function TerminalPayment({
   open,
