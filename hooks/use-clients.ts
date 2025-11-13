@@ -66,7 +66,6 @@ export function useClients(limit?: number) {
             const result = await api.get<Client[] | { data: Client[] }>(`/api/clients${queryString}`);
             return Array.isArray(result) ? result : result.data || [];
         },
-        enabled: limit !== undefined, // Only fetch when limit is specified
     });
 }
 

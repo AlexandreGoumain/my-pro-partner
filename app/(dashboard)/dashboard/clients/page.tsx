@@ -4,34 +4,21 @@ import {
     ClientDialogs,
     ClientGridView,
     ClientInsightsSection,
+    ClientPageActions,
     ClientSearchBar,
     ClientSegmentBanner,
     ClientStatsGrid,
 } from "@/components/clients";
 import { InviteClientDialog } from "@/components/invite-client-dialog";
-import { LimitIndicator } from "@/components/paywall";
 import { PendingClientsSection } from "@/components/pending-clients-section";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ClientsPageSkeleton } from "@/components/skeletons";
 import { DataTable } from "@/components/ui/data-table";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { PageHeader } from "@/components/ui/page-header";
+import { UsageLimitCard } from "@/components/ui/usage-limit-card";
 import { useClientsPage } from "@/hooks/use-clients-page";
 import { CLIENT_COLUMN_LABELS } from "@/lib/constants/clients";
 import { CLIENT_CSV_MAPPINGS } from "@/lib/constants/csv-mappings";
-import {
-    ChevronDown,
-    Mail,
-    Plus,
-    Upload,
-    UserPlus,
-    Users as UsersIcon,
-} from "lucide-react";
+import { Users as UsersIcon } from "lucide-react";
 import { Suspense } from "react";
 
 function ClientsPageContent() {
@@ -43,57 +30,11 @@ function ClientsPageContent() {
                 title="Dashboard Clients"
                 description="Vue d'ensemble et gestion de votre portefeuille clients"
                 actions={
-                    <>
-                        <Button
-                            onClick={() => handlers.setImportDialogOpen(true)}
-                            variant="outline"
-                            className="h-11 px-6 text-[14px] font-medium border-black/10 hover:bg-black/5"
-                        >
-                            <Upload className="w-4 h-4 mr-2" strokeWidth={2} />
-                            Importer CSV
-                        </Button>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button className="h-11 px-6 text-[14px] font-medium bg-black hover:bg-black/90 text-white rounded-md shadow-sm cursor-pointer">
-                                    <Plus
-                                        className="w-4 h-4 mr-2"
-                                        strokeWidth={2}
-                                    />
-                                    Nouveau client
-                                    <ChevronDown
-                                        className="w-4 h-4 ml-2"
-                                        strokeWidth={2}
-                                    />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-56">
-                                <DropdownMenuItem
-                                    onClick={
-                                        handlers.handleCreateWithLimitCheck
-                                    }
-                                    className="cursor-pointer"
-                                >
-                                    <UserPlus
-                                        className="w-4 h-4 mr-2"
-                                        strokeWidth={2}
-                                    />
-                                    Créer manuellement
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                    onClick={
-                                        handlers.handleInviteWithLimitCheck
-                                    }
-                                    className="cursor-pointer"
-                                >
-                                    <Mail
-                                        className="w-4 h-4 mr-2"
-                                        strokeWidth={2}
-                                    />
-                                    Inviter par email
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </>
+                    <ClientPageActions
+                        onImportClick={() => handlers.setImportDialogOpen(true)}
+                        onCreateClick={handlers.handleCreateWithLimitCheck}
+                        onInviteClick={handlers.handleInviteWithLimitCheck}
+                    />
                 }
             />
 
@@ -108,28 +49,13 @@ function ClientsPageContent() {
                 }
             />
 
-            {/* Indicateur de limite de plan */}
-            <Card className="border-black/10">
-                <CardHeader>
-                    <CardTitle className="text-[16px] font-semibold text-black flex items-center gap-2">
-                        <UsersIcon
-                            className="w-5 h-5 text-black/60"
-                            strokeWidth={2}
-                        />
-                        Utilisation
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <LimitIndicator
-                        userPlan={handlers.userPlan}
-                        limitKey="maxClients"
-                        currentValue={handlers.intelligence.total}
-                        label="Clients"
-                        showProgress
-                        showUpgradeLink
-                    />
-                </CardContent>
-            </Card>
+            <UsageLimitCard
+                userPlan={handlers.userPlan}
+                limitKey="maxClients"
+                currentValue={handlers.intelligence.total}
+                label="Clients"
+                icon={UsersIcon}
+            />
 
             <ClientInsightsSection
                 completionRate={handlers.intelligence.completionRate}
@@ -217,34 +143,9 @@ function ClientsPageContent() {
     );
 }
 
-function ClientsPageFallback() {
-    return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                    <div className="h-9 w-48 bg-black/5 rounded-md animate-pulse" />
-                    <div className="h-5 w-96 bg-black/5 rounded-md animate-pulse" />
-                </div>
-                <div className="flex gap-3">
-                    <div className="h-11 w-36 bg-black/5 rounded-md animate-pulse" />
-                    <div className="h-11 w-36 bg-black/5 rounded-md animate-pulse" />
-                </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                {[1, 2, 3, 4].map((i) => (
-                    <div
-                        key={i}
-                        className="h-24 bg-black/5 rounded-lg animate-pulse"
-                    />
-                ))}
-            </div>
-        </div>
-    );
-}
-
 export default function ClientsPage() {
     return (
-        <Suspense fallback={<ClientsPageFallback />}>
+        <Suspense fallback={<ClientsPageSkeleton />}>
             <ClientsPageContent />
         </Suspense>
     );

@@ -7,10 +7,9 @@ import {
     ArticleListView,
     ArticleStatsGrid,
 } from "@/components/articles";
-import { LimitIndicator } from "@/components/paywall";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
+import { UsageLimitCard } from "@/components/ui/usage-limit-card";
 import { useArticlesPage } from "@/hooks/use-articles-page";
 import { ARTICLE_SORT_OPTIONS } from "@/lib/constants/article-sort-options";
 import { Package, Plus } from "lucide-react";
@@ -42,28 +41,13 @@ function CataloguePageContent() {
                 onTypeFilterToggle={page.handleTypeFilterToggle}
             />
 
-            {/* Indicateur de limite de plan */}
-            <Card className="border-black/10">
-                <CardHeader>
-                    <CardTitle className="text-[16px] font-semibold text-black flex items-center gap-2">
-                        <Package
-                            className="w-5 h-5 text-black/60"
-                            strokeWidth={2}
-                        />
-                        Utilisation
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <LimitIndicator
-                        userPlan={page.userPlan}
-                        limitKey="maxProducts"
-                        currentValue={page.articlesCount}
-                        label="Articles"
-                        showProgress
-                        showUpgradeLink
-                    />
-                </CardContent>
-            </Card>
+            <UsageLimitCard
+                userPlan={page.userPlan}
+                limitKey="maxProducts"
+                currentValue={page.articlesCount}
+                label="Articles"
+                icon={Package}
+            />
 
             {/* Filtres et recherche */}
             <ArticleFiltersBar
