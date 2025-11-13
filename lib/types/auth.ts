@@ -66,6 +66,16 @@ export interface UseRegisterFormReturn {
     resetErrors: () => void;
 }
 
+// Team Invitation
+export interface TeamInvitationData {
+    email: string;
+    name: string | null;
+    prenom: string | null;
+    role: string;
+    entrepriseName: string;
+    expiresAt: string;
+}
+
 // Password Reset
 export interface ResetPasswordFormData {
     newPassword: string;
