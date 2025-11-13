@@ -3,6 +3,7 @@ import { ArticleCardSkeleton } from "@/components/skeletons";
 import { ArticleEmptyState } from "./article-empty-state";
 import { cn } from "@/lib/utils";
 import { Article } from "@/app/(dashboard)/dashboard/articles/_components/data-table/columns";
+import { type ArticleTypeFilter } from "@/lib/types/article";
 import { LucideIcon } from "lucide-react";
 
 export interface ArticleGridViewProps {
@@ -14,7 +15,7 @@ export interface ArticleGridViewProps {
         buttonText: string;
         icon: LucideIcon;
     };
-    typeFilter: "TOUS" | "PRODUIT" | "SERVICE";
+    typeFilter: ArticleTypeFilter;
     hasNoDataAtAll: boolean;
     onView: (article: Article) => void;
     onEdit: (article: Article) => void;

@@ -17,7 +17,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { parseCSV, type ParsedCSVRow } from "@/lib/utils/csv-parser";
+import { parseCSV } from "@/lib/utils/csv-parser";
 import {
     AlertCircle,
     CheckCircle2,
@@ -29,20 +29,7 @@ import {
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "./ui/badge";
-
-export interface CSVMapping {
-    csvHeader: string;
-    targetField: string;
-    label: string;
-    required?: boolean;
-    validator?: (value: string | null) => { valid: boolean; error?: string };
-}
-
-export interface ValidationError {
-    row: number;
-    field: string;
-    message: string;
-}
+import type { CSVMapping, ValidationError, ParsedCSVRow } from "@/lib/types";
 
 interface CSVImportDialogProps {
     open: boolean;

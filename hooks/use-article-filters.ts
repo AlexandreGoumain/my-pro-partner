@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { type Article } from "@/app/(dashboard)/dashboard/articles/_components/data-table/columns";
+import { type ArticleTypeFilter } from "@/lib/types/article";
 
 export interface UseArticleFiltersParams {
     articles: Article[];
@@ -7,7 +8,7 @@ export interface UseArticleFiltersParams {
     selectedCategoryIds: string[];
     allCategoryIds: string[];
     sortBy: string;
-    typeFilter: "TOUS" | "PRODUIT" | "SERVICE";
+    typeFilter: ArticleTypeFilter;
 }
 
 export function useArticleFilters({

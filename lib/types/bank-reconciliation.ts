@@ -5,6 +5,8 @@ export type TransactionStatus =
     | "IGNORED"
     | "ANOMALY";
 
+export type FilterType = "all" | "pending";
+
 export interface BankTransaction {
     id: string;
     date: Date;

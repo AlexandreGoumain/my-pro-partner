@@ -1,17 +1,29 @@
-import { useState, useMemo } from "react";
+import type { Article } from "@/app/(dashboard)/dashboard/articles/_components/data-table/columns";
 import { useArticles } from "@/hooks/use-articles";
 import {
     useStockAlerts,
     useStockMouvements,
     type StockFilters,
 } from "@/hooks/use-stock";
+import type {
+    ArticleAvecAlerte,
+    MouvementStockDisplay,
+} from "@/lib/types/stock";
+import { useMemo, useState } from "react";
+
+export interface StockStats {
+    totalArticles: number;
+    articlesEnRupture: number;
+    articlesEnAlerte: number;
+    mouvementsRecents: number;
+}
 
 export interface StockPageHandlers {
-    mouvements: unknown[];
+    mouvements: MouvementStockDisplay[];
     loadingMouvements: boolean;
-    alerts: unknown[];
+    alerts: ArticleAvecAlerte[];
     loadingAlerts: boolean;
-    articles: unknown[];
+    articles: Article[];
     loadingArticles: boolean;
 
     movementDialogOpen: boolean;
@@ -19,13 +31,8 @@ export interface StockPageHandlers {
     filters: StockFilters;
     setFilters: (filters: StockFilters) => void;
 
-    articlesWithStock: unknown[];
-    stats: {
-        totalArticles: number;
-        articlesEnRupture: number;
-        articlesEnAlerte: number;
-        mouvementsRecents: number;
-    };
+    articlesWithStock: Article[];
+    stats: StockStats;
 
     handleFilterChange: (key: keyof StockFilters, value: string) => void;
 }
@@ -44,7 +51,7 @@ export function useStockPage(): StockPageHandlers {
         [articles]
     );
 
-    const stats = useMemo(
+    const stats = useMemo<StockStats>(
         () => ({
             totalArticles: articlesWithStock.length,
             articlesEnRupture: articlesWithStock.filter((a) => a.stock === 0)

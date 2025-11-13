@@ -1,9 +1,10 @@
 import { ClientCreateDialog } from "@/components/client-create-dialog";
 import { ClientEditDialog } from "@/components/client-edit-dialog";
-import { CSVImportDialog, type CSVMapping } from "@/components/csv-import-dialog";
+import { CSVImportDialog } from "@/components/csv-import-dialog";
 import { DeleteConfirmDialog } from "@/components/delete-confirm-dialog";
 import { getClientFullName } from "@/lib/utils/client-formatting";
-import type { Client } from "@/hooks/use-clients";
+import type { Client } from "@/lib/generated/prisma";
+import type { CSVMapping } from "@/lib/types";
 
 export interface ClientDialogsProps {
     // Create dialog

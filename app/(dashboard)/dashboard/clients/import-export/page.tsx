@@ -7,6 +7,7 @@ import {
     ImportInfoCard,
     ImportSection,
 } from "@/components/import-export";
+import { PageHeader } from "@/components/ui/page-header";
 import { useImportExportPage } from "@/hooks/use-import-export-page";
 import { CSV_MAPPINGS } from "@/lib/constants/import-export-config";
 
@@ -31,18 +32,11 @@ export default function ClientImportExportPage() {
 
     return (
         <div className="space-y-6">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-2xl font-bold">Import / Export</h2>
-                    <p className="text-muted-foreground">
-                        Gérez l&apos;import et l&apos;export de vos données
-                        clients
-                    </p>
-                </div>
-            </div>
+            <PageHeader
+                title="Import / Export"
+                description="Gérez l'import et l'export de vos données clients"
+            />
 
-            {/* Stats rapides */}
             <ImportExportStats clientsCount={clients.length} />
 
             <div className="grid gap-4 lg:grid-cols-2">

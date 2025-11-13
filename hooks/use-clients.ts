@@ -2,25 +2,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api/fetch-client";
 import type { ClientCreateInput, ClientUpdateInput } from "@/lib/validation";
 import type { PaginatedResponse } from "@/lib/utils/pagination";
+import type { Client as PrismaClient } from "@/lib/generated/prisma";
 
-// Client type definition
-export interface Client {
-    id: string;
-    nom: string;
-    prenom?: string | null;
-    email?: string | null;
-    telephone?: string | null;
-    adresse?: string | null;
-    codePostal?: string | null;
-    ville?: string | null;
-    pays: string;
-    notes?: string | null;
-    entrepriseId: string;
-    points_solde: number;
-    niveauFideliteId?: string | null;
-    createdAt: Date;
-    updatedAt: Date;
-}
+// Re-export Prisma Client type for consistency
+export type Client = PrismaClient;
 
 // Monthly data for evolution chart
 export interface MonthlyData {

@@ -1,5 +1,8 @@
 import { Categorie, Article as PrismaArticle } from "@/lib/generated/prisma";
 
+// Article type filter
+export type ArticleTypeFilter = "TOUS" | "PRODUIT" | "SERVICE";
+
 // Type from Prisma with relations
 export type ArticleWithRelations = PrismaArticle & {
     categorie: Categorie | null;

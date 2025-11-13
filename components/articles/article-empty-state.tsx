@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { LucideIcon, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { type ArticleTypeFilter } from "@/lib/types/article";
 
 export interface ArticleEmptyStateProps {
     title: string;
@@ -9,7 +10,7 @@ export interface ArticleEmptyStateProps {
     buttonText: string;
     icon: LucideIcon;
     onAction: () => void;
-    typeFilter?: "TOUS" | "PRODUIT" | "SERVICE";
+    typeFilter?: ArticleTypeFilter;
     hasNoDataAtAll?: boolean;
     className?: string;
 }

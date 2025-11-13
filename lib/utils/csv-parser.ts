@@ -2,9 +2,7 @@
  * CSV Parser utility for import functionality
  */
 
-export interface ParsedCSVRow {
-  [key: string]: string | null;
-}
+import type { ParsedCSVRow } from "@/lib/types";
 
 export interface CSVParseResult {
   headers: string[];

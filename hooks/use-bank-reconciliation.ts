@@ -1,138 +1,150 @@
+import { useRef, useState } from "react";
+import { toast } from "sonner";
 import type {
     BankReconciliationStats,
     BankTransaction,
+    FilterType,
 } from "@/lib/types/bank-reconciliation";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
-
-type FilterType = "all" | "pending";
+import {
+    useBankStats,
+    useBankTransactions,
+    useImportBankTransactions,
+    useAutoMatch,
+    useIgnoreTransaction,
+} from "./use-bank-transactions";
 
 interface UseBankReconciliationReturn {
+    // Data
     transactions: BankTransaction[];
     stats: BankReconciliationStats | null;
     isLoading: boolean;
     isUploading: boolean;
+
+    // Filter state
     filter: FilterType;
     setFilter: (filter: FilterType) => void;
-    loadData: () => Promise<void>;
+
+    // Dialog state
+    matchDialogOpen: boolean;
+    setMatchDialogOpen: (open: boolean) => void;
+    anomalyDialogOpen: boolean;
+    setAnomalyDialogOpen: (open: boolean) => void;
+    selectedTransaction: BankTransaction | null;
+
+    // File input ref
+    fileInputRef: React.RefObject<HTMLInputElement | null>;
+
+    // Handlers
     handleFileUpload: (file: File) => Promise<void>;
     handleAutoMatch: () => Promise<void>;
     handleIgnore: (transactionId: string) => Promise<void>;
+    onFileInputChange: (e: React.ChangeEvent<HTMLInputElement>) => Promise<void>;
+    openMatchDialog: (transaction: BankTransaction) => void;
+    openAnomalyDialog: (transaction: BankTransaction) => void;
+    loadData: () => Promise<void>;
 }
 
 export function useBankReconciliation(): UseBankReconciliationReturn {
-    const [transactions, setTransactions] = useState<BankTransaction[]>([]);
-    const [stats, setStats] = useState<BankReconciliationStats | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [isUploading, setIsUploading] = useState(false);
     const [filter, setFilter] = useState<FilterType>("pending");
+    const [matchDialogOpen, setMatchDialogOpen] = useState(false);
+    const [anomalyDialogOpen, setAnomalyDialogOpen] = useState(false);
+    const [selectedTransaction, setSelectedTransaction] =
+        useState<BankTransaction | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
-    useEffect(() => {
-        loadData();
-    }, [filter]);
-
-    const loadData = async () => {
-        try {
-            setIsLoading(true);
-
-            const [transactionsRes, statsRes] = await Promise.all([
-                fetch(`/api/bank/transactions?status=${filter}`),
-                fetch("/api/bank/stats"),
-            ]);
-
-            const transactionsData = await transactionsRes.json();
-            const statsData = await statsRes.json();
-
-            setTransactions(transactionsData.transactions || []);
-            setStats(statsData.stats);
-        } catch (error) {
-            console.error(error);
-            toast.error("Erreur lors du chargement des données");
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    // React Query hooks
+    const { data: transactions = [], isLoading: isLoadingTransactions } =
+        useBankTransactions(filter);
+    const { data: stats = null, isLoading: isLoadingStats } = useBankStats();
+    const importMutation = useImportBankTransactions();
+    const autoMatchMutation = useAutoMatch();
+    const ignoreMutation = useIgnoreTransaction();
 
     const handleFileUpload = async (file: File) => {
         try {
-            setIsUploading(true);
-
-            const formData = new FormData();
-            formData.append("file", file);
-
-            const res = await fetch("/api/bank/import", {
-                method: "POST",
-                body: formData,
-            });
-
-            const data = await res.json();
-
-            if (!res.ok) {
-                throw new Error(data.error);
-            }
-
+            const result = await importMutation.mutateAsync(file);
             toast.success(
-                `${data.imported} transactions importées sur ${data.total}`
+                `${result.imported} transactions importées sur ${result.total}`
             );
-            await loadData();
-        } catch (error: any) {
-            console.error(error);
-            toast.error(error.message || "Erreur lors de l'import");
-        } finally {
-            setIsUploading(false);
+        } catch (error) {
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : "Erreur lors de l'import";
+            toast.error(message);
         }
     };
 
     const handleAutoMatch = async () => {
         try {
-            const res = await fetch("/api/bank/auto-match", {
-                method: "POST",
-            });
-
-            const data = await res.json();
-
-            if (!res.ok) {
-                throw new Error(data.error);
-            }
-
+            await autoMatchMutation.mutateAsync();
             toast.success("Matching automatique effectué");
-            await loadData();
-        } catch (error: any) {
-            console.error(error);
-            toast.error(error.message || "Erreur lors du matching");
+        } catch (error) {
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : "Erreur lors du matching";
+            toast.error(message);
         }
     };
 
     const handleIgnore = async (transactionId: string) => {
         try {
-            const res = await fetch(`/api/bank/${transactionId}/ignore`, {
-                method: "POST",
-            });
-
-            const data = await res.json();
-
-            if (!res.ok) {
-                throw new Error(data.error);
-            }
-
+            await ignoreMutation.mutateAsync(transactionId);
             toast.success("Transaction ignorée");
-            await loadData();
-        } catch (error: any) {
-            console.error(error);
-            toast.error(error.message || "Erreur");
+        } catch (error) {
+            const message =
+                error instanceof Error ? error.message : "Erreur";
+            toast.error(message);
         }
+    };
+
+    const onFileInputChange = async (
+        e: React.ChangeEvent<HTMLInputElement>
+    ) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            await handleFileUpload(file);
+            if (fileInputRef.current) {
+                fileInputRef.current.value = "";
+            }
+        }
+    };
+
+    const openMatchDialog = (transaction: BankTransaction) => {
+        setSelectedTransaction(transaction);
+        setMatchDialogOpen(true);
+    };
+
+    const openAnomalyDialog = (transaction: BankTransaction) => {
+        setSelectedTransaction(transaction);
+        setAnomalyDialogOpen(true);
+    };
+
+    const loadData = async () => {
+        // Data is automatically refetched by React Query
+        // This function is kept for compatibility with dialogs
     };
 
     return {
         transactions,
         stats,
-        isLoading,
-        isUploading,
+        isLoading: isLoadingTransactions || isLoadingStats,
+        isUploading: importMutation.isPending,
         filter,
         setFilter,
-        loadData,
+        matchDialogOpen,
+        setMatchDialogOpen,
+        anomalyDialogOpen,
+        setAnomalyDialogOpen,
+        selectedTransaction,
+        fileInputRef,
         handleFileUpload,
         handleAutoMatch,
         handleIgnore,
+        onFileInputChange,
+        openMatchDialog,
+        openAnomalyDialog,
+        loadData,
     };
 }

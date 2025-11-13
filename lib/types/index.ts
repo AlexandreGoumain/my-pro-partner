@@ -50,3 +50,15 @@ export {
   getSegmentColor,
   TypeSegment,
 } from "./segment";
+
+// Re-export import-export types
+export type {
+  ImportExportStats,
+  ExportOptions,
+  ImportOptions,
+  ImportResult,
+  ExportData,
+  CSVMapping,
+  ValidationError,
+  ParsedCSVRow,
+} from "./import-export";

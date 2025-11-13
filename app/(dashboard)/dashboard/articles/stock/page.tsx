@@ -5,6 +5,7 @@ import { StockAlertsList } from "@/components/stock-alerts-list";
 import { StockHistoryTable } from "@/components/stock-history-table";
 import { StockMovementDialog } from "@/components/stock-movement-dialog";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/ui/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useStockPage } from "@/hooks/use-stock-page";
 import { PackagePlus } from "lucide-react";
@@ -27,23 +28,20 @@ export default function StockManagementPage() {
 
     return (
         <div className="space-y-6">
-            {/* En-tête */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">
-                        Gestion des stocks
-                    </h1>
-                    <p className="text-muted-foreground">
-                        Suivez et gérez vos stocks en temps réel
-                    </p>
-                </div>
-                <Button onClick={() => setMovementDialogOpen(true)}>
-                    <PackagePlus className="mr-2 h-4 w-4" />
-                    Nouveau mouvement
-                </Button>
-            </div>
+            <PageHeader
+                title="Gestion des stocks"
+                description="Suivez et gérez vos stocks en temps réel"
+                actions={
+                    <Button
+                        onClick={() => setMovementDialogOpen(true)}
+                        className="bg-black hover:bg-black/90 text-white h-11 px-6 text-[14px] font-medium rounded-md shadow-sm"
+                    >
+                        <PackagePlus className="mr-2 h-4 w-4" strokeWidth={2} />
+                        Nouveau mouvement
+                    </Button>
+                }
+            />
 
-            {/* Statistiques */}
             <StockStats
                 totalArticles={stats.totalArticles}
                 articlesEnRupture={stats.articlesEnRupture}
@@ -51,24 +49,28 @@ export default function StockManagementPage() {
                 mouvementsRecents={stats.mouvementsRecents}
             />
 
-            {/* Contenu principal */}
             <Tabs defaultValue="mouvements" className="space-y-4">
-                <TabsList>
-                    <TabsTrigger value="mouvements">
+                <TabsList className="bg-black/5 border-black/10">
+                    <TabsTrigger
+                        value="mouvements"
+                        className="text-[14px] data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                    >
                         Historique des mouvements
                     </TabsTrigger>
-                    <TabsTrigger value="alertes">
+                    <TabsTrigger
+                        value="alertes"
+                        className="text-[14px] data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                    >
                         Alertes
                         {alerts.length > 0 && (
-                            <span className="ml-2 rounded-full bg-destructive px-2 py-0.5 text-xs text-destructive-foreground">
+                            <span className="ml-2 rounded-full bg-black/10 px-2 py-0.5 text-[11px] font-medium text-black/60">
                                 {alerts.length}
                             </span>
                         )}
                     </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="mouvements" className="space-y-4">
-                    {/* Filtres */}
+                <TabsContent value="mouvements" className="space-y-4 mt-6">
                     <StockFiltersCard
                         filters={filters}
                         articlesWithStock={articlesWithStock}
@@ -77,7 +79,6 @@ export default function StockManagementPage() {
                         onResetFilters={() => setFilters({})}
                     />
 
-                    {/* Table des mouvements */}
                     <StockHistoryTable
                         mouvements={mouvements}
                         showArticle={!filters.articleId}
@@ -85,7 +86,7 @@ export default function StockManagementPage() {
                     />
                 </TabsContent>
 
-                <TabsContent value="alertes" className="space-y-4">
+                <TabsContent value="alertes" className="space-y-4 mt-6">
                     <StockAlertsList
                         articles={alerts}
                         isLoading={loadingAlerts}
@@ -93,7 +94,6 @@ export default function StockManagementPage() {
                 </TabsContent>
             </Tabs>
 
-            {/* Dialog pour créer un mouvement */}
             <StockMovementDialog
                 open={movementDialogOpen}
                 onOpenChange={setMovementDialogOpen}

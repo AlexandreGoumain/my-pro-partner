@@ -7,6 +7,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { type ArticleTypeFilter } from "@/lib/types/article";
 
 export interface ArticleStatsData {
   total: number;
@@ -18,8 +19,8 @@ export interface ArticleStatsData {
 
 export interface ArticleStatsGridProps {
   stats: ArticleStatsData;
-  typeFilter: "TOUS" | "PRODUIT" | "SERVICE";
-  onTypeFilterToggle: (type: "TOUS" | "PRODUIT" | "SERVICE") => void;
+  typeFilter: ArticleTypeFilter;
+  onTypeFilterToggle: (type: ArticleTypeFilter) => void;
   className?: string;
 }
 

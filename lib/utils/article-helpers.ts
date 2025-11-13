@@ -1,4 +1,5 @@
 import { LucideIcon, Package, Briefcase, ShoppingBag, Search } from "lucide-react";
+import { type ArticleTypeFilter } from "@/lib/types/article";
 
 export interface ArticleEmptyStateMessage {
     title: string;
@@ -8,7 +9,7 @@ export interface ArticleEmptyStateMessage {
 }
 
 export function getArticleEmptyStateMessage(
-    typeFilter: "TOUS" | "PRODUIT" | "SERVICE",
+    typeFilter: ArticleTypeFilter,
     hasNoDataAtAll: boolean
 ): ArticleEmptyStateMessage {
     if (typeFilter === "PRODUIT") {

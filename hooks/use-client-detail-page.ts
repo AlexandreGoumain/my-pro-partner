@@ -4,37 +4,12 @@ import { toast } from "sonner";
 import { differenceInDays } from "date-fns";
 import { useClient, useDeleteClient } from "@/hooks/use-clients";
 import type { Client } from "@/hooks/use-clients";
-import { CheckCircle2, Clock, AlertCircle } from "lucide-react";
-
-export interface ClientHealth {
-    status: "active" | "inactive" | "warning";
-    daysSinceUpdate: number;
-    completionScore: number;
-}
-
-export interface StatusConfig {
-    label: string;
-    className: string;
-    icon: typeof CheckCircle2;
-}
-
-const STATUS_CONFIG: Record<ClientHealth["status"], StatusConfig> = {
-    active: {
-        label: "Actif",
-        className: "bg-green-100 text-green-700 border-green-200",
-        icon: CheckCircle2,
-    },
-    warning: {
-        label: "Peu actif",
-        className: "bg-orange-100 text-orange-700 border-orange-200",
-        icon: Clock,
-    },
-    inactive: {
-        label: "Inactif",
-        className: "bg-red-100 text-red-700 border-red-200",
-        icon: AlertCircle,
-    },
-};
+import type { Document } from "@/hooks/use-documents";
+import {
+    ClientHealth,
+    StatusConfig,
+    STATUS_CONFIG,
+} from "@/lib/types/client";
 
 export interface ClientDetailPageHandlers {
     client: Client | null;
@@ -43,6 +18,8 @@ export interface ClientDetailPageHandlers {
     nomComplet: string;
     initiales: string;
     currentStatus: StatusConfig | null;
+    totalCA: number;
+    lastDocument: Document | null;
 
     editDialogOpen: boolean;
     setEditDialogOpen: (open: boolean) => void;
@@ -63,7 +40,8 @@ export interface ClientDetailPageHandlers {
 }
 
 export function useClientDetailPage(
-    clientId: string
+    clientId: string,
+    documents: Document[] = []
 ): ClientDetailPageHandlers {
     const router = useRouter();
     const { data: client = null, isLoading } = useClient(clientId);
@@ -125,6 +103,26 @@ export function useClientDetailPage(
         return clientHealth ? STATUS_CONFIG[clientHealth.status] : null;
     }, [clientHealth]);
 
+    // Calculate total revenue
+    const totalCA = useMemo(() => {
+        return documents.reduce(
+            (sum, doc) => sum + Number(doc.total_ttc || 0),
+            0
+        );
+    }, [documents]);
+
+    // Get last invoice
+    const lastDocument = useMemo(() => {
+        const invoices = documents.filter((doc) => doc.type === "FACTURE");
+        if (invoices.length === 0) return null;
+
+        return invoices.sort(
+            (a, b) =>
+                new Date(b.dateEmission).getTime() -
+                new Date(a.dateEmission).getTime()
+        )[0];
+    }, [documents]);
+
     const handleBack = useCallback(() => {
         router.push("/dashboard/clients");
     }, [router]);
@@ -181,6 +179,8 @@ export function useClientDetailPage(
         nomComplet,
         initiales,
         currentStatus,
+        totalCA,
+        lastDocument,
         editDialogOpen,
         setEditDialogOpen,
         deleteDialogOpen,

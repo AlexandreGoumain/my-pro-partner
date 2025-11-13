@@ -8,6 +8,7 @@ export const ENDPOINTS = {
   ARTICLES: "/api/articles",
   ARTICLE_BY_ID: (id: string) => `/api/articles/${id}`,
   ARTICLE_STOCK: (id: string) => `/api/articles/${id}/stock`,
+  ARTICLE_ALERTS: "/api/articles/alerts",
 
   // Categories
   CATEGORIES: "/api/categories",
@@ -19,7 +20,13 @@ export const ENDPOINTS = {
 
   // Stock
   STOCK_MOVEMENTS: "/api/stock/mouvements",
-  STOCK_ALERTS: "/api/stock/alerts",
+
+  // Analytics
+  ANALYTICS_SALES: "/api/analytics/sales",
+  ANALYTICS: "/api/analytics",
+  ANALYTICS_PROFITABILITY: "/api/analytics/profitability",
+  ANALYTICS_UNPAID_INVOICES: "/api/analytics/unpaid-invoices",
+  ANALYTICS_TOP_DEBTORS: "/api/analytics/top-debtors",
 
   // Auth
   AUTH_REGISTER: "/api/auth/register",

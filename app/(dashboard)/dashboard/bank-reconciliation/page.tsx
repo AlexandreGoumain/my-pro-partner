@@ -3,23 +3,19 @@
 import {
     AnomalyDialog,
     EmptyState,
+    FilterButtons,
+    LoadingState,
     MatchDialog,
     StatsGrid,
     TransactionCard,
 } from "@/components/bank-reconciliation";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/ui/page-header";
 import { useBankReconciliation } from "@/hooks/use-bank-reconciliation";
-import type { BankTransaction } from "@/lib/types/bank-reconciliation";
 import { RefreshCw, Upload } from "lucide-react";
-import { useRef, useState } from "react";
+import { Suspense } from "react";
 
-export default function BankReconciliationPage() {
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const [matchDialogOpen, setMatchDialogOpen] = useState(false);
-    const [anomalyDialogOpen, setAnomalyDialogOpen] = useState(false);
-    const [selectedTransaction, setSelectedTransaction] =
-        useState<BankTransaction | null>(null);
-
+function BankReconciliationPageContent() {
     const {
         transactions,
         stats,
@@ -27,109 +23,65 @@ export default function BankReconciliationPage() {
         isUploading,
         filter,
         setFilter,
-        loadData,
-        handleFileUpload,
+        matchDialogOpen,
+        setMatchDialogOpen,
+        anomalyDialogOpen,
+        setAnomalyDialogOpen,
+        selectedTransaction,
+        fileInputRef,
         handleAutoMatch,
         handleIgnore,
+        onFileInputChange,
+        openMatchDialog,
+        openAnomalyDialog,
+        loadData,
     } = useBankReconciliation();
-
-    const onFileInputChange = async (
-        e: React.ChangeEvent<HTMLInputElement>
-    ) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            await handleFileUpload(file);
-            if (fileInputRef.current) {
-                fileInputRef.current.value = "";
-            }
-        }
-    };
-
-    const openMatchDialog = (transaction: BankTransaction) => {
-        setSelectedTransaction(transaction);
-        setMatchDialogOpen(true);
-    };
-
-    const openAnomalyDialog = (transaction: BankTransaction) => {
-        setSelectedTransaction(transaction);
-        setAnomalyDialogOpen(true);
-    };
 
     return (
         <div className="space-y-6">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-black">
-                        Rapprochement Bancaire
-                    </h1>
-                    <p className="text-[14px] text-black/60 mt-1">
-                        Importez vos relevés et rapprochez automatiquement vos
-                        transactions
-                    </p>
-                </div>
+            <PageHeader
+                title="Rapprochement Bancaire"
+                description="Importez vos relevés et rapprochez automatiquement vos transactions"
+                actions={
+                    <>
+                        <Button
+                            onClick={handleAutoMatch}
+                            variant="outline"
+                            className="h-11 px-6 text-[14px] font-medium border-black/10 hover:bg-black/5"
+                        >
+                            <RefreshCw
+                                className="h-4 w-4 mr-2"
+                                strokeWidth={2}
+                            />
+                            Matching auto
+                        </Button>
+                        <Button
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={isUploading}
+                            className="bg-black hover:bg-black/90 text-white h-11 px-6 text-[14px] font-medium rounded-md shadow-sm"
+                        >
+                            <Upload className="h-4 w-4 mr-2" strokeWidth={2} />
+                            {isUploading
+                                ? "Import en cours..."
+                                : "Importer CSV"}
+                        </Button>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept=".csv"
+                            onChange={onFileInputChange}
+                            className="hidden"
+                        />
+                    </>
+                }
+            />
 
-                <div className="flex gap-3">
-                    <Button
-                        onClick={handleAutoMatch}
-                        variant="outline"
-                        className="border-black/10 hover:bg-black/5"
-                    >
-                        <RefreshCw className="h-4 w-4 mr-2" />
-                        Matching auto
-                    </Button>
-                    <Button
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={isUploading}
-                        className="bg-black hover:bg-black/90 text-white h-11 px-6"
-                    >
-                        <Upload className="h-4 w-4 mr-2" />
-                        {isUploading ? "Import en cours..." : "Importer CSV"}
-                    </Button>
-                    <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept=".csv"
-                        onChange={onFileInputChange}
-                        className="hidden"
-                    />
-                </div>
-            </div>
-
-            {/* Stats */}
             <StatsGrid stats={stats} />
 
-            {/* Filter */}
-            <div className="flex gap-2">
-                <Button
-                    onClick={() => setFilter("pending")}
-                    variant={filter === "pending" ? "default" : "outline"}
-                    className={
-                        filter === "pending"
-                            ? "bg-black hover:bg-black/90"
-                            : "border-black/10"
-                    }
-                >
-                    En attente
-                </Button>
-                <Button
-                    onClick={() => setFilter("all")}
-                    variant={filter === "all" ? "default" : "outline"}
-                    className={
-                        filter === "all"
-                            ? "bg-black hover:bg-black/90"
-                            : "border-black/10"
-                    }
-                >
-                    Toutes les transactions
-                </Button>
-            </div>
+            <FilterButtons activeFilter={filter} onFilterChange={setFilter} />
 
-            {/* Transactions list */}
             {isLoading ? (
-                <div className="text-center py-12">
-                    <p className="text-[14px] text-black/40">Chargement...</p>
-                </div>
+                <LoadingState />
             ) : transactions.length === 0 ? (
                 <EmptyState
                     onImportClick={() => fileInputRef.current?.click()}
@@ -148,7 +100,6 @@ export default function BankReconciliationPage() {
                 </div>
             )}
 
-            {/* Dialogs */}
             <MatchDialog
                 open={matchDialogOpen}
                 onOpenChange={setMatchDialogOpen}
@@ -163,5 +114,50 @@ export default function BankReconciliationPage() {
                 onSuccess={loadData}
             />
         </div>
+    );
+}
+
+function BankReconciliationPageFallback() {
+    return (
+        <div className="space-y-6">
+            <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                    <div className="h-9 w-64 bg-black/5 rounded-md animate-pulse" />
+                    <div className="h-5 w-96 bg-black/5 rounded-md animate-pulse" />
+                </div>
+                <div className="flex gap-3">
+                    <div className="h-11 w-40 bg-black/5 rounded-md animate-pulse" />
+                    <div className="h-11 w-40 bg-black/5 rounded-md animate-pulse" />
+                </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {[1, 2, 3, 4].map((i) => (
+                    <div
+                        key={i}
+                        className="h-24 bg-black/5 rounded-lg animate-pulse"
+                    />
+                ))}
+            </div>
+            <div className="flex gap-2">
+                <div className="h-11 w-32 bg-black/5 rounded-md animate-pulse" />
+                <div className="h-11 w-48 bg-black/5 rounded-md animate-pulse" />
+            </div>
+            <div className="space-y-2">
+                {[1, 2, 3].map((i) => (
+                    <div
+                        key={i}
+                        className="h-32 bg-black/5 rounded-lg animate-pulse"
+                    />
+                ))}
+            </div>
+        </div>
+    );
+}
+
+export default function BankReconciliationPage() {
+    return (
+        <Suspense fallback={<BankReconciliationPageFallback />}>
+            <BankReconciliationPageContent />
+        </Suspense>
     );
 }

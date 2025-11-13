@@ -15,17 +15,15 @@ import { Card } from "@/components/ui/card";
 import { Mail, Loader2, User, Send } from "lucide-react";
 import { useEmailSender } from "@/hooks/use-email-sender";
 
-interface Client {
-    id: string;
-    nom: string | null;
-    prenom: string | null;
-    email: string;
-}
-
 interface ClientEmailDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    client: Client | null;
+    client: {
+        id: string;
+        nom: string;
+        prenom?: string | null;
+        email?: string | null;
+    } | null;
 }
 
 export function ClientEmailDialog({

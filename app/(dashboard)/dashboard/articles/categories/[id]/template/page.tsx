@@ -3,10 +3,10 @@
 import { CustomFieldsManager } from "@/components/custom-fields-manager";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useCategorie } from "@/hooks/use-categories";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { use } from "react";
-import { useCategorie } from "@/hooks/use-categories";
 
 export default function CategoryTemplatePage({
     params,

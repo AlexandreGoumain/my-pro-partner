@@ -1,3 +1,13 @@
 export { ClientDetailLoading } from "./client-detail-loading";
 export { ClientDetailNotFound } from "./client-detail-not-found";
 export type { ClientDetailNotFoundProps } from "./client-detail-not-found";
+export { ClientHeader } from "./client-header";
+export type { ClientHeaderProps } from "./client-header";
+export { ClientKPIs } from "./client-kpis";
+export type { ClientKPIsProps } from "./client-kpis";
+export { ClientContactInfo } from "./client-contact-info";
+export type { ClientContactInfoProps } from "./client-contact-info";
+export { ClientAddressInfo } from "./client-address-info";
+export type { ClientAddressInfoProps } from "./client-address-info";
+export { ClientQuickActions } from "./client-quick-actions";
+export type { ClientQuickActionsProps } from "./client-quick-actions";

@@ -1,40 +1,12 @@
 import { useMemo } from "react";
-import { ArticleDisplay } from "@/lib/types/article";
+import { mapArticleToDisplay } from "@/lib/types/article";
+import type { ArticleDisplay } from "@/lib/types/article";
+import {
+    MouvementStock,
+    ArticleStats,
+    DocumentLie,
+} from "@/lib/types/article-detail";
 import { useArticle } from "./use-articles";
-
-interface MouvementStock {
-    id: string;
-    type: "ENTREE" | "SORTIE" | "AJUSTEMENT" | "INVENTAIRE" | "RETOUR";
-    quantite: number;
-    stock_avant: number;
-    stock_apres: number;
-    motif?: string;
-    reference?: string;
-    createdAt: string;
-}
-
-interface ArticleStats {
-    ventesTotal: number;
-    ventesMois: number;
-    ventesEvolution: number;
-    ca_total: number;
-    ca_mois: number;
-    ca_evolution: number;
-    marge_moyenne: number;
-    rotationStock: number;
-    derniereMaj: string;
-}
-
-interface DocumentLie {
-    id: string;
-    numero: string;
-    type: "DEVIS" | "FACTURE" | "AVOIR";
-    client: string;
-    quantite: number;
-    montant: number;
-    date: string;
-    statut: string;
-}
 
 export interface ArticleDetailData {
     article: ArticleDisplay | null;
@@ -50,23 +22,7 @@ export function useArticleDetail(articleId: string | null): ArticleDetailData {
     // Transform article data using useMemo for performance
     const article = useMemo(() => {
         if (!articleData) return null;
-
-        return {
-            id: articleData.id,
-            reference: articleData.reference,
-            nom: articleData.nom,
-            description: articleData.description,
-            type: articleData.type || "PRODUIT",
-            prix: Number(articleData.prix_ht),
-            stock: articleData.stock_actuel,
-            seuilAlerte: articleData.stock_min,
-            categorie: articleData.categorie?.nom || "Sans catégorie",
-            statut: articleData.statut,
-            image: articleData.image,
-            tva: articleData.tva_taux,
-            gestionStock: articleData.gestion_stock || false,
-            createdAt: articleData.createdAt ? new Date(articleData.createdAt) : undefined,
-        } as ArticleDisplay;
+        return mapArticleToDisplay(articleData);
     }, [articleData]);
 
     // Mock data pour mouvements et stats (à implémenter plus tard avec des vraies queries)

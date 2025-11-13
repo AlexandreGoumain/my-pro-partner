@@ -1,18 +1,18 @@
 "use client";
 
+import { DocumentStatusManager } from "@/components/document-status-manager";
 import { DocumentPdfDialog } from "@/components/pdf/document-pdf-dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { DocumentStatusBadge } from "@/components/ui/document-status-badge";
 import { DocumentTypeBadge } from "@/components/ui/document-type-badge";
 import { PageHeader } from "@/components/ui/page-header";
-import { DocumentStatusManager } from "@/components/document-status-manager";
+import { useCompanySettings } from "@/hooks/use-company-settings";
+import { useDocumentDetail } from "@/hooks/use-document-detail";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { ArrowLeft, Download, Trash2 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { useCompanySettings } from "@/hooks/use-company-settings";
-import { useDocumentDetail } from "@/hooks/use-document-detail";
 
 export default function CreditNoteDetailPage() {
     const params = useParams();
@@ -69,7 +69,10 @@ export default function CreditNoteDetailPage() {
                             variant="outline"
                             className="h-11 px-6 text-[14px] font-medium border-black/10 hover:bg-black/5"
                         >
-                            <ArrowLeft className="w-4 h-4 mr-2" strokeWidth={2} />
+                            <ArrowLeft
+                                className="w-4 h-4 mr-2"
+                                strokeWidth={2}
+                            />
                             Retour
                         </Button>
                         <Button
@@ -77,7 +80,10 @@ export default function CreditNoteDetailPage() {
                             variant="outline"
                             className="h-11 px-6 text-[14px] font-medium border-black/10 hover:bg-black/5"
                         >
-                            <Download className="w-4 h-4 mr-2" strokeWidth={2} />
+                            <Download
+                                className="w-4 h-4 mr-2"
+                                strokeWidth={2}
+                            />
                             Générer PDF
                         </Button>
                         <DocumentStatusManager
@@ -265,9 +271,7 @@ export default function CreditNoteDetailPage() {
                                                 {ligne.remise_pourcent}%
                                             </td>
                                             <td className="p-3 text-right font-medium">
-                                                {formatAmount(
-                                                    ligne.montant_ht
-                                                )}
+                                                {formatAmount(ligne.montant_ht)}
                                             </td>
                                         </tr>
                                     ))}
