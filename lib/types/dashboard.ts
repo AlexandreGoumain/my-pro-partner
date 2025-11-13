@@ -1,4 +1,8 @@
-// Dashboard types for client portal
+import type { LucideIcon } from "lucide-react";
+
+// ============================================================================
+// Client Portal Dashboard Types
+// ============================================================================
 
 /**
  * Loyalty level information
@@ -45,4 +49,53 @@ export interface DashboardStats {
     totalSpent: number;
     /** Points expiring soon */
     pointsExpiringSoon: number;
+}
+
+// ============================================================================
+// Admin Dashboard Types
+// ============================================================================
+
+/**
+ * Task priority levels
+ */
+export type TaskPriority = "urgent" | "high" | "medium" | "low";
+
+/**
+ * Task item for the dashboard
+ */
+export interface DashboardTask {
+    id: string;
+    title: string;
+    time?: string;
+    priority: TaskPriority;
+    onClick?: () => void;
+}
+
+/**
+ * Quick action item
+ */
+export interface QuickAction {
+    label: string;
+    icon?: LucideIcon;
+    onClick: () => void;
+}
+
+/**
+ * Recent client for display in dashboard
+ */
+export interface RecentClientItem {
+    initials: string;
+    fullName: string;
+    timeLabel: string;
+    onClick?: () => void;
+}
+
+/**
+ * Activity item for recent activity feed
+ */
+export interface DashboardActivity {
+    icon: LucideIcon;
+    title: string;
+    description: string;
+    timeLabel: string;
 }
