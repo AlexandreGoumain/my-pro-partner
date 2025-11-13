@@ -8,12 +8,13 @@ export type DocumentStatus =
     | "PAYE"
     | "ANNULE";
 
-export interface Client {
-    id: string;
+export interface DocumentClient {
+    id?: string;
     nom: string;
     prenom: string | null;
     email: string | null;
     telephone: string | null;
+    adresse: string | null;
 }
 
 export interface Article {
@@ -27,7 +28,7 @@ export interface Article {
 
 export interface DocumentFormData {
     clientId: string;
-    serieId?: string; // Optional serie ID for custom numbering
+    serieId?: string;
     dateEmission: string;
     dateEcheance: string;
     validite_jours: number;
@@ -36,8 +37,9 @@ export interface DocumentFormData {
 }
 
 export interface DocumentLine {
-    ordre: number;
-    articleId: string | null;
+    id: string;
+    ordre?: number;
+    articleId?: string | null;
     designation: string;
     description: string | null;
     quantite: number;
@@ -53,4 +55,51 @@ export interface DocumentTotals {
     totalHT: number;
     totalTVA: number;
     totalTTC: number;
+}
+
+export interface Document {
+    id: string;
+    numero: string;
+    type: DocumentType;
+    dateEmission: Date | string;
+    dateEcheance: Date | string | null;
+    statut: DocumentStatus;
+    clientId?: string;
+    serieId?: string | null;
+    client: DocumentClient;
+    total_ht: number;
+    total_tva: number;
+    total_ttc: number;
+    reste_a_payer?: number;
+    notes: string | null;
+    conditions_paiement: string | null;
+    validite_jours: number;
+    lignes: DocumentLine[];
+}
+
+/**
+ * Invoice type - extends Document with required reste_a_payer field
+ */
+export interface Invoice extends Omit<Document, "reste_a_payer"> {
+    reste_a_payer: number;
+}
+
+/**
+ * Quote type - represents a quote document
+ */
+export interface Quote {
+    id: string;
+    numero: string;
+    dateEmission: Date;
+    dateEcheance: Date | null;
+    statut: "BROUILLON" | "ENVOYE" | "ACCEPTE" | "REFUSE" | "ANNULE";
+    client: {
+        nom: string;
+        prenom: string | null;
+        email: string | null;
+    };
+    total_ht: number;
+    total_tva: number;
+    total_ttc: number;
+    validite_jours: number;
 }
