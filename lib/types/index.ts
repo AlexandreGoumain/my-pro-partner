@@ -62,3 +62,25 @@ export type {
   ValidationError,
   ParsedCSVRow,
 } from "./import-export";
+
+// Re-export reservation types
+export type {
+  Reservation,
+  ReservationStats,
+  CreateReservationData,
+} from "./reservation";
+
+export { ReservationStatut } from "./reservation";
+
+// Re-export subscription types
+export type {
+  TimelineStepProps,
+  BenefitItemProps,
+  ConfettiConfig,
+} from "./subscription";
+
+// Re-export error types
+export type {
+  NextJsError,
+  ErrorPageProps,
+} from "./error";

@@ -38,3 +38,24 @@ export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
     CARTE: "Carte bancaire",
     PRELEVEMENT: "Prélèvement automatique",
 };
+
+/**
+ * Stripe payment session status
+ */
+export type StripeSessionStatus = "pending" | "succeeded" | "cancelled" | "expired";
+
+/**
+ * Stripe payment session data
+ */
+export interface StripePaymentSession {
+    sessionId: string;
+    status: StripeSessionStatus;
+    amount?: number;
+    currency?: string;
+    documentId?: string;
+}
+
+/**
+ * Payment status page variant
+ */
+export type PaymentStatusVariant = "success" | "error" | "warning";

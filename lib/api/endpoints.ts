@@ -31,4 +31,8 @@ export const ENDPOINTS = {
   // Auth
   AUTH_REGISTER: "/api/auth/register",
   AUTH_SESSION: "/api/auth/session",
+
+  // Public Payment Links
+  PUBLIC_PAYMENT_LINK: (slug: string) => `/api/public/payment-link/${slug}`,
+  PUBLIC_PAYMENT_LINK_CHECKOUT: (slug: string) => `/api/public/payment-link/${slug}/checkout`,
 } as const;
