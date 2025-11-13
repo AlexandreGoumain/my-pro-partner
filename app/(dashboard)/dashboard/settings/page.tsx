@@ -3,10 +3,12 @@
 import { SettingsContentWrapper } from "@/components/settings/settings-content-wrapper";
 import { SettingsSaveButton } from "@/components/settings/settings-save-button";
 import { SettingsTabs } from "@/components/settings/settings-tabs";
+import { SettingsPageSkeleton } from "@/components/skeletons";
 import { PageHeader } from "@/components/ui/page-header";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { useSettingsForm } from "@/hooks/use-settings-form";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { AccountTab } from "./_components/account-tab";
 import { ExportTab } from "./_components/export-tab";
 import { GeneralTab } from "./_components/general-tab";
@@ -14,9 +16,8 @@ import { NotificationsTab } from "./_components/notifications-tab";
 import { PreferencesTab } from "./_components/preferences-tab";
 import { SeriesTab } from "./_components/series-tab";
 import { SubscriptionTab } from "./_components/subscription-tab";
-import { useSettingsForm } from "@/hooks/use-settings-form";
 
-export default function SettingsPage() {
+function SettingsPageContent() {
     const { data: session } = useSession();
     const [activeTab, setActiveTab] = useState("general");
 
@@ -33,23 +34,7 @@ export default function SettingsPage() {
     } = useSettingsForm();
 
     if (isLoading) {
-        return (
-            <div className="space-y-8">
-                <div className="text-center">
-                    <PageHeader
-                        title="Paramètres"
-                        description="Configurez votre entreprise"
-                    />
-                </div>
-                <SettingsContentWrapper>
-                    <div className="flex items-center justify-center py-12">
-                        <div className="text-[14px] text-black/40">
-                            Chargement...
-                        </div>
-                    </div>
-                </SettingsContentWrapper>
-            </div>
-        );
+        return <SettingsPageSkeleton />;
     }
 
     return (
@@ -113,7 +98,7 @@ export default function SettingsPage() {
 
                     <TabsContent value="subscription" className="mt-0">
                         <SettingsContentWrapper>
-                            <SubscriptionTab entreprise={null} />
+                            <SubscriptionTab />
                         </SettingsContentWrapper>
                     </TabsContent>
 
@@ -125,5 +110,13 @@ export default function SettingsPage() {
                 </Tabs>
             </form>
         </div>
+    );
+}
+
+export default function SettingsPage() {
+    return (
+        <Suspense fallback={<SettingsPageSkeleton />}>
+            <SettingsPageContent />
+        </Suspense>
     );
 }

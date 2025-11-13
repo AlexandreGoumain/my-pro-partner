@@ -19,11 +19,7 @@ import { useClients } from "@/hooks/use-clients";
 import { useArticles } from "@/hooks/use-articles";
 import Link from "next/link";
 
-interface SubscriptionTabProps {
-    entreprise: any | null;
-}
-
-export function SubscriptionTab({ entreprise }: SubscriptionTabProps) {
+export function SubscriptionTab() {
     const { userPlan } = useLimitDialog();
     const { data: clients = [] } = useClients();
     const { data: articles = [] } = useArticles();

@@ -10,7 +10,7 @@ import { Activity, Key, Shield, User } from "lucide-react";
 import { useState } from "react";
 
 interface AccountTabProps {
-    user: UserSettings;
+    user?: UserSettings | null;
 }
 
 const getRoleLabel = (role: string) => {
@@ -25,7 +25,7 @@ const getRoleLabel = (role: string) => {
     return roleLabels[role] || "Utilisateur";
 };
 
-export function AccountTab({ user }: AccountTabProps) {
+export function AccountTab({ user = null }: AccountTabProps) {
     const [isChangingPassword, setIsChangingPassword] = useState(false);
     const [passwordData, setPasswordData] = useState({
         currentPassword: "",
