@@ -10,34 +10,18 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DocumentStatusBadge } from "@/components/ui/document-status-badge";
+import { DocumentHandlers } from "@/hooks/use-document-page";
+import type { Invoice } from "@/lib/types/document.types";
+import { getClientFullName } from "@/lib/utils/client-formatting";
+import { formatCurrency } from "@/lib/utils/format";
 import { ColumnDef } from "@tanstack/react-table";
 import { CreditCard, Edit, Eye, MoreHorizontal, Receipt, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
-export interface Invoice {
-    id: string;
-    numero: string;
-    dateEmission: Date;
-    dateEcheance: Date | null;
-    statut: "BROUILLON" | "ENVOYE" | "ACCEPTE" | "PAYE" | "ANNULE";
-    client: {
-        nom: string;
-        prenom: string | null;
-        email: string | null;
-    };
-    total_ht: number;
-    total_tva: number;
-    total_ttc: number;
-    reste_a_payer: number;
-}
-
-interface InvoiceHandlers {
-    onView: (invoice: Invoice) => void;
-    onEdit: (invoice: Invoice) => void;
-    onDelete: (invoice: Invoice) => void;
-    onAddPayment: (invoice: Invoice) => void;
-}
+export type InvoiceHandlers = DocumentHandlers<Invoice> & {
+    onAddPayment?: (invoice: Invoice) => void;
+};
 
 export const createColumns = (
     handlers: InvoiceHandlers
@@ -86,9 +70,7 @@ export const createColumns = (
         header: "Client",
         cell: ({ row }) => {
             const client = row.original.client;
-            const nomComplet = client.prenom
-                ? `${client.nom} ${client.prenom}`
-                : client.nom;
+            const nomComplet = getClientFullName(client.nom, client.prenom);
 
             return (
                 <div className="min-w-0">
@@ -142,10 +124,7 @@ export const createColumns = (
             const amount = row.original.total_ttc;
             return (
                 <div className="font-medium text-[14px]">
-                    {new Intl.NumberFormat("fr-FR", {
-                        style: "currency",
-                        currency: "EUR",
-                    }).format(amount)}
+                    {formatCurrency(amount)}
                 </div>
             );
         },
@@ -159,10 +138,7 @@ export const createColumns = (
 
             return (
                 <div className={`font-medium text-[14px] ${isPaid ? "text-green-600" : ""}`}>
-                    {new Intl.NumberFormat("fr-FR", {
-                        style: "currency",
-                        currency: "EUR",
-                    }).format(reste)}
+                    {formatCurrency(reste)}
                 </div>
             );
         },
@@ -208,11 +184,11 @@ export const createColumns = (
                                 <Edit className="mr-2 h-4 w-4" strokeWidth={2} />
                                 Modifier
                             </DropdownMenuItem>
-                            {canAddPayment && (
+                            {canAddPayment && handlers.onAddPayment && (
                                 <>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem
-                                        onClick={() => handlers.onAddPayment(invoice)}
+                                        onClick={() => handlers.onAddPayment?.(invoice)}
                                         className="cursor-pointer"
                                     >
                                         <CreditCard className="mr-2 h-4 w-4" strokeWidth={2} />

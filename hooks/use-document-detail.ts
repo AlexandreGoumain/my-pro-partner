@@ -4,15 +4,16 @@ import { toast } from "sonner";
 import { useState, useMemo } from "react";
 import { useDocument, useDeleteDocument, useConvertQuoteToInvoice } from "@/hooks/use-documents";
 import { formatCurrency } from "@/lib/utils/payment-utils";
+import { Document, DocumentType } from "@/lib/types/document.types";
 
-interface UseDocumentDetailProps {
+export interface UseDocumentDetailProps {
     documentId: string;
-    documentType: "DEVIS" | "FACTURE" | "AVOIR";
+    documentType: DocumentType;
     redirectPath: string;
 }
 
-interface UseDocumentDetailReturn {
-    document: any;
+export interface UseDocumentDetailReturn {
+    document: Document | undefined;
     isLoading: boolean;
     isPdfDialogOpen: boolean;
     setIsPdfDialogOpen: (open: boolean) => void;

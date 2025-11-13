@@ -1,11 +1,12 @@
 "use client";
 
-import { Receipt } from "lucide-react";
-import { useState } from "react";
-import { DocumentListPage } from "@/components/documents";
-import { createColumns, Invoice } from "./_components/data-table/columns";
 import { AddPaymentDialog } from "@/components/add-payment-dialog";
+import { DocumentListPage } from "@/components/documents";
 import { useDocumentPage } from "@/hooks/use-document-page";
+import { useInvoicePayment } from "@/hooks/use-invoice-payment";
+import type { Invoice } from "@/lib/types/document.types";
+import { Receipt } from "lucide-react";
+import { createColumns } from "./_components/data-table/columns";
 
 const INVOICE_COLUMN_LABELS: Record<string, string> = {
     numero: "Numéro",
@@ -18,26 +19,14 @@ const INVOICE_COLUMN_LABELS: Record<string, string> = {
 };
 
 export default function InvoicesPage() {
-    const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
-    const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
-
-    const handleAddPayment = (invoice: Invoice) => {
-        setSelectedInvoice(invoice);
-        setIsPaymentDialogOpen(true);
-    };
-
-    const handlePaymentSuccess = () => {
-        setIsPaymentDialogOpen(false);
-        setSelectedInvoice(null);
-        page.handlers.fetchDocuments();
-    };
+    const payment = useInvoicePayment();
 
     const page = useDocumentPage<Invoice>({
         documentType: "FACTURE",
         basePath: "/dashboard/documents/invoices",
         createColumns,
         additionalHandlers: {
-            onAddPayment: handleAddPayment,
+            onAddPayment: payment.openPaymentDialog,
         },
     });
 
@@ -58,12 +47,12 @@ export default function InvoicesPage() {
                 columnLabels={INVOICE_COLUMN_LABELS}
                 onCreate={page.handlers.handleCreate}
                 additionalContent={
-                    selectedInvoice && (
+                    payment.selectedInvoice && (
                         <AddPaymentDialog
-                            isOpen={isPaymentDialogOpen}
-                            onClose={() => setIsPaymentDialogOpen(false)}
-                            invoice={selectedInvoice}
-                            onSuccess={handlePaymentSuccess}
+                            isOpen={payment.isPaymentDialogOpen}
+                            onClose={payment.closePaymentDialog}
+                            invoice={payment.selectedInvoice}
+                            onSuccess={payment.handlePaymentSuccess}
                         />
                     )
                 }
