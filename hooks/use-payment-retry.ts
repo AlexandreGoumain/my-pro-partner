@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from "@/hooks/use-toast";
 
 interface UsePaymentRetryReturn {
     isRetrying: boolean;
@@ -16,7 +17,14 @@ export function usePaymentRetry(documentId: string | null): UsePaymentRetryRetur
     const [isRetrying, setIsRetrying] = useState(false);
 
     const handleRetry = async () => {
-        if (!documentId) return;
+        if (!documentId) {
+            toast({
+                title: "Erreur",
+                description: "Aucun document associé à ce paiement.",
+                variant: "destructive",
+            });
+            return;
+        }
 
         setIsRetrying(true);
         try {
@@ -32,10 +40,18 @@ export function usePaymentRetry(documentId: string | null): UsePaymentRetryRetur
 
             if (data.url) {
                 window.location.href = data.url;
+            } else {
+                throw new Error("URL de paiement non reçue");
             }
         } catch (error) {
-            // Silent fail - user can close page and contact support
-            // Error is already shown in API response
+            toast({
+                title: "Erreur",
+                description:
+                    error instanceof Error
+                        ? error.message
+                        : "Impossible de créer une session de paiement. Veuillez contacter le support.",
+                variant: "destructive",
+            });
             setIsRetrying(false);
         }
     };
