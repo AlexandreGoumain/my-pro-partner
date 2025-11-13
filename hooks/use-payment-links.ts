@@ -103,8 +103,8 @@ export function usePaymentLinks() {
         toast.success("Lien copié !");
     };
 
-    const getTauxConversion = (link: PaymentLink) => {
-        if (link.nombreVues === 0) return 0;
+    const getTauxConversion = (link: PaymentLink): string => {
+        if (link.nombreVues === 0) return "0";
         return ((link.nombrePaiements / link.nombreVues) * 100).toFixed(1);
     };
 

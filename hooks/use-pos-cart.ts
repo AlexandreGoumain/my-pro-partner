@@ -1,15 +1,8 @@
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
+import { CartItem } from "@/lib/types/pos";
 
-export interface CartItem {
-  articleId: string;
-  reference: string;
-  nom: string;
-  prix_ht: number;
-  tva_taux: number;
-  quantite: number;
-  remise_pourcent?: number;
-}
+export type { CartItem };
 
 /**
  * Hook pour gérer le panier POS
