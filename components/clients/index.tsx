@@ -15,3 +15,6 @@ export type { ClientGridViewProps } from "./client-grid-view";
 
 export { ClientDialogs } from "./client-dialogs";
 export type { ClientDialogsProps } from "./client-dialogs";
+
+export { ClientPageActions } from "./client-page-actions";
+export type { ClientPageActionsProps } from "./client-page-actions";
