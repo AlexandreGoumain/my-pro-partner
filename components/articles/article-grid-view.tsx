@@ -1,11 +1,11 @@
 import { ArticleCard } from "@/components/article-card";
 import { ArticleCardSkeleton } from "@/components/skeletons";
-import { ArticleEmptyState } from "./article-empty-state";
+import { EmptyState } from "@/components/ui/empty-state";
 import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { cn } from "@/lib/utils";
 import { Article } from "@/app/(dashboard)/dashboard/articles/_components/data-table/columns";
 import { type ArticleTypeFilter } from "@/lib/types/article";
-import { LucideIcon } from "lucide-react";
+import { LucideIcon, Plus } from "lucide-react";
 
 export interface ArticleGridViewProps {
     articles: Article[];
@@ -53,14 +53,15 @@ export function ArticleGridView({
 
     if (articles.length === 0) {
         return (
-            <ArticleEmptyState
+            <EmptyState
+                icon={emptyState.icon}
                 title={emptyState.title}
                 description={emptyState.description}
-                buttonText={emptyState.buttonText}
-                icon={emptyState.icon}
-                onAction={onCreateClick}
-                typeFilter={typeFilter}
-                hasNoDataAtAll={hasNoDataAtAll}
+                action={{
+                    label: emptyState.buttonText,
+                    onClick: onCreateClick,
+                    icon: Plus,
+                }}
                 className={className}
             />
         );

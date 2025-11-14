@@ -7,12 +7,12 @@
 
 import {
     PersonnelDialogs,
-    PersonnelEmptyState,
     PersonnelListItem,
     PersonnelSearchBar,
     PersonnelStatsGrid,
 } from "@/components/personnel";
 import { CardSection } from "@/components/ui/card-section";
+import { EmptyState } from "@/components/ui/empty-state";
 import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
 import { UsageLimitCard } from "@/components/ui/usage-limit-card";
@@ -84,8 +84,14 @@ export default function PersonnelPage() {
                         itemHeight="h-20"
                     />
                 ) : handlers.users.length === 0 ? (
-                    <PersonnelEmptyState
-                        onAddClick={handlers.handleOpenCreateDialog}
+                    <EmptyState
+                        icon={Users}
+                        title="Aucun employé"
+                        description="Commencez par ajouter votre premier employé"
+                        action={{
+                            label: "Ajouter un employé",
+                            onClick: handlers.handleOpenCreateDialog,
+                        }}
                     />
                 ) : (
                     <div className="space-y-3">

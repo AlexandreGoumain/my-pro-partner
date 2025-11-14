@@ -5,7 +5,6 @@ import { TableStatsGrid } from "@/components/tables/table-stats-grid";
 import { CardSection } from "@/components/ui/card-section";
 import { FilterBar } from "@/components/ui/filter-bar";
 import { GridSkeleton } from "@/components/ui/grid-skeleton";
-import { InlineEmptyState } from "@/components/ui/inline-empty-state";
 import { PageHeader } from "@/components/ui/page-header";
 import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { PrimaryActionButton } from "@/components/ui/primary-action-button";

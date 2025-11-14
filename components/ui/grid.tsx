@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 import * as React from "react";
-import { InlineEmptyState } from "./inline-empty-state";
+import { EmptyState } from "./empty-state";
 
 export interface GridProps<T> {
     items: T[];
@@ -78,7 +78,7 @@ export function Grid<T>({
         if (emptyState) {
             return <>{emptyState}</>;
         }
-        return <InlineEmptyState message={emptyMessage} />;
+        return <EmptyState title={emptyMessage} variant="inline" />;
     }
 
     // Grid with items

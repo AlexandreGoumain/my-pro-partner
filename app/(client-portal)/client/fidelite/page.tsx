@@ -5,7 +5,7 @@ import {
     ClientLoyaltyOverview,
     ClientLoyaltyProgress,
 } from "@/components/client-loyalty";
-import { EmptyState } from "@/components/client-portal/shared/empty-state";
+import { EmptyState } from "@/components/ui/empty-state";
 import { ClientTabSkeleton } from "@/components/ui/client-tab-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
 import { useClientLoyalty } from "@/hooks/use-client-loyalty";
@@ -19,7 +19,10 @@ export default function ClientFidelitePage() {
 
     if (!data) {
         return (
-            <EmptyState message="Impossible de charger vos informations de fidélité" />
+            <EmptyState
+                title="Impossible de charger vos informations de fidélité"
+                variant="inline"
+            />
         );
     }
 

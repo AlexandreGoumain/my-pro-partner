@@ -8,7 +8,7 @@ import { SegmentBuilderDialog } from "@/components/segment-builder-dialog";
 import { SegmentComparisonDialog } from "@/components/segment-comparison-dialog";
 import { Button } from "@/components/ui/button";
 import { PrimaryActionButton } from "@/components/ui/primary-action-button";
-import { EmptySegmentState } from "@/components/ui/empty-segment-state";
+import { EmptyState } from "@/components/ui/empty-state";
 import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
 import { SearchBar } from "@/components/ui/search-bar";
@@ -170,13 +170,17 @@ export default function ClientSegmentsPage() {
                             itemSkeleton={<SegmentCardSkeleton />}
                         />
                     ) : predefinedSegments.length === 0 ? (
-                        <EmptySegmentState
+                        <EmptyState
                             icon={Filter}
                             title="Aucun segment prédéfini"
                             description="Créez les segments prédéfinis pour commencer à organiser vos clients."
-                            buttonText="Créer les segments prédéfinis"
-                            onButtonClick={handleSeedSegments}
-                            isLoading={seedMutation.isPending}
+                            variant="dashed"
+                            action={{
+                                label: "Créer les segments prédéfinis",
+                                onClick: handleSeedSegments,
+                                icon: Plus,
+                                isLoading: seedMutation.isPending,
+                            }}
                         />
                     ) : (
                         <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
@@ -214,12 +218,16 @@ export default function ClientSegmentsPage() {
                     />
 
                     {customSegments.length === 0 ? (
-                        <EmptySegmentState
+                        <EmptyState
                             icon={Filter}
                             title="Aucun segment personnalisé"
                             description="Créez des segments personnalisés en combinant plusieurs critères pour mieux cibler vos actions marketing."
-                            buttonText="Créer un segment"
-                            onButtonClick={() => setBuilderDialogOpen(true)}
+                            variant="dashed"
+                            action={{
+                                label: "Créer un segment",
+                                onClick: () => setBuilderDialogOpen(true),
+                                icon: Plus,
+                            }}
                         />
                     ) : (
                         <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">

@@ -3,7 +3,7 @@
 import {
     DocumentCard,
 } from "@/components/client/documents";
-import { EmptyState } from "@/components/client-portal/shared/empty-state";
+import { EmptyState } from "@/components/ui/empty-state";
 import { ClientTabSkeleton } from "@/components/ui/client-tab-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
 import { useClientDocuments } from "@/hooks/use-client-documents";
@@ -35,10 +35,9 @@ export default function ClientDocumentsPage() {
             {/* Documents List */}
             {documents.length === 0 ? (
                 <EmptyState
-                    title="Aucun document"
-                    message="Vos documents apparaîtront ici"
                     icon={FileText}
-                    withCard
+                    title="Aucun document"
+                    description="Vos documents apparaîtront ici"
                 />
             ) : (
                 <div className="space-y-3">

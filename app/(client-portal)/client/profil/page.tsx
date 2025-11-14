@@ -4,7 +4,7 @@ import {
     ProfileFormCard,
     ProfileInfoCard,
 } from "@/components/client/profile";
-import { EmptyState } from "@/components/client-portal/shared/empty-state";
+import { EmptyState } from "@/components/ui/empty-state";
 import { ClientTabSkeleton } from "@/components/ui/client-tab-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
 import { useClientProfile } from "@/hooks/use-client-profile";
@@ -18,7 +18,10 @@ export default function ClientProfilPage() {
 
     if (!profile) {
         return (
-            <EmptyState message="Impossible de charger votre profil" />
+            <EmptyState
+                title="Impossible de charger votre profil"
+                variant="inline"
+            />
         );
     }
 

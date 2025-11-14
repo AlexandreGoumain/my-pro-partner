@@ -1,12 +1,12 @@
 import { BusinessTemplateCard } from "@/components/onboarding/business-template-card";
 import { BusinessTemplatePreview } from "@/components/onboarding/business-template-preview";
-import { TemplateEmptyState } from "@/components/onboarding/template-empty-state";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
 import type { BusinessTemplate } from "@/lib/services/business-template.service";
 import type { UseFormReturn } from "react-hook-form";
 import type { OnboardingInput } from "@/hooks/use-onboarding-page";
-import { Building2 } from "lucide-react";
+import { Building2, Sparkles } from "lucide-react";
 
 export interface OnboardingStepBusinessTypeProps {
   form: UseFormReturn<OnboardingInput>;
@@ -76,7 +76,13 @@ export function OnboardingStepBusinessType({
             {selectedTemplate ? (
               <BusinessTemplatePreview template={selectedTemplate} />
             ) : (
-              <TemplateEmptyState />
+              <EmptyState
+                icon={Sparkles}
+                title="Sélectionnez un type d'activité"
+                description="Choisissez un type d'activité pour voir un aperçu de la configuration"
+                variant="dashed"
+                iconSize="lg"
+              />
             )}
           </div>
         </div>
