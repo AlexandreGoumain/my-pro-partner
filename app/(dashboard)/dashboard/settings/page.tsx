@@ -3,8 +3,8 @@
 import { SettingsContentWrapper } from "@/components/settings/settings-content-wrapper";
 import { SettingsSaveButton } from "@/components/settings/settings-save-button";
 import { SettingsTabs } from "@/components/settings/settings-tabs";
-import { SettingsPageSkeleton } from "@/components/skeletons";
 import { PageHeader } from "@/components/ui/page-header";
+import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useSettingsForm } from "@/hooks/use-settings-form";
 import { useSession } from "next-auth/react";
@@ -34,7 +34,7 @@ function SettingsPageContent() {
     } = useSettingsForm();
 
     if (isLoading) {
-        return <SettingsPageSkeleton />;
+        return <PageSkeleton layout="form" withTabs={true} />;
     }
 
     return (
@@ -115,7 +115,7 @@ function SettingsPageContent() {
 
 export default function SettingsPage() {
     return (
-        <Suspense fallback={<SettingsPageSkeleton />}>
+        <Suspense fallback={<PageSkeleton layout="form" withTabs={true} />}>
             <SettingsPageContent />
         </Suspense>
     );

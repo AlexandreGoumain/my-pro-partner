@@ -2,8 +2,8 @@
 
 import { AnalyticsKPICard } from "@/components/analytics/analytics-kpi-card";
 import { DebtorCard } from "@/components/analytics/debtor-card";
-import { LoadingState } from "@/components/ui/loading-state";
 import { PageHeader } from "@/components/ui/page-header";
+import { PageSkeleton } from "@/components/ui/page-skeleton";
 import {
     Select,
     SelectContent,
@@ -28,13 +28,13 @@ export default function DebtorsPage() {
 
     if (isLoading) {
         return (
-            <div className="space-y-6">
-                <PageHeader
-                    title="Clients débiteurs"
-                    description="Analyse des clients avec des factures impayées"
-                />
-                <LoadingState variant="card" />
-            </div>
+            <PageSkeleton
+                layout="stats-grid"
+                statsCount={4}
+                itemCount={5}
+                statsHeight="h-28"
+                itemHeight="h-40"
+            />
         );
     }
 

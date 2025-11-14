@@ -2,8 +2,8 @@
 
 import { ReservationList, ReservationStats } from "@/components/reservations";
 import { PageHeader } from "@/components/ui/page-header";
+import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { PrimaryActionButton } from "@/components/ui/primary-action-button";
-import { LoadingState } from "@/components/ui/loading-state";
 import { useReservationsPage } from "@/hooks/use-reservations-page";
 import { Plus } from "lucide-react";
 
@@ -18,7 +18,7 @@ export default function ReservationsPage() {
     } = useReservationsPage();
 
     if (isLoading) {
-        return <LoadingState minHeight="md" />;
+        return <PageSkeleton layout="stats-grid" statsCount={4} itemCount={6} />;
     }
 
     return (

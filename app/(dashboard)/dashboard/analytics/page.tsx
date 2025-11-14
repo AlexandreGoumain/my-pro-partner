@@ -4,8 +4,8 @@ import { AnalyticsKPICard } from "@/components/analytics/analytics-kpi-card";
 import { ConversionRateCard } from "@/components/analytics/conversion-rate-card";
 import { InvoiceStatusCard } from "@/components/analytics/invoice-status-card";
 import { OverdueInvoicesCard } from "@/components/analytics/overdue-invoices-card";
-import { LoadingState } from "@/components/ui/loading-state";
 import { PageHeader } from "@/components/ui/page-header";
+import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { useAnalytics } from "@/hooks/use-analytics";
 import {
     calculateRevenueTrend,
@@ -28,16 +28,14 @@ export default function AnalyticsPage() {
 
     if (isLoading) {
         return (
-            <div className="space-y-6">
-                <PageHeader
-                    title="Analytics"
-                    description="Suivez vos performances de vente"
-                />
-                <LoadingState
-                    variant="card"
-                    message="Chargement des analytics..."
-                />
-            </div>
+            <PageSkeleton
+                layout="stats-grid"
+                statsCount={4}
+                gridColumns={3}
+                itemCount={3}
+                statsHeight="h-28"
+                itemHeight="h-48"
+            />
         );
     }
 

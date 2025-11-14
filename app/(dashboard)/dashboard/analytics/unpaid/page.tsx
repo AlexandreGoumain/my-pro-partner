@@ -4,8 +4,8 @@ import { AnalyticsKPICard } from "@/components/analytics/analytics-kpi-card";
 import { UnpaidInvoiceTable } from "@/components/analytics/unpaid-invoice-table";
 import { UnpaidInvoicesFilters } from "@/components/analytics/unpaid-invoices-filters";
 import { ErrorState } from "@/components/ui/error-state";
-import { LoadingState } from "@/components/ui/loading-state";
 import { PageHeader } from "@/components/ui/page-header";
+import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { useUnpaidInvoices } from "@/hooks/use-unpaid-invoices";
 import { pluralSuffix } from "@/lib/utils/format";
 import { AlertCircle, Clock, Euro, FileText } from "lucide-react";
@@ -28,13 +28,13 @@ export default function UnpaidInvoicesPage() {
 
     if (isLoading) {
         return (
-            <div className="space-y-6">
-                <PageHeader
-                    title="Factures impayées"
-                    description="Suivi des factures en attente de paiement"
-                />
-                <LoadingState variant="card" />
-            </div>
+            <PageSkeleton
+                layout="stats-grid"
+                statsCount={4}
+                itemCount={1}
+                statsHeight="h-28"
+                itemHeight="h-96"
+            />
         );
     }
 

@@ -8,14 +8,8 @@ import {
     getMouvementLabel,
 } from "@/components/articles/mouvement-stock-icon";
 import { Button } from "@/components/ui/button";
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card";
-import { LoadingState } from "@/components/ui/loading-state";
+import { CardSection } from "@/components/ui/card-section";
+import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -74,12 +68,16 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
 
     if (isLoading) {
         return (
-            <div className="space-y-6">
-                <LoadingState
-                    variant="card"
-                    message="Chargement des détails de l'article..."
-                />
-            </div>
+            <PageSkeleton
+                layout="stats-grid"
+                statsCount={4}
+                gridColumns={2}
+                itemCount={4}
+                withTabs={true}
+                tabsCount={5}
+                statsHeight="h-32"
+                itemHeight="h-80"
+            />
         );
     }
 
@@ -161,13 +159,11 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
                 <TabsContent value="overview" className="space-y-4">
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div className="lg:col-span-1 space-y-4">
-                            <Card className="border-black/8 shadow-sm">
-                                <CardHeader>
-                                    <CardTitle className="text-[16px] font-semibold tracking-[-0.01em] text-black">
-                                        Image
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
+                            <CardSection
+                                title="Image"
+                                className="border-black/8 shadow-sm"
+                                titleClassName="text-[16px]"
+                            >
                                     <div className="aspect-square relative rounded-lg overflow-hidden bg-black/5">
                                         {article.image ? (
                                             <Image
@@ -192,16 +188,14 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
                                         <Download className="h-4 w-4 mr-2" />
                                         Changer l&apos;image
                                     </Button>
-                                </CardContent>
-                            </Card>
+                            </CardSection>
 
-                            <Card className="border-black/8 shadow-sm">
-                                <CardHeader>
-                                    <CardTitle className="text-[16px] font-semibold tracking-[-0.01em] text-black">
-                                        Informations
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-3">
+                            <CardSection
+                                title="Informations"
+                                className="border-black/8 shadow-sm"
+                                titleClassName="text-[16px]"
+                                contentClassName="space-y-3"
+                            >
                                     <div className="flex justify-between text-[14px]">
                                         <span className="text-black/60">
                                             Référence
@@ -226,35 +220,28 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
                                             unité
                                         </span>
                                     </div>
-                                </CardContent>
-                            </Card>
+                            </CardSection>
                         </div>
 
                         <div className="lg:col-span-2 space-y-4">
-                            <Card className="border-black/8 shadow-sm">
-                                <CardHeader>
-                                    <CardTitle className="text-[16px] font-semibold tracking-[-0.01em] text-black">
-                                        Description
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-[14px] text-black/60 whitespace-pre-wrap">
-                                        {article.description ||
-                                            "Aucune description disponible"}
-                                    </p>
-                                </CardContent>
-                            </Card>
+                            <CardSection
+                                title="Description"
+                                className="border-black/8 shadow-sm"
+                                titleClassName="text-[16px]"
+                            >
+                                <p className="text-[14px] text-black/60 whitespace-pre-wrap">
+                                    {article.description ||
+                                        "Aucune description disponible"}
+                                </p>
+                            </CardSection>
 
-                            <Card className="border-black/8 shadow-sm">
-                                <CardHeader>
-                                    <CardTitle className="text-[16px] font-semibold tracking-[-0.01em] text-black">
-                                        Tarification
-                                    </CardTitle>
-                                    <CardDescription className="text-[14px] text-black/60">
-                                        Prix de vente et calculs automatiques
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
+                            <CardSection
+                                title="Tarification"
+                                description="Prix de vente et calculs automatiques"
+                                className="border-black/8 shadow-sm"
+                                titleClassName="text-[16px]"
+                                contentClassName="space-y-4"
+                            >
                                     <div className="grid grid-cols-3 gap-4">
                                         <div className="space-y-1">
                                             <p className="text-[14px] text-black/60">
@@ -320,20 +307,16 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
                                             </span>
                                         </div>
                                     </div>
-                                </CardContent>
-                            </Card>
+                            </CardSection>
 
                             {!isService && (
-                                <Card className="border-black/8 shadow-sm">
-                                    <CardHeader>
-                                        <CardTitle className="text-[16px] font-semibold tracking-[-0.01em] text-black">
-                                            Gestion du stock
-                                        </CardTitle>
-                                        <CardDescription className="text-[14px] text-black/60">
-                                            Suivi et alertes de disponibilité
-                                        </CardDescription>
-                                    </CardHeader>
-                                    <CardContent className="space-y-4">
+                                <CardSection
+                                    title="Gestion du stock"
+                                    description="Suivi et alertes de disponibilité"
+                                    className="border-black/8 shadow-sm"
+                                    titleClassName="text-[16px]"
+                                    contentClassName="space-y-4"
+                                >
                                         <div className="grid grid-cols-2 gap-6">
                                             <div>
                                                 <p className="text-[14px] text-black/60 mb-2">
@@ -413,33 +396,25 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
                                             <Package className="h-4 w-4 mr-2" />
                                             Ajuster le stock
                                         </Button>
-                                    </CardContent>
-                                </Card>
+                                </CardSection>
                             )}
                         </div>
                     </div>
                 </TabsContent>
 
                 <TabsContent value="stock" className="space-y-4">
-                    <Card className="border-black/8 shadow-sm">
-                        <CardHeader>
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <CardTitle className="text-[16px] font-semibold tracking-[-0.01em] text-black">
-                                        Mouvements de stock
-                                    </CardTitle>
-                                    <CardDescription className="text-[14px] text-black/60">
-                                        Historique complet des entrées et
-                                        sorties
-                                    </CardDescription>
-                                </div>
-                                <Button className="bg-black hover:bg-black/90 text-white">
-                                    <Package className="h-4 w-4 mr-2" />
-                                    Nouveau mouvement
-                                </Button>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
+                    <CardSection
+                        title="Mouvements de stock"
+                        description="Historique complet des entrées et sorties"
+                        className="border-black/8 shadow-sm"
+                        titleClassName="text-[16px]"
+                        action={
+                            <Button className="bg-black hover:bg-black/90 text-white">
+                                <Package className="h-4 w-4 mr-2" />
+                                Nouveau mouvement
+                            </Button>
+                        }
+                    >
                             {mouvements.length === 0 ? (
                                 <div className="text-center py-12">
                                     <Package
@@ -489,21 +464,16 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
                                     ))}
                                 </div>
                             )}
-                        </CardContent>
-                    </Card>
+                    </CardSection>
                 </TabsContent>
 
                 <TabsContent value="sales" className="space-y-4">
-                    <Card className="border-black/8 shadow-sm">
-                        <CardHeader>
-                            <CardTitle className="text-[16px] font-semibold tracking-[-0.01em] text-black">
-                                Analyse des ventes
-                            </CardTitle>
-                            <CardDescription className="text-[14px] text-black/60">
-                                Performance et statistiques de vente
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
+                    <CardSection
+                        title="Analyse des ventes"
+                        description="Performance et statistiques de vente"
+                        className="border-black/8 shadow-sm"
+                        titleClassName="text-[16px]"
+                    >
                             <div className="text-center py-12">
                                 <BarChart3
                                     className="h-12 w-12 text-black/20 mx-auto mb-4"
@@ -514,21 +484,16 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
                                     disponibles
                                 </p>
                             </div>
-                        </CardContent>
-                    </Card>
+                    </CardSection>
                 </TabsContent>
 
                 <TabsContent value="documents" className="space-y-4">
-                    <Card className="border-black/8 shadow-sm">
-                        <CardHeader>
-                            <CardTitle className="text-[16px] font-semibold tracking-[-0.01em] text-black">
-                                Documents liés
-                            </CardTitle>
-                            <CardDescription className="text-[14px] text-black/60">
-                                Devis et factures utilisant cet article
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
+                    <CardSection
+                        title="Documents liés"
+                        description="Devis et factures utilisant cet article"
+                        className="border-black/8 shadow-sm"
+                        titleClassName="text-[16px]"
+                    >
                             {documents.length === 0 ? (
                                 <div className="text-center py-12">
                                     <FileText
@@ -572,21 +537,16 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
                                     ))}
                                 </div>
                             )}
-                        </CardContent>
-                    </Card>
+                    </CardSection>
                 </TabsContent>
 
                 <TabsContent value="history" className="space-y-4">
-                    <Card className="border-black/8 shadow-sm">
-                        <CardHeader>
-                            <CardTitle className="text-[16px] font-semibold tracking-[-0.01em] text-black">
-                                Timeline d&apos;activité
-                            </CardTitle>
-                            <CardDescription className="text-[14px] text-black/60">
-                                Historique complet des modifications
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
+                    <CardSection
+                        title="Timeline d'activité"
+                        description="Historique complet des modifications"
+                        className="border-black/8 shadow-sm"
+                        titleClassName="text-[16px]"
+                    >
                             <div className="text-center py-12">
                                 <Clock
                                     className="h-12 w-12 text-black/20 mx-auto mb-4"
@@ -597,8 +557,7 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
                                     bientôt disponible
                                 </p>
                             </div>
-                        </CardContent>
-                    </Card>
+                    </CardSection>
                 </TabsContent>
             </Tabs>
         </div>

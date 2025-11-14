@@ -2,8 +2,8 @@
 
 import { CampaignSchedulerDialog } from "@/components/campaign-scheduler-dialog";
 import { CampaignStats, CampaignsList } from "@/components/campaigns";
-import { LoadingState } from "@/components/ui/loading-state";
 import { PageHeader } from "@/components/ui/page-header";
+import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { StyledTabs } from "@/components/ui/styled-tabs";
 import { useCampaignsPage } from "@/hooks/use-campaigns-page";
@@ -25,7 +25,17 @@ export default function CampaignsPage() {
     } = useCampaignsPage();
 
     if (isLoading) {
-        return <LoadingState />;
+        return (
+            <PageSkeleton
+                layout="stats-grid"
+                statsCount={4}
+                itemCount={5}
+                withTabs={true}
+                tabsCount={4}
+                statsHeight="h-24"
+                itemHeight="h-32"
+            />
+        );
     }
 
     const campaignListComponent = (

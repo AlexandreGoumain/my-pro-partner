@@ -2,8 +2,8 @@
 
 import { AutomationBuilderDialog } from "@/components/automation-builder-dialog";
 import { AutomationStats, AutomationsList } from "@/components/automations";
-import { LoadingState } from "@/components/ui/loading-state";
 import { PageHeader } from "@/components/ui/page-header";
+import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { useAutomationsPage } from "@/hooks/use-automations-page";
 import { Plus } from "lucide-react";
@@ -23,7 +23,15 @@ export default function AutomationsPage() {
     } = useAutomationsPage();
 
     if (isLoading) {
-        return <LoadingState />;
+        return (
+            <PageSkeleton
+                layout="stats-grid"
+                statsCount={4}
+                itemCount={5}
+                statsHeight="h-24"
+                itemHeight="h-32"
+            />
+        );
     }
 
     return (

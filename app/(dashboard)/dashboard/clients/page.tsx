@@ -11,9 +11,9 @@ import {
 } from "@/components/clients";
 import { InviteClientDialog } from "@/components/invite-client-dialog";
 import { PendingClientsSection } from "@/components/pending-clients-section";
-import { ClientsPageSkeleton } from "@/components/skeletons";
 import { DataTable } from "@/components/ui/data-table";
 import { PageHeader } from "@/components/ui/page-header";
+import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { UsageLimitCard } from "@/components/ui/usage-limit-card";
 import { useClientsPage } from "@/hooks/use-clients-page";
 import { CLIENT_COLUMN_LABELS } from "@/lib/constants/clients";
@@ -145,7 +145,16 @@ function ClientsPageContent() {
 
 export default function ClientsPage() {
     return (
-        <Suspense fallback={<ClientsPageSkeleton />}>
+        <Suspense
+            fallback={
+                <PageSkeleton
+                    layout="stats"
+                    headerActionsCount={2}
+                    statsCount={4}
+                    statsHeight="h-24"
+                />
+            }
+        >
             <ClientsPageContent />
         </Suspense>
     );

@@ -7,7 +7,7 @@ import {
 } from "@/components/stores";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
-import { Skeleton } from "@/components/ui/skeleton";
+import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { useStoresPage } from "@/hooks/use-stores-page";
 import { Store } from "lucide-react";
 import { Suspense } from "react";
@@ -16,7 +16,16 @@ function StoresPageContent() {
     const handlers = useStoresPage();
 
     if (handlers.isLoading) {
-        return <StoresPageSkeleton />;
+        return (
+            <PageSkeleton
+                layout="stats-grid"
+                statsCount={4}
+                gridColumns={3}
+                itemCount={6}
+                statsHeight="h-[120px]"
+                itemHeight="h-[240px]"
+            />
+        );
     }
 
     return (
@@ -58,35 +67,20 @@ function StoresPageContent() {
     );
 }
 
-function StoresPageSkeleton() {
-    return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <Skeleton className="h-9 w-48 mb-2" />
-                    <Skeleton className="h-4 w-64" />
-                </div>
-                <Skeleton className="h-11 w-48" />
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                {[1, 2, 3, 4].map((i) => (
-                    <Skeleton key={i} className="h-[120px]" />
-                ))}
-            </div>
-
-            <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-                {[1, 2, 3, 4, 5, 6].map((i) => (
-                    <Skeleton key={i} className="h-[240px]" />
-                ))}
-            </div>
-        </div>
-    );
-}
-
 export default function StoresPage() {
     return (
-        <Suspense fallback={<StoresPageSkeleton />}>
+        <Suspense
+            fallback={
+                <PageSkeleton
+                    layout="stats-grid"
+                    statsCount={4}
+                    gridColumns={3}
+                    itemCount={6}
+                    statsHeight="h-[120px]"
+                    itemHeight="h-[240px]"
+                />
+            }
+        >
             <StoresPageContent />
         </Suspense>
     );

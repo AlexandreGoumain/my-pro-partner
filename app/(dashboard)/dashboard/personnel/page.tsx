@@ -12,18 +12,12 @@ import {
     PersonnelSearchBar,
     PersonnelStatsGrid,
 } from "@/components/personnel";
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card";
+import { CardSection } from "@/components/ui/card-section";
+import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
 import { UsageLimitCard } from "@/components/ui/usage-limit-card";
 import { usePersonnelPage } from "@/hooks/personnel/use-personnel-page";
 import { Users } from "lucide-react";
-import { LoadingState } from "@/components/ui/loading-state";
 
 export default function PersonnelPage() {
     const handlers = usePersonnelPage();
@@ -77,37 +71,36 @@ export default function PersonnelPage() {
             />
 
             {/* Users List */}
-            <Card className="border-black/10">
-                <CardHeader>
-                    <CardTitle className="text-[18px] font-semibold tracking-[-0.01em] text-black">
-                        Employés ({handlers.users.length})
-                    </CardTitle>
-                    <CardDescription className="text-[14px] text-black/60">
-                        Liste de tous les employés de l&apos;entreprise
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    {handlers.loading ? (
-                        <LoadingState spinnerSize={32} minHeight="sm" className="py-12" />
-                    ) : handlers.users.length === 0 ? (
-                        <PersonnelEmptyState
-                            onAddClick={handlers.handleOpenCreateDialog}
-                        />
-                    ) : (
-                        <div className="space-y-3">
-                            {handlers.users.map((user) => (
-                                <PersonnelListItem
-                                    key={user.id}
-                                    user={user}
-                                    onEdit={handlers.handleOpenEditDialog}
-                                    onDelete={handlers.handleOpenDeleteDialog}
-                                    onStatusToggle={handlers.handleStatusToggle}
-                                />
-                            ))}
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
+            <CardSection
+                title="Employés"
+                description="Liste de tous les employés de l'entreprise"
+                count={handlers.users.length}
+            >
+                {handlers.loading ? (
+                    <GridSkeleton
+                        itemCount={5}
+                        gridColumns={{ default: 1 }}
+                        gap={3}
+                        itemHeight="h-20"
+                    />
+                ) : handlers.users.length === 0 ? (
+                    <PersonnelEmptyState
+                        onAddClick={handlers.handleOpenCreateDialog}
+                    />
+                ) : (
+                    <div className="space-y-3">
+                        {handlers.users.map((user) => (
+                            <PersonnelListItem
+                                key={user.id}
+                                user={user}
+                                onEdit={handlers.handleOpenEditDialog}
+                                onDelete={handlers.handleOpenDeleteDialog}
+                                onStatusToggle={handlers.handleStatusToggle}
+                            />
+                        ))}
+                    </div>
+                )}
+            </CardSection>
 
             {/* Dialogs */}
             <PersonnelDialogs

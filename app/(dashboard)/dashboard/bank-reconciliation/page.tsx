@@ -4,12 +4,12 @@ import {
     AnomalyDialog,
     EmptyState,
     FilterButtons,
-    LoadingState,
     MatchDialog,
     StatsGrid,
     TransactionCard,
 } from "@/components/bank-reconciliation";
 import { Button } from "@/components/ui/button";
+import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
 import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { useBankReconciliation } from "@/hooks/use-bank-reconciliation";
@@ -79,7 +79,12 @@ function BankReconciliationPageContent() {
             <FilterButtons activeFilter={filter} onFilterChange={setFilter} />
 
             {isLoading ? (
-                <LoadingState />
+                <GridSkeleton
+                    itemCount={5}
+                    gridColumns={{ default: 1 }}
+                    gap={2}
+                    itemHeight="h-32"
+                />
             ) : transactions.length === 0 ? (
                 <EmptyState
                     onImportClick={() => fileInputRef.current?.click()}

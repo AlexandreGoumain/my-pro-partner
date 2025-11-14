@@ -9,10 +9,11 @@ import { SegmentComparisonDialog } from "@/components/segment-comparison-dialog"
 import { Button } from "@/components/ui/button";
 import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { EmptySegmentState } from "@/components/ui/empty-segment-state";
+import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
 import { SearchBar } from "@/components/ui/search-bar";
 import { SegmentCard } from "@/components/ui/segment-card";
-import { SegmentCardSkeletonGrid } from "@/components/ui/segment-card-skeleton";
+import { SegmentCardSkeleton } from "@/components/ui/segment-card-skeleton";
 import { SegmentSectionHeader } from "@/components/ui/segment-section-header";
 import { StatisticsGrid } from "@/components/ui/statistics-grid";
 import { useSegmentsPage } from "@/hooks/use-segments-page";
@@ -162,7 +163,12 @@ export default function ClientSegmentsPage() {
                     />
 
                     {isLoading ? (
-                        <SegmentCardSkeletonGrid count={6} />
+                        <GridSkeleton
+                            itemCount={6}
+                            gridColumns={{ md: 2, lg: 3 }}
+                            gap={5}
+                            itemSkeleton={<SegmentCardSkeleton />}
+                        />
                     ) : predefinedSegments.length === 0 ? (
                         <EmptySegmentState
                             icon={Filter}
