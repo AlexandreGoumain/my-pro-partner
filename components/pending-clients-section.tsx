@@ -2,8 +2,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { Badge } from "@/components/ui/badge";
-import { LoadingState } from "@/components/ui/loading-state";
 import { usePendingClients } from "@/hooks/use-pending-clients";
+import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { CheckCircle, XCircle, Mail, Phone, MapPin, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -12,7 +12,14 @@ export function PendingClientsSection() {
   const { clients, count, isLoading, approve, reject } = usePendingClients();
 
   if (isLoading) {
-    return <LoadingState variant="card" />;
+    return (
+      <GridSkeleton
+        itemCount={3}
+        gridColumns={{ default: 1 }}
+        gap={3}
+        itemHeight="h-32"
+      />
+    );
   }
 
   if (count === 0) {

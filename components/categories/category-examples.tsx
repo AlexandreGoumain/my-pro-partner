@@ -1,10 +1,4 @@
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card";
+import { CardSection } from "@/components/ui/card-section";
 import {
     Collapsible,
     CollapsibleContent,
@@ -24,17 +18,12 @@ export function CategoryExamples({
     return (
         <Collapsible open={showExamples} onOpenChange={onShowExamplesChange}>
             <CollapsibleContent className="space-y-4">
-                <Card className="border-purple-200 bg-purple-50/50 animate-in slide-in-from-top-5 duration-300">
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-lg">
-                            Exemples d&apos;organisation
-                        </CardTitle>
-                        <CardDescription>
-                            Inspirez-vous de ces exemples pour organiser votre catalogue
-                            (catégories principales et sous-catégories)
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
+                <CardSection
+                    title="Exemples d'organisation"
+                    description="Inspirez-vous de ces exemples pour organiser votre catalogue (catégories principales et sous-catégories)"
+                    className="border-purple-200 bg-purple-50/50 animate-in slide-in-from-top-5 duration-300"
+                    titleClassName="text-lg"
+                >
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             {CATEGORY_EXAMPLES.map((example, idx) => (
                                 <div key={idx} className="space-y-3">
@@ -61,8 +50,7 @@ export function CategoryExamples({
                                 </div>
                             ))}
                         </div>
-                    </CardContent>
-                </Card>
+                </CardSection>
             </CollapsibleContent>
         </Collapsible>
     );

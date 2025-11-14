@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LoadingState } from "@/components/ui/loading-state";
 import { PageHeader } from "@/components/ui/page-header";
+import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { DatePicker } from "@/components/ui/date-picker";
 import { LineItemsEditor } from "./line-items-editor";
@@ -52,12 +52,7 @@ export function DocumentFormPage({
 
     // Afficher un état de chargement si on est en mode édition et que le document se charge
     if (mode === "edit" && isLoadingDocument) {
-        return (
-            <div className="space-y-6">
-                <PageHeader title={title} description={description} />
-                <LoadingState variant="card" message="Chargement du document..." />
-            </div>
-        );
+        return <PageSkeleton layout="form" formSections={3} />;
     }
 
     return (

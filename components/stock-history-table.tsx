@@ -28,7 +28,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { LoadingState } from "@/components/ui/loading-state";
+import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { useDeleteStockMouvement } from "@/hooks/use-stock";
 import { getMovementConfig } from "@/lib/constants/stock-movements";
 import type { MouvementStockDisplay } from "@/lib/types/stock";
@@ -71,7 +71,14 @@ export function StockHistoryTable({
     };
 
     if (isLoading) {
-        return <LoadingState showSpinner={false} minHeight="sm" className="py-10" />;
+        return (
+            <GridSkeleton
+                itemCount={5}
+                gridColumns={{ default: 1 }}
+                gap={2}
+                itemHeight="h-16"
+            />
+        );
     }
 
     if (mouvements.length === 0) {

@@ -1,5 +1,4 @@
-import { LoadingState } from "@/components/ui/loading-state";
-import { PageHeader } from "@/components/ui/page-header";
+import { PageSkeleton } from "@/components/ui/page-skeleton";
 
 export interface DocumentDetailSkeletonProps {
     title: string;
@@ -10,9 +9,12 @@ export interface DocumentDetailSkeletonProps {
  */
 export function DocumentDetailSkeleton({ title }: DocumentDetailSkeletonProps) {
     return (
-        <div className="space-y-6">
-            <PageHeader title={title} description="Chargement..." />
-            <LoadingState variant="card" />
-        </div>
+        <PageSkeleton
+            layout="stats-grid"
+            statsCount={3}
+            itemCount={2}
+            statsHeight="h-24"
+            itemHeight="h-96"
+        />
     );
 }

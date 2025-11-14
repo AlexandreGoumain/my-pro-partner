@@ -3,7 +3,7 @@
 import { PaymentHistory } from "@/components/payment-history";
 import { usePayments } from "@/hooks/use-payments";
 import { Card } from "@/components/ui/card";
-import { LoadingState } from "@/components/ui/loading-state";
+import { GridSkeleton } from "@/components/ui/grid-skeleton";
 
 export interface DocumentPaymentHistoryProps {
     documentId: string;
@@ -28,7 +28,12 @@ export function DocumentPaymentHistory({
                 <h3 className="text-[16px] font-semibold tracking-[-0.01em] text-black mb-4">
                     Paiements
                 </h3>
-                <LoadingState showSpinner={false} minHeight="sm" className="py-8" />
+                <GridSkeleton
+                    itemCount={3}
+                    gridColumns={{ default: 1 }}
+                    gap={3}
+                    itemHeight="h-20"
+                />
             </Card>
         );
     }

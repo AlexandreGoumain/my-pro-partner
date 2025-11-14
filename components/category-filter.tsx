@@ -3,7 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { LoadingState } from "@/components/ui/loading-state";
+import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import {
     Popover,
     PopoverContent,
@@ -178,11 +178,11 @@ export function CategoryFilter({
                 <ScrollArea className="h-[300px]">
                     <div className="p-2">
                         {isLoading ? (
-                            <LoadingState
-                                showSpinner={false}
-                                message="Chargement..."
-                                className="p-4"
-                                minHeight="sm"
+                            <GridSkeleton
+                                itemCount={5}
+                                gridColumns={{ default: 1 }}
+                                gap={2}
+                                itemHeight="h-10"
                             />
                         ) : rootCategories.length === 0 ? (
                             <div className="p-4 text-center text-sm text-muted-foreground">

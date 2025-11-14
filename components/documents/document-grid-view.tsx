@@ -1,6 +1,7 @@
 import { DocumentCard } from "./document-card";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { Plus, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -36,16 +37,13 @@ export function DocumentGridView<T extends {
 }: DocumentGridViewProps<T>) {
     if (isLoading) {
         return (
-            <div
-                className={cn(
-                    "grid gap-6 md:grid-cols-2 lg:grid-cols-3",
-                    className
-                )}
-            >
-                {Array.from({ length: 6 }).map((_, i) => (
-                    <Card key={i} className="h-[400px] animate-pulse bg-black/2" />
-                ))}
-            </div>
+            <GridSkeleton
+                itemCount={6}
+                gridColumns={{ md: 2, lg: 3 }}
+                gap={6}
+                itemHeight="h-[400px]"
+                className={className}
+            />
         );
     }
 

@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { LoadingState } from "@/components/ui/loading-state";
+import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import {
     useCategoryCustomFields,
     useDeleteCustomField,
@@ -105,7 +105,14 @@ export function CustomFieldsManager({
     };
 
     if (isLoading) {
-        return <LoadingState showSpinner={false} minHeight="sm" className="p-8" />;
+        return (
+            <GridSkeleton
+                itemCount={4}
+                gridColumns={{ default: 1 }}
+                gap={2}
+                itemHeight="h-24"
+            />
+        );
     }
 
     return (

@@ -4,8 +4,8 @@ import { PageHeader } from "@/components/ui/page-header";
 import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Plus, LucideIcon } from "lucide-react";
-import { LoadingState } from "@/components/ui/loading-state";
 import { DataTable } from "@/components/ui/data-table";
+import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { ColumnDef } from "@tanstack/react-table";
 import { ReactNode } from "react";
 
@@ -43,12 +43,7 @@ export function DocumentListPage<T>({
     additionalContent,
 }: DocumentListPageProps<T>) {
     if (isLoading) {
-        return (
-            <div className="space-y-6">
-                <PageHeader title={title} description={description} />
-                <LoadingState variant="card" />
-            </div>
-        );
+        return <PageSkeleton layout="table" itemCount={8} />;
     }
 
     if (documents.length === 0 && !isLoading) {

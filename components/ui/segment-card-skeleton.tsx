@@ -1,5 +1,9 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
+/**
+ * Skeleton pour une carte de segment
+ * Utilisé avec GridSkeleton pour afficher plusieurs cartes
+ */
 export function SegmentCardSkeleton() {
     return (
         <div className="p-6 border border-black/8 shadow-sm rounded-lg bg-white space-y-4">
@@ -16,16 +20,6 @@ export function SegmentCardSkeleton() {
                 <Skeleton className="h-9 flex-1 rounded" />
                 <Skeleton className="h-9 flex-1 rounded" />
             </div>
-        </div>
-    );
-}
-
-export function SegmentCardSkeletonGrid({ count = 6 }: { count?: number }) {
-    return (
-        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: count }).map((_, i) => (
-                <SegmentCardSkeleton key={i} />
-            ))}
         </div>
     );
 }

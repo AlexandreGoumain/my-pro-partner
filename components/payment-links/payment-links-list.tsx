@@ -1,6 +1,6 @@
 import type { PaymentLink } from "@/lib/types/payment-link";
 import { EmptyState } from "@/components/ui/empty-state";
-import { LoadingState } from "@/components/ui/loading-state";
+import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { PaymentLinkCard } from "./payment-link-card";
 import { Link2, Plus } from "lucide-react";
 
@@ -26,7 +26,14 @@ export function PaymentLinksList({
     getTauxConversion,
 }: PaymentLinksListProps) {
     if (isLoading) {
-        return <LoadingState minHeight="sm" className="py-12" />;
+        return (
+            <GridSkeleton
+                itemCount={5}
+                gridColumns={{ default: 1 }}
+                gap={3}
+                itemHeight="h-32"
+            />
+        );
     }
 
     if (links.length === 0) {

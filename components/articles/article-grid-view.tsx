@@ -1,6 +1,7 @@
 import { ArticleCard } from "@/components/article-card";
 import { ArticleCardSkeleton } from "@/components/skeletons";
 import { ArticleEmptyState } from "./article-empty-state";
+import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { cn } from "@/lib/utils";
 import { Article } from "@/app/(dashboard)/dashboard/articles/_components/data-table/columns";
 import { type ArticleTypeFilter } from "@/lib/types/article";
@@ -40,16 +41,13 @@ export function ArticleGridView({
 }: ArticleGridViewProps) {
     if (isLoading) {
         return (
-            <div
-                className={cn(
-                    "grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
-                    className
-                )}
-            >
-                {Array.from({ length: 8 }).map((_, i) => (
-                    <ArticleCardSkeleton key={i} />
-                ))}
-            </div>
+            <GridSkeleton
+                itemCount={8}
+                gridColumns={{ md: 2, lg: 3, xl: 4 }}
+                gap={6}
+                itemSkeleton={<ArticleCardSkeleton />}
+                className={className}
+            />
         );
     }
 

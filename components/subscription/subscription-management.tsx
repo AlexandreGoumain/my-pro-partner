@@ -2,13 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { CardSection } from "@/components/ui/card-section";
 import { useSubscriptionStatus } from "@/hooks/use-subscription-status";
 import { PLAN_PRICING } from "@/lib/pricing-config";
 import {
@@ -70,17 +64,12 @@ export function SubscriptionManagement() {
   };
 
   return (
-    <Card className="border-black/10">
-      <CardHeader>
-        <CardTitle className="text-[20px] font-semibold tracking-[-0.01em] text-black">
-          Gestion de l'abonnement
-        </CardTitle>
-        <CardDescription className="text-[14px] text-black/60">
-          Gérez votre abonnement {planInfo.name} via Stripe
-        </CardDescription>
-      </CardHeader>
-
-      <CardContent className="space-y-6">
+    <CardSection
+      title="Gestion de l'abonnement"
+      description={`Gérez votre abonnement ${planInfo.name} via Stripe`}
+      titleClassName="text-[20px]"
+      contentClassName="space-y-6"
+    >
         {/* Statut actuel */}
         <div className="flex items-center justify-between p-4 rounded-lg bg-black/[0.02] border border-black/10">
           <div>
@@ -134,7 +123,6 @@ export function SubscriptionManagement() {
             </>
           )}
         </Button>
-      </CardContent>
-    </Card>
+    </CardSection>
   );
 }
