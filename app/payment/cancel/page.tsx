@@ -1,6 +1,6 @@
 "use client";
 
-import { LoadingFallback } from "@/components/ui/loading-fallback";
+import { LoadingState } from "@/components/ui/loading-state";
 import { PaymentStatusCard } from "@/components/ui/payment-status-card";
 import { usePaymentRetry } from "@/hooks/use-payment-retry";
 import { XCircle } from "lucide-react";
@@ -38,7 +38,7 @@ function PaymentCancelContent() {
 
 export default function PaymentCancelPage() {
     return (
-        <Suspense fallback={<LoadingFallback />}>
+        <Suspense fallback={<LoadingState variant="fullscreen" />}>
             <PaymentCancelContent />
         </Suspense>
     );

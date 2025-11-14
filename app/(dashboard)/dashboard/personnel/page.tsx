@@ -22,7 +22,8 @@ import {
 import { PageHeader } from "@/components/ui/page-header";
 import { UsageLimitCard } from "@/components/ui/usage-limit-card";
 import { usePersonnelPage } from "@/hooks/personnel/use-personnel-page";
-import { Loader2, Users } from "lucide-react";
+import { Users } from "lucide-react";
+import { LoadingState } from "@/components/ui/loading-state";
 
 export default function PersonnelPage() {
     const handlers = usePersonnelPage();
@@ -87,9 +88,7 @@ export default function PersonnelPage() {
                 </CardHeader>
                 <CardContent>
                     {handlers.loading ? (
-                        <div className="flex items-center justify-center py-12">
-                            <Loader2 className="h-8 w-8 animate-spin text-black/40" />
-                        </div>
+                        <LoadingState spinnerSize={32} minHeight="sm" className="py-12" />
                     ) : handlers.users.length === 0 ? (
                         <PersonnelEmptyState
                             onAddClick={handlers.handleOpenCreateDialog}

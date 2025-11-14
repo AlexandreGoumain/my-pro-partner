@@ -5,7 +5,7 @@ import { PeriodFilter } from "@/components/analytics/period-filter";
 import { RevenueBreakdown } from "@/components/analytics/revenue-breakdown";
 import { TopArticlesList } from "@/components/analytics/top-articles-list";
 import { EmptyState } from "@/components/ui/empty-state";
-import { LoadingCard } from "@/components/ui/loading-card";
+import { LoadingState } from "@/components/ui/loading-state";
 import { PageHeader } from "@/components/ui/page-header";
 import { useProfitabilityAnalytics } from "@/hooks/use-profitability-analytics";
 import {
@@ -38,7 +38,7 @@ export default function ProfitabilityPage() {
                     title="Analyse de rentabilité"
                     description="Revenus par type de produit et catégorie"
                 />
-                <LoadingCard />
+                <LoadingState variant="card" />
             </div>
         );
     }

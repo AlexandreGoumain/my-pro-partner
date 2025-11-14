@@ -2,9 +2,9 @@
 
 import { ErrorAlert } from "@/components/client-portal/register/error-alert";
 import { InvitationSuccessBanner } from "@/components/client-portal/register/invitation-success-banner";
-import { LoadingState } from "@/components/client-portal/register/loading-state";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { LoadingState } from "@/components/ui/loading-state";
 import {
     Form,
     FormControl,
@@ -123,7 +123,7 @@ function RegisterForm() {
     }
 
     if (isVerifying) {
-        return <LoadingState message="Vérification de l'invitation..." />;
+        return <LoadingState variant="fullscreen" message="Vérification de l'invitation..." />;
     }
 
     return (
@@ -433,7 +433,7 @@ function RegisterForm() {
 
 export default function ClientRegisterPage() {
     return (
-        <Suspense fallback={<LoadingState />}>
+        <Suspense fallback={<LoadingState variant="fullscreen" />}>
             <RegisterForm />
         </Suspense>
     );

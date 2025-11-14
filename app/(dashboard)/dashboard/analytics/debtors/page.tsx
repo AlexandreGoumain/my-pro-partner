@@ -2,7 +2,7 @@
 
 import { AnalyticsKPICard } from "@/components/analytics/analytics-kpi-card";
 import { DebtorCard } from "@/components/analytics/debtor-card";
-import { LoadingCard } from "@/components/ui/loading-card";
+import { LoadingState } from "@/components/ui/loading-state";
 import { PageHeader } from "@/components/ui/page-header";
 import {
     Select,
@@ -33,7 +33,7 @@ export default function DebtorsPage() {
                     title="Clients débiteurs"
                     description="Analyse des clients avec des factures impayées"
                 />
-                <LoadingCard />
+                <LoadingState variant="card" />
             </div>
         );
     }

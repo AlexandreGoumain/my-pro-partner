@@ -5,11 +5,11 @@ import {
     AuthErrorState,
     AuthFooter,
     AuthHeader,
-    AuthLoadingState,
     AuthSuccessState,
     InvitationInfoCard,
 } from "@/components/auth";
 import { Button } from "@/components/ui/button";
+import { LoadingState } from "@/components/ui/loading-state";
 import {
     Form,
     FormControl,
@@ -42,7 +42,7 @@ function AcceptInvitationContent() {
 
     // Loading state
     if (isVerifying) {
-        return <AuthLoadingState message="Vérification de l'invitation..." />;
+        return <LoadingState minHeight="lg" message="Vérification de l'invitation..." />;
     }
 
     // Invalid invitation
@@ -236,7 +236,7 @@ function AcceptInvitationContent() {
 
 export default function AcceptInvitationPage() {
     return (
-        <Suspense fallback={<AuthLoadingState />}>
+        <Suspense fallback={<LoadingState minHeight="lg" />}>
             <AcceptInvitationContent />
         </Suspense>
     );

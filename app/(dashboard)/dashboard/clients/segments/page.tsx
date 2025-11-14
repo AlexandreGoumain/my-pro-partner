@@ -7,24 +7,25 @@ import { useLimitDialog } from "@/components/providers/limit-dialog-provider";
 import { SegmentBuilderDialog } from "@/components/segment-builder-dialog";
 import { SegmentComparisonDialog } from "@/components/segment-comparison-dialog";
 import { Button } from "@/components/ui/button";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { EmptySegmentState } from "@/components/ui/empty-segment-state";
 import { PageHeader } from "@/components/ui/page-header";
 import { SearchBar } from "@/components/ui/search-bar";
 import { SegmentCard } from "@/components/ui/segment-card";
 import { SegmentCardSkeletonGrid } from "@/components/ui/segment-card-skeleton";
 import { SegmentSectionHeader } from "@/components/ui/segment-section-header";
-import { SegmentStatsCard } from "@/components/ui/segment-stats-card";
+import { StatisticsGrid } from "@/components/ui/statistics-grid";
 import { useSegmentsPage } from "@/hooks/use-segments-page";
 import { getSegmentIcon } from "@/lib/constants/segment-config";
 import {
     BarChart3,
     Filter,
     GitCompare,
-    Loader2,
     Plus,
     Star,
     Users,
 } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function ClientSegmentsPage() {
     const { userPlan } = useLimitDialog();
@@ -84,17 +85,14 @@ export default function ClientSegmentsPage() {
                                 />
                                 Comparer
                             </Button>
-                            <Button
-                                className="h-11 px-6 text-[14px] font-medium bg-black hover:bg-black/90 text-white rounded-md shadow-sm cursor-pointer"
+                            <PrimaryActionButton
+                                icon={Plus}
                                 onClick={() => setBuilderDialogOpen(true)}
                                 title="Raccourci: Ctrl+N"
+                                className="cursor-pointer"
                             >
-                                <Plus
-                                    className="w-4 h-4 mr-2"
-                                    strokeWidth={2}
-                                />
                                 Créer un segment
-                            </Button>
+                            </PrimaryActionButton>
                         </>
                     }
                 />
@@ -106,28 +104,40 @@ export default function ClientSegmentsPage() {
                 />
 
                 {segments.length > 0 && (
-                    <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-                        <SegmentStatsCard
-                            icon={Filter}
-                            label="Total segments"
-                            value={stats.totalSegments}
-                        />
-                        <SegmentStatsCard
-                            icon={Users}
-                            label="Clients total"
-                            value={totalClients}
-                        />
-                        <SegmentStatsCard
-                            icon={Star}
-                            label="Segments actifs"
-                            value={stats.activeSegments}
-                        />
-                        <SegmentStatsCard
-                            icon={BarChart3}
-                            label="Moyenne/segment"
-                            value={stats.averageClientsPerSegment}
-                        />
-                    </div>
+                    <StatisticsGrid
+                        stats={[
+                            {
+                                id: "total",
+                                icon: Filter,
+                                label: "Total segments",
+                                value: stats.totalSegments,
+                                size: "sm",
+                            },
+                            {
+                                id: "clients",
+                                icon: Users,
+                                label: "Clients total",
+                                value: totalClients,
+                                size: "sm",
+                            },
+                            {
+                                id: "active",
+                                icon: Star,
+                                label: "Segments actifs",
+                                value: stats.activeSegments,
+                                size: "sm",
+                            },
+                            {
+                                id: "average",
+                                icon: BarChart3,
+                                label: "Moyenne/segment",
+                                value: stats.averageClientsPerSegment,
+                                size: "sm",
+                            },
+                        ]}
+                        columns={{ md: 2, lg: 4 }}
+                        gap={5}
+                    />
                 )}
 
                 <div>
@@ -143,10 +153,7 @@ export default function ClientSegmentsPage() {
                                     className="h-10 px-5 text-[13px] font-medium border-black/10 hover:bg-black/5"
                                 >
                                     {seedMutation.isPending && (
-                                        <Loader2
-                                            className="w-4 h-4 mr-2 animate-spin"
-                                            strokeWidth={2}
-                                        />
+                                        <Spinner className="w-4 h-4 mr-2" />
                                     )}
                                     Créer les segments prédéfinis
                                 </Button>

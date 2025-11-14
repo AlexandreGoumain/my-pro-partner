@@ -9,6 +9,7 @@ import {
 } from "@/components/client-portal";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { LoadingState } from "@/components/ui/loading-state";
 import { useClientDocumentDetail } from "@/hooks/use-client-document-detail";
 import {
     ArrowLeft,
@@ -37,11 +38,7 @@ export default function DocumentDetailPage() {
         useClientDocumentDetail(documentId);
 
     if (isLoading) {
-        return (
-            <div className="flex items-center justify-center min-h-[400px]">
-                <p className="text-[14px] text-black/60">Chargement...</p>
-            </div>
-        );
+        return <LoadingState minHeight="lg" />;
     }
 
     if (!document) {

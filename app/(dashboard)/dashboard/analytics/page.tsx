@@ -4,7 +4,7 @@ import { AnalyticsKPICard } from "@/components/analytics/analytics-kpi-card";
 import { ConversionRateCard } from "@/components/analytics/conversion-rate-card";
 import { InvoiceStatusCard } from "@/components/analytics/invoice-status-card";
 import { OverdueInvoicesCard } from "@/components/analytics/overdue-invoices-card";
-import { LoadingCard } from "@/components/ui/loading-card";
+import { LoadingState } from "@/components/ui/loading-state";
 import { PageHeader } from "@/components/ui/page-header";
 import { useAnalytics } from "@/hooks/use-analytics";
 import {
@@ -33,8 +33,8 @@ export default function AnalyticsPage() {
                     title="Analytics"
                     description="Suivez vos performances de vente"
                 />
-                <LoadingCard
-                    showSpinner
+                <LoadingState
+                    variant="card"
                     message="Chargement des analytics..."
                 />
             </div>

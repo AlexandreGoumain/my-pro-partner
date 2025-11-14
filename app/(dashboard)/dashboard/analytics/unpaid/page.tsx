@@ -4,7 +4,7 @@ import { AnalyticsKPICard } from "@/components/analytics/analytics-kpi-card";
 import { UnpaidInvoiceTable } from "@/components/analytics/unpaid-invoice-table";
 import { UnpaidInvoicesFilters } from "@/components/analytics/unpaid-invoices-filters";
 import { ErrorState } from "@/components/ui/error-state";
-import { LoadingCard } from "@/components/ui/loading-card";
+import { LoadingState } from "@/components/ui/loading-state";
 import { PageHeader } from "@/components/ui/page-header";
 import { useUnpaidInvoices } from "@/hooks/use-unpaid-invoices";
 import { pluralSuffix } from "@/lib/utils/format";
@@ -33,7 +33,7 @@ export default function UnpaidInvoicesPage() {
                     title="Factures impayées"
                     description="Suivi des factures en attente de paiement"
                 />
-                <LoadingCard />
+                <LoadingState variant="card" />
             </div>
         );
     }

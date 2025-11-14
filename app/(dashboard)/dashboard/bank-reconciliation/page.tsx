@@ -11,6 +11,7 @@ import {
 } from "@/components/bank-reconciliation";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { useBankReconciliation } from "@/hooks/use-bank-reconciliation";
 import { RefreshCw, Upload } from "lucide-react";
 import { Suspense } from "react";
@@ -55,16 +56,13 @@ function BankReconciliationPageContent() {
                             />
                             Matching auto
                         </Button>
-                        <Button
+                        <PrimaryActionButton
+                            icon={Upload}
                             onClick={() => fileInputRef.current?.click()}
                             disabled={isUploading}
-                            className="bg-black hover:bg-black/90 text-white h-11 px-6 text-[14px] font-medium rounded-md shadow-sm"
                         >
-                            <Upload className="h-4 w-4 mr-2" strokeWidth={2} />
-                            {isUploading
-                                ? "Import en cours..."
-                                : "Importer CSV"}
-                        </Button>
+                            {isUploading ? "Import en cours..." : "Importer CSV"}
+                        </PrimaryActionButton>
                         <input
                             ref={fileInputRef}
                             type="file"

@@ -15,7 +15,7 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import { LoadingCard } from "@/components/ui/loading-card";
+import { LoadingState } from "@/components/ui/loading-state";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -75,8 +75,8 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
     if (isLoading) {
         return (
             <div className="space-y-6">
-                <LoadingCard
-                    showSpinner
+                <LoadingState
+                    variant="card"
                     message="Chargement des détails de l'article..."
                 />
             </div>

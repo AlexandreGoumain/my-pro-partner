@@ -14,7 +14,6 @@ import {
     CheckCircle2,
     Crown,
     Gift,
-    Loader2,
     Mail,
     Rocket,
     Sparkles,
@@ -22,6 +21,7 @@ import {
     TrendingUp,
     Zap,
 } from "lucide-react";
+import { LoadingState } from "@/components/ui/loading-state";
 import Link from "next/link";
 import { Suspense } from "react";
 
@@ -256,14 +256,7 @@ export default function SubscriptionSuccessPage() {
     return (
         <Suspense
             fallback={
-                <div className="min-h-screen flex items-center justify-center bg-white">
-                    <div className="text-center">
-                        <Loader2 className="h-7 w-7 animate-spin text-black mx-auto mb-3" />
-                        <p className="text-[14px] text-black/60">
-                            Chargement...
-                        </p>
-                    </div>
-                </div>
+                <LoadingState variant="fullscreen" spinnerSize={28} />
             }
         >
             <SuccessContent />

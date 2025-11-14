@@ -2,17 +2,11 @@
 
 import { TableCard } from "@/components/tables/table-card";
 import { TableStatsGrid } from "@/components/tables/table-stats-grid";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FilterBar } from "@/components/ui/filter-bar";
+import { InlineEmptyState } from "@/components/ui/inline-empty-state";
 import { PageHeader } from "@/components/ui/page-header";
-import { SearchBar } from "@/components/ui/search-bar";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTablesPage } from "@/hooks/use-tables-page";
 import { TableStatus } from "@/lib/types/table.types";
@@ -42,13 +36,9 @@ function TablesContent() {
                 title="Gestion des tables"
                 description="Plan de salle et gestion des tables en temps réel"
                 actions={
-                    <Button
-                        onClick={handleCreate}
-                        className="bg-black hover:bg-black/90 text-white h-11 px-6 text-[14px] font-medium rounded-md shadow-sm"
-                    >
-                        <Plus className="h-4 w-4 mr-2" strokeWidth={2} />
+                    <PrimaryActionButton icon={Plus} onClick={handleCreate}>
                         Ajouter une table
-                    </Button>
+                    </PrimaryActionButton>
                 }
             />
 

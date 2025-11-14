@@ -2,10 +2,12 @@
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { LoadingState } from "@/components/ui/loading-state";
+import { Spinner } from "@/components/ui/spinner";
 import { usePaymentInvoice } from "@/hooks/use-payment-invoice";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { CreditCard, FileText, Loader2 } from "lucide-react";
+import { CreditCard, FileText } from "lucide-react";
 import { useParams } from "next/navigation";
 
 export default function PayInvoicePage() {
@@ -27,19 +29,11 @@ export default function PayInvoicePage() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-black/2 flex items-center justify-center p-4">
-                <Card className="max-w-lg w-full p-12 border-black/8 shadow-sm">
-                    <div className="flex flex-col items-center space-y-4">
-                        <Loader2
-                            className="w-8 h-8 text-black/40 animate-spin"
-                            strokeWidth={2}
-                        />
-                        <p className="text-[14px] text-black/60">
-                            Chargement de la facture...
-                        </p>
-                    </div>
-                </Card>
-            </div>
+            <LoadingState
+                variant="fullscreen"
+                message="Chargement de la facture..."
+                spinnerSize={32}
+            />
         );
     }
 
@@ -148,10 +142,7 @@ export default function PayInvoicePage() {
                     >
                         {isProcessing ? (
                             <>
-                                <Loader2
-                                    className="w-5 h-5 mr-2 animate-spin"
-                                    strokeWidth={2}
-                                />
+                                <Spinner className="mr-2" />
                                 Redirection...
                             </>
                         ) : (

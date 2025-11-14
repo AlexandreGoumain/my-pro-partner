@@ -15,6 +15,7 @@ import {
   BarChart3,
   Info,
 } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useEffect } from "react";
@@ -262,7 +263,7 @@ export function ExportTab() {
             >
               {isExporting ? (
                 <>
-                  <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                  <Spinner className="mr-2" />
                   Export en cours...
                 </>
               ) : (

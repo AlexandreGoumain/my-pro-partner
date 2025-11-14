@@ -1,7 +1,7 @@
 "use client";
 
 import { DetailsSection } from "@/components/ui/details-section";
-import { LoadingFallback } from "@/components/ui/loading-fallback";
+import { LoadingState } from "@/components/ui/loading-state";
 import { PaymentStatusCard } from "@/components/ui/payment-status-card";
 import { usePaymentSuccess } from "@/hooks/use-payment-success";
 import { truncateId } from "@/lib/utils/payment-utils";
@@ -54,7 +54,7 @@ function PaymentSuccessContent() {
 
 export default function PaymentSuccessPage() {
     return (
-        <Suspense fallback={<LoadingFallback />}>
+        <Suspense fallback={<LoadingState variant="fullscreen" />}>
             <PaymentSuccessContent />
         </Suspense>
     );

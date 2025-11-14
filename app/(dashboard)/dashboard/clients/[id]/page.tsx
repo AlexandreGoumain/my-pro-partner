@@ -159,16 +159,16 @@ export default function ClientDetailPage() {
                                 <h3 className="text-[15px] font-medium tracking-[-0.01em] text-black">
                                     Notes internes
                                 </h3>
-                                <Button
+                                <PrimaryActionButton
                                     size="sm"
-                                    className="h-9 px-4 text-[13px] font-medium bg-black hover:bg-black/90 text-white rounded-md shadow-sm"
+                                    className="h-9 px-4 text-[13px]"
                                 >
                                     <MessageSquare
                                         className="h-4 w-4 mr-2"
                                         strokeWidth={2}
                                     />
                                     Ajouter une note
-                                </Button>
+                                </PrimaryActionButton>
                             </div>
                             {client.notes ? (
                                 <p className="text-[14px] text-black/80 whitespace-pre-wrap leading-relaxed">

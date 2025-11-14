@@ -4,8 +4,8 @@ import { StockFiltersCard, StockStats } from "@/components/stock";
 import { StockAlertsList } from "@/components/stock-alerts-list";
 import { StockHistoryTable } from "@/components/stock-history-table";
 import { StockMovementDialog } from "@/components/stock-movement-dialog";
-import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useStockPage } from "@/hooks/use-stock-page";
 import { PackagePlus } from "lucide-react";
@@ -32,13 +32,12 @@ export default function StockManagementPage() {
                 title="Gestion des stocks"
                 description="Suivez et gérez vos stocks en temps réel"
                 actions={
-                    <Button
+                    <PrimaryActionButton
+                        icon={PackagePlus}
                         onClick={() => setMovementDialogOpen(true)}
-                        className="bg-black hover:bg-black/90 text-white h-11 px-6 text-[14px] font-medium rounded-md shadow-sm"
                     >
-                        <PackagePlus className="mr-2 h-4 w-4" strokeWidth={2} />
                         Nouveau mouvement
-                    </Button>
+                    </PrimaryActionButton>
                 }
             />
 

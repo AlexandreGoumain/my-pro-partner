@@ -1,9 +1,10 @@
 "use client";
 
 import { RegisterTerminalDialog, TerminalsGrid } from "@/components/terminals";
-import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { LoadingState } from "@/components/ui/loading-state";
 import { PageHeader } from "@/components/ui/page-header";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { useTerminalsPage } from "@/hooks/use-terminals-page";
 import { Plus, WifiOff } from "lucide-react";
 
@@ -16,23 +17,20 @@ export default function TerminalsPage() {
                 title="Terminaux de Paiement"
                 description="Gérez vos terminaux physiques Stripe Terminal"
                 actions={
-                    <Button
+                    <PrimaryActionButton
+                        icon={Plus}
                         onClick={() => {
                             page.setRegisterDialogOpen(true);
                             page.loadStripeReaders();
                         }}
-                        className="bg-black hover:bg-black/90 text-white h-11 px-6"
                     >
-                        <Plus className="h-4 w-4 mr-2" />
                         Enregistrer un terminal
-                    </Button>
+                    </PrimaryActionButton>
                 }
             />
 
             {page.isLoading ? (
-                <div className="text-center py-12">
-                    <p className="text-[14px] text-black/40">Chargement...</p>
-                </div>
+                <LoadingState minHeight="sm" className="py-12" />
             ) : page.terminals.length === 0 ? (
                 <EmptyState
                     icon={WifiOff}

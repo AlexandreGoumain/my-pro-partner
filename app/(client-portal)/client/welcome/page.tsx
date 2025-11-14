@@ -3,6 +3,7 @@
 import { ProgressDots } from "@/components/client-portal/welcome/progress-dots";
 import { WelcomeActions } from "@/components/client-portal/welcome/welcome-actions";
 import { WelcomeStepCard } from "@/components/client-portal/welcome/welcome-step-card";
+import { LoadingState } from "@/components/ui/loading-state";
 import { useClientAuth } from "@/hooks/use-client-auth";
 import { useWelcomeFlow } from "@/hooks/use-welcome-flow";
 import type { WelcomeStep } from "@/lib/types/welcome";
@@ -60,11 +61,7 @@ export default function ClientWelcomePage() {
 
     // Show loading state while fetching user data
     if (isLoading) {
-        return (
-            <div className="min-h-screen bg-white flex items-center justify-center p-4">
-                <p className="text-[14px] text-black/60">Chargement...</p>
-            </div>
-        );
+        return <LoadingState variant="fullscreen" />;
     }
 
     return (

@@ -6,8 +6,8 @@ import {
     PaymentLinkStatsDialog,
     PaymentLinksList,
 } from "@/components/payment-links";
-import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { usePaymentLinksPage } from "@/hooks/use-payment-links-page";
 import { Plus } from "lucide-react";
 
@@ -39,13 +39,12 @@ export default function PaymentLinksPage() {
                 title="Liens de Paiement"
                 description="Créez et partagez des liens de paiement avec vos clients"
                 actions={
-                    <Button
+                    <PrimaryActionButton
+                        icon={Plus}
                         onClick={handleCreateClick}
-                        className="bg-black hover:bg-black/90 text-white h-11 px-6 text-[14px] font-medium rounded-md shadow-sm"
                     >
-                        <Plus className="h-4 w-4 mr-2" strokeWidth={2} />
                         Nouveau lien
-                    </Button>
+                    </PrimaryActionButton>
                 }
             />
 

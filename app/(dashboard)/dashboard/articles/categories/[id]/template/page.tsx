@@ -4,7 +4,8 @@ import { CustomFieldsManager } from "@/components/custom-fields-manager";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCategorie } from "@/hooks/use-categories";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import { LoadingState } from "@/components/ui/loading-state";
 import Link from "next/link";
 import { use } from "react";
 
@@ -19,11 +20,7 @@ export default function CategoryTemplatePage({
     const { data: categorie, isLoading: loading } = useCategorie(id);
 
     if (loading) {
-        return (
-            <div className="flex items-center justify-center min-h-[400px]">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-        );
+        return <LoadingState spinnerSize={32} minHeight="lg" />;
     }
 
     if (!categorie) {

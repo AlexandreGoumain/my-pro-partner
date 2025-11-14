@@ -4,6 +4,7 @@ import { PasswordInput } from "@/components/client-portal/reset-password/passwor
 import { StatusCard } from "@/components/client-portal/shared/status-card";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { LoadingState } from "@/components/ui/loading-state";
 import {
     Form,
     FormControl,
@@ -170,15 +171,7 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
     return (
-        <Suspense
-            fallback={
-                <div className="min-h-screen bg-white flex items-center justify-center">
-                    <div className="text-[14px] text-black/60">
-                        Chargement...
-                    </div>
-                </div>
-            }
-        >
+        <Suspense fallback={<LoadingState variant="fullscreen" />}>
             <ResetPasswordForm />
         </Suspense>
     );

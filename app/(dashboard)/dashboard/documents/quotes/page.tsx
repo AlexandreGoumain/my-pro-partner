@@ -1,9 +1,9 @@
 "use client";
 
 import { DocumentFiltersBar, DocumentGridView } from "@/components/documents";
-import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { PageHeader } from "@/components/ui/page-header";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { useDocumentFilters } from "@/hooks/use-document-filters";
 import { useDocumentPage } from "@/hooks/use-document-page";
 import { useQuoteConvert } from "@/hooks/use-quote-convert";
@@ -42,13 +42,12 @@ export default function QuotesPage() {
                 title={page.label.title}
                 description={page.label.description}
                 actions={
-                    <Button
+                    <PrimaryActionButton
+                        icon={Plus}
                         onClick={page.handlers.handleCreate}
-                        className="h-11 px-6 text-[14px] font-medium bg-black hover:bg-black/90 text-white rounded-md shadow-sm"
                     >
-                        <Plus className="w-4 h-4 mr-2" strokeWidth={2} />
                         {page.label.new}
-                    </Button>
+                    </PrimaryActionButton>
                 }
             />
 
