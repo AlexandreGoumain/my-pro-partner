@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { UserForm } from "./user-form";
 import { User, CreateUserInput, UpdateUserInput } from "@/hooks/personnel/use-personnel";
-import { Loader2 } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 
 export interface PersonnelDialogsProps {
     // Create dialog
@@ -138,7 +138,7 @@ export function PersonnelDialogs({
                             disabled={deleting}
                         >
                             {deleting && (
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                <Spinner className="mr-2" />
                             )}
                             Supprimer
                         </AlertDialogAction>

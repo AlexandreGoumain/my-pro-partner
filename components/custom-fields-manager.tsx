@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { LoadingState } from "@/components/ui/loading-state";
 import {
     useCategoryCustomFields,
     useDeleteCustomField,
@@ -104,11 +105,7 @@ export function CustomFieldsManager({
     };
 
     if (isLoading) {
-        return (
-            <div className="flex items-center justify-center p-8">
-                <div className="text-muted-foreground">Chargement...</div>
-            </div>
-        );
+        return <LoadingState showSpinner={false} minHeight="sm" className="p-8" />;
     }
 
     return (

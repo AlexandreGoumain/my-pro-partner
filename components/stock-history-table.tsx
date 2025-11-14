@@ -28,6 +28,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import { LoadingState } from "@/components/ui/loading-state";
 import { useDeleteStockMouvement } from "@/hooks/use-stock";
 import { getMovementConfig } from "@/lib/constants/stock-movements";
 import type { MouvementStockDisplay } from "@/lib/types/stock";
@@ -70,11 +71,7 @@ export function StockHistoryTable({
     };
 
     if (isLoading) {
-        return (
-            <div className="flex items-center justify-center py-10">
-                <p className="text-muted-foreground">Chargement...</p>
-            </div>
-        );
+        return <LoadingState showSpinner={false} minHeight="sm" className="py-10" />;
     }
 
     if (mouvements.length === 0) {

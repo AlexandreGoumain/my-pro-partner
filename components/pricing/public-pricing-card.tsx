@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { Check, Loader2 } from "lucide-react";
+import { Check } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import { PlanFeature } from "@/lib/types/pricing";
 import { PlanType } from "@/lib/pricing-config";
 
@@ -95,7 +96,7 @@ export function PublicPricingCard({
             >
                 {isLoading ? (
                     <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        <Spinner className="mr-2" />
                         Chargement...
                     </>
                 ) : isFree ? (

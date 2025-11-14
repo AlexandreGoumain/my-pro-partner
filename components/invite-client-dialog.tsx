@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -153,12 +154,9 @@ export function InviteClientDialog({
                 </Button>
               </div>
             </div>
-            <Button
-              onClick={handleClose}
-              className="w-full h-11 text-[14px] font-medium bg-black hover:bg-black/90 text-white"
-            >
+            <PrimaryActionButton onClick={handleClose} className="w-full">
               Fermer
-            </Button>
+            </PrimaryActionButton>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -255,13 +253,13 @@ export function InviteClientDialog({
               >
                 Annuler
               </Button>
-              <Button
+              <PrimaryActionButton
                 type="submit"
                 disabled={isLoading}
-                className="flex-1 h-11 text-[14px] font-medium bg-black hover:bg-black/90 text-white"
+                className="flex-1"
               >
                 {isLoading ? "Envoi..." : "Envoyer l'invitation"}
-              </Button>
+              </PrimaryActionButton>
             </div>
           </form>
         )}

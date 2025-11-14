@@ -3,6 +3,7 @@
 import { PaymentHistory } from "@/components/payment-history";
 import { usePayments } from "@/hooks/use-payments";
 import { Card } from "@/components/ui/card";
+import { LoadingState } from "@/components/ui/loading-state";
 
 export interface DocumentPaymentHistoryProps {
     documentId: string;
@@ -27,9 +28,7 @@ export function DocumentPaymentHistory({
                 <h3 className="text-[16px] font-semibold tracking-[-0.01em] text-black mb-4">
                     Paiements
                 </h3>
-                <div className="text-center py-8">
-                    <div className="text-[14px] text-black/40">Chargement...</div>
-                </div>
+                <LoadingState showSpinner={false} minHeight="sm" className="py-8" />
             </Card>
         );
     }

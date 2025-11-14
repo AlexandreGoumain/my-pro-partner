@@ -1,6 +1,6 @@
 "use client";
 
-import { StatCard } from "@/components/ui/stat-card";
+import { StatConfig, StatisticsGrid } from "@/components/ui/statistics-grid";
 import type { Document } from "@/hooks/use-documents";
 import type { ClientHealth } from "@/lib/types/client";
 import { format } from "date-fns";
@@ -20,43 +20,43 @@ export function ClientKPIs({
     totalCA,
     lastDocument,
 }: ClientKPIsProps) {
-    return (
-        <div className="grid gap-5 md:grid-cols-4">
-            <StatCard
-                icon={Activity}
-                label="Complétude"
-                value={`${clientHealth?.completionScore || 0}%`}
-                size="sm"
-            />
-            <StatCard
-                icon={FileText}
-                label="Documents"
-                value={documentsCount}
-                size="sm"
-            />
-            <StatCard
-                icon={Euro}
-                label="CA Total"
-                value={new Intl.NumberFormat("fr-FR", {
-                    style: "currency",
-                    currency: "EUR",
-                }).format(totalCA)}
-                size="sm"
-            />
-            <StatCard
-                icon={Calendar}
-                label="Dernière commande"
-                value={
-                    lastDocument
-                        ? format(
-                              new Date(lastDocument.dateEmission),
-                              "dd MMM yyyy",
-                              { locale: fr }
-                          )
-                        : "Aucune"
-                }
-                size="sm"
-            />
-        </div>
-    );
+    const stats: StatConfig[] = [
+        {
+            id: "completion",
+            icon: Activity,
+            label: "Complétude",
+            value: `${clientHealth?.completionScore || 0}%`,
+            size: "sm",
+        },
+        {
+            id: "documents",
+            icon: FileText,
+            label: "Documents",
+            value: documentsCount,
+            size: "sm",
+        },
+        {
+            id: "revenue",
+            icon: Euro,
+            label: "CA Total",
+            value: new Intl.NumberFormat("fr-FR", {
+                style: "currency",
+                currency: "EUR",
+            }).format(totalCA),
+            size: "sm",
+        },
+        {
+            id: "lastOrder",
+            icon: Calendar,
+            label: "Dernière commande",
+            value: lastDocument
+                ? format(new Date(lastDocument.dateEmission), "dd MMM yyyy", {
+                      locale: fr,
+                  })
+                : "Aucune",
+            size: "sm",
+        },
+    ];
+
+    return <StatisticsGrid stats={stats} columns={{ md: 4 }} gap={5} />;
 }

@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { DocumentStatusManager } from "@/components/document-status-manager";
 import { ArrowLeft, Download, Trash2, Receipt } from "lucide-react";
 import { DocumentType, DocumentStatus } from "@/lib/types/document.types";
@@ -55,13 +56,9 @@ export function DocumentDetailActions({
                 onStatusChanged={onStatusChanged}
             />
             {canConvert && onConvert && (
-                <Button
-                    onClick={onConvert}
-                    className="h-11 px-6 text-[14px] font-medium bg-black hover:bg-black/90 text-white rounded-md shadow-sm"
-                >
-                    <Receipt className="w-4 h-4 mr-2" strokeWidth={2} />
+                <PrimaryActionButton icon={Receipt} onClick={onConvert}>
                     Convertir en facture
-                </Button>
+                </PrimaryActionButton>
             )}
             <Button
                 onClick={onDelete}

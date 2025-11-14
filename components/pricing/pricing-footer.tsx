@@ -6,7 +6,7 @@ export function PricingFooter() {
                 carte bancaire requise.
             </p>
             <p className="text-[13px] text-black/40 mt-2">
-                Questions ? Contactez-nous à{" "}
+                Questions ? Contactez-nous !{" "}
                 <a
                     href="mailto:support@mypropartner.com"
                     className="text-black/60 hover:text-black underline"

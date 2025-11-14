@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { Card } from "@/components/ui/card";
 import { CheckCircle2, Download, FileSpreadsheet, FileText } from "lucide-react";
 
@@ -49,14 +50,14 @@ export function ExportSection({
                     </div>
 
                     <div className="space-y-3">
-                        <Button
+                        <PrimaryActionButton
                             onClick={onExportCSV}
                             disabled={isLoading || clientsCount === 0}
-                            className="w-full h-11 text-[14px] font-medium bg-black hover:bg-black/90 text-white rounded-md shadow-sm cursor-pointer"
+                            className="w-full cursor-pointer"
                         >
                             <FileText className="w-4 h-4 mr-2" strokeWidth={2} />
                             Exporter en CSV
-                        </Button>
+                        </PrimaryActionButton>
 
                         <Button
                             onClick={onExportJSON}

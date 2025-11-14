@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Loader2, QrCode } from "lucide-react";
+import { CheckCircle2, QrCode } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 
 export interface PaymentLinkActionsProps {
@@ -32,7 +33,7 @@ export function PaymentLinkActions({
             >
                 {paying ? (
                     <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        <Spinner className="mr-2" />
                         Redirection...
                     </>
                 ) : (

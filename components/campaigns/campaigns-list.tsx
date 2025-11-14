@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CampaignCard } from "./campaign-card";
 import { Mail, Plus } from "lucide-react";
@@ -36,13 +36,9 @@ export function CampaignsList({
                         Créez votre première campagne pour communiquer avec vos
                         clients
                     </p>
-                    <Button
-                        onClick={onCreate}
-                        className="bg-black hover:bg-black/90 text-white h-11 px-6 text-[14px] font-medium rounded-md shadow-sm"
-                    >
-                        <Plus className="h-4 w-4 mr-2" strokeWidth={2} />
+                    <PrimaryActionButton icon={Plus} onClick={onCreate}>
                         Créer une campagne
-                    </Button>
+                    </PrimaryActionButton>
                 </CardContent>
             </Card>
         );

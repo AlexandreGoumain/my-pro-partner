@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -144,13 +145,13 @@ export function DocumentStatusManager({
                         >
                             Annuler
                         </AlertDialogCancel>
-                        <AlertDialogAction
+                        <PrimaryActionButton
                             onClick={handleConfirmChange}
                             disabled={isUpdating}
-                            className="bg-black hover:bg-black/90 text-white text-[14px]"
+                            className="text-[14px]"
                         >
                             {isUpdating ? "Mise à jour..." : "Confirmer"}
-                        </AlertDialogAction>
+                        </PrimaryActionButton>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>

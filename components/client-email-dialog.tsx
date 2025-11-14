@@ -8,11 +8,13 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { Mail, Loader2, User, Send } from "lucide-react";
+import { Mail, User, Send } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import { useEmailSender } from "@/hooks/use-email-sender";
 
 interface ClientEmailDialogProps {
@@ -162,17 +164,13 @@ export function ClientEmailDialog({
                         >
                             Annuler
                         </Button>
-                        <Button
+                        <PrimaryActionButton
                             type="submit"
                             disabled={sending || !subject.trim() || !body.trim()}
-                            className="h-11 px-6 text-[14px] bg-black hover:bg-black/90 text-white"
                         >
                             {sending ? (
                                 <>
-                                    <Loader2
-                                        className="w-4 h-4 mr-2 animate-spin"
-                                        strokeWidth={2}
-                                    />
+                                    <Spinner className="w-4 h-4 mr-2" />
                                     Envoi en cours...
                                 </>
                             ) : (
@@ -184,7 +182,7 @@ export function ClientEmailDialog({
                                     Envoyer
                                 </>
                             )}
-                        </Button>
+                        </PrimaryActionButton>
                     </div>
                 </form>
             </DialogContent>

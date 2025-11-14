@@ -3,7 +3,7 @@
  * Permet de filtrer par recherche, rôle et statut
  */
 
-import { Button } from "@/components/ui/button";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -97,13 +97,9 @@ export function PersonnelSearchBar({
                     </Select>
 
                     {/* Add button */}
-                    <Button
-                        onClick={onAddClick}
-                        className="h-11 px-6 text-[14px] font-medium bg-black hover:bg-black/90 text-white rounded-md shadow-sm"
-                    >
-                        <UserPlus className="h-4 w-4 mr-2" strokeWidth={2} />
+                    <PrimaryActionButton icon={UserPlus} onClick={onAddClick}>
                         Ajouter un employé
-                    </Button>
+                    </PrimaryActionButton>
                 </div>
             </CardContent>
         </Card>

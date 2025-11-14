@@ -1,6 +1,6 @@
 "use client";
 
-import { Card } from "@/components/ui/card";
+import { CardSection } from "@/components/ui/card-section";
 import type { Client } from "@/hooks/use-clients";
 import { AlertCircle, MapPin } from "lucide-react";
 
@@ -13,8 +13,7 @@ export function ClientAddressInfo({ client }: ClientAddressInfoProps) {
         client.adresse || client.ville || client.codePostal || client.pays;
 
     return (
-        <Card className="border-black/8 shadow-sm">
-            <div className="p-5">
+        <CardSection padding="md">
                 <h3 className="text-[15px] font-medium tracking-[-0.01em] text-black mb-4">
                     Adresse
                 </h3>
@@ -50,7 +49,6 @@ export function ClientAddressInfo({ client }: ClientAddressInfoProps) {
                         <span>Adresse non renseignée</span>
                     </div>
                 )}
-            </div>
-        </Card>
+        </CardSection>
     );
 }

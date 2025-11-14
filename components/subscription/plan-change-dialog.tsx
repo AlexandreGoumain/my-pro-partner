@@ -13,7 +13,8 @@ import {
 import { PlanType, PLAN_PRICING } from "@/lib/pricing-config";
 import { useSubscription } from "@/hooks/use-subscription";
 import { useSubscriptionStatus } from "@/hooks/use-subscription-status";
-import { ArrowRight, Loader2, AlertCircle, CheckCircle2, ExternalLink } from "lucide-react";
+import { ArrowRight, AlertCircle, CheckCircle2, ExternalLink } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
 
 interface PlanChangeDialogProps {
@@ -212,7 +213,7 @@ export function PlanChangeDialog({
           >
             {loading || portalLoading ? (
               <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <Spinner className="mr-2" />
                 {isNewSubscription ? "Redirection..." : "Ouverture..."}
               </>
             ) : isNewSubscription ? (

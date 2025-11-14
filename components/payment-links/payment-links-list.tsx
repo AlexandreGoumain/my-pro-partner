@@ -1,5 +1,6 @@
 import type { PaymentLink } from "@/lib/types/payment-link";
 import { EmptyState } from "@/components/ui/empty-state";
+import { LoadingState } from "@/components/ui/loading-state";
 import { PaymentLinkCard } from "./payment-link-card";
 import { Link2, Plus } from "lucide-react";
 
@@ -25,11 +26,7 @@ export function PaymentLinksList({
     getTauxConversion,
 }: PaymentLinksListProps) {
     if (isLoading) {
-        return (
-            <div className="text-center py-12">
-                <p className="text-[14px] text-black/40">Chargement...</p>
-            </div>
-        );
+        return <LoadingState minHeight="sm" className="py-12" />;
     }
 
     if (links.length === 0) {

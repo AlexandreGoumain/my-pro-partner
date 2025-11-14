@@ -2,6 +2,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { Card } from "@/components/ui/card";
 import {
     Dialog,
@@ -30,7 +31,8 @@ import {
     SegmentOperator,
 } from "@/lib/types";
 import { applySegmentCriteria } from "@/lib/utils/segment-filters";
-import { Loader2, Plus, Trash2, Users } from "lucide-react";
+import { Plus, Trash2, Users } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -502,22 +504,18 @@ export function SegmentBuilderDialog({
                         >
                             Annuler
                         </Button>
-                        <Button
+                        <PrimaryActionButton
                             type="submit"
                             disabled={
                                 createMutation.isPending ||
                                 updateMutation.isPending ||
                                 !nom.trim()
                             }
-                            className="h-11 px-6 text-[14px] bg-black hover:bg-black/90 text-white"
                         >
                             {createMutation.isPending ||
                             updateMutation.isPending ? (
                                 <>
-                                    <Loader2
-                                        className="w-4 h-4 mr-2 animate-spin"
-                                        strokeWidth={2}
-                                    />
+                                    <Spinner className="w-4 h-4 mr-2" />
                                     {isEditMode
                                         ? "Modification..."
                                         : "Création..."}
@@ -527,7 +525,7 @@ export function SegmentBuilderDialog({
                             ) : (
                                 "Créer le segment"
                             )}
-                        </Button>
+                        </PrimaryActionButton>
                     </div>
                 </form>
             </DialogContent>

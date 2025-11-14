@@ -1,5 +1,5 @@
 import { LucideIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -64,12 +64,9 @@ export function EmptyState({
                 </p>
             </div>
             {action && (
-                <Button
-                    onClick={action.onClick}
-                    className="h-11 px-6 text-[14px] font-medium bg-black hover:bg-black/90 text-white rounded-md shadow-sm mt-2"
-                >
+                <PrimaryActionButton onClick={action.onClick} className="mt-2">
                     {action.label}
-                </Button>
+                </PrimaryActionButton>
             )}
         </div>
     );

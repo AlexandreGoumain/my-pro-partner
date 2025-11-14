@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { Card } from "@/components/ui/card";
 import { FileUp, Upload } from "lucide-react";
 
@@ -82,14 +82,14 @@ export function ImportSection({
                         </div>
                     </div>
 
-                    <Button
+                    <PrimaryActionButton
                         onClick={onImport}
                         disabled={!selectedFile}
-                        className="w-full h-11 text-[14px] font-medium bg-black hover:bg-black/90 text-white rounded-md shadow-sm cursor-pointer"
+                        className="w-full cursor-pointer"
                     >
                         <Upload className="w-4 h-4 mr-2" strokeWidth={2} />
                         Importer des clients
-                    </Button>
+                    </PrimaryActionButton>
                 </div>
             </div>
         </Card>

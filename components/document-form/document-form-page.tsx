@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { LoadingState } from "@/components/ui/loading-state";
 import { PageHeader } from "@/components/ui/page-header";
 import { Textarea } from "@/components/ui/textarea";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -54,11 +55,7 @@ export function DocumentFormPage({
         return (
             <div className="space-y-6">
                 <PageHeader title={title} description={description} />
-                <Card className="p-12 border-black/8 shadow-sm">
-                    <div className="flex items-center justify-center">
-                        <div className="text-[14px] text-black/40">Chargement du document...</div>
-                    </div>
-                </Card>
+                <LoadingState variant="card" message="Chargement du document..." />
             </div>
         );
     }

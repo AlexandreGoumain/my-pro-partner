@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import {
     Dialog,
     DialogContent,
@@ -366,28 +367,28 @@ export function ArticleCreateDialog({
                             )}
 
                             {currentStep < totalSteps ? (
-                                <Button
+                                <PrimaryActionButton
                                     type="button"
                                     onClick={handleNext}
                                     disabled={currentStep === 1 && !articleType}
-                                    className="bg-black hover:bg-black/90 text-white ml-auto"
+                                    className="ml-auto"
                                 >
                                     Suivant
                                     <ChevronRight className="h-4 w-4 ml-2" />
-                                </Button>
+                                </PrimaryActionButton>
                             ) : (
-                                <Button
+                                <PrimaryActionButton
                                     type="button"
                                     onClick={() =>
                                         form.handleSubmit(onSubmit)()
                                     }
                                     disabled={createArticle.isPending}
-                                    className="bg-black hover:bg-black/90 text-white ml-auto"
+                                    className="ml-auto"
                                 >
                                     {createArticle.isPending
                                         ? "Création..."
                                         : "Créer l'article"}
-                                </Button>
+                                </PrimaryActionButton>
                             )}
                         </DialogFooter>
                     </form>

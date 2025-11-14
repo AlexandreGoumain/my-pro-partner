@@ -1,6 +1,7 @@
 import { ClientCard } from "@/components/client-card";
 import { ArticleCardSkeleton } from "@/components/skeletons";
 import { EmptyState } from "@/components/ui/empty-state";
+import { ResponsiveGrid } from "@/components/ui/responsive-grid";
 import { GridPagination } from "@/app/(dashboard)/dashboard/clients/_components/grid-pagination";
 import { Users } from "lucide-react";
 import type { Client } from "@/hooks/use-clients";
@@ -34,11 +35,11 @@ export function ClientGridView({
 }: ClientGridViewProps) {
     if (isLoading) {
         return (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <ResponsiveGrid columns={{ md: 2, lg: 3, xl: 4 }} gap={4}>
                 {Array.from({ length: 8 }).map((_, i) => (
                     <ArticleCardSkeleton key={i} />
                 ))}
-            </div>
+            </ResponsiveGrid>
         );
     }
 
@@ -71,7 +72,7 @@ export function ClientGridView({
 
     return (
         <>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <ResponsiveGrid columns={{ md: 2, lg: 3, xl: 4 }} gap={4}>
                 {clients.map((client: Client) => (
                     <ClientCard
                         key={client.id}
@@ -81,7 +82,7 @@ export function ClientGridView({
                         onDelete={onDelete}
                     />
                 ))}
-            </div>
+            </ResponsiveGrid>
             {showPagination && (
                 <GridPagination
                     pagination={pagination}

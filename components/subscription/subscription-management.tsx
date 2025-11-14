@@ -12,11 +12,11 @@ import {
 import { useSubscriptionStatus } from "@/hooks/use-subscription-status";
 import { PLAN_PRICING } from "@/lib/pricing-config";
 import {
-  Loader2,
   CheckCircle2,
   Settings,
   ExternalLink,
 } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
 
 /**
@@ -123,7 +123,7 @@ export function SubscriptionManagement() {
         >
           {loading ? (
             <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              <Spinner className="mr-2" />
               Ouverture...
             </>
           ) : (

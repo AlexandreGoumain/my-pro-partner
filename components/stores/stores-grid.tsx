@@ -1,4 +1,5 @@
 import { StoreCard } from "./store-card";
+import { ResponsiveGrid } from "@/components/ui/responsive-grid";
 import { type StoreDisplay } from "@/lib/types/store";
 import { type Store } from "@/hooks/use-stores";
 
@@ -9,7 +10,7 @@ export interface StoresGridProps {
 
 export function StoresGrid({ stores, onEdit }: StoresGridProps) {
     return (
-        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+        <ResponsiveGrid columns={{ md: 2, lg: 3 }} gap={5}>
             {stores.map((store) => (
                 <StoreCard
                     key={store.id}
@@ -17,6 +18,6 @@ export function StoresGrid({ stores, onEdit }: StoresGridProps) {
                     onEdit={onEdit ? () => onEdit(store as unknown as Store) : undefined}
                 />
             ))}
-        </div>
+        </ResponsiveGrid>
     );
 }

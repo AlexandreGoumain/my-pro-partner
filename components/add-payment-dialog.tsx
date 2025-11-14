@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import {
     Dialog,
     DialogContent,
@@ -161,13 +162,9 @@ export function AddPaymentDialog({
                         >
                             Annuler
                         </Button>
-                        <Button
-                            type="submit"
-                            disabled={isSubmitting}
-                            className="h-11 px-6 text-[14px] font-medium bg-black hover:bg-black/90 text-white rounded-md shadow-sm"
-                        >
+                        <PrimaryActionButton type="submit" disabled={isSubmitting}>
                             {isSubmitting ? "Enregistrement..." : "Enregistrer"}
-                        </Button>
+                        </PrimaryActionButton>
                     </div>
                 </form>
             </DialogContent>

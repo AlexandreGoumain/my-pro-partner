@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { Card } from "@/components/ui/card";
 import type { Client } from "@/hooks/use-clients";
 import { FilePlus, Phone, Send } from "lucide-react";
@@ -20,14 +21,14 @@ export function ClientQuickActions({
         <Card className="border-black/8 shadow-sm">
             <div className="p-4">
                 <div className="flex items-center gap-2">
-                    <Button
+                    <PrimaryActionButton
                         onClick={onSendEmail}
                         disabled={!client.email}
-                        className="h-11 px-6 text-[14px] font-medium bg-black hover:bg-black/90 text-white rounded-md shadow-sm cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                         <Send className="h-4 w-4 mr-2" strokeWidth={2} />
                         Envoyer un email
-                    </Button>
+                    </PrimaryActionButton>
                     <Button
                         onClick={onCall}
                         disabled={!client.telephone}

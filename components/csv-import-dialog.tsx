@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import {
     Dialog,
     DialogContent,
@@ -22,10 +23,10 @@ import {
     AlertCircle,
     CheckCircle2,
     Download,
-    Loader2,
     Upload,
     X,
 } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "./ui/badge";
@@ -595,17 +596,13 @@ export function CSVImportDialog({
                         Annuler
                     </Button>
                     {parsedData && (
-                        <Button
+                        <PrimaryActionButton
                             onClick={handleImport}
                             disabled={validationErrors.length > 0 || importing}
-                            className="h-11 px-6 text-[14px] bg-black hover:bg-black/90 text-white"
                         >
                             {importing ? (
                                 <>
-                                    <Loader2
-                                        className="h-4 w-4 mr-2 animate-spin"
-                                        strokeWidth={2}
-                                    />
+                                    <Spinner className="mr-2" />
                                     Import en cours...
                                 </>
                             ) : (
@@ -614,7 +611,7 @@ export function CSVImportDialog({
                                     Importer {parsedData.length} ligne(s)
                                 </>
                             )}
-                        </Button>
+                        </PrimaryActionButton>
                     )}
                 </DialogFooter>
             </DialogContent>

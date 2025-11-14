@@ -29,7 +29,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, UserRole, UserStatus } from "@/hooks/personnel/use-personnel";
 import { ROLE_LABELS, ROLE_DESCRIPTIONS, STATUS_LABELS } from "@/lib/personnel/roles-config";
-import { Loader2 } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 
 const userFormSchema = z.object({
   email: z.string().email("Email invalide"),
@@ -430,7 +430,7 @@ export function UserForm({ user, onSubmit, onCancel, loading = false }: UserForm
             </Button>
           )}
           <Button type="submit" disabled={submitting}>
-            {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {submitting && <Spinner className="mr-2" />}
             {isEdit ? "Mettre à jour" : "Créer l'employé"}
           </Button>
         </div>

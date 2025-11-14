@@ -15,6 +15,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { LoadingState } from "@/components/ui/loading-state";
 import type { StripeReader } from "@/lib/types/pos";
 
 interface RegisterTerminalDialogProps {
@@ -65,9 +66,12 @@ export function RegisterTerminalDialog({
                             </SelectTrigger>
                             <SelectContent>
                                 {isLoadingReaders ? (
-                                    <div className="p-2 text-center text-[13px] text-black/40">
-                                        Chargement...
-                                    </div>
+                                    <LoadingState
+                                        showSpinner={false}
+                                        message="Chargement..."
+                                        className="p-2"
+                                        minHeight="sm"
+                                    />
                                 ) : stripeReaders.length === 0 ? (
                                     <div className="p-2 text-center text-[13px] text-black/40">
                                         Aucun terminal disponible

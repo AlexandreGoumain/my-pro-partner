@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { LoadingState } from "@/components/ui/loading-state";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle, PackagePlus } from "lucide-react";
 import type { ArticleAvecAlerte } from "@/lib/types/stock";
@@ -44,9 +45,7 @@ export function StockAlertsList({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground text-center py-8">
-            Chargement...
-          </p>
+          <LoadingState showSpinner={false} minHeight="sm" className="py-8" />
         </CardContent>
       </Card>
     );

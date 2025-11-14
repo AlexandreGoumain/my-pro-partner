@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -57,11 +58,11 @@ export function ClientPageActions({
             </Button>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <Button className="h-11 px-6 text-[14px] font-medium bg-black hover:bg-black/90 text-white rounded-md shadow-sm cursor-pointer">
+                    <PrimaryActionButton className="cursor-pointer">
                         <Plus className="w-4 h-4 mr-2" strokeWidth={2} />
                         Nouveau client
                         <ChevronDown className="w-4 h-4 ml-2" strokeWidth={2} />
-                    </Button>
+                    </PrimaryActionButton>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
                     <DropdownMenuItem

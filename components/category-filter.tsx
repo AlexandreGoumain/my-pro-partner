@@ -3,6 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { LoadingState } from "@/components/ui/loading-state";
 import {
     Popover,
     PopoverContent,
@@ -177,9 +178,12 @@ export function CategoryFilter({
                 <ScrollArea className="h-[300px]">
                     <div className="p-2">
                         {isLoading ? (
-                            <div className="p-4 text-center text-sm text-muted-foreground">
-                                Chargement...
-                            </div>
+                            <LoadingState
+                                showSpinner={false}
+                                message="Chargement..."
+                                className="p-4"
+                                minHeight="sm"
+                            />
                         ) : rootCategories.length === 0 ? (
                             <div className="p-4 text-center text-sm text-muted-foreground">
                                 Aucune catégorie disponible

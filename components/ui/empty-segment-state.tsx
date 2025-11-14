@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { LucideIcon, Plus, Loader2 } from "lucide-react";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
+import { Spinner } from "@/components/ui/spinner";
+import { LucideIcon, Plus } from "lucide-react";
 
 export interface EmptySegmentStateProps {
     icon: LucideIcon;
@@ -33,17 +34,14 @@ export function EmptySegmentState({
                         {description}
                     </p>
                 </div>
-                <Button
+                <PrimaryActionButton
                     onClick={onButtonClick}
                     disabled={isLoading}
-                    className="h-11 px-6 text-[14px] font-medium bg-black hover:bg-black/90 text-white rounded-md shadow-sm mt-2"
+                    className="mt-2"
                 >
                     {isLoading ? (
                         <>
-                            <Loader2
-                                className="w-4 h-4 mr-2 animate-spin"
-                                strokeWidth={2}
-                            />
+                            <Spinner className="w-4 h-4 mr-2" />
                             Création...
                         </>
                     ) : (
@@ -52,7 +50,7 @@ export function EmptySegmentState({
                             {buttonText}
                         </>
                     )}
-                </Button>
+                </PrimaryActionButton>
             </div>
         </Card>
     );

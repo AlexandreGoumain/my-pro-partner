@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import {
     Dialog,
     DialogContent,
@@ -329,15 +330,14 @@ export function ClientCreateDialog({
                             >
                                 Annuler
                             </Button>
-                            <Button
+                            <PrimaryActionButton
                                 type="submit"
                                 disabled={createClient.isPending}
-                                className="bg-black hover:bg-black/90 text-white h-11 px-6 text-[14px] font-medium rounded-md shadow-sm"
                             >
                                 {createClient.isPending
                                     ? "Création..."
                                     : "Créer le client"}
-                            </Button>
+                            </PrimaryActionButton>
                         </DialogFooter>
                     </form>
                 </Form>

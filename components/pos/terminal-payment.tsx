@@ -18,11 +18,11 @@ import {
 import { Button } from "@/components/ui/button";
 import {
     CreditCard,
-    Loader2,
     CheckCircle,
     XCircle,
     RefreshCw,
 } from "lucide-react";
+import { LoadingState } from "@/components/ui/loading-state";
 import { toast } from "sonner";
 import { Terminal, PaymentStatus } from "@/lib/types/pos";
 import { CartItem } from "@/hooks/use-pos-cart";
@@ -255,12 +255,12 @@ export function TerminalPayment({
 
           {/* Création du paiement */}
           {status === "creating_intent" && (
-            <div className="text-center py-8">
-              <Loader2 className="h-12 w-12 animate-spin text-black mx-auto mb-4" />
-              <p className="text-[14px] text-black/60">
-                Initialisation du paiement...
-              </p>
-            </div>
+            <LoadingState
+              spinnerSize={48}
+              message="Initialisation du paiement..."
+              minHeight="sm"
+              className="py-8"
+            />
           )}
 
           {/* En attente de la carte */}

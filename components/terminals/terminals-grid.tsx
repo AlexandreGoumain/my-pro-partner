@@ -1,4 +1,5 @@
 import type { Terminal } from "@/lib/types/pos";
+import { ResponsiveGrid } from "@/components/ui/responsive-grid";
 import { TerminalCard } from "./terminal-card";
 
 interface TerminalsGridProps {
@@ -13,7 +14,7 @@ export function TerminalsGrid({
     onDelete,
 }: TerminalsGridProps) {
     return (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <ResponsiveGrid columns={{ md: 2, lg: 3 }} gap={4}>
             {terminals.map((terminal) => (
                 <TerminalCard
                     key={terminal.id}
@@ -22,6 +23,6 @@ export function TerminalsGrid({
                     onDelete={onDelete}
                 />
             ))}
-        </div>
+        </ResponsiveGrid>
     );
 }

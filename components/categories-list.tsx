@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { LoadingState } from "@/components/ui/loading-state";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,11 +62,7 @@ export function CategoriesList({
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-10">
-        <p className="text-muted-foreground">Chargement...</p>
-      </div>
-    );
+    return <LoadingState showSpinner={false} minHeight="sm" className="py-10" />;
   }
 
   if (categories.length === 0) {

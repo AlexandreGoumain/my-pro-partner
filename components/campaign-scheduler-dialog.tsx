@@ -8,6 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -448,18 +449,17 @@ export function CampaignSchedulerDialog({
               Sauvegarder en brouillon
             </Button>
 
-            <Button
+            <PrimaryActionButton
               onClick={handleSchedule}
               disabled={
                 createCampaign.isPending ||
                 updateCampaign.isPending ||
                 scheduleCampaign.isPending
               }
-              className="bg-black hover:bg-black/90 text-white h-11 px-6 text-[14px] font-medium rounded-md shadow-sm"
             >
               <Send className="h-4 w-4 mr-2" strokeWidth={2} />
               {scheduledDate ? "Planifier" : "Envoyer maintenant"}
-            </Button>
+            </PrimaryActionButton>
           </div>
         </div>
       </DialogContent>
