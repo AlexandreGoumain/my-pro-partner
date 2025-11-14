@@ -1,4 +1,5 @@
 import { CategoryFilter } from "@/components/category-filter";
+import { SearchBar } from "@/components/ui/search-bar";
 import {
     Select,
     SelectContent,
@@ -6,9 +7,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { ArticleSearchBar } from "./article-search-bar";
-import { ViewModeToggle } from "./view-mode-toggle";
 import { cn } from "@/lib/utils";
+import { ViewModeToggle } from "./view-mode-toggle";
 
 export interface ArticleFiltersBarProps {
     searchTerm: string;
@@ -43,9 +43,11 @@ export function ArticleFiltersBar({
             )}
         >
             <div className="flex flex-1 items-center gap-4">
-                <ArticleSearchBar
-                    searchTerm={searchTerm}
-                    onSearchChange={onSearchChange}
+                <SearchBar
+                    value={searchTerm}
+                    onChange={onSearchChange}
+                    placeholder="Rechercher par nom, référence ou description..."
+                    className="flex-1"
                 />
                 <ViewModeToggle
                     viewMode={viewMode}
