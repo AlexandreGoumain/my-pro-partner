@@ -2,10 +2,11 @@
 
 import { CustomFieldsManager } from "@/components/custom-fields-manager";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { CardSection } from "@/components/ui/card-section";
 import { useCategorie } from "@/hooks/use-categories";
 import { ArrowLeft } from "lucide-react";
-import { LoadingState } from "@/components/ui/loading-state";
+import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import Link from "next/link";
 import { use } from "react";
 
@@ -20,7 +21,14 @@ export default function CategoryTemplatePage({
     const { data: categorie, isLoading: loading } = useCategorie(id);
 
     if (loading) {
-        return <LoadingState spinnerSize={32} minHeight="lg" />;
+        return (
+            <GridSkeleton
+                itemCount={5}
+                gridColumns={{ default: 1 }}
+                gap={2}
+                itemHeight="h-24"
+            />
+        );
     }
 
     if (!categorie) {
@@ -66,36 +74,29 @@ export default function CategoryTemplatePage({
                 </div>
             </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Informations</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
+            <CardSection title="Informations" contentClassName="space-y-2">
+                <div>
+                    <span className="text-sm text-muted-foreground">
+                        Nom :
+                    </span>{" "}
+                    <span className="font-medium">{categorie.nom}</span>
+                </div>
+                {categorie.description && (
                     <div>
                         <span className="text-sm text-muted-foreground">
-                            Nom :
+                            Description :
                         </span>{" "}
-                        <span className="font-medium">{categorie.nom}</span>
+                        <span>{categorie.description}</span>
                     </div>
-                    {categorie.description && (
-                        <div>
-                            <span className="text-sm text-muted-foreground">
-                                Description :
-                            </span>{" "}
-                            <span>{categorie.description}</span>
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
+                )}
+            </CardSection>
 
-            <Card>
-                <CardContent className="pt-6">
-                    <CustomFieldsManager
-                        categorieId={id}
-                        categorieNom={categorie.nom}
-                    />
-                </CardContent>
-            </Card>
+            <CardSection contentClassName="pt-6">
+                <CustomFieldsManager
+                    categorieId={id}
+                    categorieNom={categorie.nom}
+                />
+            </CardSection>
         </div>
     );
 }
