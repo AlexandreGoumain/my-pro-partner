@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { LoadingState } from "@/components/ui/loading-state";
+import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { usePaymentInvoice } from "@/hooks/use-payment-invoice";
 import { format } from "date-fns";
@@ -29,10 +29,10 @@ export default function PayInvoicePage() {
 
     if (isLoading) {
         return (
-            <LoadingState
-                variant="fullscreen"
-                message="Chargement de la facture..."
-                spinnerSize={32}
+            <PageSkeleton
+                layout="simple"
+                itemCount={1}
+                itemHeight="h-[500px]"
             />
         );
     }

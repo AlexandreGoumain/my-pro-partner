@@ -6,7 +6,7 @@ import { PaymentLinkFooter } from "@/components/payment-links/payment-link-foote
 import { PaymentLinkQRCode } from "@/components/payment-links/payment-link-qr-code";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { LoadingState } from "@/components/ui/loading-state";
+import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { usePaymentLink } from "@/hooks/use-payment-link";
 import { AlertCircle } from "lucide-react";
 import Image from "next/image";
@@ -28,7 +28,13 @@ export default function PaymentLinkPage() {
 
     // Loading state
     if (loading) {
-        return <LoadingState variant="fullscreen" />;
+        return (
+            <PageSkeleton
+                layout="simple"
+                itemCount={1}
+                itemHeight="h-[600px]"
+            />
+        );
     }
 
     // Invalid or expired payment link

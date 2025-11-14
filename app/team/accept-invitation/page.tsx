@@ -9,7 +9,7 @@ import {
     InvitationInfoCard,
 } from "@/components/auth";
 import { Button } from "@/components/ui/button";
-import { LoadingState } from "@/components/ui/loading-state";
+import { PageSkeleton } from "@/components/ui/page-skeleton";
 import {
     Form,
     FormControl,
@@ -42,7 +42,7 @@ function AcceptInvitationContent() {
 
     // Loading state
     if (isVerifying) {
-        return <LoadingState minHeight="lg" message="Vérification de l'invitation..." />;
+        return <PageSkeleton layout="form" formSections={2} />;
     }
 
     // Invalid invitation
@@ -236,7 +236,7 @@ function AcceptInvitationContent() {
 
 export default function AcceptInvitationPage() {
     return (
-        <Suspense fallback={<LoadingState minHeight="lg" />}>
+        <Suspense fallback={<PageSkeleton layout="form" formSections={2} />}>
             <AcceptInvitationContent />
         </Suspense>
     );
