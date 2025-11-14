@@ -3,9 +3,9 @@
 import {
     ProfileFormCard,
     ProfileInfoCard,
-    ProfileLoadingSkeleton,
 } from "@/components/client/profile";
 import { EmptyState } from "@/components/client-portal/shared/empty-state";
+import { ClientTabSkeleton } from "@/components/ui/client-tab-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
 import { useClientProfile } from "@/hooks/use-client-profile";
 
@@ -13,7 +13,7 @@ export default function ClientProfilPage() {
     const { profile, isLoading, isSaving, updateProfile } = useClientProfile();
 
     if (isLoading) {
-        return <ProfileLoadingSkeleton />;
+        return <ClientTabSkeleton variant="profile" />;
     }
 
     if (!profile) {

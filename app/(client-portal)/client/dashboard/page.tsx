@@ -1,13 +1,13 @@
 "use client";
 
 import {
-    DashboardLoadingSkeleton,
     LoyaltyInfoCard,
     ProfileCompletionBanner,
     QuickActionsCard,
     StatsGrid,
 } from "@/components/client/dashboard";
 import { FirstTimeGuide } from "@/components/client/first-time-guide";
+import { ClientTabSkeleton } from "@/components/ui/client-tab-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
 import { useClientDashboardStats } from "@/hooks/use-client-dashboard-stats";
 import { useProfileCompletionBanner } from "@/hooks/use-profile-completion-banner";
@@ -20,7 +20,7 @@ export default function ClientDashboardPage() {
     );
 
     if (isLoading) {
-        return <DashboardLoadingSkeleton />;
+        return <ClientTabSkeleton variant="dashboard" />;
     }
 
     const userName = getClientDisplayName(stats?.client);

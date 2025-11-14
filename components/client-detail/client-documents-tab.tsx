@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { Badge } from "@/components/ui/badge";
 import { DocumentStatusBadge } from "@/components/ui/document-status-badge";
-import { LoadingState } from "@/components/ui/loading-state";
+import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { useClientDocuments } from "@/hooks/use-documents";
 import { FileText, FilePlus, Eye, Calendar } from "lucide-react";
 import { format } from "date-fns";
@@ -59,7 +59,14 @@ export function ClientDocumentsTab({
     };
 
     if (isLoading) {
-        return <LoadingState variant="card" message="Chargement des documents..." />;
+        return (
+            <GridSkeleton
+                itemCount={4}
+                gridColumns={{ default: 1 }}
+                gap={4}
+                itemHeight="h-32"
+            />
+        );
     }
 
     if (documents.length === 0) {

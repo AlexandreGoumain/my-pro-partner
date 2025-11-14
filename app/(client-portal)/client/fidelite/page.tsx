@@ -5,8 +5,8 @@ import {
     ClientLoyaltyOverview,
     ClientLoyaltyProgress,
 } from "@/components/client-loyalty";
-import { FidelityLoadingSkeleton } from "@/components/client/loyalty";
 import { EmptyState } from "@/components/client-portal/shared/empty-state";
+import { ClientTabSkeleton } from "@/components/ui/client-tab-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
 import { useClientLoyalty } from "@/hooks/use-client-loyalty";
 
@@ -14,7 +14,7 @@ export default function ClientFidelitePage() {
     const { data, isLoading } = useClientLoyalty();
 
     if (isLoading) {
-        return <FidelityLoadingSkeleton />;
+        return <ClientTabSkeleton variant="loyalty" />;
     }
 
     if (!data) {

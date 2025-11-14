@@ -1,4 +1,3 @@
-export { DashboardLoadingSkeleton } from "./loading-skeleton";
 export { LoyaltyInfoCard } from "./loyalty-info-card";
 export { ProfileCompletionBanner } from "./profile-completion-banner";
 export { QuickActionsCard } from "./quick-actions-card";

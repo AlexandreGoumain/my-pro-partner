@@ -2,9 +2,9 @@
 
 import {
     DocumentCard,
-    DocumentsLoadingSkeleton,
 } from "@/components/client/documents";
 import { EmptyState } from "@/components/client-portal/shared/empty-state";
+import { ClientTabSkeleton } from "@/components/ui/client-tab-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
 import { useClientDocuments } from "@/hooks/use-client-documents";
 import { FileText } from "lucide-react";
@@ -19,7 +19,7 @@ export default function ClientDocumentsPage() {
                     title="Mes documents"
                     description="Consultez et téléchargez vos devis, factures et avoirs"
                 />
-                <DocumentsLoadingSkeleton />
+                <ClientTabSkeleton variant="documents" />
             </div>
         );
     }

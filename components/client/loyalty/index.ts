@@ -1,1 +1,1 @@
-export { FidelityLoadingSkeleton } from "./loading-skeleton";
+// Exports removed - use ClientTabSkeleton from @/components/ui/client-tab-skeleton instead

@@ -9,7 +9,7 @@ import {
 } from "@/components/client-portal";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { LoadingState } from "@/components/ui/loading-state";
+import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { useClientDocumentDetail } from "@/hooks/use-client-document-detail";
 import {
     ArrowLeft,
@@ -38,7 +38,15 @@ export default function DocumentDetailPage() {
         useClientDocumentDetail(documentId);
 
     if (isLoading) {
-        return <LoadingState minHeight="lg" />;
+        return (
+            <PageSkeleton
+                layout="stats-grid"
+                statsCount={3}
+                itemCount={2}
+                statsHeight="h-20"
+                itemHeight="h-96"
+            />
+        );
     }
 
     if (!document) {
