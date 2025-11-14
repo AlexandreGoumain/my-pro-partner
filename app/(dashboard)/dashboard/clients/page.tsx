@@ -5,13 +5,13 @@ import {
     ClientGridView,
     ClientInsightsSection,
     ClientPageActions,
-    ClientSearchBar,
     ClientSegmentBanner,
     ClientStatsGrid,
 } from "@/components/clients";
 import { InviteClientDialog } from "@/components/invite-client-dialog";
 import { PendingClientsSection } from "@/components/pending-clients-section";
 import { DataTable } from "@/components/ui/data-table";
+import { FilterBar } from "@/components/ui/filter-bar";
 import { PageHeader } from "@/components/ui/page-header";
 import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { UsageLimitCard } from "@/components/ui/usage-limit-card";
@@ -75,11 +75,23 @@ function ClientsPageContent() {
                 />
             )}
 
-            <ClientSearchBar
-                searchTerm={handlers.searchTerm}
-                onSearchChange={handlers.setSearchTerm}
-                viewMode={handlers.viewMode}
-                onViewModeChange={handlers.handleViewModeChange}
+            <FilterBar
+                variant="card"
+                filters={[
+                    {
+                        type: "search",
+                        value: handlers.searchTerm,
+                        onChange: handlers.setSearchTerm,
+                        placeholder:
+                            "Rechercher un client par nom, email ou téléphone...",
+                        className: "flex-1",
+                    },
+                    {
+                        type: "view-toggle",
+                        value: handlers.viewMode,
+                        onChange: handlers.handleViewModeChange,
+                    },
+                ]}
             />
 
             {handlers.viewMode === "grid" ? (

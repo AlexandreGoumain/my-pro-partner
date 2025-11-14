@@ -8,16 +8,18 @@
 import {
     PersonnelDialogs,
     PersonnelListItem,
-    PersonnelSearchBar,
     PersonnelStatsGrid,
 } from "@/components/personnel";
 import { CardSection } from "@/components/ui/card-section";
 import { EmptyState } from "@/components/ui/empty-state";
+import { FilterBar } from "@/components/ui/filter-bar";
 import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
 import { UsageLimitCard } from "@/components/ui/usage-limit-card";
+import { UserRole, UserStatus } from "@/hooks/personnel/use-personnel";
 import { usePersonnelPage } from "@/hooks/personnel/use-personnel-page";
-import { Users } from "lucide-react";
+import { ROLE_LABELS, STATUS_LABELS } from "@/lib/personnel/roles-config";
+import { Filter, UserPlus, Users } from "lucide-react";
 
 export default function PersonnelPage() {
     const handlers = usePersonnelPage();
@@ -54,20 +56,74 @@ export default function PersonnelPage() {
             />
 
             {/* Search Bar & Filters */}
-            <PersonnelSearchBar
-                search={handlers.filters.search}
-                onSearchChange={(search) =>
-                    handlers.setFilters({ ...handlers.filters, search })
-                }
-                role={handlers.filters.role}
-                onRoleChange={(role) =>
-                    handlers.setFilters({ ...handlers.filters, role })
-                }
-                status={handlers.filters.status}
-                onStatusChange={(status) =>
-                    handlers.setFilters({ ...handlers.filters, status })
-                }
-                onAddClick={handlers.handleOpenCreateDialog}
+            <FilterBar
+                variant="card"
+                filters={[
+                    {
+                        type: "search",
+                        value: handlers.filters.search,
+                        onChange: (search) =>
+                            handlers.setFilters({
+                                ...handlers.filters,
+                                search,
+                            }),
+                        placeholder: "Rechercher un employé...",
+                        className: "flex-1",
+                    },
+                    {
+                        type: "select",
+                        value: handlers.filters.role || "all",
+                        onChange: (value) =>
+                            handlers.setFilters({
+                                ...handlers.filters,
+                                role:
+                                    value === "all"
+                                        ? undefined
+                                        : (value as UserRole),
+                            }),
+                        placeholder: "Filtrer par rôle",
+                        options: [
+                            { value: "all", label: "Tous les rôles" },
+                            ...Object.entries(ROLE_LABELS).map(
+                                ([key, label]) => ({
+                                    value: key,
+                                    label: label,
+                                })
+                            ),
+                        ],
+                        icon: Filter,
+                        className: "w-full sm:w-[180px]",
+                    },
+                    {
+                        type: "select",
+                        value: handlers.filters.status || "all",
+                        onChange: (value) =>
+                            handlers.setFilters({
+                                ...handlers.filters,
+                                status:
+                                    value === "all"
+                                        ? undefined
+                                        : (value as UserStatus),
+                            }),
+                        placeholder: "Filtrer par statut",
+                        options: [
+                            { value: "all", label: "Tous les statuts" },
+                            ...Object.entries(STATUS_LABELS).map(
+                                ([key, label]) => ({
+                                    value: key,
+                                    label: label,
+                                })
+                            ),
+                        ],
+                        className: "w-full sm:w-[180px]",
+                    },
+                    {
+                        type: "action",
+                        label: "Ajouter un employé",
+                        onClick: handlers.handleOpenCreateDialog,
+                        icon: UserPlus,
+                    },
+                ]}
             />
 
             {/* Users List */}
