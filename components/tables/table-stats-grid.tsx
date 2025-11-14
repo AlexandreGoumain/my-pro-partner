@@ -1,5 +1,5 @@
-import { LayoutGrid, CircleCheckBig, CircleDashed, Clock } from "lucide-react";
-import { StatCard } from "@/components/ui/stat-card";
+import { StatConfig, StatisticsGrid } from "@/components/ui/statistics-grid";
+import { CircleCheckBig, CircleDashed, Clock, LayoutGrid } from "lucide-react";
 
 export interface TableStatsGridProps {
     total: number;
@@ -14,32 +14,36 @@ export function TableStatsGrid({
     occupees,
     reservees,
 }: TableStatsGridProps) {
-    return (
-        <div className="grid gap-4 md:grid-cols-4">
-            <StatCard
-                icon={LayoutGrid}
-                label="Total tables"
-                value={total}
-                size="md"
-            />
-            <StatCard
-                icon={CircleCheckBig}
-                label="Libres"
-                value={libres}
-                size="md"
-            />
-            <StatCard
-                icon={CircleDashed}
-                label="Occupées"
-                value={occupees}
-                size="md"
-            />
-            <StatCard
-                icon={Clock}
-                label="Réservées"
-                value={reservees}
-                size="md"
-            />
-        </div>
-    );
+    const stats: StatConfig[] = [
+        {
+            id: "total",
+            icon: LayoutGrid,
+            label: "Total tables",
+            value: total,
+            size: "md",
+        },
+        {
+            id: "libres",
+            icon: CircleCheckBig,
+            label: "Libres",
+            value: libres,
+            size: "md",
+        },
+        {
+            id: "occupees",
+            icon: CircleDashed,
+            label: "Occupées",
+            value: occupees,
+            size: "md",
+        },
+        {
+            id: "reservees",
+            icon: Clock,
+            label: "Réservées",
+            value: reservees,
+            size: "md",
+        },
+    ];
+
+    return <StatisticsGrid stats={stats} columns={{ md: 4 }} gap={4} />;
 }

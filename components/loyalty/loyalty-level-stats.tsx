@@ -7,6 +7,10 @@ export interface LoyaltyLevelStatsProps {
     maxDiscount: number;
 }
 
+/**
+ * Statistiques des niveaux de fidélité
+ * Note: Layout horizontal custom avec icône à droite, différent du StatCard standard
+ */
 export function LoyaltyLevelStats({
     activeCount,
     totalCount,

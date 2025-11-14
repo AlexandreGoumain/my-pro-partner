@@ -9,6 +9,9 @@ export interface StatsGridProps {
 /**
  * Grid of statistics cards for the dashboard
  * Displays points, loyalty level, documents count, and expiring points
+ *
+ * Note: Ce composant utilise le StatCard local car il a un style différent
+ * (icône à gauche au lieu d'en haut) spécifique au portail client
  */
 export function StatsGrid({ stats }: StatsGridProps) {
     return (

@@ -1,5 +1,5 @@
-import { StatCard } from "@/components/ui/stat-card";
-import { Store, CheckCircle2, XCircle, CreditCard } from "lucide-react";
+import { StatConfig, StatisticsGrid } from "@/components/ui/statistics-grid";
+import { CheckCircle2, CreditCard, Store, XCircle } from "lucide-react";
 
 export interface StoreStatsGridProps {
     total: number;
@@ -14,32 +14,36 @@ export function StoreStatsGrid({
     inactive,
     totalRegisters,
 }: StoreStatsGridProps) {
-    return (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <StatCard
-                icon={Store}
-                label="Total magasins"
-                value={total}
-                size="sm"
-            />
-            <StatCard
-                icon={CheckCircle2}
-                label="Actifs"
-                value={active}
-                size="sm"
-            />
-            <StatCard
-                icon={XCircle}
-                label="Inactifs"
-                value={inactive}
-                size="sm"
-            />
-            <StatCard
-                icon={CreditCard}
-                label="Total caisses"
-                value={totalRegisters}
-                size="sm"
-            />
-        </div>
-    );
+    const stats: StatConfig[] = [
+        {
+            id: "total",
+            icon: Store,
+            label: "Total magasins",
+            value: total,
+            size: "sm",
+        },
+        {
+            id: "active",
+            icon: CheckCircle2,
+            label: "Actifs",
+            value: active,
+            size: "sm",
+        },
+        {
+            id: "inactive",
+            icon: XCircle,
+            label: "Inactifs",
+            value: inactive,
+            size: "sm",
+        },
+        {
+            id: "registers",
+            icon: CreditCard,
+            label: "Total caisses",
+            value: totalRegisters,
+            size: "sm",
+        },
+    ];
+
+    return <StatisticsGrid stats={stats} columns={{ md: 2, lg: 4 }} gap={4} />;
 }

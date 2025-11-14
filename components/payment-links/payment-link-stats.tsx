@@ -1,5 +1,5 @@
-import { StatCard } from "@/components/ui/stat-card";
-import { Link2, Eye, TrendingUp, BarChart3 } from "lucide-react";
+import { StatConfig, StatisticsGrid } from "@/components/ui/statistics-grid";
+import { BarChart3, Eye, Link2, TrendingUp } from "lucide-react";
 
 export interface PaymentLinkStatsProps {
     totalLinks: number;
@@ -14,32 +14,36 @@ export function PaymentLinkStats({
     totalPayments,
     totalRevenue,
 }: PaymentLinkStatsProps) {
-    return (
-        <div className="grid gap-4 md:grid-cols-4">
-            <StatCard
-                icon={Link2}
-                label="Total liens"
-                value={totalLinks}
-                size="sm"
-            />
-            <StatCard
-                icon={Eye}
-                label="Vues totales"
-                value={totalViews}
-                size="sm"
-            />
-            <StatCard
-                icon={TrendingUp}
-                label="Paiements"
-                value={totalPayments}
-                size="sm"
-            />
-            <StatCard
-                icon={BarChart3}
-                label="CA total"
-                value={`${totalRevenue}€`}
-                size="sm"
-            />
-        </div>
-    );
+    const stats: StatConfig[] = [
+        {
+            id: "links",
+            icon: Link2,
+            label: "Total liens",
+            value: totalLinks,
+            size: "sm",
+        },
+        {
+            id: "views",
+            icon: Eye,
+            label: "Vues totales",
+            value: totalViews,
+            size: "sm",
+        },
+        {
+            id: "payments",
+            icon: TrendingUp,
+            label: "Paiements",
+            value: totalPayments,
+            size: "sm",
+        },
+        {
+            id: "revenue",
+            icon: BarChart3,
+            label: "CA total",
+            value: `${totalRevenue}€`,
+            size: "sm",
+        },
+    ];
+
+    return <StatisticsGrid stats={stats} columns={{ md: 4 }} gap={4} />;
 }

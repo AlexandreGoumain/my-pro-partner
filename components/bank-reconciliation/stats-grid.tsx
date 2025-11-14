@@ -7,6 +7,11 @@ export interface StatsGridProps {
     className?: string;
 }
 
+/**
+ * Grille de statistiques pour le rapprochement bancaire
+ * Note: Utilise des couleurs vives (vert/orange/rouge) pour indiquer les statuts
+ * contrairement au style Apple minimal, mais nécessaire pour la clarté des statuts bancaires
+ */
 export function StatsGrid({ stats, className }: StatsGridProps) {
     if (!stats) return null;
 

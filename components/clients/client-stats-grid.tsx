@@ -1,4 +1,4 @@
-import { StatCard } from "@/components/ui/stat-card";
+import { StatisticsGrid, StatConfig } from "@/components/ui/statistics-grid";
 import {
     Users,
     TrendingUp,
@@ -23,49 +23,44 @@ export function ClientStatsGrid({
     inactive,
     onInactiveClick,
 }: ClientStatsGridProps) {
-    return (
-        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
-            <StatCard
-                icon={Users}
-                label="Clients enregistrés"
-                value={total}
-                badge={{ text: "Total" }}
-            />
+    const stats: StatConfig[] = [
+        {
+            id: "total",
+            icon: Users,
+            label: "Clients enregistrés",
+            value: total,
+            badge: { text: "Total" },
+        },
+        {
+            id: "new",
+            icon: TrendingUp,
+            label: "Nouveaux ce mois",
+            value: newThisMonth,
+            badge: { text: `+${newThisMonth}` },
+        },
+        {
+            id: "active",
+            icon: Zap,
+            label: "Actifs (30j)",
+            value: active,
+            badge: { text: calculatePercentage(active, total) },
+        },
+        {
+            id: "inactive",
+            icon: inactive > 0 ? AlertCircle : Clock,
+            label: "Inactifs (>90j)",
+            value: inactive,
+            badge:
+                inactive > 0
+                    ? {
+                          text: "Action requise",
+                          className: "bg-black/10 text-black/80",
+                      }
+                    : undefined,
+            isClickable: inactive > 0,
+            onClick: onInactiveClick,
+        },
+    ];
 
-            <StatCard
-                icon={TrendingUp}
-                label="Nouveaux ce mois"
-                value={newThisMonth}
-                badge={{ text: `+${newThisMonth}` }}
-            />
-
-            <StatCard
-                icon={Zap}
-                label="Actifs (30j)"
-                value={active}
-                badge={{ text: calculatePercentage(active, total) }}
-            />
-
-            <StatCard
-                icon={inactive > 0 ? AlertCircle : Clock}
-                label="Inactifs (>90j)"
-                value={inactive}
-                badge={
-                    inactive > 0
-                        ? {
-                              text: "Action requise",
-                              className: "bg-black/10 text-black/80",
-                          }
-                        : undefined
-                }
-                isClickable={inactive > 0}
-                onClick={onInactiveClick}
-                className={
-                    inactive > 0
-                        ? "border-black/20 hover:border-black/30"
-                        : undefined
-                }
-            />
-        </div>
-    );
+    return <StatisticsGrid stats={stats} columns={{ md: 2, lg: 4 }} gap={5} />;
 }
