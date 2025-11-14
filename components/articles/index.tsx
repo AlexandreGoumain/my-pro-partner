@@ -13,9 +13,6 @@ export type { ArticleSearchBarProps } from "./article-search-bar";
 export { ArticleFiltersBar } from "./article-filters-bar";
 export type { ArticleFiltersBarProps } from "./article-filters-bar";
 
-export { ArticleEmptyState } from "./article-empty-state";
-export type { ArticleEmptyStateProps } from "./article-empty-state";
-
 export { ArticleGridView } from "./article-grid-view";
 export type { ArticleGridViewProps } from "./article-grid-view";
 
