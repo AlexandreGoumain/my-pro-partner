@@ -7,10 +7,8 @@ import { Card } from "@/components/ui/card";
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
 } from "@/components/ui/dialog";
+import { DialogHeaderSection } from "@/components/ui/dialog-header-section";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -218,17 +216,12 @@ export function SegmentBuilderDialog({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle className="text-[20px] font-semibold tracking-[-0.01em]">
-                        {isEditMode
-                            ? "Modifier le segment"
-                            : "Créer un segment personnalisé"}
-                    </DialogTitle>
-                    <DialogDescription className="text-[14px] text-black/60">
-                        Définissez des critères pour segmenter automatiquement
-                        vos clients
-                    </DialogDescription>
-                </DialogHeader>
+                <DialogHeaderSection
+                    title={isEditMode ? "Modifier le segment" : "Créer un segment personnalisé"}
+                    description="Définissez des critères pour segmenter automatiquement vos clients"
+                    titleClassName="text-[20px] font-semibold tracking-[-0.01em]"
+                    descriptionClassName="text-[14px] text-black/60"
+                />
 
                 <form onSubmit={handleSubmit} className="space-y-6 mt-4">
                     {/* Basic Info */}

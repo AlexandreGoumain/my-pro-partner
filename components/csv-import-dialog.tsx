@@ -6,9 +6,8 @@ import {
     Dialog,
     DialogContent,
     DialogFooter,
-    DialogHeader,
-    DialogTitle,
 } from "@/components/ui/dialog";
+import { DialogHeaderSection } from "@/components/ui/dialog-header-section";
 import { Input } from "@/components/ui/input";
 import {
     Table,
@@ -374,14 +373,13 @@ export function CSVImportDialog({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-[95vw] h-[90vh] flex flex-col">
-                <DialogHeader className="flex-shrink-0">
-                    <DialogTitle className="text-[20px] font-semibold tracking-[-0.01em]">
-                        {title}
-                    </DialogTitle>
-                    {description && (
-                        <p className="text-[14px] text-black/60">{description}</p>
-                    )}
-                </DialogHeader>
+                <DialogHeaderSection
+                    title={title}
+                    description={description}
+                    titleClassName="text-[20px] font-semibold tracking-[-0.01em]"
+                    descriptionClassName="text-[14px] text-black/60"
+                    className="flex-shrink-0"
+                />
 
                 <div className="space-y-6 py-4 flex-1 overflow-hidden flex flex-col">
                     {/* File upload */}

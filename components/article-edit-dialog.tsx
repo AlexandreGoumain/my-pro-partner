@@ -7,9 +7,8 @@ import {
     Dialog,
     DialogContent,
     DialogFooter,
-    DialogHeader,
-    DialogTitle,
 } from "@/components/ui/dialog";
+import { DialogHeaderSection } from "@/components/ui/dialog-header-section";
 import {
     Form,
     FormControl,
@@ -19,6 +18,7 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
+import { FormInput } from "@/components/ui/form-input";
 import { Input } from "@/components/ui/input";
 import {
     Select,
@@ -122,9 +122,9 @@ export function ArticleEditDialog({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle>Modifier l&apos;article</DialogTitle>
-                </DialogHeader>
+                <DialogHeaderSection
+                    title="Modifier l'article"
+                />
 
                 <Form {...form}>
                     <form
@@ -138,47 +138,23 @@ export function ArticleEditDialog({
                             </h3>
 
                             <div className="grid grid-cols-2 gap-4">
-                                <FormField
+                                <FormInput
                                     control={form.control}
                                     name="reference"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Référence</FormLabel>
-                                            <FormControl>
-                                                <Input {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
+                                    label="Référence"
                                 />
 
-                                <FormField
+                                <FormInput
                                     control={form.control}
                                     name="nom"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Nom</FormLabel>
-                                            <FormControl>
-                                                <Input {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
+                                    label="Nom"
                                 />
                             </div>
 
-                            <FormField
+                            <FormInput
                                 control={form.control}
                                 name="description"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Description</FormLabel>
-                                        <FormControl>
-                                            <Input {...field} />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
+                                label="Description"
                             />
 
                             <FormField
