@@ -1,8 +1,8 @@
 "use client";
 
 import { ReservationList, ReservationStats } from "@/components/reservations";
+import { ConditionalSkeleton } from "@/components/ui/conditional-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
-import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { useReservationsPage } from "@/hooks/use-reservations-page";
 import { Plus } from "lucide-react";
@@ -17,12 +17,16 @@ export default function ReservationsPage() {
         handleConfirm,
     } = useReservationsPage();
 
-    if (isLoading) {
-        return <PageSkeleton layout="stats-grid" statsCount={4} itemCount={6} />;
-    }
-
     return (
-        <div className="space-y-6">
+        <ConditionalSkeleton
+            isLoading={isLoading}
+            skeletonProps={{
+                layout: "stats-grid",
+                statsCount: 4,
+                itemCount: 6,
+            }}
+        >
+            <div className="space-y-6">
             <PageHeader
                 title="Réservations"
                 description="Gérez vos réservations de tables"
@@ -41,6 +45,7 @@ export default function ReservationsPage() {
                 onEdit={handleEdit}
                 onCreate={handleCreate}
             />
-        </div>
+            </div>
+        </ConditionalSkeleton>
     );
 }

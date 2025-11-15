@@ -13,13 +13,12 @@ import { PendingClientsSection } from "@/components/pending-clients-section";
 import { DataTable } from "@/components/ui/data-table";
 import { FilterBar } from "@/components/ui/filter-bar";
 import { PageHeader } from "@/components/ui/page-header";
-import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { UsageLimitCard } from "@/components/ui/usage-limit-card";
 import { useClientsPage } from "@/hooks/use-clients-page";
 import { CLIENT_COLUMN_LABELS } from "@/lib/constants/clients";
 import { CLIENT_CSV_MAPPINGS } from "@/lib/constants/csv-mappings";
 import { Users as UsersIcon } from "lucide-react";
-import { Suspense } from "react";
+import { SuspensePage } from "@/components/ui/suspense-page";
 
 function ClientsPageContent() {
     const handlers = useClientsPage();
@@ -157,17 +156,15 @@ function ClientsPageContent() {
 
 export default function ClientsPage() {
     return (
-        <Suspense
-            fallback={
-                <PageSkeleton
-                    layout="stats"
-                    headerActionsCount={2}
-                    statsCount={4}
-                    statsHeight="h-24"
-                />
-            }
+        <SuspensePage
+            skeletonProps={{
+                layout: "stats",
+                headerActionsCount: 2,
+                statsCount: 4,
+                statsHeight: "h-24",
+            }}
         >
             <ClientsPageContent />
-        </Suspense>
+        </SuspensePage>
     );
 }

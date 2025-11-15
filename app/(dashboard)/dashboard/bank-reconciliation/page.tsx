@@ -14,7 +14,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { useBankReconciliation } from "@/hooks/use-bank-reconciliation";
 import { RefreshCw, Upload } from "lucide-react";
-import { Suspense } from "react";
+import { SuspensePage } from "@/components/ui/suspense-page";
 
 function BankReconciliationPageContent() {
     const {
@@ -159,8 +159,8 @@ function BankReconciliationPageFallback() {
 
 export default function BankReconciliationPage() {
     return (
-        <Suspense fallback={<BankReconciliationPageFallback />}>
+        <SuspensePage fallback={<BankReconciliationPageFallback />}>
             <BankReconciliationPageContent />
-        </Suspense>
+        </SuspensePage>
     );
 }

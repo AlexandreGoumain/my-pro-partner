@@ -9,11 +9,11 @@ import {
 } from "@/components/articles";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
+import { SuspensePage } from "@/components/ui/suspense-page";
 import { UsageLimitCard } from "@/components/ui/usage-limit-card";
 import { useArticlesPage } from "@/hooks/use-articles-page";
 import { ARTICLE_SORT_OPTIONS } from "@/lib/constants/article-sort-options";
 import { Package, Plus } from "lucide-react";
-import { Suspense } from "react";
 
 function CataloguePageContent() {
     const page = useArticlesPage();
@@ -135,8 +135,8 @@ function CataloguePageFallback() {
 
 export default function CataloguePage() {
     return (
-        <Suspense fallback={<CataloguePageFallback />}>
+        <SuspensePage fallback={<CataloguePageFallback />}>
             <CataloguePageContent />
-        </Suspense>
+        </SuspensePage>
     );
 }

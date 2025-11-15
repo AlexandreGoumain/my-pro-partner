@@ -3,12 +3,13 @@
 import { SettingsContentWrapper } from "@/components/settings/settings-content-wrapper";
 import { SettingsSaveButton } from "@/components/settings/settings-save-button";
 import { SettingsTabs } from "@/components/settings/settings-tabs";
+import { ConditionalSkeleton } from "@/components/ui/conditional-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
-import { PageSkeleton } from "@/components/ui/page-skeleton";
+import { SuspensePage } from "@/components/ui/suspense-page";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useSettingsForm } from "@/hooks/use-settings-form";
 import { useSession } from "next-auth/react";
-import { Suspense, useState } from "react";
+import { useState } from "react";
 import { AccountTab } from "./_components/account-tab";
 import { ExportTab } from "./_components/export-tab";
 import { GeneralTab } from "./_components/general-tab";
@@ -33,20 +34,23 @@ function SettingsPageContent() {
         handleSubmit,
     } = useSettingsForm();
 
-    if (isLoading) {
-        return <PageSkeleton layout="form" withTabs={true} />;
-    }
-
     return (
-        <div className="space-y-8">
-            <div className="text-center">
-                <PageHeader
-                    title="Paramètres"
-                    description="Gérez les paramètres de votre entreprise"
-                />
-            </div>
+        <ConditionalSkeleton
+            isLoading={isLoading}
+            skeletonProps={{
+                layout: "form",
+                withTabs: true,
+            }}
+        >
+            <div className="space-y-8">
+                <div className="text-center">
+                    <PageHeader
+                        title="Paramètres"
+                        description="Gérez les paramètres de votre entreprise"
+                    />
+                </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-6">
                 <Tabs
                     value={activeTab}
                     onValueChange={setActiveTab}
@@ -110,13 +114,19 @@ function SettingsPageContent() {
                 </Tabs>
             </form>
         </div>
+        </ConditionalSkeleton>
     );
 }
 
 export default function SettingsPage() {
     return (
-        <Suspense fallback={<PageSkeleton layout="form" withTabs={true} />}>
+        <SuspensePage
+            skeletonProps={{
+                layout: "form",
+                withTabs: true,
+            }}
+        >
             <SettingsPageContent />
-        </Suspense>
+        </SuspensePage>
     );
 }

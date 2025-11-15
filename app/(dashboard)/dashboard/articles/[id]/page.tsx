@@ -9,7 +9,7 @@ import {
 } from "@/components/articles/mouvement-stock-icon";
 import { Button } from "@/components/ui/button";
 import { CardSection } from "@/components/ui/card-section";
-import { PageSkeleton } from "@/components/ui/page-skeleton";
+import { ConditionalSkeleton } from "@/components/ui/conditional-skeleton";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -66,48 +66,43 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
 
     const isService = useMemo(() => article?.type === "SERVICE", [article]);
 
-    if (isLoading) {
-        return (
-            <PageSkeleton
-                layout="stats-grid"
-                statsCount={4}
-                gridColumns={2}
-                itemCount={4}
-                withTabs={true}
-                tabsCount={5}
-                statsHeight="h-32"
-                itemHeight="h-80"
-            />
-        );
-    }
-
-    if (!article) {
-        return (
-            <div className="text-center space-y-4 py-12">
-                <AlertCircle
-                    className="h-16 w-16 text-black/40 mx-auto"
-                    strokeWidth={1.5}
-                />
-                <h1 className="text-[24px] font-semibold tracking-[-0.01em] text-black">
-                    Article non trouvé
-                </h1>
-                <p className="text-[14px] text-black/60">
-                    L&apos;article que vous recherchez n&apos;existe pas ou a
-                    été supprimé.
-                </p>
-                <Button
-                    onClick={() => router.push("/dashboard/articles")}
-                    className="bg-black hover:bg-black/90 text-white"
-                >
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Retour au catalogue
-                </Button>
-            </div>
-        );
-    }
-
     return (
-        <div className="space-y-6">
+        <ConditionalSkeleton
+            isLoading={isLoading}
+            skeletonProps={{
+                layout: "stats-grid",
+                statsCount: 4,
+                gridColumns: 2,
+                itemCount: 4,
+                withTabs: true,
+                tabsCount: 5,
+                statsHeight: "h-32",
+                itemHeight: "h-80",
+            }}
+        >
+            {!article ? (
+                <div className="text-center space-y-4 py-12">
+                    <AlertCircle
+                        className="h-16 w-16 text-black/40 mx-auto"
+                        strokeWidth={1.5}
+                    />
+                    <h1 className="text-[24px] font-semibold tracking-[-0.01em] text-black">
+                        Article non trouvé
+                    </h1>
+                    <p className="text-[14px] text-black/60">
+                        L&apos;article que vous recherchez n&apos;existe pas ou a
+                        été supprimé.
+                    </p>
+                    <Button
+                        onClick={() => router.push("/dashboard/articles")}
+                        className="bg-black hover:bg-black/90 text-white"
+                    >
+                        <ArrowLeft className="h-4 w-4 mr-2" />
+                        Retour au catalogue
+                    </Button>
+                </div>
+            ) : (
+                <div className="space-y-6">
             <ArticleDetailHeader
                 nom={article.nom}
                 reference={article.reference}
@@ -560,6 +555,8 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
                     </CardSection>
                 </TabsContent>
             </Tabs>
-        </div>
+                </div>
+            )}
+        </ConditionalSkeleton>
     );
 }

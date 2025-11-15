@@ -3,15 +3,21 @@
 import { TableCard } from "@/components/tables/table-card";
 import { TableStatsGrid } from "@/components/tables/table-stats-grid";
 import { CardSection } from "@/components/ui/card-section";
-import { FilterBar } from "@/components/ui/filter-bar";
 import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
-import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { PrimaryActionButton } from "@/components/ui/primary-action-button";
+import { SearchBar } from "@/components/ui/search-bar";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { SuspensePage } from "@/components/ui/suspense-page";
 import { useTablesPage } from "@/hooks/use-tables-page";
 import { TableStatus } from "@/lib/types/table.types";
 import { Plus } from "lucide-react";
-import { Suspense } from "react";
 
 function TablesContent() {
     const {
@@ -135,18 +141,16 @@ function TablesContent() {
 
 export default function TablesPage() {
     return (
-        <Suspense
-            fallback={
-                <PageSkeleton
-                    layout="stats-grid"
-                    statsCount={4}
-                    gridColumns={4}
-                    itemCount={8}
-                    itemHeight="h-[200px]"
-                />
-            }
+        <SuspensePage
+            skeletonProps={{
+                layout: "stats-grid",
+                statsCount: 4,
+                gridColumns: 4,
+                itemCount: 8,
+                itemHeight: "h-[200px]",
+            }}
         >
             <TablesContent />
-        </Suspense>
+        </SuspensePage>
     );
 }

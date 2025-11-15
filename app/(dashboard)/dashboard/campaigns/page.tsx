@@ -2,8 +2,8 @@
 
 import { CampaignSchedulerDialog } from "@/components/campaign-scheduler-dialog";
 import { CampaignStats, CampaignsList } from "@/components/campaigns";
+import { ConditionalSkeleton } from "@/components/ui/conditional-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
-import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { StyledTabs } from "@/components/ui/styled-tabs";
 import { useCampaignsPage } from "@/hooks/use-campaigns-page";
@@ -24,20 +24,6 @@ export default function CampaignsPage() {
         handleSend,
     } = useCampaignsPage();
 
-    if (isLoading) {
-        return (
-            <PageSkeleton
-                layout="stats-grid"
-                statsCount={4}
-                itemCount={5}
-                withTabs={true}
-                tabsCount={4}
-                statsHeight="h-24"
-                itemHeight="h-32"
-            />
-        );
-    }
-
     const campaignListComponent = (
         <CampaignsList
             campaigns={filteredCampaigns}
@@ -49,7 +35,19 @@ export default function CampaignsPage() {
     );
 
     return (
-        <div className="space-y-6">
+        <ConditionalSkeleton
+            isLoading={isLoading}
+            skeletonProps={{
+                layout: "stats-grid",
+                statsCount: 4,
+                itemCount: 5,
+                withTabs: true,
+                tabsCount: 4,
+                statsHeight: "h-24",
+                itemHeight: "h-32",
+            }}
+        >
+            <div className="space-y-6">
             <PageHeader
                 title="Campagnes"
                 description="Planifiez et envoyez des campagnes à vos segments"
@@ -105,6 +103,7 @@ export default function CampaignsPage() {
                 onOpenChange={setSchedulerOpen}
                 campaign={editingCampaign}
             />
-        </div>
+            </div>
+        </ConditionalSkeleton>
     );
 }
