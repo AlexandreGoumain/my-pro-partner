@@ -1,5 +1,5 @@
 import { CategoryFilter } from "@/components/category-filter";
-import { SearchBar } from "@/components/ui/search-bar";
+import { FilterBar } from "@/components/ui/filter-bar";
 import {
     Select,
     SelectContent,
@@ -43,10 +43,17 @@ export function ArticleFiltersBar({
             )}
         >
             <div className="flex flex-1 items-center gap-4">
-                <SearchBar
-                    value={searchTerm}
-                    onChange={onSearchChange}
-                    placeholder="Rechercher par nom, référence ou description..."
+                <FilterBar
+                    filters={[
+                        {
+                            type: "search",
+                            value: searchTerm,
+                            onChange: onSearchChange,
+                            placeholder:
+                                "Rechercher par nom, référence ou description...",
+                            className: "flex-1",
+                        },
+                    ]}
                     className="flex-1"
                 />
                 <ViewModeToggle
