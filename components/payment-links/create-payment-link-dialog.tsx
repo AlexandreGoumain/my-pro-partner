@@ -3,10 +3,8 @@ import { Button } from "@/components/ui/button";
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
 } from "@/components/ui/dialog";
+import { DialogHeaderSection } from "@/components/ui/dialog-header-section";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -75,12 +73,12 @@ export function CreatePaymentLinkDialog({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[550px]">
-                <DialogHeader>
-                    <DialogTitle>Créer un lien de paiement</DialogTitle>
-                    <DialogDescription>
-                        Créez un lien partageable pour recevoir des paiements
-                    </DialogDescription>
-                </DialogHeader>
+                <DialogHeaderSection
+                    title="Créer un lien de paiement"
+                    description="Créez un lien partageable pour recevoir des paiements"
+                    titleClassName="text-[20px] font-semibold tracking-[-0.01em]"
+                    descriptionClassName="text-[14px] text-black/60"
+                />
 
                 <div className="space-y-4 pt-4">
                     <div className="space-y-2">
