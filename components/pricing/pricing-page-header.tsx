@@ -19,7 +19,7 @@ export function PricingPageHeader() {
 
             <p className="text-[18px] text-black/60 max-w-2xl mx-auto leading-relaxed">
                 Des tarifs simples et transparents pour accompagner votre
-                croissance. Changez de plan à tout moment.
+                croissance. Changez de plan Ã  tout moment.
             </p>
         </div>
     );

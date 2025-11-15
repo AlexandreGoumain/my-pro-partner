@@ -2,18 +2,18 @@
 
 import {
     AnomalyDialog,
-    EmptyState,
     FilterButtons,
     MatchDialog,
     StatsGrid,
     TransactionCard,
 } from "@/components/bank-reconciliation";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
 import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
 import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { useBankReconciliation } from "@/hooks/use-bank-reconciliation";
-import { RefreshCw, Upload } from "lucide-react";
+import { FileText, RefreshCw, Upload } from "lucide-react";
 import { SuspensePage } from "@/components/ui/suspense-page";
 
 function BankReconciliationPageContent() {
@@ -87,7 +87,14 @@ function BankReconciliationPageContent() {
                 />
             ) : transactions.length === 0 ? (
                 <EmptyState
-                    onImportClick={() => fileInputRef.current?.click()}
+                    icon={FileText}
+                    title="Aucune transaction"
+                    description="Importez un fichier CSV pour commencer le rapprochement bancaire"
+                    action={{
+                        label: "Importer CSV",
+                        onClick: () => fileInputRef.current?.click(),
+                        icon: Upload,
+                    }}
                 />
             ) : (
                 <div className="space-y-2">
