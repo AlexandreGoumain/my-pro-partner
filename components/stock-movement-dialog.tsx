@@ -6,11 +6,9 @@ import { ButtonWithSpinner } from "@/components/ui/button-with-spinner";
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
     DialogFooter,
-    DialogHeader,
-    DialogTitle,
 } from "@/components/ui/dialog";
+import { DialogHeaderSection } from "@/components/ui/dialog-header-section";
 import {
     Form,
     FormControl,
@@ -20,6 +18,7 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
+import { FormInput } from "@/components/ui/form-input";
 import { Input } from "@/components/ui/input";
 import {
     Select,
@@ -28,7 +27,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { useArticles } from "@/hooks/use-articles";
 import { useFormReset } from "@/hooks/use-form-reset";
 import { useCreateStockMouvement } from "@/hooks/use-stock";
@@ -126,12 +124,10 @@ export function StockMovementDialog({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle>Créer un mouvement de stock</DialogTitle>
-                    <DialogDescription>
-                        Enregistrer une entrée, sortie ou ajustement de stock
-                    </DialogDescription>
-                </DialogHeader>
+                <DialogHeaderSection
+                    title="Créer un mouvement de stock"
+                    description="Enregistrer une entrée, sortie ou ajustement de stock"
+                />
 
                 <Form {...form}>
                     <form
@@ -258,57 +254,27 @@ export function StockMovementDialog({
                                 Informations complémentaires (optionnel)
                             </h3>
 
-                            <FormField
+                            <FormInput
                                 control={form.control}
                                 name="motif"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Motif</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                placeholder="ex: Réception fournisseur, Vente, Casse, etc."
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
+                                label="Motif"
+                                placeholder="ex: Réception fournisseur, Vente, Casse, etc."
                             />
 
-                            <FormField
+                            <FormInput
                                 control={form.control}
                                 name="reference"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Référence</FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                placeholder="ex: N° de bon de livraison, commande, etc."
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
+                                label="Référence"
+                                placeholder="ex: N° de bon de livraison, commande, etc."
                             />
 
-                            <FormField
+                            <FormInput
                                 control={form.control}
                                 name="notes"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Notes</FormLabel>
-                                        <FormControl>
-                                            <Textarea
-                                                placeholder="Notes additionnelles..."
-                                                className="resize-none"
-                                                rows={3}
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
+                                label="Notes"
+                                placeholder="Notes additionnelles..."
+                                textarea
+                                rows={3}
                             />
                         </div>
 

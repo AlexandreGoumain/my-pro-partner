@@ -16,10 +16,8 @@ import {
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
 } from "@/components/ui/dialog";
+import { DialogHeaderSection } from "@/components/ui/dialog-header-section";
 import { UserForm } from "./user-form";
 import { User, CreateUserInput, UpdateUserInput } from "@/hooks/personnel/use-personnel";
 import { Spinner } from "@/components/ui/spinner";
@@ -69,15 +67,12 @@ export function PersonnelDialogs({
             {/* Create Dialog */}
             <Dialog open={createDialogOpen} onOpenChange={onCreateDialogChange}>
                 <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border-black/10">
-                    <DialogHeader>
-                        <DialogTitle className="text-[20px] font-semibold tracking-[-0.01em] text-black">
-                            Ajouter un employé
-                        </DialogTitle>
-                        <DialogDescription className="text-[14px] text-black/60">
-                            Créez un nouveau compte employé. Une invitation sera
-                            envoyée par email.
-                        </DialogDescription>
-                    </DialogHeader>
+                    <DialogHeaderSection
+                        title="Ajouter un employé"
+                        description="Créez un nouveau compte employé. Une invitation sera envoyée par email."
+                        titleClassName="text-[20px] font-semibold tracking-[-0.01em] text-black"
+                        descriptionClassName="text-[14px] text-black/60"
+                    />
                     <UserForm
                         onSubmit={onCreateSubmit}
                         onCancel={() => onCreateDialogChange(false)}
@@ -89,14 +84,12 @@ export function PersonnelDialogs({
             {/* Edit Dialog */}
             <Dialog open={editDialogOpen} onOpenChange={onEditDialogChange}>
                 <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border-black/10">
-                    <DialogHeader>
-                        <DialogTitle className="text-[20px] font-semibold tracking-[-0.01em] text-black">
-                            Modifier l&apos;employé
-                        </DialogTitle>
-                        <DialogDescription className="text-[14px] text-black/60">
-                            Mettez à jour les informations de l&apos;employé
-                        </DialogDescription>
-                    </DialogHeader>
+                    <DialogHeaderSection
+                        title="Modifier l'employé"
+                        description="Mettez à jour les informations de l'employé"
+                        titleClassName="text-[20px] font-semibold tracking-[-0.01em] text-black"
+                        descriptionClassName="text-[14px] text-black/60"
+                    />
                     <UserForm
                         user={selectedUser}
                         onSubmit={onEditSubmit}

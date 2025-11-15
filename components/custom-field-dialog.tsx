@@ -8,11 +8,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
     DialogFooter,
-    DialogHeader,
-    DialogTitle,
 } from "@/components/ui/dialog";
+import { DialogHeaderSection } from "@/components/ui/dialog-header-section";
 import {
     Form,
     FormControl,
@@ -22,6 +20,7 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
+import { FormInput } from "@/components/ui/form-input";
 import { Input } from "@/components/ui/input";
 import {
     Select,
@@ -31,7 +30,6 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Textarea } from "@/components/ui/textarea";
 import {
     useCreateCustomField,
     useUpdateCustomField,
@@ -196,15 +194,10 @@ export function CustomFieldDialog({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle>
-                        {isEdit ? "Modifier" : "Ajouter"} un champ personnalisé
-                    </DialogTitle>
-                    <DialogDescription>
-                        Définissez un champ qui sera demandé lors de la création
-                        d&apos;articles dans cette catégorie
-                    </DialogDescription>
-                </DialogHeader>
+                <DialogHeaderSection
+                    title={`${isEdit ? "Modifier" : "Ajouter"} un champ personnalisé`}
+                    description="Définissez un champ qui sera demandé lors de la création d'articles dans cette catégorie"
+                />
 
                 <Form {...form}>
                     <form
@@ -313,41 +306,21 @@ export function CustomFieldDialog({
                         </div>
 
                         {/* Placeholder */}
-                        <FormField
+                        <FormInput
                             control={form.control}
                             name="placeholder"
-                            render={({ field: formField }) => (
-                                <FormItem>
-                                    <FormLabel>Placeholder</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            placeholder="Texte d'aide affiché dans le champ..."
-                                            {...formField}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
+                            label="Placeholder"
+                            placeholder="Texte d'aide affiché dans le champ..."
                         />
 
                         {/* Description */}
-                        <FormField
+                        <FormInput
                             control={form.control}
                             name="description"
-                            render={({ field: formField }) => (
-                                <FormItem>
-                                    <FormLabel>Description</FormLabel>
-                                    <FormControl>
-                                        <Textarea
-                                            placeholder="Information complémentaire sur ce champ..."
-                                            className="resize-none"
-                                            rows={2}
-                                            {...formField}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
+                            label="Description"
+                            placeholder="Information complémentaire sur ce champ..."
+                            textarea
+                            rows={2}
                         />
 
                         {/* Options pour SELECT et MULTISELECT */}

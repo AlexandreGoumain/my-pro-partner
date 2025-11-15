@@ -5,11 +5,9 @@ import { ButtonWithSpinner } from "@/components/ui/button-with-spinner";
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
     DialogFooter,
-    DialogHeader,
-    DialogTitle,
 } from "@/components/ui/dialog";
+import { DialogHeaderSection } from "@/components/ui/dialog-header-section";
 import {
     Form,
     FormControl,
@@ -19,6 +17,7 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
+import { FormInput } from "@/components/ui/form-input";
 import { Input } from "@/components/ui/input";
 import {
     Select,
@@ -27,7 +26,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { useCategories, useCreateCategorie } from "@/hooks/use-categories";
 import { useFormReset } from "@/hooks/use-form-reset";
 import {
@@ -94,52 +92,31 @@ export function CategoryCreateDialog({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-lg">
-                <DialogHeader>
-                    <DialogTitle>Créer une nouvelle catégorie</DialogTitle>
-                    <DialogDescription>
-                        Organisez vos articles en catégories et sous-catégories
-                    </DialogDescription>
-                </DialogHeader>
+                <DialogHeaderSection
+                    title="Créer une nouvelle catégorie"
+                    description="Organisez vos articles en catégories et sous-catégories"
+                />
 
                 <Form {...form}>
                     <form
                         onSubmit={form.handleSubmit(onSubmit)}
                         className="space-y-4"
                     >
-                        <FormField
+                        <FormInput
                             control={form.control}
                             name="nom"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Nom *</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            placeholder="ex: Électronique, Services, etc."
-                                            {...field}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
+                            label="Nom"
+                            placeholder="ex: Électronique, Services, etc."
+                            required
                         />
 
-                        <FormField
+                        <FormInput
                             control={form.control}
                             name="description"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Description</FormLabel>
-                                    <FormControl>
-                                        <Textarea
-                                            placeholder="Description de la catégorie..."
-                                            className="resize-none"
-                                            rows={3}
-                                            {...field}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
+                            label="Description"
+                            placeholder="Description de la catégorie..."
+                            textarea
+                            rows={3}
                         />
 
                         <FormField
