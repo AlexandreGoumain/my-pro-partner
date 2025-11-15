@@ -7,26 +7,19 @@ import { useLimitDialog } from "@/components/providers/limit-dialog-provider";
 import { SegmentBuilderDialog } from "@/components/segment-builder-dialog";
 import { SegmentComparisonDialog } from "@/components/segment-comparison-dialog";
 import { Button } from "@/components/ui/button";
-import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { FilterBar } from "@/components/ui/filter-bar";
 import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
-import { FilterBar } from "@/components/ui/filter-bar";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { SegmentCard } from "@/components/ui/segment-card";
 import { SegmentCardSkeleton } from "@/components/ui/segment-card-skeleton";
 import { SegmentSectionHeader } from "@/components/ui/segment-section-header";
+import { Spinner } from "@/components/ui/spinner";
 import { StatisticsGrid } from "@/components/ui/statistics-grid";
 import { useSegmentsPage } from "@/hooks/use-segments-page";
 import { getSegmentIcon } from "@/lib/constants/segment-config";
-import {
-    BarChart3,
-    Filter,
-    GitCompare,
-    Plus,
-    Star,
-    Users,
-} from "lucide-react";
-import { Spinner } from "@/components/ui/spinner";
+import { BarChart3, Filter, GitCompare, Plus, Star, Users } from "lucide-react";
 
 export default function ClientSegmentsPage() {
     const { userPlan } = useLimitDialog();
