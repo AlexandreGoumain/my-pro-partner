@@ -9,99 +9,14 @@ import {
 } from "@/components/articles";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
-import { useArticleFilters } from "@/hooks/use-article-filters";
-import { useArticleHandlers } from "@/hooks/use-article-handlers";
-import { useArticleStats } from "@/hooks/use-article-stats";
-import { useArticles } from "@/hooks/use-articles";
-import { useCategories } from "@/hooks/use-categories";
+import { SuspensePage } from "@/components/ui/suspense-page";
+import { UsageLimitCard } from "@/components/ui/usage-limit-card";
+import { useArticlesPage } from "@/hooks/use-articles-page";
 import { ARTICLE_SORT_OPTIONS } from "@/lib/constants/article-sort-options";
-import { expandCategoryIds } from "@/lib/types/category";
-import { getArticleEmptyStateMessage } from "@/lib/utils/article-helpers";
-import { Plus, Package } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
-import { createColumns } from "./_components/data-table/columns";
-import { LimitIndicator } from "@/components/paywall";
-import { useLimitDialog } from "@/components/providers/limit-dialog-provider";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Package, Plus } from "lucide-react";
 
-export default function CataloguePage() {
-    // React Query hooks
-    const { data: articles = [], isLoading } = useArticles();
-    const { data: categories = [] } = useCategories();
-
-    // Article handlers and modal states
-    const handlers = useArticleHandlers();
-
-    // Pricing limit check - maintenant global via provider
-    const { checkLimit, userPlan } = useLimitDialog();
-    const articlesCount = articles.length;
-
-    // UI states
-    const [searchTerm, setSearchTerm] = useState("");
-    const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>(
-        []
-    );
-    const [sortBy, setSortBy] = useState("Nom A-Z");
-    const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-    const [typeFilter, setTypeFilter] = useState<
-        "TOUS" | "PRODUIT" | "SERVICE"
-    >("TOUS");
-
-    // Create columns with handlers
-    const columns = useMemo(
-        () =>
-            createColumns({
-                onView: handlers.handleView,
-                onEdit: handlers.handleEdit,
-                onDuplicate: handlers.handleDuplicate,
-                onDelete: handlers.handleDelete,
-            }),
-        [handlers]
-    );
-
-    // Filter handlers with toggle functionality
-    const handleTypeFilterToggle = useCallback(
-        (type: "TOUS" | "PRODUIT" | "SERVICE") => {
-            if (typeFilter === type && type !== "TOUS") {
-                setTypeFilter("TOUS");
-            } else {
-                setTypeFilter(type);
-            }
-        },
-        [typeFilter]
-    );
-
-    // Statistiques par type
-    const stats = useArticleStats(articles);
-
-    // Obtenir tous les IDs de catégories incluant les enfants
-    const getAllCategoryIds = useMemo(() => {
-        return expandCategoryIds(selectedCategoryIds, categories);
-    }, [selectedCategoryIds, categories]);
-
-    // Filtrer et trier les articles
-    const filteredAndSortedArticles = useArticleFilters({
-        articles,
-        searchTerm,
-        selectedCategoryIds,
-        allCategoryIds: getAllCategoryIds,
-        sortBy,
-        typeFilter,
-    });
-
-    // Messages d'état vide personnalisés
-    const emptyState = useMemo(
-        () => getArticleEmptyStateMessage(typeFilter, articles.length === 0),
-        [typeFilter, articles.length]
-    );
-
-    // Wrapper pour vérifier la limite avant de créer
-    const handleCreateWithLimitCheck = () => {
-        if (!checkLimit("maxProducts", articlesCount)) {
-            return; // Limite atteinte - dialog s'affiche automatiquement
-        }
-        handlers.handleCreate();
-    };
+function CataloguePageContent() {
+    const page = useArticlesPage();
 
     return (
         <div className="space-y-6">
@@ -110,7 +25,7 @@ export default function CataloguePage() {
                 description="Gérez votre catalogue de produits et services"
                 actions={
                     <Button
-                        onClick={handleCreateWithLimitCheck}
+                        onClick={page.handleCreateWithLimitCheck}
                         className="cursor-pointer"
                     >
                         <Plus className="w-4 h-4 mr-2" />
@@ -121,88 +36,107 @@ export default function CataloguePage() {
 
             {/* KPI Cards */}
             <ArticleStatsGrid
-                stats={stats}
-                typeFilter={typeFilter}
-                onTypeFilterToggle={handleTypeFilterToggle}
+                stats={page.stats}
+                typeFilter={page.typeFilter}
+                onTypeFilterToggle={page.handleTypeFilterToggle}
             />
 
-            {/* Indicateur de limite de plan */}
-            <Card className="border-black/10">
-                <CardHeader>
-                    <CardTitle className="text-[16px] font-semibold text-black flex items-center gap-2">
-                        <Package className="w-5 h-5 text-black/60" strokeWidth={2} />
-                        Utilisation
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <LimitIndicator
-                        userPlan={userPlan}
-                        limitKey="maxProducts"
-                        currentValue={articlesCount}
-                        label="Articles"
-                        showProgress
-                        showUpgradeLink
-                    />
-                </CardContent>
-            </Card>
+            <UsageLimitCard
+                userPlan={page.userPlan}
+                limitKey="maxProducts"
+                currentValue={page.articlesCount}
+                label="Articles"
+                icon={Package}
+            />
 
             {/* Filtres et recherche */}
             <ArticleFiltersBar
-                searchTerm={searchTerm}
-                onSearchChange={setSearchTerm}
-                selectedCategoryIds={selectedCategoryIds}
-                onCategoryChange={setSelectedCategoryIds}
-                sortBy={sortBy}
-                onSortChange={setSortBy}
+                searchTerm={page.searchTerm}
+                onSearchChange={page.setSearchTerm}
+                selectedCategoryIds={page.selectedCategoryIds}
+                onCategoryChange={page.setSelectedCategoryIds}
+                sortBy={page.sortBy}
+                onSortChange={page.setSortBy}
                 sortOptions={ARTICLE_SORT_OPTIONS}
-                viewMode={viewMode}
-                onViewModeChange={setViewMode}
+                viewMode={page.viewMode}
+                onViewModeChange={page.setViewMode}
             />
 
             {/* Catalogue en vue grille */}
-            {viewMode === "grid" && (
+            {page.viewMode === "grid" && (
                 <ArticleGridView
-                    articles={filteredAndSortedArticles}
-                    isLoading={isLoading}
-                    emptyState={emptyState}
-                    typeFilter={typeFilter}
-                    hasNoDataAtAll={articles.length === 0}
-                    onView={handlers.handleView}
-                    onEdit={handlers.handleEdit}
-                    onDuplicate={handlers.handleDuplicate}
-                    onDelete={handlers.handleDelete}
-                    onCreateClick={handlers.handleCreate}
+                    articles={page.filteredAndSortedArticles}
+                    isLoading={page.isLoading}
+                    emptyState={page.emptyState}
+                    typeFilter={page.typeFilter}
+                    hasNoDataAtAll={page.articles.length === 0}
+                    onView={page.handleView}
+                    onEdit={page.handleEdit}
+                    onDuplicate={page.handleDuplicate}
+                    onDelete={page.handleDelete}
+                    onCreateClick={page.handleCreate}
                 />
             )}
 
             {/* Catalogue en vue liste */}
-            {viewMode === "list" && (
+            {page.viewMode === "list" && (
                 <ArticleListView
-                    articles={filteredAndSortedArticles}
-                    columns={columns}
-                    isLoading={isLoading}
-                    emptyMessage={emptyState.description}
+                    articles={page.filteredAndSortedArticles}
+                    columns={page.columns}
+                    isLoading={page.isLoading}
+                    emptyMessage={page.emptyState.description}
                 />
             )}
 
             {/* Dialogs */}
             <ArticleDialogs
-                createDialogOpen={handlers.createDialogOpen}
-                onCreateDialogChange={handlers.setCreateDialogOpen}
-                onCreateSuccess={handlers.handleCreateSuccess}
-                viewDialogOpen={handlers.viewDialogOpen}
-                onViewDialogChange={handlers.setViewDialogOpen}
-                editDialogOpen={handlers.editDialogOpen}
-                onEditDialogChange={handlers.setEditDialogOpen}
-                onEditSuccess={handlers.handleEditSuccess}
-                deleteDialogOpen={handlers.deleteDialogOpen}
-                onDeleteDialogChange={handlers.setDeleteDialogOpen}
-                onDeleteConfirm={handlers.confirmDelete}
-                isDeleting={handlers.isDeleting}
-                selectedArticle={handlers.selectedArticle}
+                createDialogOpen={page.createDialogOpen}
+                onCreateDialogChange={page.setCreateDialogOpen}
+                onCreateSuccess={page.handleCreateSuccess}
+                viewDialogOpen={page.viewDialogOpen}
+                onViewDialogChange={page.setViewDialogOpen}
+                editDialogOpen={page.editDialogOpen}
+                onEditDialogChange={page.setEditDialogOpen}
+                onEditSuccess={page.handleEditSuccess}
+                deleteDialogOpen={page.deleteDialogOpen}
+                onDeleteDialogChange={page.setDeleteDialogOpen}
+                onDeleteConfirm={page.confirmDelete}
+                isDeleting={page.isDeleting}
+                selectedArticle={page.selectedArticle}
             />
 
             {/* Dialog de limite atteinte géré globalement par le LimitDialogProvider */}
         </div>
+    );
+}
+
+function CataloguePageFallback() {
+    return (
+        <div className="space-y-6">
+            <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                    <div className="h-9 w-60 bg-black/5 rounded-md animate-pulse" />
+                    <div className="h-5 w-96 bg-black/5 rounded-md animate-pulse" />
+                </div>
+                <div className="h-11 w-28 bg-black/5 rounded-md animate-pulse" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                {[1, 2, 3, 4, 5].map((i) => (
+                    <div
+                        key={i}
+                        className="h-24 bg-black/5 rounded-lg animate-pulse"
+                    />
+                ))}
+            </div>
+            <div className="h-32 bg-black/5 rounded-lg animate-pulse" />
+        </div>
+    );
+}
+
+export default function CataloguePage() {
+    return (
+        <SuspensePage fallback={<CataloguePageFallback />}>
+            <CataloguePageContent />
+        </SuspensePage>
     );
 }

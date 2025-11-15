@@ -28,6 +28,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { useDeleteStockMouvement } from "@/hooks/use-stock";
 import { getMovementConfig } from "@/lib/constants/stock-movements";
 import type { MouvementStockDisplay } from "@/lib/types/stock";
@@ -71,9 +72,12 @@ export function StockHistoryTable({
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center py-10">
-                <p className="text-muted-foreground">Chargement...</p>
-            </div>
+            <GridSkeleton
+                itemCount={5}
+                gridColumns={{ default: 1 }}
+                gap={2}
+                itemHeight="h-16"
+            />
         );
     }
 

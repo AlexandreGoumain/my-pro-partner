@@ -1,3 +1,4 @@
+import { AIAssistant } from "@/components/landing/ai-assistant";
 import { BentoGrid } from "@/components/landing/bento-grid";
 import { CTASection } from "@/components/landing/cta-section";
 import { Footer } from "@/components/landing/footer";
@@ -5,9 +6,8 @@ import { Hero } from "@/components/landing/hero";
 import { HowItWorks } from "@/components/landing/how-it-works";
 import { Navigation } from "@/components/landing/navigation";
 import { PricingCards } from "@/components/landing/pricing-cards";
-import { TrustBadges } from "@/components/landing/trust-badges";
 import { ProblemsSolutions } from "@/components/landing/problems-solutions";
-import { AIAssistant } from "@/components/landing/ai-assistant";
+import { TrustBadges } from "@/components/landing/trust-badges";
 import { VideoDemo } from "@/components/landing/video-demo";
 import type { Metadata } from "next";
 

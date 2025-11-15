@@ -9,56 +9,30 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import { formatCurrency, formatDate } from "@/lib/utils/format";
+import type { UnpaidInvoice, UnpaidInvoiceClient } from "@/lib/types/analytics";
 import { Mail, ExternalLink } from "lucide-react";
 import Link from "next/link";
-
-export interface UnpaidInvoice {
-    id: string;
-    numero: string;
-    dateEmission: Date;
-    dateEcheance: Date | null;
-    daysOverdue: number;
-    isOverdue: boolean;
-    montantTTC: number;
-    resteAPayer: number;
-    statut: string;
-    client: {
-        id: string;
-        nom: string;
-        prenom: string | null;
-        email: string | null;
-        telephone: string | null;
-        ville: string | null;
-    };
-}
 
 export interface UnpaidInvoiceTableProps {
     invoices: UnpaidInvoice[];
     onSendReminder?: (invoiceId: string) => void;
 }
 
+/**
+ * Get formatted client name (prenom + nom or just nom)
+ */
+function getClientName(client: UnpaidInvoiceClient): string {
+    if (client.prenom) {
+        return `${client.prenom} ${client.nom}`;
+    }
+    return client.nom;
+}
+
 export function UnpaidInvoiceTable({
     invoices,
     onSendReminder,
 }: UnpaidInvoiceTableProps) {
-    const formatCurrency = (value: number) => {
-        return new Intl.NumberFormat("fr-FR", {
-            style: "currency",
-            currency: "EUR",
-        }).format(value);
-    };
-
-    const formatDate = (date: Date | null) => {
-        if (!date) return "-";
-        return new Intl.DateTimeFormat("fr-FR").format(new Date(date));
-    };
-
-    const getClientName = (client: UnpaidInvoice["client"]) => {
-        if (client.prenom) {
-            return `${client.prenom} ${client.nom}`;
-        }
-        return client.nom;
-    };
 
     if (invoices.length === 0) {
         return (
@@ -138,8 +112,7 @@ export function UnpaidInvoiceTable({
                             <TableCell>
                                 {invoice.isOverdue ? (
                                     <span className="inline-flex items-center px-2 py-1 rounded text-[12px] font-medium bg-black text-white">
-                                        {invoice.daysOverdue} jour
-                                        {invoice.daysOverdue > 1 ? "s" : ""}
+                                        {invoice.daysOverdue} jour{invoice.daysOverdue > 1 ? "s" : ""}
                                     </span>
                                 ) : (
                                     <span className="text-[13px] text-black/40">

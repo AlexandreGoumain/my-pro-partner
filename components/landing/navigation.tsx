@@ -1,27 +1,21 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { useScroll } from "@/hooks/use-scroll";
+import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 
 export function Navigation() {
-    const [scrolled, setScrolled] = useState(false);
-
-    useEffect(() => {
-        const handleScroll = () => {
-            setScrolled(window.scrollY > 20);
-        };
-        window.addEventListener("scroll", handleScroll);
-        return () => window.removeEventListener("scroll", handleScroll);
-    }, []);
+    const scrolled = useScroll(20);
 
     return (
         <nav
-            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-out ${
+            className={cn(
+                "fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-out",
                 scrolled
                     ? "bg-white/60 backdrop-blur-3xl border-b border-black/[0.08]"
                     : "bg-transparent"
-            }`}
+            )}
         >
             <div className="max-w-[1120px] mx-auto px-6 sm:px-8">
                 <div className="flex items-center justify-between h-12">

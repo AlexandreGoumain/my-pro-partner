@@ -3,6 +3,7 @@ import { useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import type { BusinessTemplate } from "@/lib/services/business-template.service";
 
 const onboardingSchema = z.object({
     nomEntreprise: z
@@ -27,6 +28,7 @@ export interface OnboardingPageHandlers {
     nextStep: () => void;
     prevStep: () => void;
     canGoNext: boolean;
+    handleNext: (selectedTemplate: BusinessTemplate | null) => void;
 }
 
 export function useOnboardingPage(): OnboardingPageHandlers {
@@ -91,6 +93,14 @@ export function useOnboardingPage(): OnboardingPageHandlers {
         }
     };
 
+    const handleNext = (selectedTemplate: BusinessTemplate | null) => {
+        if (step === 1 && canGoNext()) {
+            nextStep();
+        } else if (step === 2 && selectedTemplate) {
+            nextStep();
+        }
+    };
+
     return {
         form,
         isLoading,
@@ -101,5 +111,6 @@ export function useOnboardingPage(): OnboardingPageHandlers {
         nextStep,
         prevStep,
         canGoNext: canGoNext(),
+        handleNext,
     };
 }

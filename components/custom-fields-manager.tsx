@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import {
     useCategoryCustomFields,
     useDeleteCustomField,
@@ -105,9 +106,12 @@ export function CustomFieldsManager({
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center p-8">
-                <div className="text-muted-foreground">Chargement...</div>
-            </div>
+            <GridSkeleton
+                itemCount={4}
+                gridColumns={{ default: 1 }}
+                gap={2}
+                itemHeight="h-24"
+            />
         );
     }
 

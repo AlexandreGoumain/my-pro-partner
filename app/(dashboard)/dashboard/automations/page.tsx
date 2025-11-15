@@ -2,7 +2,9 @@
 
 import { AutomationBuilderDialog } from "@/components/automation-builder-dialog";
 import { AutomationStats, AutomationsList } from "@/components/automations";
-import { Button } from "@/components/ui/button";
+import { ConditionalSkeleton } from "@/components/ui/conditional-skeleton";
+import { PageHeader } from "@/components/ui/page-header";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { useAutomationsPage } from "@/hooks/use-automations-page";
 import { Plus } from "lucide-react";
 
@@ -20,34 +22,27 @@ export default function AutomationsPage() {
         handleCreate,
     } = useAutomationsPage();
 
-    if (isLoading) {
-        return (
-            <div className="flex items-center justify-center h-[50vh]">
-                <div className="text-[14px] text-black/40">Chargement...</div>
-            </div>
-        );
-    }
-
     return (
-        <div className="space-y-6">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-black">
-                        Automations
-                    </h1>
-                    <p className="text-[14px] text-black/60 mt-1">
-                        Configurez des règles automatiques pour vos segments
-                    </p>
-                </div>
-                <Button
-                    onClick={handleCreate}
-                    className="bg-black hover:bg-black/90 text-white h-11 px-6 text-[14px] font-medium rounded-md shadow-sm"
-                >
-                    <Plus className="h-4 w-4 mr-2" strokeWidth={2} />
-                    Nouvelle automation
-                </Button>
-            </div>
+        <ConditionalSkeleton
+            isLoading={isLoading}
+            skeletonProps={{
+                layout: "stats-grid",
+                statsCount: 4,
+                itemCount: 5,
+                statsHeight: "h-24",
+                itemHeight: "h-32",
+            }}
+        >
+            <div className="space-y-6">
+            <PageHeader
+                title="Automations"
+                description="Configurez des règles automatiques pour vos segments"
+                actions={
+                    <PrimaryActionButton icon={Plus} onClick={handleCreate}>
+                        Nouvelle automation
+                    </PrimaryActionButton>
+                }
+            />
 
             {/* Stats */}
             <AutomationStats
@@ -72,6 +67,7 @@ export default function AutomationsPage() {
                 onOpenChange={setBuilderOpen}
                 automation={editingAutomation}
             />
-        </div>
+            </div>
+        </ConditionalSkeleton>
     );
 }

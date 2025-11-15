@@ -1,4 +1,4 @@
-import type { CSVMapping } from "@/components/csv-import-dialog";
+import type { CSVMapping } from "@/lib/types";
 
 export const CLIENT_CSV_MAPPINGS: CSVMapping[] = [
     {

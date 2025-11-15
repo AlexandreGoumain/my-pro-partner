@@ -135,3 +135,18 @@ export function toNumber(value: unknown, defaultValue: number = 0): number {
     const num = Number(value);
     return isNaN(num) ? defaultValue : num;
 }
+
+/**
+ * Truncate a long ID for display purposes
+ * Useful for Stripe session IDs, transaction IDs, etc.
+ *
+ * @param id The ID to truncate
+ * @param maxLength Maximum length before truncation (default: 20)
+ * @returns Truncated ID with ellipsis if needed
+ */
+export function truncateId(id: string, maxLength: number = 20): string {
+    if (!id || id.length <= maxLength) {
+        return id;
+    }
+    return `${id.substring(0, maxLength)}...`;
+}

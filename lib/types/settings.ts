@@ -195,17 +195,22 @@ export interface PreferenceSettings {
     premier_jour?: string;
 }
 
-// Type pour les préférences de notifications
-export interface NotificationPreferences {
-    id?: string;
-    entrepriseId: string;
+// Alias pour compatibilité avec les hooks
+export type PreferencesSettings = PreferenceSettings;
 
-    // Notifications Email
+// Type pour les notifications (formulaire simplifié)
+export interface NotificationSettings {
     email_nouveau_client: boolean;
     email_document_cree: boolean;
     email_document_paye: boolean;
     email_stock_bas: boolean;
     email_rapport_hebdomadaire: boolean;
+}
+
+// Type pour les préférences de notifications (BDD complète)
+export interface NotificationPreferences extends NotificationSettings {
+    id?: string;
+    entrepriseId: string;
 
     // Webhooks
     webhook_enabled: boolean;

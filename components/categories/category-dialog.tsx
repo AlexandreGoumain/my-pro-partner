@@ -14,7 +14,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { FieldBuilderInline } from "@/components/field-builder-inline";
 import type { CategorieWithCount } from "@/lib/types/category";
 import type { ChampPersonnaliseCreateInput } from "@/lib/types/custom-fields";
-import { ChevronRight, Info, Lightbulb, Loader2 } from "lucide-react";
+import { ChevronRight, Info, Lightbulb } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 
 type Category = CategorieWithCount;
 
@@ -332,7 +333,7 @@ export function CategoryDialog({
                             >
                                 {isSubmitting ? (
                                     <>
-                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                        <Spinner className="mr-2" />
                                         {editMode ? "Enregistrement..." : "Création..."}
                                     </>
                                 ) : (
@@ -375,7 +376,7 @@ export function CategoryDialog({
                                 >
                                     {isSubmitting ? (
                                         <>
-                                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                            <Spinner className="mr-2" />
                                             Enregistrement...
                                         </>
                                     ) : (
@@ -388,7 +389,7 @@ export function CategoryDialog({
                                 >
                                     {isSubmitting ? (
                                         <>
-                                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                            <Spinner className="mr-2" />
                                             {editMode ? "Enregistrement..." : "Création..."}
                                         </>
                                     ) : (

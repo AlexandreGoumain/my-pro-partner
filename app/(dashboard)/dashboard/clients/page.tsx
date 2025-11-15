@@ -4,64 +4,24 @@ import {
     ClientDialogs,
     ClientGridView,
     ClientInsightsSection,
-    ClientSearchBar,
+    ClientPageActions,
     ClientSegmentBanner,
     ClientStatsGrid,
 } from "@/components/clients";
-import { PendingClientsSection } from "@/components/pending-clients-section";
 import { InviteClientDialog } from "@/components/invite-client-dialog";
-import { Button } from "@/components/ui/button";
-import { PageHeader } from "@/components/ui/page-header";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useClientsPage } from "@/hooks/use-clients-page";
-import { CLIENT_CSV_MAPPINGS } from "@/lib/constants/csv-mappings";
-import { Plus, Upload, ChevronDown, UserPlus, Mail } from "lucide-react";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Suspense } from "react";
+import { PendingClientsSection } from "@/components/pending-clients-section";
 import { DataTable } from "@/components/ui/data-table";
-import { LimitIndicator } from "@/components/paywall";
-import { useLimitDialog } from "@/components/providers/limit-dialog-provider";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FilterBar } from "@/components/ui/filter-bar";
+import { PageHeader } from "@/components/ui/page-header";
+import { UsageLimitCard } from "@/components/ui/usage-limit-card";
+import { useClientsPage } from "@/hooks/use-clients-page";
+import { CLIENT_COLUMN_LABELS } from "@/lib/constants/clients";
+import { CLIENT_CSV_MAPPINGS } from "@/lib/constants/csv-mappings";
 import { Users as UsersIcon } from "lucide-react";
-
-const CLIENT_COLUMN_LABELS: Record<string, string> = {
-    nom: "Client",
-    telephone: "Téléphone",
-    ville: "Localisation",
-    pays: "Pays",
-    createdAt: "Créé le",
-    actions: "Actions",
-};
+import { SuspensePage } from "@/components/ui/suspense-page";
 
 function ClientsPageContent() {
-    const router = useRouter();
     const handlers = useClientsPage();
-    const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
-
-    // Pricing limit check - maintenant global via provider
-    const { checkLimit, userPlan } = useLimitDialog();
-    const clientsCount = handlers.intelligence.total;
-
-    // Wrapper pour vérifier la limite avant de créer
-    const handleCreateWithLimitCheck = () => {
-        if (!checkLimit("maxClients", clientsCount)) {
-            return; // Limite atteinte - dialog s'affiche automatiquement
-        }
-        handlers.handleCreate();
-    };
-
-    const handleInviteWithLimitCheck = () => {
-        if (!checkLimit("maxClients", clientsCount)) {
-            return; // Limite atteinte - dialog s'affiche automatiquement
-        }
-        setInviteDialogOpen(true);
-    };
 
     return (
         <div className="space-y-6">
@@ -69,41 +29,11 @@ function ClientsPageContent() {
                 title="Dashboard Clients"
                 description="Vue d'ensemble et gestion de votre portefeuille clients"
                 actions={
-                    <>
-                        <Button
-                            onClick={() => handlers.setImportDialogOpen(true)}
-                            variant="outline"
-                            className="h-11 px-6 text-[14px] font-medium border-black/10 hover:bg-black/5"
-                        >
-                            <Upload className="w-4 h-4 mr-2" strokeWidth={2} />
-                            Importer CSV
-                        </Button>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button className="h-11 px-6 text-[14px] font-medium bg-black hover:bg-black/90 text-white rounded-md shadow-sm cursor-pointer">
-                                    <Plus className="w-4 h-4 mr-2" strokeWidth={2} />
-                                    Nouveau client
-                                    <ChevronDown className="w-4 h-4 ml-2" strokeWidth={2} />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-56">
-                                <DropdownMenuItem
-                                    onClick={handleCreateWithLimitCheck}
-                                    className="cursor-pointer"
-                                >
-                                    <UserPlus className="w-4 h-4 mr-2" strokeWidth={2} />
-                                    Créer manuellement
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                    onClick={handleInviteWithLimitCheck}
-                                    className="cursor-pointer"
-                                >
-                                    <Mail className="w-4 h-4 mr-2" strokeWidth={2} />
-                                    Inviter par email
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </>
+                    <ClientPageActions
+                        onImportClick={() => handlers.setImportDialogOpen(true)}
+                        onCreateClick={handlers.handleCreateWithLimitCheck}
+                        onInviteClick={handlers.handleInviteWithLimitCheck}
+                    />
                 }
             />
 
@@ -114,42 +44,24 @@ function ClientsPageContent() {
                 inactive={handlers.intelligence.inactive}
                 onInactiveClick={() =>
                     handlers.intelligence.inactive > 0 &&
-                    router.push("/dashboard/clients/segments")
+                    handlers.navigateToSegments()
                 }
             />
 
-            {/* Indicateur de limite de plan */}
-            <Card className="border-black/10">
-                <CardHeader>
-                    <CardTitle className="text-[16px] font-semibold text-black flex items-center gap-2">
-                        <UsersIcon className="w-5 h-5 text-black/60" strokeWidth={2} />
-                        Utilisation
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <LimitIndicator
-                        userPlan={userPlan}
-                        limitKey="maxClients"
-                        currentValue={clientsCount}
-                        label="Clients"
-                        showProgress
-                        showUpgradeLink
-                    />
-                </CardContent>
-            </Card>
+            <UsageLimitCard
+                userPlan={handlers.userPlan}
+                limitKey="maxClients"
+                currentValue={handlers.intelligence.total}
+                label="Clients"
+                icon={UsersIcon}
+            />
 
             <ClientInsightsSection
                 completionRate={handlers.intelligence.completionRate}
                 completeCount={handlers.intelligence.complete}
-                onSegmentsClick={() =>
-                    router.push("/dashboard/clients/segments")
-                }
-                onStatisticsClick={() =>
-                    router.push("/dashboard/clients/statistiques")
-                }
-                onImportExportClick={() =>
-                    router.push("/dashboard/clients/import-export")
-                }
+                onSegmentsClick={handlers.navigateToSegments}
+                onStatisticsClick={handlers.navigateToStatistics}
+                onImportExportClick={handlers.navigateToImportExport}
             />
 
             <PendingClientsSection />
@@ -162,11 +74,23 @@ function ClientsPageContent() {
                 />
             )}
 
-            <ClientSearchBar
-                searchTerm={handlers.searchTerm}
-                onSearchChange={handlers.setSearchTerm}
-                viewMode={handlers.viewMode}
-                onViewModeChange={handlers.handleViewModeChange}
+            <FilterBar
+                variant="card"
+                filters={[
+                    {
+                        type: "search",
+                        value: handlers.searchTerm,
+                        onChange: handlers.setSearchTerm,
+                        placeholder:
+                            "Rechercher un client par nom, email ou téléphone...",
+                        className: "flex-1",
+                    },
+                    {
+                        type: "view-toggle",
+                        value: handlers.viewMode,
+                        onChange: handlers.handleViewModeChange,
+                    },
+                ]}
             />
 
             {handlers.viewMode === "grid" ? (
@@ -220,11 +144,9 @@ function ClientsPageContent() {
             />
 
             <InviteClientDialog
-                open={inviteDialogOpen}
-                onOpenChange={setInviteDialogOpen}
-                onSuccess={() => {
-                    setInviteDialogOpen(false);
-                }}
+                open={handlers.inviteDialogOpen}
+                onOpenChange={handlers.setInviteDialogOpen}
+                onSuccess={handlers.handleInviteSuccess}
             />
 
             {/* Dialog de limite atteinte géré globalement par le LimitDialogProvider */}
@@ -232,35 +154,17 @@ function ClientsPageContent() {
     );
 }
 
-function ClientsPageFallback() {
-    return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                    <div className="h-9 w-48 bg-black/5 rounded-md animate-pulse" />
-                    <div className="h-5 w-96 bg-black/5 rounded-md animate-pulse" />
-                </div>
-                <div className="flex gap-3">
-                    <div className="h-11 w-36 bg-black/5 rounded-md animate-pulse" />
-                    <div className="h-11 w-36 bg-black/5 rounded-md animate-pulse" />
-                </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                {[1, 2, 3, 4].map((i) => (
-                    <div
-                        key={i}
-                        className="h-24 bg-black/5 rounded-lg animate-pulse"
-                    />
-                ))}
-            </div>
-        </div>
-    );
-}
-
 export default function ClientsPage() {
     return (
-        <Suspense fallback={<ClientsPageFallback />}>
+        <SuspensePage
+            skeletonProps={{
+                layout: "stats",
+                headerActionsCount: 2,
+                statsCount: 4,
+                statsHeight: "h-24",
+            }}
+        >
             <ClientsPageContent />
-        </Suspense>
+        </SuspensePage>
     );
 }

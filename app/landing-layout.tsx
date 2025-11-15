@@ -1,11 +1,11 @@
 import { Footer } from "@/components/landing/footer";
 import { Navigation } from "@/components/landing/navigation";
 
-export default function PublicLayout({
-    children,
-}: {
+export interface LandingLayoutProps {
     children: React.ReactNode;
-}) {
+}
+
+export default function LandingLayout({ children }: LandingLayoutProps) {
     return (
         <>
             <Navigation />

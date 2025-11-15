@@ -4,6 +4,7 @@ import { SerieCard } from "@/components/settings/serie-card";
 import { SerieDialogSimple } from "@/components/settings/serie-dialog-simple";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { SettingsSection } from "@/components/ui/settings-section";
 import { SerieDocument } from "@/lib/types/settings";
 import { FileText, Plus } from "lucide-react";
@@ -81,9 +82,12 @@ export function SeriesTab() {
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center py-12">
-                <div className="text-[14px] text-black/40">Chargement...</div>
-            </div>
+            <GridSkeleton
+                itemCount={4}
+                gridColumns={{ md: 2 }}
+                gap={4}
+                itemHeight="h-32"
+            />
         );
     }
 

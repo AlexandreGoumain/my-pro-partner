@@ -1,16 +1,16 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ButtonWithSpinner } from "@/components/ui/button-with-spinner";
+import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
     DialogFooter,
-    DialogHeader,
-    DialogTitle,
 } from "@/components/ui/dialog";
+import { DialogHeaderSection } from "@/components/ui/dialog-header-section";
 import {
     Form,
     FormControl,
@@ -20,6 +20,7 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
+import { FormInput } from "@/components/ui/form-input";
 import { Input } from "@/components/ui/input";
 import {
     Select,
@@ -28,11 +29,12 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
 import {
     useCreateCustomField,
     useUpdateCustomField,
 } from "@/hooks/use-custom-fields";
+import { useFormReset } from "@/hooks/use-form-reset";
 import {
     ChampPersonnalise,
     TYPE_CHAMP_INFO,
@@ -40,9 +42,6 @@ import {
 } from "@/lib/types/custom-fields";
 import { champPersonnaliseCreateSchema } from "@/lib/validation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import {
     AlignLeft,
     Calendar,
@@ -57,7 +56,7 @@ import {
     Type,
     X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -98,9 +97,21 @@ export function CustomFieldDialog({
     const createMutation = useCreateCustomField(categorieId);
     const updateMutation = useUpdateCustomField(categorieId, field?.id || "");
 
-    const form = useForm<FormData>({
-        resolver: zodResolver(champPersonnaliseCreateSchema),
-        defaultValues: {
+    // Calculate form values from field using useMemo
+    const formValues = useMemo<FormData>(() => {
+        if (field) {
+            return {
+                nom: field.nom,
+                code: field.code,
+                type: field.type as TypeChampCustom,
+                ordre: field.ordre,
+                obligatoire: field.obligatoire,
+                placeholder: field.placeholder || "",
+                description: field.description || "",
+                options: (field.options as string[]) || [],
+            };
+        }
+        return {
             nom: "",
             code: "",
             type: "TEXT",
@@ -109,42 +120,27 @@ export function CustomFieldDialog({
             placeholder: "",
             description: "",
             options: [],
-        },
+        };
+    }, [field]);
+
+    const form = useForm<FormData>({
+        resolver: zodResolver(champPersonnaliseCreateSchema),
+        defaultValues: formValues,
     });
+
+    // Reset form when dialog opens using custom hook
+    useFormReset(form, open, formValues);
+
+    // Reset option input when dialog opens
+    useEffect(() => {
+        if (open) {
+            setOptionInput("");
+        }
+    }, [open]);
 
     const selectedType = form.watch("type");
     const currentOptions = form.watch("options") || [];
     const typeInfo = TYPE_CHAMP_INFO[selectedType as TypeChampCustom];
-
-    // Réinitialiser le formulaire quand on ouvre/ferme
-    useEffect(() => {
-        if (open) {
-            if (field) {
-                form.reset({
-                    nom: field.nom,
-                    code: field.code,
-                    type: field.type as TypeChampCustom,
-                    ordre: field.ordre,
-                    obligatoire: field.obligatoire,
-                    placeholder: field.placeholder || "",
-                    description: field.description || "",
-                    options: (field.options as string[]) || [],
-                });
-            } else {
-                form.reset({
-                    nom: "",
-                    code: "",
-                    type: "TEXT",
-                    ordre: 0,
-                    obligatoire: false,
-                    placeholder: "",
-                    description: "",
-                    options: [],
-                });
-            }
-            setOptionInput("");
-        }
-    }, [open, field, form]);
 
     // Auto-générer le code à partir du nom
     const handleNomChange = (value: string) => {
@@ -198,15 +194,10 @@ export function CustomFieldDialog({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle>
-                        {isEdit ? "Modifier" : "Ajouter"} un champ personnalisé
-                    </DialogTitle>
-                    <DialogDescription>
-                        Définissez un champ qui sera demandé lors de la création
-                        d&apos;articles dans cette catégorie
-                    </DialogDescription>
-                </DialogHeader>
+                <DialogHeaderSection
+                    title={`${isEdit ? "Modifier" : "Ajouter"} un champ personnalisé`}
+                    description="Définissez un champ qui sera demandé lors de la création d'articles dans cette catégorie"
+                />
 
                 <Form {...form}>
                     <form
@@ -231,26 +222,25 @@ export function CustomFieldDialog({
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            {Object.entries(TYPE_CHAMP_INFO).map(
-                                                ([key, info]) => {
-                                                    const Icon =
-                                                        iconMap[info.icon] ||
-                                                        Type;
-                                                    return (
-                                                        <SelectItem
-                                                            key={key}
-                                                            value={key}
-                                                        >
-                                                            <div className="flex items-center gap-2">
-                                                                <Icon className="h-4 w-4" />
-                                                                <span>
-                                                                    {info.label}
-                                                                </span>
-                                                            </div>
-                                                        </SelectItem>
-                                                    );
-                                                }
-                                            )}
+                                            {Object.entries(
+                                                TYPE_CHAMP_INFO
+                                            ).map(([key, info]) => {
+                                                const Icon =
+                                                    iconMap[info.icon] || Type;
+                                                return (
+                                                    <SelectItem
+                                                        key={key}
+                                                        value={key}
+                                                    >
+                                                        <div className="flex items-center gap-2">
+                                                            <Icon className="h-4 w-4" />
+                                                            <span>
+                                                                {info.label}
+                                                            </span>
+                                                        </div>
+                                                    </SelectItem>
+                                                );
+                                            })}
                                         </SelectContent>
                                     </Select>
                                     {typeInfo && (
@@ -316,41 +306,21 @@ export function CustomFieldDialog({
                         </div>
 
                         {/* Placeholder */}
-                        <FormField
+                        <FormInput
                             control={form.control}
                             name="placeholder"
-                            render={({ field: formField }) => (
-                                <FormItem>
-                                    <FormLabel>Placeholder</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            placeholder="Texte d'aide affiché dans le champ..."
-                                            {...formField}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
+                            label="Placeholder"
+                            placeholder="Texte d'aide affiché dans le champ..."
                         />
 
                         {/* Description */}
-                        <FormField
+                        <FormInput
                             control={form.control}
                             name="description"
-                            render={({ field: formField }) => (
-                                <FormItem>
-                                    <FormLabel>Description</FormLabel>
-                                    <FormControl>
-                                        <Textarea
-                                            placeholder="Information complémentaire sur ce champ..."
-                                            className="resize-none"
-                                            rows={2}
-                                            {...formField}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
+                            label="Description"
+                            placeholder="Information complémentaire sur ce champ..."
+                            textarea
+                            rows={2}
                         />
 
                         {/* Options pour SELECT et MULTISELECT */}
@@ -414,8 +384,8 @@ export function CustomFieldDialog({
                                             )}
                                         </Card>
                                         <FormDescription>
-                                            Ajoutez les valeurs possibles pour ce
-                                            champ
+                                            Ajoutez les valeurs possibles pour
+                                            ce champ
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>

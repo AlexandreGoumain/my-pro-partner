@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
     Dialog,
@@ -476,12 +477,9 @@ export function SegmentComparisonDialog({
 
                 {/* Footer */}
                 <div className="flex justify-end pt-4 border-t border-black/10">
-                    <Button
-                        onClick={() => onOpenChange(false)}
-                        className="h-11 px-6 text-[14px] bg-black hover:bg-black/90 text-white"
-                    >
+                    <PrimaryActionButton onClick={() => onOpenChange(false)}>
                         Fermer
-                    </Button>
+                    </PrimaryActionButton>
                 </div>
             </DialogContent>
         </Dialog>

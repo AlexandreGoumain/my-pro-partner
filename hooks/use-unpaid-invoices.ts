@@ -1,44 +1,24 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { formatCurrency } from "@/lib/utils/payment-utils";
-
-export interface UnpaidInvoice {
-    id: string;
-    numero: string;
-    dateEmission: Date;
-    dateEcheance: Date;
-    total_ttc: number;
-    reste_a_payer: number;
-    daysOverdue: number;
-    clientId: string;
-    client: {
-        nom: string;
-        prenom: string | null;
-        email: string | null;
-    };
-}
-
-interface UnpaidInvoicesResponse {
-    invoices: UnpaidInvoice[];
-    summary: {
-        totalInvoices: number;
-        totalUnpaid: number;
-        overdueCount: number;
-        totalOverdue: number;
-        averageOverdueDays: number;
-    };
-}
+import { formatCurrency } from "@/lib/utils/format";
+import type {
+    UnpaidInvoice,
+    UnpaidInvoicesSummary,
+    UnpaidInvoicesResponse,
+    UnpaidInvoicesSortBy,
+    SortOrder,
+} from "@/lib/types/analytics";
 
 interface UseUnpaidInvoicesReturn {
     invoices: UnpaidInvoice[];
-    summary: UnpaidInvoicesResponse["summary"] | undefined;
+    summary: UnpaidInvoicesSummary | undefined;
     isLoading: boolean;
     error: Error | null;
-    sortBy: string;
-    setSortBy: (sort: string) => void;
-    sortOrder: string;
-    setSortOrder: (order: string) => void;
+    sortBy: UnpaidInvoicesSortBy;
+    setSortBy: (sort: UnpaidInvoicesSortBy) => void;
+    sortOrder: SortOrder;
+    setSortOrder: (order: SortOrder) => void;
     overdueOnly: boolean;
     setOverdueOnly: (value: boolean) => void;
     handleSendReminder: (invoiceId: string) => Promise<void>;
@@ -52,8 +32,8 @@ interface UseUnpaidInvoicesReturn {
  * @returns Unpaid invoices data and handlers
  */
 export function useUnpaidInvoices(): UseUnpaidInvoicesReturn {
-    const [sortBy, setSortBy] = useState("dateEcheance");
-    const [sortOrder, setSortOrder] = useState("asc");
+    const [sortBy, setSortBy] = useState<UnpaidInvoicesSortBy>("dateEcheance");
+    const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
     const [overdueOnly, setOverdueOnly] = useState(false);
 
     const { data, isLoading, error } = useQuery<UnpaidInvoicesResponse>({

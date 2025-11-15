@@ -49,7 +49,7 @@ AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName;
 
 interface UserAvatarProps
     extends React.ComponentPropsWithoutRef<typeof Avatar> {
-    src?: string;
+    src?: string | null;
     alt?: string;
     fallback?: string;
 }
@@ -75,7 +75,7 @@ export function UserAvatar({
 
     return (
         <Avatar className={className} {...props}>
-            <AvatarImage src={src} alt={alt} />
+            <AvatarImage src={src || undefined} alt={alt} />
             <AvatarFallback className="text-sm font-medium">
                 {initials}
             </AvatarFallback>

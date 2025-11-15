@@ -3,9 +3,10 @@
 // ============================================
 
 import { useEffect, useRef } from "react";
-import { ChatbotEmptyState } from "./chatbot-empty-state";
+import { EmptyState } from "@/components/ui/empty-state";
 import { ChatbotMessageBubble } from "./chatbot-message-bubble";
 import { ChatbotTypingIndicator } from "./chatbot-typing-indicator";
+import { MessageSquare } from "lucide-react";
 
 export interface Message {
     id: string;
@@ -39,7 +40,14 @@ export function ChatMessagesList({
     return (
         <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
             {messages.length === 0 ? (
-                <ChatbotEmptyState />
+                <EmptyState
+                    icon={MessageSquare}
+                    title="Comment puis-je vous aider ?"
+                    description="Posez-moi des questions sur vos clients, articles, stocks, statistiques et bien plus encore."
+                    variant="centered"
+                    textSize="sm"
+                    iconSize="sm"
+                />
             ) : (
                 <>
                     {messages.map((message, index) => (

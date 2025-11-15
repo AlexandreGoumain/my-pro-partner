@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageHeader } from "@/components/ui/page-header";
+import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { DatePicker } from "@/components/ui/date-picker";
 import { LineItemsEditor } from "./line-items-editor";
@@ -51,16 +52,7 @@ export function DocumentFormPage({
 
     // Afficher un état de chargement si on est en mode édition et que le document se charge
     if (mode === "edit" && isLoadingDocument) {
-        return (
-            <div className="space-y-6">
-                <PageHeader title={title} description={description} />
-                <Card className="p-12 border-black/8 shadow-sm">
-                    <div className="flex items-center justify-center">
-                        <div className="text-[14px] text-black/40">Chargement du document...</div>
-                    </div>
-                </Card>
-            </div>
-        );
+        return <PageSkeleton layout="form" formSections={3} />;
     }
 
     return (

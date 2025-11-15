@@ -18,6 +18,9 @@ interface UseClientAuthReturn {
     client: Client | null;
     isLoading: boolean;
     isAuthenticated: boolean;
+    entrepriseName: string;
+    clientName: string;
+    initials: string;
     logout: () => void;
 }
 
@@ -28,6 +31,7 @@ interface UseClientAuthReturn {
 export function useClientAuth(redirectIfNotAuth = true): UseClientAuthReturn {
     const router = useRouter();
     const [client, setClient] = useState<Client | null>(null);
+    const [entrepriseName, setEntrepriseName] = useState("");
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -58,6 +62,7 @@ export function useClientAuth(redirectIfNotAuth = true): UseClientAuthReturn {
 
                 const data = await res.json();
                 setClient(data.client);
+                setEntrepriseName(data.entreprise?.nom || "");
             } catch (error) {
                 console.error("Auth check failed:", error);
                 if (redirectIfNotAuth) {
@@ -76,10 +81,21 @@ export function useClientAuth(redirectIfNotAuth = true): UseClientAuthReturn {
         router.push("/client/login");
     };
 
+    // Compute client name and initials from client data
+    const clientName = client
+        ? `${client.nom} ${client.prenom || ""}`.trim()
+        : "";
+    const initials = client
+        ? `${client.nom.charAt(0)}${client.prenom?.charAt(0) || ""}`.toUpperCase()
+        : "C";
+
     return {
         client,
         isLoading,
         isAuthenticated: !!client,
+        entrepriseName,
+        clientName,
+        initials,
         logout,
     };
 }

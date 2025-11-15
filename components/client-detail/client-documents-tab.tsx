@@ -2,8 +2,10 @@
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { Badge } from "@/components/ui/badge";
 import { DocumentStatusBadge } from "@/components/ui/document-status-badge";
+import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { useClientDocuments } from "@/hooks/use-documents";
 import { FileText, FilePlus, Eye, Calendar } from "lucide-react";
 import { format } from "date-fns";
@@ -58,13 +60,12 @@ export function ClientDocumentsTab({
 
     if (isLoading) {
         return (
-            <Card className="p-12 border-black/8 shadow-sm">
-                <div className="flex items-center justify-center">
-                    <div className="text-[14px] text-black/40">
-                        Chargement des documents...
-                    </div>
-                </div>
-            </Card>
+            <GridSkeleton
+                itemCount={4}
+                gridColumns={{ default: 1 }}
+                gap={4}
+                itemHeight="h-32"
+            />
         );
     }
 
@@ -87,13 +88,13 @@ export function ClientDocumentsTab({
                             {clientName} apparaîtront ici.
                         </p>
                     </div>
-                    <Button
+                    <PrimaryActionButton
+                        icon={FilePlus}
                         onClick={handleCreateDocument}
-                        className="h-11 px-6 text-[14px] font-medium bg-black hover:bg-black/90 text-white rounded-md shadow-sm mt-2"
+                        className="mt-2"
                     >
-                        <FilePlus className="w-4 h-4 mr-2" strokeWidth={2} />
                         Créer un document
-                    </Button>
+                    </PrimaryActionButton>
                 </div>
             </Card>
         );
@@ -105,13 +106,13 @@ export function ClientDocumentsTab({
                 <p className="text-[14px] text-black/60">
                     {documents.length} document{documents.length > 1 ? "s" : ""}
                 </p>
-                <Button
+                <PrimaryActionButton
                     onClick={handleCreateDocument}
-                    className="h-10 px-5 text-[13px] font-medium bg-black hover:bg-black/90 text-white rounded-md shadow-sm"
+                    className="h-10 px-5 text-[13px]"
                 >
                     <FilePlus className="w-4 h-4 mr-2" strokeWidth={2} />
                     Nouveau document
-                </Button>
+                </PrimaryActionButton>
             </div>
 
             <div className="grid gap-4">

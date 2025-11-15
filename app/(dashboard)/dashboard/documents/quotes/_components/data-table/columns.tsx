@@ -10,37 +10,15 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DocumentStatusBadge } from "@/components/ui/document-status-badge";
+import type { Quote } from "@/lib/types/document.types";
+import type { DocumentHandlers } from "@/hooks/use-document-page";
 import { ColumnDef } from "@tanstack/react-table";
 import { Edit, Eye, FileText, MoreHorizontal, Receipt, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
-export interface Quote {
-    id: string;
-    numero: string;
-    dateEmission: Date;
-    dateEcheance: Date | null;
-    statut: "BROUILLON" | "ENVOYE" | "ACCEPTE" | "REFUSE" | "ANNULE";
-    client: {
-        nom: string;
-        prenom: string | null;
-        email: string | null;
-    };
-    total_ht: number;
-    total_tva: number;
-    total_ttc: number;
-    validite_jours: number;
-}
-
-interface QuoteHandlers {
-    onView: (quote: Quote) => void;
-    onEdit: (quote: Quote) => void;
-    onDelete: (quote: Quote) => void;
-    onConvertToInvoice: (quote: Quote) => void;
-}
-
 export const createColumns = (
-    handlers: QuoteHandlers
+    handlers: DocumentHandlers<Quote>
 ): ColumnDef<Quote>[] => [
     {
         id: "select",

@@ -8,24 +8,11 @@ import {
     useNotificationSettings,
     useUpdateNotificationSettings,
 } from "@/hooks/use-notification-settings";
-import type { CompanySettings } from "@/lib/types/settings";
-
-interface NotificationSettings {
-    email_nouveau_client: boolean;
-    email_document_cree: boolean;
-    email_document_paye: boolean;
-    email_stock_bas: boolean;
-    email_rapport_hebdomadaire: boolean;
-}
-
-interface PreferencesSettings {
-    langue: string;
-    timezone: string;
-    devise: string;
-    format_nombre: string;
-    format_date: string;
-    premier_jour: string;
-}
+import type {
+    CompanySettings,
+    NotificationSettings,
+    PreferencesSettings,
+} from "@/lib/types/settings";
 
 interface UseSettingsFormReturn {
     settings: CompanySettings;
@@ -57,8 +44,6 @@ export function useSettingsForm(): UseSettingsFormReturn {
     // Local state for form (synchronized with React Query data)
     const [settings, setSettings] = useState<CompanySettings>({
         nom_entreprise: "",
-        prefixe_devis: "DEV",
-        prefixe_facture: "FACT",
     });
 
     const [notifications, setNotifications] = useState<NotificationSettings>({
@@ -87,7 +72,14 @@ export function useSettingsForm(): UseSettingsFormReturn {
 
     useEffect(() => {
         if (notificationData) {
-            setNotifications(notificationData);
+            // Extract only notification-related fields
+            setNotifications({
+                email_nouveau_client: notificationData.email_nouveau_client,
+                email_document_cree: notificationData.email_document_cree,
+                email_document_paye: notificationData.email_document_paye,
+                email_stock_bas: notificationData.email_stock_bas,
+                email_rapport_hebdomadaire: notificationData.email_rapport_hebdomadaire,
+            });
         }
     }, [notificationData]);
 
@@ -110,7 +102,7 @@ export function useSettingsForm(): UseSettingsFormReturn {
             // Save company settings and notifications in parallel
             await Promise.all([
                 updateCompany.mutateAsync(settings),
-                updateNotifications.mutateAsync(notifications),
+                updateNotifications.mutateAsync(notifications as any),
             ]);
 
             toast.success("Paramètres enregistrés avec succès");

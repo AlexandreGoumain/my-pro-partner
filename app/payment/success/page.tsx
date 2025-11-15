@@ -1,72 +1,64 @@
 "use client";
 
-import { Suspense } from "react";
-import { useSearchParams } from "next/navigation";
-import { Card } from "@/components/ui/card";
-import { CheckCircle } from "lucide-react";
+import { ConditionalSkeleton } from "@/components/ui/conditional-skeleton";
+import { DetailsSection } from "@/components/ui/details-section";
+import { LoadingState } from "@/components/ui/loading-state";
+import { PaymentStatusCard } from "@/components/ui/payment-status-card";
+import { SuspensePage } from "@/components/ui/suspense-page";
 import { usePaymentSuccess } from "@/hooks/use-payment-success";
+import { truncateId } from "@/lib/utils/payment-utils";
+import { CheckCircle } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 
 function PaymentSuccessContent() {
     const searchParams = useSearchParams();
     const sessionId = searchParams.get("session_id");
     const { isLoading } = usePaymentSuccess();
 
+    const details = sessionId ? (
+        <DetailsSection
+            items={[
+                {
+                    label: "ID de session",
+                    value: truncateId(sessionId),
+                },
+            ]}
+        />
+    ) : undefined;
+
     return (
-        <div className="min-h-screen bg-black/2 flex items-center justify-center p-4">
-            <Card className="max-w-md w-full p-8 border-black/8 shadow-sm">
-                <div className="flex flex-col items-center text-center space-y-6">
-                    <div className="rounded-full h-20 w-20 bg-green-100 flex items-center justify-center">
-                        <CheckCircle className="w-12 h-12 text-green-600" strokeWidth={2} />
-                    </div>
-
-                    {isLoading ? (
-                        <div>
-                            <h1 className="text-[24px] font-semibold tracking-[-0.02em] text-black mb-2">
-                                Traitement du paiement...
-                            </h1>
-                            <p className="text-[14px] text-black/60">
-                                Veuillez patienter pendant que nous confirmons votre paiement.
-                            </p>
-                        </div>
-                    ) : (
-                        <>
-                            <div>
-                                <h1 className="text-[24px] font-semibold tracking-[-0.02em] text-black mb-2">
-                                    Paiement réussi !
-                                </h1>
-                                <p className="text-[14px] text-black/60">
-                                    Votre paiement a été traité avec succès. Vous recevrez un email de confirmation sous peu.
-                                </p>
-                            </div>
-
-                            <div className="w-full pt-4">
-                                <div className="bg-black/5 rounded-lg p-4 space-y-2">
-                                    <div className="flex justify-between text-[13px]">
-                                        <span className="text-black/60">ID de session</span>
-                                        <span className="font-medium text-black">{sessionId?.substring(0, 20)}...</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <p className="text-[12px] text-black/40">
-                                Vous pouvez maintenant fermer cette fenêtre.
-                            </p>
-                        </>
-                    )}
+        <ConditionalSkeleton
+            isLoading={isLoading}
+            skeletonProps={{ layout: "grid" }}
+            fallback={
+                <div className="min-h-screen bg-black/2 flex items-center justify-center p-4">
+                    <PaymentStatusCard
+                        icon={CheckCircle}
+                        title="Traitement du paiement..."
+                        description="Veuillez patienter pendant que nous confirmons votre paiement."
+                        variant="success"
+                    />
                 </div>
-            </Card>
-        </div>
+            }
+        >
+            <div className="min-h-screen bg-black/2 flex items-center justify-center p-4">
+                <PaymentStatusCard
+                    icon={CheckCircle}
+                    title="Paiement réussi !"
+                    description="Votre paiement a été traité avec succès. Vous recevrez un email de confirmation sous peu."
+                    variant="success"
+                    details={details}
+                    footer="Vous pouvez maintenant fermer cette fenêtre."
+                />
+            </div>
+        </ConditionalSkeleton>
     );
 }
 
 export default function PaymentSuccessPage() {
     return (
-        <Suspense fallback={
-            <div className="min-h-screen bg-black/2 flex items-center justify-center p-4">
-                <p className="text-[14px] text-black/60">Chargement...</p>
-            </div>
-        }>
+        <SuspensePage fallback={<LoadingState variant="fullscreen" />}>
             <PaymentSuccessContent />
-        </Suspense>
+        </SuspensePage>
     );
 }

@@ -4,16 +4,28 @@ import { toast } from "sonner";
 import { formatCurrency } from "@/lib/utils/payment-utils";
 
 export interface Debtor {
-    id: string;
-    nom: string;
-    prenom: string | null;
-    email: string | null;
-    telephone: string | null;
-    totalDebt: number;
-    oldestInvoiceDate: Date;
+    client: {
+        id: string;
+        nom: string;
+        prenom: string | null;
+        email: string | null;
+        telephone: string | null;
+        ville: string | null;
+    };
+    totalUnpaid: number;
     unpaidInvoiceCount: number;
-    daysOverdue: number;
-    riskLevel: "HIGH" | "MEDIUM" | "LOW";
+    invoices: Array<{
+        id: string;
+        numero: string;
+        dateEmission: Date;
+        dateEcheance: Date | null;
+        resteAPayer: number;
+        daysOverdue: number;
+    }>;
+    oldestUnpaidDate: Date;
+    averageOverdueDays: number;
+    averagePaymentDelay: number;
+    riskLevel: "low" | "medium" | "high";
 }
 
 interface DebtorsResponse {

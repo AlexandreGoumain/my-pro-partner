@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -62,9 +63,12 @@ export function CategoriesList({
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-10">
-        <p className="text-muted-foreground">Chargement...</p>
-      </div>
+      <GridSkeleton
+        itemCount={6}
+        gridColumns={{ md: 2, lg: 3 }}
+        gap={4}
+        itemHeight="h-52"
+      />
     );
   }
 

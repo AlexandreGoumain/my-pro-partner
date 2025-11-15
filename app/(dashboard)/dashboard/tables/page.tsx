@@ -1,134 +1,156 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Plus, Users, Clock } from "lucide-react";
+import { TableCard } from "@/components/tables/table-card";
+import { TableStatsGrid } from "@/components/tables/table-stats-grid";
+import { CardSection } from "@/components/ui/card-section";
+import { GridSkeleton } from "@/components/ui/grid-skeleton";
+import { PageHeader } from "@/components/ui/page-header";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
+import { SearchBar } from "@/components/ui/search-bar";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { SuspensePage } from "@/components/ui/suspense-page";
+import { useTablesPage } from "@/hooks/use-tables-page";
+import { TableStatus } from "@/lib/types/table.types";
+import { Plus } from "lucide-react";
+
+function TablesContent() {
+    const {
+        searchTerm,
+        setSearchTerm,
+        zoneFilter,
+        setZoneFilter,
+        statusFilter,
+        setStatusFilter,
+        tables,
+        isLoading,
+        stats,
+        handleCreate,
+        handleTableClick,
+        availableZones,
+    } = useTablesPage();
+
+    return (
+        <div className="space-y-6">
+            {/* Header */}
+            <PageHeader
+                title="Gestion des tables"
+                description="Plan de salle et gestion des tables en temps réel"
+                actions={
+                    <PrimaryActionButton icon={Plus} onClick={handleCreate}>
+                        Ajouter une table
+                    </PrimaryActionButton>
+                }
+            />
+
+            {/* Statistics */}
+            <TableStatsGrid
+                total={stats.total}
+                libres={stats.libres}
+                occupees={stats.occupees}
+                reservees={stats.reservees}
+            />
+
+            {/* Filters */}
+            <div className="flex gap-3 flex-wrap">
+                <SearchBar
+                    value={searchTerm}
+                    onChange={setSearchTerm}
+                    placeholder="Rechercher une table..."
+                    className="max-w-md"
+                />
+                <Select
+                    value={zoneFilter}
+                    onValueChange={(value) =>
+                        setZoneFilter(value as typeof zoneFilter)
+                    }
+                >
+                    <SelectTrigger className="w-[200px] h-11 text-[14px] border-black/10">
+                        <SelectValue placeholder="Zone" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">Toutes les zones</SelectItem>
+                        {availableZones.map((zone) => (
+                            <SelectItem key={zone} value={zone}>
+                                {zone}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                <Select
+                    value={statusFilter}
+                    onValueChange={(value) =>
+                        setStatusFilter(value as typeof statusFilter)
+                    }
+                >
+                    <SelectTrigger className="w-[200px] h-11 text-[14px] border-black/10">
+                        <SelectValue placeholder="Statut" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">Tous les statuts</SelectItem>
+                        <SelectItem value={TableStatus.LIBRE}>Libre</SelectItem>
+                        <SelectItem value={TableStatus.OCCUPEE}>
+                            Occupée
+                        </SelectItem>
+                        <SelectItem value={TableStatus.RESERVEE}>
+                            Réservée
+                        </SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+
+            {/* Tables Grid */}
+            <CardSection
+                title="Plan de salle"
+                className="border-black/8 shadow-sm"
+                titleClassName="text-[20px] tracking-[-0.02em]"
+            >
+                {isLoading ? (
+                    <GridSkeleton
+                        itemCount={8}
+                        gridColumns={{ md: 3, lg: 4 }}
+                        gap={4}
+                        itemHeight="h-[200px]"
+                    />
+                ) : tables.length === 0 ? (
+                    <div className="text-center py-12">
+                        <p className="text-[14px] text-black/40">
+                            Aucune table trouvée
+                        </p>
+                    </div>
+                ) : (
+                    <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
+                        {tables.map((table) => (
+                            <TableCard
+                                key={table.id}
+                                table={table}
+                                onClick={handleTableClick}
+                            />
+                        ))}
+                    </div>
+                )}
+            </CardSection>
+        </div>
+    );
+}
 
 export default function TablesPage() {
-  const tables = [
-    { id: 1, numero: 1, capacite: 2, statut: 'LIBRE', zone: 'Terrasse' },
-    { id: 2, numero: 2, capacite: 4, statut: 'OCCUPEE', zone: 'Salle principale', client: 'Dupont', depuis: '18:30' },
-    { id: 3, numero: 3, capacite: 6, statut: 'RESERVEE', zone: 'Salle principale', client: 'Martin', heure: '20:00' },
-    { id: 4, numero: 4, capacite: 2, statut: 'LIBRE', zone: 'Terrasse' },
-    { id: 5, numero: 5, capacite: 4, statut: 'LIBRE', zone: 'Salle principale' },
-    { id: 6, numero: 6, capacite: 8, statut: 'OCCUPEE', zone: 'Salle VIP', client: 'Bernard', depuis: '19:15' },
-  ];
-
-  const getStatusColor = (statut: string) => {
-    switch (statut) {
-      case 'LIBRE': return 'bg-green-100 text-green-800 border-green-200';
-      case 'OCCUPEE': return 'bg-red-100 text-red-800 border-red-200';
-      case 'RESERVEE': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
-  return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Gestion des tables</h1>
-          <p className="text-muted-foreground mt-2">
-            Plan de salle et gestion des tables en temps réel
-          </p>
-        </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Ajouter une table
-        </Button>
-      </div>
-
-      {/* Statistiques */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total tables</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{tables.length}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Libres</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {tables.filter(t => t.statut === 'LIBRE').length}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Occupées</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">
-              {tables.filter(t => t.statut === 'OCCUPEE').length}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Réservées</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">
-              {tables.filter(t => t.statut === 'RESERVEE').length}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Plan de salle */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Plan de salle</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
-            {tables.map((table) => (
-              <div
-                key={table.id}
-                className={`p-4 border-2 rounded-lg cursor-pointer hover:shadow-lg transition-all ${getStatusColor(table.statut)}`}
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <div className="text-xl font-bold">Table {table.numero}</div>
-                  <div className="flex items-center gap-1 text-sm">
-                    <Users className="h-3 w-3" />
-                    <span>{table.capacite}</span>
-                  </div>
-                </div>
-
-                <div className="text-xs mb-2 opacity-80">{table.zone}</div>
-
-                <div className="text-sm font-medium">{table.statut}</div>
-
-                {table.client && (
-                  <div className="mt-2 pt-2 border-t border-current/20">
-                    <div className="text-sm font-medium">{table.client}</div>
-                    {table.depuis && (
-                      <div className="flex items-center gap-1 text-xs mt-1 opacity-80">
-                        <Clock className="h-3 w-3" />
-                        <span>Depuis {table.depuis}</span>
-                      </div>
-                    )}
-                    {table.heure && (
-                      <div className="flex items-center gap-1 text-xs mt-1 opacity-80">
-                        <Clock className="h-3 w-3" />
-                        <span>À {table.heure}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
+    return (
+        <SuspensePage
+            skeletonProps={{
+                layout: "stats-grid",
+                statsCount: 4,
+                gridColumns: 4,
+                itemCount: 8,
+                itemHeight: "h-[200px]",
+            }}
+        >
+            <TablesContent />
+        </SuspensePage>
+    );
 }

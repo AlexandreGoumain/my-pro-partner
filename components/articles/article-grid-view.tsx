@@ -1,9 +1,11 @@
 import { ArticleCard } from "@/components/article-card";
 import { ArticleCardSkeleton } from "@/components/skeletons";
-import { ArticleEmptyState } from "./article-empty-state";
+import { EmptyState } from "@/components/ui/empty-state";
+import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { cn } from "@/lib/utils";
 import { Article } from "@/app/(dashboard)/dashboard/articles/_components/data-table/columns";
-import { LucideIcon } from "lucide-react";
+import { type ArticleTypeFilter } from "@/lib/types/article";
+import { LucideIcon, Plus } from "lucide-react";
 
 export interface ArticleGridViewProps {
     articles: Article[];
@@ -14,7 +16,7 @@ export interface ArticleGridViewProps {
         buttonText: string;
         icon: LucideIcon;
     };
-    typeFilter: "TOUS" | "PRODUIT" | "SERVICE";
+    typeFilter: ArticleTypeFilter;
     hasNoDataAtAll: boolean;
     onView: (article: Article) => void;
     onEdit: (article: Article) => void;
@@ -39,29 +41,27 @@ export function ArticleGridView({
 }: ArticleGridViewProps) {
     if (isLoading) {
         return (
-            <div
-                className={cn(
-                    "grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
-                    className
-                )}
-            >
-                {Array.from({ length: 8 }).map((_, i) => (
-                    <ArticleCardSkeleton key={i} />
-                ))}
-            </div>
+            <GridSkeleton
+                itemCount={8}
+                gridColumns={{ md: 2, lg: 3, xl: 4 }}
+                gap={6}
+                itemSkeleton={<ArticleCardSkeleton />}
+                className={className}
+            />
         );
     }
 
     if (articles.length === 0) {
         return (
-            <ArticleEmptyState
+            <EmptyState
+                icon={emptyState.icon}
                 title={emptyState.title}
                 description={emptyState.description}
-                buttonText={emptyState.buttonText}
-                icon={emptyState.icon}
-                onAction={onCreateClick}
-                typeFilter={typeFilter}
-                hasNoDataAtAll={hasNoDataAtAll}
+                action={{
+                    label: emptyState.buttonText,
+                    onClick: onCreateClick,
+                    icon: Plus,
+                }}
                 className={className}
             />
         );

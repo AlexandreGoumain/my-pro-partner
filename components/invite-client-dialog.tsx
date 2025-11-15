@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { DialogHeaderSection } from "@/components/ui/dialog-header-section";
 import { Button } from "@/components/ui/button";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -115,12 +117,15 @@ export function InviteClientDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-[20px] font-semibold tracking-[-0.02em]">
-            <Mail className="h-5 w-5 inline mr-2" strokeWidth={2} />
-            Inviter un client
-          </DialogTitle>
-        </DialogHeader>
+        <DialogHeaderSection
+          title={
+            <>
+              <Mail className="h-5 w-5 inline mr-2" strokeWidth={2} />
+              Inviter un client
+            </>
+          }
+          titleClassName="text-[20px] font-semibold tracking-[-0.02em]"
+        />
 
         {invitationLink ? (
           <div className="space-y-4">
@@ -153,12 +158,9 @@ export function InviteClientDialog({
                 </Button>
               </div>
             </div>
-            <Button
-              onClick={handleClose}
-              className="w-full h-11 text-[14px] font-medium bg-black hover:bg-black/90 text-white"
-            >
+            <PrimaryActionButton onClick={handleClose} className="w-full">
               Fermer
-            </Button>
+            </PrimaryActionButton>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -255,13 +257,13 @@ export function InviteClientDialog({
               >
                 Annuler
               </Button>
-              <Button
+              <PrimaryActionButton
                 type="submit"
                 disabled={isLoading}
-                className="flex-1 h-11 text-[14px] font-medium bg-black hover:bg-black/90 text-white"
+                className="flex-1"
               >
                 {isLoading ? "Envoi..." : "Envoyer l'invitation"}
-              </Button>
+              </PrimaryActionButton>
             </div>
           </form>
         )}

@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import type { UseFormReturn } from "react-hook-form";
 import type { NiveauFideliteCreateInput } from "@/lib/validation";
 
@@ -202,17 +203,16 @@ export function LoyaltyLevelDialog({
                             >
                                 Annuler
                             </Button>
-                            <Button
+                            <PrimaryActionButton
                                 type="submit"
                                 disabled={isSubmitting}
-                                className="bg-black hover:bg-black/90 text-white h-11 px-6 text-[14px] font-medium rounded-md shadow-sm"
                             >
                                 {isSubmitting
                                     ? "Enregistrement..."
                                     : editMode
                                     ? "Modifier"
                                     : "Créer"}
-                            </Button>
+                            </PrimaryActionButton>
                         </DialogFooter>
                     </form>
                 </Form>

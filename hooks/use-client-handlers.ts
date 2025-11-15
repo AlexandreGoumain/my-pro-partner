@@ -1,8 +1,8 @@
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
-import type { Client } from "@/hooks/use-clients";
+import type { Client } from "@/lib/generated/prisma";
 import { useDeleteClient, useImportClients } from "@/hooks/use-clients";
-import type { CSVMapping } from "@/components/csv-import-dialog";
+import type { CSVMapping } from "@/lib/types";
 
 export interface ClientHandlers {
     createDialogOpen: boolean;

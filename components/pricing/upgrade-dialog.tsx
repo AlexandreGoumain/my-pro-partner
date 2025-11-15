@@ -4,10 +4,8 @@ import { Button } from "@/components/ui/button";
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
 } from "@/components/ui/dialog";
+import { DialogHeaderSection } from "@/components/ui/dialog-header-section";
 import { ArrowRight, Check } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -89,15 +87,12 @@ export function UpgradeDialog({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle className="text-[24px] font-semibold tracking-[-0.01em]">
-                        Débloquez : {featureName}
-                    </DialogTitle>
-                    <DialogDescription className="text-[15px] text-black/60">
-                        Cette fonctionnalité est disponible dans les plans
-                        suivants
-                    </DialogDescription>
-                </DialogHeader>
+                <DialogHeaderSection
+                    title={`Débloquez : ${featureName}`}
+                    description="Cette fonctionnalité est disponible dans les plans suivants"
+                    titleClassName="text-[24px] font-semibold tracking-[-0.01em]"
+                    descriptionClassName="text-[15px] text-black/60"
+                />
 
                 {/* Billing Period Tabs */}
                 <div className="flex justify-center pt-2">

@@ -2,14 +2,13 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { Card } from "@/components/ui/card";
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
 } from "@/components/ui/dialog";
+import { DialogHeaderSection } from "@/components/ui/dialog-header-section";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -30,7 +29,8 @@ import {
     SegmentOperator,
 } from "@/lib/types";
 import { applySegmentCriteria } from "@/lib/utils/segment-filters";
-import { Loader2, Plus, Trash2, Users } from "lucide-react";
+import { Plus, Trash2, Users } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -216,17 +216,12 @@ export function SegmentBuilderDialog({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle className="text-[20px] font-semibold tracking-[-0.01em]">
-                        {isEditMode
-                            ? "Modifier le segment"
-                            : "Créer un segment personnalisé"}
-                    </DialogTitle>
-                    <DialogDescription className="text-[14px] text-black/60">
-                        Définissez des critères pour segmenter automatiquement
-                        vos clients
-                    </DialogDescription>
-                </DialogHeader>
+                <DialogHeaderSection
+                    title={isEditMode ? "Modifier le segment" : "Créer un segment personnalisé"}
+                    description="Définissez des critères pour segmenter automatiquement vos clients"
+                    titleClassName="text-[20px] font-semibold tracking-[-0.01em]"
+                    descriptionClassName="text-[14px] text-black/60"
+                />
 
                 <form onSubmit={handleSubmit} className="space-y-6 mt-4">
                     {/* Basic Info */}
@@ -502,22 +497,18 @@ export function SegmentBuilderDialog({
                         >
                             Annuler
                         </Button>
-                        <Button
+                        <PrimaryActionButton
                             type="submit"
                             disabled={
                                 createMutation.isPending ||
                                 updateMutation.isPending ||
                                 !nom.trim()
                             }
-                            className="h-11 px-6 text-[14px] bg-black hover:bg-black/90 text-white"
                         >
                             {createMutation.isPending ||
                             updateMutation.isPending ? (
                                 <>
-                                    <Loader2
-                                        className="w-4 h-4 mr-2 animate-spin"
-                                        strokeWidth={2}
-                                    />
+                                    <Spinner className="w-4 h-4 mr-2" />
                                     {isEditMode
                                         ? "Modification..."
                                         : "Création..."}
@@ -527,7 +518,7 @@ export function SegmentBuilderDialog({
                             ) : (
                                 "Créer le segment"
                             )}
-                        </Button>
+                        </PrimaryActionButton>
                     </div>
                 </form>
             </DialogContent>

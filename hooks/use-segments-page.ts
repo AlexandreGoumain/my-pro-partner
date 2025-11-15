@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useClientsStats } from "@/hooks/use-clients";
@@ -10,25 +10,25 @@ import {
 } from "@/hooks/use-segments";
 import type { Segment } from "@/lib/types";
 
+interface SegmentStats {
+    totalSegments: number;
+    activeSegments: number;
+    totalClientsInSegments: number;
+    averageClientsPerSegment: number;
+}
+
 export interface SegmentsPageHandlers {
     segments: Segment[];
     isLoading: boolean;
-    clientsStats: Record<string, number>;
     totalClients: number;
 
     searchQuery: string;
     setSearchQuery: (query: string) => void;
 
-    filteredSegments: Segment[];
     predefinedSegments: Segment[];
     customSegments: Segment[];
 
-    stats: {
-        totalSegments: number;
-        activeSegments: number;
-        totalClientsInSegments: number;
-        averageClientsPerSegment: number;
-    };
+    stats: SegmentStats;
 
     builderDialogOpen: boolean;
     setBuilderDialogOpen: (open: boolean) => void;
@@ -42,10 +42,9 @@ export interface SegmentsPageHandlers {
     selectedSegmentForEmail: Segment | null;
     selectedSegmentForEdit: Segment | null;
     setSelectedSegmentForEdit: (segment: Segment | null) => void;
-    segmentToDelete: string | null;
 
-    seedMutation: { isPending: boolean; mutate: (data: unknown) => void };
-    deleteMutation: { isPending: boolean; mutate: (id: string) => void };
+    seedMutation: ReturnType<typeof useSeedSegments>;
+    deleteMutation: ReturnType<typeof useDeleteSegment>;
 
     handleSeedSegments: () => Promise<void>;
     handleExportSegment: (segmentId: string, format: "csv" | "json") => Promise<void>;
@@ -129,7 +128,7 @@ export function useSegmentsPage(): SegmentsPageHandlers {
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, []);
 
-    const handleSeedSegments = async () => {
+    const handleSeedSegments = useCallback(async () => {
         try {
             const result = await seedMutation.mutateAsync();
             toast.success(
@@ -138,30 +137,36 @@ export function useSegmentsPage(): SegmentsPageHandlers {
                 } créé${result.created > 1 ? "s" : ""} avec succès`
             );
         } catch (error: unknown) {
-            toast.error(
-                error.message || "Erreur lors de la création des segments"
-            );
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : "Erreur lors de la création des segments";
+            toast.error(message);
         }
-    };
+    }, [seedMutation]);
 
-    const handleExportSegment = async (
-        segmentId: string,
-        format: "csv" | "json"
-    ) => {
-        try {
-            await exportMutation.mutateAsync({ id: segmentId, format });
-            toast.success("Export réussi");
-        } catch (error: unknown) {
-            toast.error(error.message || "Erreur lors de l'export");
-        }
-    };
+    const handleExportSegment = useCallback(
+        async (segmentId: string, format: "csv" | "json") => {
+            try {
+                await exportMutation.mutateAsync({ id: segmentId, format });
+                toast.success("Export réussi");
+            } catch (error: unknown) {
+                const message =
+                    error instanceof Error
+                        ? error.message
+                        : "Erreur lors de l'export";
+                toast.error(message);
+            }
+        },
+        [exportMutation]
+    );
 
-    const handleDeleteSegment = (segmentId: string) => {
+    const handleDeleteSegment = useCallback((segmentId: string) => {
         setSegmentToDelete(segmentId);
         setDeleteDialogOpen(true);
-    };
+    }, []);
 
-    const confirmDelete = async () => {
+    const confirmDelete = useCallback(async () => {
         if (!segmentToDelete) return;
 
         try {
@@ -176,30 +181,31 @@ export function useSegmentsPage(): SegmentsPageHandlers {
                     : "Erreur lors de la suppression";
             toast.error(message);
         }
-    };
+    }, [segmentToDelete, deleteMutation]);
 
-    const handleSendEmail = (segment: Segment) => {
+    const handleSendEmail = useCallback((segment: Segment) => {
         setSelectedSegmentForEmail(segment);
         setEmailDialogOpen(true);
-    };
+    }, []);
 
-    const handleEditSegment = (segment: Segment) => {
+    const handleEditSegment = useCallback((segment: Segment) => {
         setSelectedSegmentForEdit(segment);
         setBuilderDialogOpen(true);
-    };
+    }, []);
 
-    const handleViewAnalytics = (id: string) => {
-        router.push(`/dashboard/clients/segments/${id}/analytics`);
-    };
+    const handleViewAnalytics = useCallback(
+        (id: string) => {
+            router.push(`/dashboard/clients/segments/${id}/analytics`);
+        },
+        [router]
+    );
 
     return {
         segments,
         isLoading,
-        clientsStats,
         totalClients,
         searchQuery,
         setSearchQuery,
-        filteredSegments,
         predefinedSegments,
         customSegments,
         stats,
@@ -214,7 +220,6 @@ export function useSegmentsPage(): SegmentsPageHandlers {
         selectedSegmentForEmail,
         selectedSegmentForEdit,
         setSelectedSegmentForEdit,
-        segmentToDelete,
         seedMutation,
         deleteMutation,
         handleSeedSegments,

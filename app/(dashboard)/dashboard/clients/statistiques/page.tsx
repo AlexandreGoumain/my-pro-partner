@@ -3,7 +3,7 @@
 import { DataQualityCard } from "@/components/ui/data-quality-card";
 import { MonthlyEvolutionCard } from "@/components/ui/monthly-evolution-card";
 import { PageHeader } from "@/components/ui/page-header";
-import { StatCard } from "@/components/ui/stat-card";
+import { StatisticsGrid, StatConfig } from "@/components/ui/statistics-grid";
 import { TopCitiesCard } from "@/components/ui/top-cities-card";
 import { useClientsStats } from "@/hooks/use-clients";
 import { calculatePercentage } from "@/lib/utils/statistics";
@@ -50,52 +50,57 @@ export default function ClientStatisticsPage() {
             />
 
             {/* KPIs principaux */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <StatCard
-                    icon={Users}
-                    label="Clients enregistrés"
-                    value={stats.total}
-                    badge={{ text: "Total" }}
-                />
-
-                <StatCard
-                    icon={Calendar}
-                    label="Ce mois-ci"
-                    value={stats.currentMonth}
-                    badge={{
-                        text: (
-                            <>
-                                {stats.growth >= 0 ? (
-                                    <ArrowUp className="h-3 w-3 mr-1 inline" />
-                                ) : (
-                                    <ArrowDown className="h-3 w-3 mr-1 inline" />
-                                )}
-                                {Math.abs(stats.growth).toFixed(0)}%
-                            </>
-                        ),
-                        variant: stats.growth >= 0 ? "default" : "destructive",
-                        className: "text-xs",
-                    }}
-                />
-
-                <StatCard
-                    icon={Mail}
-                    label="Avec email"
-                    value={stats.withEmail}
-                    badge={{
-                        text: calculatePercentage(stats.withEmail, stats.total),
-                    }}
-                />
-
-                <StatCard
-                    icon={Phone}
-                    label="Avec téléphone"
-                    value={stats.withPhone}
-                    badge={{
-                        text: calculatePercentage(stats.withPhone, stats.total),
-                    }}
-                />
-            </div>
+            <StatisticsGrid
+                stats={[
+                    {
+                        id: "total",
+                        icon: Users,
+                        label: "Clients enregistrés",
+                        value: stats.total,
+                        badge: { text: "Total" },
+                    },
+                    {
+                        id: "currentMonth",
+                        icon: Calendar,
+                        label: "Ce mois-ci",
+                        value: stats.currentMonth,
+                        badge: {
+                            text: (
+                                <>
+                                    {stats.growth >= 0 ? (
+                                        <ArrowUp className="h-3 w-3 mr-1 inline" />
+                                    ) : (
+                                        <ArrowDown className="h-3 w-3 mr-1 inline" />
+                                    )}
+                                    {Math.abs(stats.growth).toFixed(0)}%
+                                </>
+                            ),
+                            variant: stats.growth >= 0 ? "default" : "destructive",
+                            className: "text-xs",
+                        },
+                    },
+                    {
+                        id: "withEmail",
+                        icon: Mail,
+                        label: "Avec email",
+                        value: stats.withEmail,
+                        badge: {
+                            text: calculatePercentage(stats.withEmail, stats.total),
+                        },
+                    },
+                    {
+                        id: "withPhone",
+                        icon: Phone,
+                        label: "Avec téléphone",
+                        value: stats.withPhone,
+                        badge: {
+                            text: calculatePercentage(stats.withPhone, stats.total),
+                        },
+                    },
+                ]}
+                columns={{ md: 2, lg: 4 }}
+                gap={4}
+            />
 
             {/* Évolution sur 6 mois */}
             <MonthlyEvolutionCard

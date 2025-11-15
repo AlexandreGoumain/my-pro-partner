@@ -3,29 +3,27 @@
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
 } from "@/components/ui/dialog";
+import { DialogHeaderSection } from "@/components/ui/dialog-header-section";
 import { Button } from "@/components/ui/button";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { Mail, Loader2, User, Send } from "lucide-react";
+import { Mail, User, Send } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import { useEmailSender } from "@/hooks/use-email-sender";
-
-interface Client {
-    id: string;
-    nom: string | null;
-    prenom: string | null;
-    email: string;
-}
 
 interface ClientEmailDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    client: Client | null;
+    client: {
+        id: string;
+        nom: string;
+        prenom?: string | null;
+        email?: string | null;
+    } | null;
 }
 
 export function ClientEmailDialog({
@@ -56,14 +54,12 @@ export function ClientEmailDialog({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                    <DialogTitle className="text-[20px] font-semibold tracking-[-0.01em]">
-                        Envoyer un email
-                    </DialogTitle>
-                    <DialogDescription className="text-[14px] text-black/60">
-                        Envoyez un email personnalisé à {nomComplet}
-                    </DialogDescription>
-                </DialogHeader>
+                <DialogHeaderSection
+                    title="Envoyer un email"
+                    description={`Envoyez un email personnalisé à ${nomComplet}`}
+                    titleClassName="text-[20px] font-semibold tracking-[-0.01em]"
+                    descriptionClassName="text-[14px] text-black/60"
+                />
 
                 <form onSubmit={handleSubmit} className="space-y-6 mt-4">
                     {/* Recipient Info */}
@@ -164,17 +160,13 @@ export function ClientEmailDialog({
                         >
                             Annuler
                         </Button>
-                        <Button
+                        <PrimaryActionButton
                             type="submit"
                             disabled={sending || !subject.trim() || !body.trim()}
-                            className="h-11 px-6 text-[14px] bg-black hover:bg-black/90 text-white"
                         >
                             {sending ? (
                                 <>
-                                    <Loader2
-                                        className="w-4 h-4 mr-2 animate-spin"
-                                        strokeWidth={2}
-                                    />
+                                    <Spinner className="w-4 h-4 mr-2" />
                                     Envoi en cours...
                                 </>
                             ) : (
@@ -186,7 +178,7 @@ export function ClientEmailDialog({
                                     Envoyer
                                 </>
                             )}
-                        </Button>
+                        </PrimaryActionButton>
                     </div>
                 </form>
             </DialogContent>

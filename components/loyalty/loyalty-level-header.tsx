@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { Plus } from "lucide-react";
 
 export interface LoyaltyLevelHeaderProps {
@@ -16,13 +16,9 @@ export function LoyaltyLevelHeader({ onCreateClick }: LoyaltyLevelHeaderProps) {
                     Configurez les niveaux de votre programme de fidélité
                 </p>
             </div>
-            <Button
-                onClick={onCreateClick}
-                className="bg-black hover:bg-black/90 text-white h-11 px-6 text-[14px] font-medium rounded-md shadow-sm cursor-pointer"
-            >
-                <Plus className="w-4 h-4 mr-2" strokeWidth={2} />
+            <PrimaryActionButton icon={Plus} onClick={onCreateClick}>
                 Ajouter un niveau
-            </Button>
+            </PrimaryActionButton>
         </div>
     );
 }

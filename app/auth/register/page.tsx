@@ -8,18 +8,10 @@ import {
     GoogleSignInButton,
 } from "@/components/auth";
 import { Button } from "@/components/ui/button";
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { Form } from "@/components/ui/form";
+import { FormInput } from "@/components/ui/form-input";
 import { Spinner } from "@/components/ui/spinner";
 import { useRegisterPage } from "@/hooks/use-register-page";
-import { cn } from "@/lib/utils";
 import Link from "next/link";
 
 export default function RegisterPage() {
@@ -40,101 +32,48 @@ export default function RegisterPage() {
                     onSubmit={form.handleSubmit(onSubmit)}
                     className="space-y-4"
                 >
-                    <FormField
-                        control={form.control}
+                    <FormInput
+                        control={form.control as any}
                         name="name"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Nom complet</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        {...field}
-                                        type="text"
-                                        placeholder="Jean Dupont"
-                                        disabled={isLoading}
-                                        className={cn(
-                                            "transition-all",
-                                            form.formState.errors.name &&
-                                                "border-destructive"
-                                        )}
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
+                        label="Nom complet"
+                        type="text"
+                        placeholder="Jean Dupont"
+                        disabled={isLoading}
+                        showErrorBorder
+                        className="transition-all"
                     />
 
-                    <FormField
-                        control={form.control}
+                    <FormInput
+                        control={form.control as any}
                         name="email"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Email</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        {...field}
-                                        type="email"
-                                        placeholder="nom@exemple.fr"
-                                        disabled={isLoading}
-                                        className={cn(
-                                            "transition-all",
-                                            form.formState.errors.email &&
-                                                "border-destructive"
-                                        )}
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
+                        label="Email"
+                        type="email"
+                        placeholder="nom@exemple.fr"
+                        disabled={isLoading}
+                        showErrorBorder
+                        className="transition-all"
                     />
 
-                    <FormField
-                        control={form.control}
+                    <FormInput
+                        control={form.control as any}
                         name="password"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Mot de passe</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        {...field}
-                                        type="password"
-                                        placeholder="••••••••"
-                                        disabled={isLoading}
-                                        className={cn(
-                                            "transition-all",
-                                            form.formState.errors.password &&
-                                                "border-destructive"
-                                        )}
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
+                        label="Mot de passe"
+                        type="password"
+                        placeholder="••••••••"
+                        disabled={isLoading}
+                        showErrorBorder
+                        className="transition-all"
                     />
 
-                    <FormField
-                        control={form.control}
+                    <FormInput
+                        control={form.control as any}
                         name="confirmPassword"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Confirmer le mot de passe</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        {...field}
-                                        type="password"
-                                        placeholder="••••••••"
-                                        disabled={isLoading}
-                                        className={cn(
-                                            "transition-all",
-                                            form.formState.errors
-                                                .confirmPassword &&
-                                                "border-destructive"
-                                        )}
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
+                        label="Confirmer le mot de passe"
+                        type="password"
+                        placeholder="••••••••"
+                        disabled={isLoading}
+                        showErrorBorder
+                        className="transition-all"
                     />
 
                     <Button

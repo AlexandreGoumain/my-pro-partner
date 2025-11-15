@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -504,15 +505,14 @@ export function AutomationBuilderDialog({
           >
             Annuler
           </Button>
-          <Button
+          <PrimaryActionButton
             onClick={handleSubmit}
             disabled={
               createAutomation.isPending || updateAutomation.isPending
             }
-            className="bg-black hover:bg-black/90 text-white h-11 px-6 text-[14px] font-medium rounded-md shadow-sm"
           >
             {automation ? "Enregistrer" : "Créer"}
-          </Button>
+          </PrimaryActionButton>
         </div>
       </DialogContent>
     </Dialog>

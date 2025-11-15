@@ -3,8 +3,11 @@
 import { SettingsContentWrapper } from "@/components/settings/settings-content-wrapper";
 import { SettingsSaveButton } from "@/components/settings/settings-save-button";
 import { SettingsTabs } from "@/components/settings/settings-tabs";
+import { ConditionalSkeleton } from "@/components/ui/conditional-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
+import { SuspensePage } from "@/components/ui/suspense-page";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { useSettingsForm } from "@/hooks/use-settings-form";
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { AccountTab } from "./_components/account-tab";
@@ -14,9 +17,8 @@ import { NotificationsTab } from "./_components/notifications-tab";
 import { PreferencesTab } from "./_components/preferences-tab";
 import { SeriesTab } from "./_components/series-tab";
 import { SubscriptionTab } from "./_components/subscription-tab";
-import { useSettingsForm } from "@/hooks/use-settings-form";
 
-export default function SettingsPage() {
+function SettingsPageContent() {
     const { data: session } = useSession();
     const [activeTab, setActiveTab] = useState("general");
 
@@ -32,36 +34,23 @@ export default function SettingsPage() {
         handleSubmit,
     } = useSettingsForm();
 
-    if (isLoading) {
-        return (
+    return (
+        <ConditionalSkeleton
+            isLoading={isLoading}
+            skeletonProps={{
+                layout: "form",
+                withTabs: true,
+            }}
+        >
             <div className="space-y-8">
                 <div className="text-center">
                     <PageHeader
                         title="Paramètres"
-                        description="Configurez votre entreprise"
+                        description="Gérez les paramètres de votre entreprise"
                     />
                 </div>
-                <SettingsContentWrapper>
-                    <div className="flex items-center justify-center py-12">
-                        <div className="text-[14px] text-black/40">
-                            Chargement...
-                        </div>
-                    </div>
-                </SettingsContentWrapper>
-            </div>
-        );
-    }
 
-    return (
-        <div className="space-y-8">
-            <div className="text-center">
-                <PageHeader
-                    title="Paramètres"
-                    description="Gérez les paramètres de votre entreprise"
-                />
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-6">
                 <Tabs
                     value={activeTab}
                     onValueChange={setActiveTab}
@@ -113,7 +102,7 @@ export default function SettingsPage() {
 
                     <TabsContent value="subscription" className="mt-0">
                         <SettingsContentWrapper>
-                            <SubscriptionTab entreprise={null} />
+                            <SubscriptionTab />
                         </SettingsContentWrapper>
                     </TabsContent>
 
@@ -125,5 +114,19 @@ export default function SettingsPage() {
                 </Tabs>
             </form>
         </div>
+        </ConditionalSkeleton>
+    );
+}
+
+export default function SettingsPage() {
+    return (
+        <SuspensePage
+            skeletonProps={{
+                layout: "form",
+                withTabs: true,
+            }}
+        >
+            <SettingsPageContent />
+        </SuspensePage>
     );
 }

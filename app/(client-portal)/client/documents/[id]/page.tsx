@@ -1,24 +1,25 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
-    ArrowLeft,
-    Download,
-    Calendar,
-    FileText,
-    CreditCard,
-    Package,
-} from "lucide-react";
-import { useClientDocumentDetail } from "@/hooks/use-client-document-detail";
-import {
+    DocumentLinesTable,
     DocumentStatusBadge,
+    DocumentTotals,
     DocumentTypeLabel,
     getDocumentTypeLabel,
-    DocumentTotals,
-    DocumentLinesTable,
 } from "@/components/client-portal";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { ConditionalSkeleton } from "@/components/ui/conditional-skeleton";
+import { useClientDocumentDetail } from "@/hooks/use-client-document-detail";
+import {
+    ArrowLeft,
+    Calendar,
+    CreditCard,
+    Download,
+    FileText,
+    Package,
+} from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
 
 const paymentMethodLabels: Record<string, string> = {
     ESPECES: "Espèces",
@@ -36,24 +37,23 @@ export default function DocumentDetailPage() {
     const { document, isLoading, downloadPdf, isDownloading } =
         useClientDocumentDetail(documentId);
 
-    if (isLoading) {
-        return (
-            <div className="flex items-center justify-center min-h-[400px]">
-                <p className="text-[14px] text-black/60">Chargement...</p>
-            </div>
-        );
-    }
-
-    if (!document) {
-        return (
-            <div className="flex items-center justify-center min-h-[400px]">
-                <p className="text-[14px] text-black/60">Document non trouvé</p>
-            </div>
-        );
-    }
-
     return (
-        <div className="space-y-6">
+        <ConditionalSkeleton
+            isLoading={isLoading}
+            skeletonProps={{
+                layout: "stats-grid",
+                statsCount: 3,
+                itemCount: 2,
+                statsHeight: "h-20",
+                itemHeight: "h-96",
+            }}
+        >
+            {!document ? (
+                <div className="flex items-center justify-center min-h-[400px]">
+                    <p className="text-[14px] text-black/60">Document non trouvé</p>
+                </div>
+            ) : (
+                <div className="space-y-6">
             {/* Header */}
             <div className="flex items-start justify-between gap-4">
                 <div className="flex items-start gap-4">
@@ -104,14 +104,13 @@ export default function DocumentDetailPage() {
                                 Date d&apos;émission
                             </p>
                             <p className="text-[15px] font-medium text-black">
-                                {new Date(document.dateEmission).toLocaleDateString(
-                                    "fr-FR",
-                                    {
-                                        day: "2-digit",
-                                        month: "long",
-                                        year: "numeric",
-                                    }
-                                )}
+                                {new Date(
+                                    document.dateEmission
+                                ).toLocaleDateString("fr-FR", {
+                                    day: "2-digit",
+                                    month: "long",
+                                    year: "numeric",
+                                })}
                             </p>
                         </div>
                     </div>
@@ -128,14 +127,13 @@ export default function DocumentDetailPage() {
                                     Date d&apos;échéance
                                 </p>
                                 <p className="text-[15px] font-medium text-black">
-                                    {new Date(document.dateEcheance).toLocaleDateString(
-                                        "fr-FR",
-                                        {
-                                            day: "2-digit",
-                                            month: "long",
-                                            year: "numeric",
-                                        }
-                                    )}
+                                    {new Date(
+                                        document.dateEcheance
+                                    ).toLocaleDateString("fr-FR", {
+                                        day: "2-digit",
+                                        month: "long",
+                                        year: "numeric",
+                                    })}
                                 </p>
                             </div>
                         </div>
@@ -148,7 +146,9 @@ export default function DocumentDetailPage() {
                             <FileText className="h-5 w-5 text-black/60" />
                         </div>
                         <div className="flex-1">
-                            <p className="text-[13px] text-black/40 mb-1">Type</p>
+                            <p className="text-[13px] text-black/40 mb-1">
+                                Type
+                            </p>
                             <p className="text-[15px] font-medium text-black">
                                 {getDocumentTypeLabel(document.type)}
                             </p>
@@ -206,7 +206,12 @@ export default function DocumentDetailPage() {
                                         {Number(paiement.montant).toFixed(2)}€
                                     </p>
                                     <p className="text-[13px] text-black/60 mt-1">
-                                        {paymentMethodLabels[paiement.moyen_paiement]} •{" "}
+                                        {
+                                            paymentMethodLabels[
+                                                paiement.moyen_paiement
+                                            ]
+                                        }{" "}
+                                        •{" "}
                                         {new Date(
                                             paiement.date_paiement
                                         ).toLocaleDateString("fr-FR")}
@@ -253,6 +258,8 @@ export default function DocumentDetailPage() {
                     )}
                 </Card>
             )}
-        </div>
+                </div>
+            )}
+        </ConditionalSkeleton>
     );
 }

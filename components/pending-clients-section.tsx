@@ -1,7 +1,9 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { Badge } from "@/components/ui/badge";
 import { usePendingClients } from "@/hooks/use-pending-clients";
+import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { CheckCircle, XCircle, Mail, Phone, MapPin, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -11,11 +13,12 @@ export function PendingClientsSection() {
 
   if (isLoading) {
     return (
-      <Card className="border-black/8 shadow-sm">
-        <div className="p-6 text-center">
-          <p className="text-[14px] text-black/60">Chargement...</p>
-        </div>
-      </Card>
+      <GridSkeleton
+        itemCount={3}
+        gridColumns={{ default: 1 }}
+        gap={3}
+        itemHeight="h-32"
+      />
     );
   }
 
@@ -97,14 +100,14 @@ export function PendingClientsSection() {
                   </div>
 
                   <div className="flex gap-2 ml-4">
-                    <Button
+                    <PrimaryActionButton
                       onClick={() => approve(client.id)}
                       size="sm"
-                      className="h-9 px-4 text-[13px] font-medium bg-black hover:bg-black/90 text-white"
+                      className="h-9 px-4 text-[13px]"
                     >
                       <CheckCircle className="h-4 w-4 mr-1.5" strokeWidth={2} />
                       Approuver
-                    </Button>
+                    </PrimaryActionButton>
                     <Button
                       onClick={() => reject(client.id)}
                       size="sm"

@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+import { ColumnDef } from "@tanstack/react-table";
 import {
     Client,
     useClientsPaginated,
@@ -10,6 +11,10 @@ import {
 } from "@/hooks/use-clients";
 import { useSegment, useSegmentClients } from "@/hooks/use-segments";
 import { createColumns } from "@/app/(dashboard)/dashboard/clients/_components/data-table/columns";
+import { useLimitDialog } from "@/components/providers/limit-dialog-provider";
+import type { PaginationInfo } from "@/components/ui/data-table/pagination";
+import type { Segment } from "@/lib/generated/prisma";
+import type { PlanType } from "@/lib/pricing-config";
 
 export interface ClientsPageHandlers {
     // Search & View Mode
@@ -28,7 +33,7 @@ export interface ClientsPageHandlers {
     // Data
     clients: Client[];
     displayClients: Client[];
-    pagination: { page: number; pageSize: number; total: number };
+    pagination: PaginationInfo | undefined;
     showPagination: boolean;
     isLoading: boolean;
     intelligence: {
@@ -43,7 +48,7 @@ export interface ClientsPageHandlers {
 
     // Segment filter
     segmentId: string | null;
-    segment: { id: string; nom: string } | null;
+    segment: Segment | null | undefined;
     clearSegmentFilter: () => void;
 
     // Dialogs
@@ -55,10 +60,15 @@ export interface ClientsPageHandlers {
     setDeleteDialogOpen: (open: boolean) => void;
     importDialogOpen: boolean;
     setImportDialogOpen: (open: boolean) => void;
+    inviteDialogOpen: boolean;
+    setInviteDialogOpen: (open: boolean) => void;
     selectedClient: Client | null;
 
     // Handlers
     handleCreate: () => void;
+    handleCreateWithLimitCheck: () => void;
+    handleInviteWithLimitCheck: () => void;
+    handleInviteSuccess: () => void;
     handleView: (client: Client) => void;
     handleEdit: (client: Client) => void;
     handleDelete: (client: Client) => void;
@@ -67,17 +77,28 @@ export interface ClientsPageHandlers {
     handleEditSuccess: () => void;
     handleImport: (data: Record<string, unknown>[]) => Promise<void>;
 
+    // Navigation helpers
+    navigateToSegments: () => void;
+    navigateToStatistics: () => void;
+    navigateToImportExport: () => void;
+
     // Table columns
-    columns: unknown[];
+    columns: ColumnDef<Client>[];
 
     // Delete state
     isDeleting: boolean;
+
+    // Plan limits
+    userPlan: PlanType;
 }
 
 export function useClientsPage(): ClientsPageHandlers {
     const router = useRouter();
     const searchParams = useSearchParams();
     const segmentId = searchParams.get("segment");
+
+    // Pricing limit check
+    const { checkLimit, userPlan } = useLimitDialog();
 
     // State management
     const [searchTerm, setSearchTerm] = useState("");
@@ -89,6 +110,7 @@ export function useClientsPage(): ClientsPageHandlers {
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [importDialogOpen, setImportDialogOpen] = useState(false);
+    const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
     const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
     // Debounce search term to avoid too many API calls
@@ -157,9 +179,38 @@ export function useClientsPage(): ClientsPageHandlers {
         router.push("/dashboard/clients");
     }, [router]);
 
+    // Navigation helpers
+    const navigateToSegments = useCallback(() => {
+        router.push("/dashboard/clients/segments");
+    }, [router]);
+
+    const navigateToStatistics = useCallback(() => {
+        router.push("/dashboard/clients/statistiques");
+    }, [router]);
+
+    const navigateToImportExport = useCallback(() => {
+        router.push("/dashboard/clients/import-export");
+    }, [router]);
+
     const handleCreate = useCallback(() => {
         setCreateDialogOpen(true);
     }, []);
+
+    // Wrapper to check limit before creating
+    const handleCreateWithLimitCheck = useCallback(() => {
+        if (!checkLimit("maxClients", intelligence.total)) {
+            return; // Limit reached - dialog shows automatically
+        }
+        handleCreate();
+    }, [checkLimit, intelligence.total, handleCreate]);
+
+    // Wrapper to check limit before inviting
+    const handleInviteWithLimitCheck = useCallback(() => {
+        if (!checkLimit("maxClients", intelligence.total)) {
+            return; // Limit reached - dialog shows automatically
+        }
+        setInviteDialogOpen(true);
+    }, [checkLimit, intelligence.total]);
 
     const handleCreateSuccess = useCallback(() => {
         toast.success("Client créé", {
@@ -212,9 +263,16 @@ export function useClientsPage(): ClientsPageHandlers {
         });
     }, []);
 
+    const handleInviteSuccess = useCallback(() => {
+        setInviteDialogOpen(false);
+        toast.success("Invitation envoyée", {
+            description: "L'invitation a été envoyée avec succès",
+        });
+    }, []);
+
     const handleImport = useCallback(
-        async (data: Record<string, unknown>[]) => {
-            return await importClients.mutateAsync(data);
+        async (data: Record<string, unknown>[]): Promise<void> => {
+            await importClients.mutateAsync(data);
         },
         [importClients]
     );
@@ -259,12 +317,12 @@ export function useClientsPage(): ClientsPageHandlers {
         handlePageSizeChange,
         clients,
         displayClients,
-        pagination,
-        showPagination,
+        pagination: pagination,
+        showPagination: !segmentId && !!pagination,
         isLoading,
         intelligence,
         segmentId,
-        segment,
+        segment: segment || null,
         clearSegmentFilter,
         createDialogOpen,
         setCreateDialogOpen,
@@ -274,8 +332,13 @@ export function useClientsPage(): ClientsPageHandlers {
         setDeleteDialogOpen,
         importDialogOpen,
         setImportDialogOpen,
+        inviteDialogOpen,
+        setInviteDialogOpen,
         selectedClient,
         handleCreate,
+        handleCreateWithLimitCheck,
+        handleInviteWithLimitCheck,
+        handleInviteSuccess,
         handleView,
         handleEdit,
         handleDelete,
@@ -283,7 +346,11 @@ export function useClientsPage(): ClientsPageHandlers {
         handleCreateSuccess,
         handleEditSuccess,
         handleImport,
+        navigateToSegments,
+        navigateToStatistics,
+        navigateToImportExport,
         columns,
         isDeleting: deleteClient.isPending,
+        userPlan,
     };
 }

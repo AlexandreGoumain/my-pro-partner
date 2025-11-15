@@ -5,9 +5,8 @@ import { PricingCTASection } from "@/components/pricing/pricing-cta-section";
 import { PricingHero } from "@/components/pricing/pricing-hero";
 import { PricingHighlightsCard } from "@/components/pricing/pricing-highlights-card";
 import { PricingIdealForSection } from "@/components/pricing/pricing-ideal-for-section";
+import { BackLink } from "@/components/ui/back-link";
 import { pricingDetails } from "@/lib/constants/pricing-plans";
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 export function generateStaticParams() {
@@ -33,13 +32,11 @@ export default async function PricingDetailPage({
                 {/* Hero Section */}
                 <section className="py-20 px-6 sm:px-8 bg-neutral-50 border-b border-black/[0.08]">
                     <div className="max-w-[1120px] mx-auto">
-                        <Link
+                        <BackLink
                             href="/#pricing"
-                            className="inline-flex items-center gap-2 text-[13px] text-black/60 hover:text-black mb-8 transition-colors"
-                        >
-                            <ArrowLeft className="w-4 h-4" />
-                            Retour aux tarifs
-                        </Link>
+                            label="Retour aux tarifs"
+                            className="mb-8"
+                        />
 
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                             <PricingHero

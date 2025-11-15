@@ -10,6 +10,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { AlertTriangle, PackagePlus } from "lucide-react";
 import type { ArticleAvecAlerte } from "@/lib/types/stock";
 import { useState } from "react";
@@ -44,9 +45,12 @@ export function StockAlertsList({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground text-center py-8">
-            Chargement...
-          </p>
+          <GridSkeleton
+            itemCount={3}
+            gridColumns={{ default: 1 }}
+            gap={3}
+            itemHeight="h-24"
+          />
         </CardContent>
       </Card>
     );

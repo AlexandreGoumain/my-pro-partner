@@ -1,11 +1,11 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Plus, LucideIcon } from "lucide-react";
-import { LoadingCard } from "@/components/ui/loading-card";
 import { DataTable } from "@/components/ui/data-table";
+import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { ColumnDef } from "@tanstack/react-table";
 import { ReactNode } from "react";
 
@@ -43,12 +43,7 @@ export function DocumentListPage<T>({
     additionalContent,
 }: DocumentListPageProps<T>) {
     if (isLoading) {
-        return (
-            <div className="space-y-6">
-                <PageHeader title={title} description={description} />
-                <LoadingCard />
-            </div>
-        );
+        return <PageSkeleton layout="table" itemCount={8} />;
     }
 
     if (documents.length === 0 && !isLoading) {
@@ -58,13 +53,9 @@ export function DocumentListPage<T>({
                     title={title}
                     description={description}
                     actions={
-                        <Button
-                            onClick={onCreate}
-                            className="h-11 px-6 text-[14px] font-medium bg-black hover:bg-black/90 text-white rounded-md shadow-sm"
-                        >
-                            <Plus className="w-4 h-4 mr-2" strokeWidth={2} />
+                        <PrimaryActionButton icon={Plus} onClick={onCreate}>
                             {createButtonLabel}
-                        </Button>
+                        </PrimaryActionButton>
                     }
                 />
                 <EmptyState
@@ -86,13 +77,9 @@ export function DocumentListPage<T>({
                 title={title}
                 description={description}
                 actions={
-                    <Button
-                        onClick={onCreate}
-                        className="h-11 px-6 text-[14px] font-medium bg-black hover:bg-black/90 text-white rounded-md shadow-sm"
-                    >
-                        <Plus className="w-4 h-4 mr-2" strokeWidth={2} />
+                    <PrimaryActionButton icon={Plus} onClick={onCreate}>
                         {createButtonLabel}
-                    </Button>
+                    </PrimaryActionButton>
                 }
             />
 

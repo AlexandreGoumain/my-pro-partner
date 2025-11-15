@@ -5,11 +5,9 @@ import { ButtonWithSpinner } from "@/components/ui/button-with-spinner";
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
     DialogFooter,
-    DialogHeader,
-    DialogTitle,
 } from "@/components/ui/dialog";
+import { DialogHeaderSection } from "@/components/ui/dialog-header-section";
 import {
     Form,
     FormControl,
@@ -19,7 +17,7 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { FormInput } from "@/components/ui/form-input";
 import {
     Select,
     SelectContent,
@@ -27,18 +25,18 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import {
     useCategories,
     useUpdateCategorie,
     type Categorie,
 } from "@/hooks/use-categories";
+import { useFormReset } from "@/hooks/use-form-reset";
 import {
     categorieUpdateSchema,
     type CategorieUpdateInput,
 } from "@/lib/validation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
+import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -59,27 +57,31 @@ export function CategoryEditDialog({
     const { data: categories = [], isLoading: loadingCategories } =
         useCategories();
 
-    const form = useForm<CategorieUpdateInput>({
-        resolver: zodResolver(categorieUpdateSchema),
-        defaultValues: {
-            nom: "",
-            description: "",
-            parentId: "",
-            ordre: 0,
-        },
-    });
-
-    // Charger les données de la catégorie quand elle change
-    useEffect(() => {
-        if (categorie && open) {
-            form.reset({
+    // Calculate form values from categorie using useMemo
+    const formValues = useMemo<CategorieUpdateInput>(() => {
+        if (categorie) {
+            return {
                 nom: categorie.nom,
                 description: categorie.description || "",
                 parentId: categorie.parentId || "",
                 ordre: categorie.ordre,
-            });
+            };
         }
-    }, [categorie, open, form]);
+        return {
+            nom: "",
+            description: "",
+            parentId: "",
+            ordre: 0,
+        };
+    }, [categorie]);
+
+    const form = useForm<CategorieUpdateInput>({
+        resolver: zodResolver(categorieUpdateSchema),
+        defaultValues: formValues,
+    });
+
+    // Reset form when dialog opens using custom hook
+    useFormReset(form, open, formValues);
 
     function onSubmit(values: CategorieUpdateInput) {
         if (!categorie) return;
@@ -125,52 +127,32 @@ export function CategoryEditDialog({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-lg">
-                <DialogHeader>
-                    <DialogTitle>Modifier la catégorie</DialogTitle>
-                    <DialogDescription>
-                        Modifiez les informations de la catégorie
-                    </DialogDescription>
-                </DialogHeader>
+                <DialogHeaderSection
+                    title="Modifier la catégorie"
+                    description="Modifiez les informations de la catégorie"
+                />
 
                 <Form {...form}>
                     <form
                         onSubmit={form.handleSubmit(onSubmit)}
                         className="space-y-4"
                     >
-                        <FormField
+                        <FormInput
                             control={form.control}
                             name="nom"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Nom *</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            placeholder="ex: Électronique, Services, etc."
-                                            {...field}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
+                            label="Nom"
+                            placeholder="ex: Électronique, Services, etc."
+                            required
                         />
 
-                        <FormField
+                        <FormInput
                             control={form.control}
                             name="description"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Description</FormLabel>
-                                    <FormControl>
-                                        <Textarea
-                                            placeholder="Description de la catégorie..."
-                                            className="resize-none"
-                                            rows={3}
-                                            {...field}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
+                            label="Description"
+                            placeholder="Description de la catégorie..."
+                            textarea
+                            rows={3}
+                            className="resize-none"
                         />
 
                         <FormField
@@ -218,34 +200,13 @@ export function CategoryEditDialog({
                             )}
                         />
 
-                        <FormField
+                        <FormInput
                             control={form.control}
                             name="ordre"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>
-                                        Ordre d&apos;affichage
-                                    </FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            type="number"
-                                            placeholder="0"
-                                            {...field}
-                                            onChange={(e) =>
-                                                field.onChange(
-                                                    parseInt(e.target.value) ||
-                                                        0
-                                                )
-                                            }
-                                        />
-                                    </FormControl>
-                                    <FormDescription>
-                                        Les catégories seront affichées par
-                                        ordre croissant
-                                    </FormDescription>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
+                            label="Ordre d'affichage"
+                            type="number"
+                            placeholder="0"
+                            description="Les catégories seront affichées par ordre croissant"
                         />
 
                         {categorie && categorie.articles.length > 0 && (

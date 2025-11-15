@@ -1,46 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api/fetch-client";
+import type { Document, DocumentType } from "@/lib/types/document.types";
 
-export type DocumentType = "FACTURE" | "DEVIS";
-export type DocumentStatus = "BROUILLON" | "ENVOYE" | "ACCEPTE" | "PAYE" | "ANNULE";
-
-export interface Document {
-    id: string;
-    numero: string;
-    type: DocumentType;
-    dateEmission: Date;
-    dateEcheance: Date | null;
-    statut: DocumentStatus;
-    clientId?: string;
-    serieId?: string | null;
-    client: {
-        id?: string;
-        nom: string;
-        prenom: string | null;
-        email: string | null;
-        telephone: string | null;
-        adresse: string | null;
-    };
-    total_ht: number;
-    total_tva: number;
-    total_ttc: number;
-    notes: string | null;
-    conditions_paiement: string | null;
-    validite_jours: number;
-    lignes: Array<{
-        id: string;
-        articleId?: string | null;
-        designation: string;
-        description: string | null;
-        quantite: number;
-        prix_unitaire_ht: number;
-        tva_taux: number;
-        remise_pourcent: number;
-        montant_ht: number;
-        montant_tva: number;
-        montant_ttc: number;
-    }>;
-}
+export type { DocumentType };
 
 // Query Keys
 export const documentKeys = {
@@ -51,7 +13,9 @@ export const documentKeys = {
     detail: (id: string) => [...documentKeys.details(), id] as const,
 };
 
-// Hook pour récupérer tous les documents d'un type
+/**
+ * Hook to fetch all documents of a specific type
+ */
 export function useDocuments(type: DocumentType) {
     return useQuery({
         queryKey: documentKeys.list(type),
@@ -62,7 +26,9 @@ export function useDocuments(type: DocumentType) {
     });
 }
 
-// Hook pour récupérer les documents d'un client
+/**
+ * Hook to fetch documents for a specific client
+ */
 export function useClientDocuments(clientId: string) {
     return useQuery({
         queryKey: [...documentKeys.all, "client", clientId] as const,
@@ -74,7 +40,9 @@ export function useClientDocuments(clientId: string) {
     });
 }
 
-// Hook pour récupérer un document par ID
+/**
+ * Hook to fetch a single document by ID
+ */
 export function useDocument(id: string) {
     return useQuery({
         queryKey: documentKeys.detail(id),
@@ -86,20 +54,23 @@ export function useDocument(id: string) {
     });
 }
 
-// Hook pour supprimer un document
+/**
+ * Hook to delete a document
+ */
 export function useDeleteDocument() {
     const queryClient = useQueryClient();
 
     return useMutation({
         mutationFn: async (id: string) => api.delete(`/api/documents/${id}`),
         onSuccess: () => {
-            // Invalide tous les documents et détails
             queryClient.invalidateQueries({ queryKey: documentKeys.all });
         },
     });
 }
 
-// Hook pour convertir un devis en facture
+/**
+ * Hook to convert a quote to an invoice
+ */
 export function useConvertQuoteToInvoice() {
     const queryClient = useQueryClient();
 
@@ -109,7 +80,6 @@ export function useConvertQuoteToInvoice() {
             return result;
         },
         onSuccess: () => {
-            // Invalide tous les documents
             queryClient.invalidateQueries({ queryKey: documentKeys.all });
         },
     });

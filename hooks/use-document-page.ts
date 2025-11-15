@@ -1,15 +1,42 @@
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { toast } from "sonner";
+import { ColumnDef } from "@tanstack/react-table";
 import { useDocuments, useDeleteDocument, type DocumentType } from "./use-documents";
 
 export type { DocumentType };
 
+export interface DocumentHandlers<T> {
+    onView: (document: T) => void;
+    onEdit: (document: T) => void;
+    onDelete: (document: T) => void;
+    [key: string]: (document: T) => void | Promise<void>;
+}
+
 interface UseDocumentPageProps<T> {
     documentType: DocumentType;
     basePath: string;
-    createColumns: (handlers: Record<string, unknown>) => unknown[];
+    createColumns: (handlers: DocumentHandlers<T>) => ColumnDef<T>[];
     additionalHandlers?: Record<string, (document: T) => void | Promise<void>>;
+}
+
+interface DocumentLabels {
+    singular: string;
+    plural: string;
+    article: string;
+    articleUpper: string;
+    new: string;
+    title: string;
+    description: string;
+    emptyTitle: string;
+    emptyDescription: string;
+    createButton: string;
+    deleteConfirm: string;
+    deleteSuccess: string;
+    deleteError: string;
+    fetchError: string;
+    loadingError: string;
+    notFound: string;
 }
 
 export function useDocumentPage<T extends { id: string }>({
@@ -22,7 +49,7 @@ export function useDocumentPage<T extends { id: string }>({
     const { data: documents = [], isLoading } = useDocuments(documentType);
     const deleteDocument = useDeleteDocument();
 
-    const labels = {
+    const labels: Record<DocumentType, DocumentLabels> = {
         FACTURE: {
             singular: "facture",
             plural: "factures",
@@ -105,17 +132,17 @@ export function useDocumentPage<T extends { id: string }>({
         router.push(`${basePath}/new`);
     };
 
-    const handlers = useMemo(() => ({
+    const handlers = useMemo<DocumentHandlers<T>>(() => ({
         onView: handleView,
         onEdit: handleEdit,
         onDelete: handleDelete,
         ...additionalHandlers,
-    }), [handleView, handleEdit, handleDelete, additionalHandlers]);
+    }), [additionalHandlers]);
 
     const columns = useMemo(() => createColumns(handlers), [createColumns, handlers]);
 
     return {
-        documents: documents as T[],
+        documents: documents as unknown as T[],
         isLoading,
         columns,
         label,

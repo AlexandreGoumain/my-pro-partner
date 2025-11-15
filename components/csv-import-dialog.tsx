@@ -1,13 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import {
     Dialog,
     DialogContent,
     DialogFooter,
-    DialogHeader,
-    DialogTitle,
 } from "@/components/ui/dialog";
+import { DialogHeaderSection } from "@/components/ui/dialog-header-section";
 import { Input } from "@/components/ui/input";
 import {
     Table,
@@ -17,32 +17,19 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { parseCSV, type ParsedCSVRow } from "@/lib/utils/csv-parser";
+import { parseCSV } from "@/lib/utils/csv-parser";
 import {
     AlertCircle,
     CheckCircle2,
     Download,
-    Loader2,
     Upload,
     X,
 } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "./ui/badge";
-
-export interface CSVMapping {
-    csvHeader: string;
-    targetField: string;
-    label: string;
-    required?: boolean;
-    validator?: (value: string | null) => { valid: boolean; error?: string };
-}
-
-export interface ValidationError {
-    row: number;
-    field: string;
-    message: string;
-}
+import type { CSVMapping, ValidationError, ParsedCSVRow } from "@/lib/types";
 
 interface CSVImportDialogProps {
     open: boolean;
@@ -386,14 +373,13 @@ export function CSVImportDialog({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-[95vw] h-[90vh] flex flex-col">
-                <DialogHeader className="flex-shrink-0">
-                    <DialogTitle className="text-[20px] font-semibold tracking-[-0.01em]">
-                        {title}
-                    </DialogTitle>
-                    {description && (
-                        <p className="text-[14px] text-black/60">{description}</p>
-                    )}
-                </DialogHeader>
+                <DialogHeaderSection
+                    title={title}
+                    description={description}
+                    titleClassName="text-[20px] font-semibold tracking-[-0.01em]"
+                    descriptionClassName="text-[14px] text-black/60"
+                    className="flex-shrink-0"
+                />
 
                 <div className="space-y-6 py-4 flex-1 overflow-hidden flex flex-col">
                     {/* File upload */}
@@ -608,17 +594,13 @@ export function CSVImportDialog({
                         Annuler
                     </Button>
                     {parsedData && (
-                        <Button
+                        <PrimaryActionButton
                             onClick={handleImport}
                             disabled={validationErrors.length > 0 || importing}
-                            className="h-11 px-6 text-[14px] bg-black hover:bg-black/90 text-white"
                         >
                             {importing ? (
                                 <>
-                                    <Loader2
-                                        className="h-4 w-4 mr-2 animate-spin"
-                                        strokeWidth={2}
-                                    />
+                                    <Spinner className="mr-2" />
                                     Import en cours...
                                 </>
                             ) : (
@@ -627,7 +609,7 @@ export function CSVImportDialog({
                                     Importer {parsedData.length} ligne(s)
                                 </>
                             )}
-                        </Button>
+                        </PrimaryActionButton>
                     )}
                 </DialogFooter>
             </DialogContent>
