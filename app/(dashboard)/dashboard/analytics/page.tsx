@@ -4,8 +4,8 @@ import { AnalyticsKPICard } from "@/components/analytics/analytics-kpi-card";
 import { ConversionRateCard } from "@/components/analytics/conversion-rate-card";
 import { InvoiceStatusCard } from "@/components/analytics/invoice-status-card";
 import { OverdueInvoicesCard } from "@/components/analytics/overdue-invoices-card";
+import { ConditionalSkeleton } from "@/components/ui/conditional-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
-import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { useAnalytics } from "@/hooks/use-analytics";
 import {
     calculateRevenueTrend,
@@ -26,25 +26,20 @@ export default function AnalyticsPage() {
 
     const trend = useMemo(() => calculateRevenueTrend(analytics), [analytics]);
 
-    if (isLoading) {
-        return (
-            <PageSkeleton
-                layout="stats-grid"
-                statsCount={4}
-                gridColumns={3}
-                itemCount={3}
-                statsHeight="h-28"
-                itemHeight="h-48"
-            />
-        );
-    }
-
-    if (!analytics) {
-        return null;
-    }
-
     return (
-        <div className="space-y-6">
+        <ConditionalSkeleton
+            isLoading={isLoading}
+            skeletonProps={{
+                layout: "stats-grid",
+                statsCount: 4,
+                gridColumns: 3,
+                itemCount: 3,
+                statsHeight: "h-28",
+                itemHeight: "h-48",
+            }}
+        >
+            {!analytics ? null : (
+                <div className="space-y-6">
             <PageHeader
                 title="Analytics & Statistiques"
                 description="Vue d'ensemble de vos performances de vente"
@@ -94,6 +89,8 @@ export default function AnalyticsPage() {
                     overdueInvoices={analytics.overdueInvoices}
                 />
             </div>
-        </div>
+                </div>
+            )}
+        </ConditionalSkeleton>
     );
 }

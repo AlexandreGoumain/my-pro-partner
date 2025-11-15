@@ -4,9 +4,9 @@ import { AnalyticsKPICard } from "@/components/analytics/analytics-kpi-card";
 import { PeriodFilter } from "@/components/analytics/period-filter";
 import { RevenueBreakdown } from "@/components/analytics/revenue-breakdown";
 import { TopArticlesList } from "@/components/analytics/top-articles-list";
+import { ConditionalSkeleton } from "@/components/ui/conditional-skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
-import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { useProfitabilityAnalytics } from "@/hooks/use-profitability-analytics";
 import {
     Euro,
@@ -31,41 +31,32 @@ export default function ProfitabilityPage() {
         categoryItems,
     } = useProfitabilityAnalytics();
 
-    if (isLoading) {
-        return (
-            <PageSkeleton
-                layout="stats-grid"
-                statsCount={4}
-                gridColumns={2}
-                itemCount={4}
-                statsHeight="h-28"
-                itemHeight="h-64"
-            />
-        );
-    }
-
-    if (error) {
-        return (
-            <div className="space-y-6">
-                <PageHeader
-                    title="Analyse de rentabilité"
-                    description="Revenus par type de produit et catégorie"
-                />
-                <EmptyState
-                    icon={Receipt}
-                    title="Erreur de chargement"
-                    description="Une erreur est survenue lors du chargement des données."
-                />
-            </div>
-        );
-    }
-
-    if (!data) {
-        return null;
-    }
-
     return (
-        <div className="space-y-6">
+        <ConditionalSkeleton
+            isLoading={isLoading}
+            skeletonProps={{
+                layout: "stats-grid",
+                statsCount: 4,
+                gridColumns: 2,
+                itemCount: 4,
+                statsHeight: "h-28",
+                itemHeight: "h-64",
+            }}
+        >
+            {error ? (
+                <div className="space-y-6">
+                    <PageHeader
+                        title="Analyse de rentabilité"
+                        description="Revenus par type de produit et catégorie"
+                    />
+                    <EmptyState
+                        icon={Receipt}
+                        title="Erreur de chargement"
+                        description="Une erreur est survenue lors du chargement des données."
+                    />
+                </div>
+            ) : !data ? null : (
+                <div className="space-y-6">
             <PageHeader
                 title="Analyse de rentabilité"
                 description="Analyse détaillée des revenus par type et catégorie"
@@ -143,6 +134,8 @@ export default function ProfitabilityPage() {
                     description="Aucune facture payée pour la période sélectionnée"
                 />
             )}
-        </div>
+                </div>
+            )}
+        </ConditionalSkeleton>
     );
 }

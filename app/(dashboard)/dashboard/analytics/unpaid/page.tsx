@@ -3,9 +3,9 @@
 import { AnalyticsKPICard } from "@/components/analytics/analytics-kpi-card";
 import { UnpaidInvoiceTable } from "@/components/analytics/unpaid-invoice-table";
 import { UnpaidInvoicesFilters } from "@/components/analytics/unpaid-invoices-filters";
+import { ConditionalSkeleton } from "@/components/ui/conditional-skeleton";
 import { ErrorState } from "@/components/ui/error-state";
 import { PageHeader } from "@/components/ui/page-header";
-import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { useUnpaidInvoices } from "@/hooks/use-unpaid-invoices";
 import { pluralSuffix } from "@/lib/utils/format";
 import { AlertCircle, Clock, Euro, FileText } from "lucide-react";
@@ -26,36 +26,27 @@ export default function UnpaidInvoicesPage() {
         formatAmount,
     } = useUnpaidInvoices();
 
-    if (isLoading) {
-        return (
-            <PageSkeleton
-                layout="stats-grid"
-                statsCount={4}
-                itemCount={1}
-                statsHeight="h-28"
-                itemHeight="h-96"
-            />
-        );
-    }
-
-    if (error) {
-        return (
-            <div className="space-y-6">
-                <PageHeader
-                    title="Factures impayées"
-                    description="Suivi des factures en attente de paiement"
-                />
-                <ErrorState />
-            </div>
-        );
-    }
-
-    if (!summary) {
-        return null;
-    }
-
     return (
-        <div className="space-y-6">
+        <ConditionalSkeleton
+            isLoading={isLoading}
+            skeletonProps={{
+                layout: "stats-grid",
+                statsCount: 4,
+                itemCount: 1,
+                statsHeight: "h-28",
+                itemHeight: "h-96",
+            }}
+        >
+            {error ? (
+                <div className="space-y-6">
+                    <PageHeader
+                        title="Factures impayées"
+                        description="Suivi des factures en attente de paiement"
+                    />
+                    <ErrorState />
+                </div>
+            ) : !summary ? null : (
+                <div className="space-y-6">
             <PageHeader
                 title="Factures impayées"
                 description="Suivi et gestion des factures en attente de paiement"
@@ -110,6 +101,8 @@ export default function UnpaidInvoicesPage() {
                 invoices={invoices}
                 onSendReminder={handleSendReminder}
             />
-        </div>
+                </div>
+            )}
+        </ConditionalSkeleton>
     );
 }

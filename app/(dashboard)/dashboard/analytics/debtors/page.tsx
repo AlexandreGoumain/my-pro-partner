@@ -2,8 +2,8 @@
 
 import { AnalyticsKPICard } from "@/components/analytics/analytics-kpi-card";
 import { DebtorCard } from "@/components/analytics/debtor-card";
+import { ConditionalSkeleton } from "@/components/ui/conditional-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
-import { PageSkeleton } from "@/components/ui/page-skeleton";
 import {
     Select,
     SelectContent,
@@ -26,36 +26,31 @@ export default function DebtorsPage() {
         formatAmount,
     } = useDebtorsAnalytics();
 
-    if (isLoading) {
-        return (
-            <PageSkeleton
-                layout="stats-grid"
-                statsCount={4}
-                itemCount={5}
-                statsHeight="h-28"
-                itemHeight="h-40"
-            />
-        );
-    }
-
-    if (error) {
-        return (
-            <div className="space-y-6">
-                <PageHeader
-                    title="Clients débiteurs"
-                    description="Analyse des clients avec des factures impayées"
-                />
-                <div className="flex items-center justify-center p-12 border border-black/8 rounded-lg bg-white">
-                    <p className="text-[14px] text-red-600">
-                        {error.message || "Une erreur est survenue"}
-                    </p>
-                </div>
-            </div>
-        );
-    }
-
     return (
-        <div className="space-y-6">
+        <ConditionalSkeleton
+            isLoading={isLoading}
+            skeletonProps={{
+                layout: "stats-grid",
+                statsCount: 4,
+                itemCount: 5,
+                statsHeight: "h-28",
+                itemHeight: "h-40",
+            }}
+        >
+            {error ? (
+                <div className="space-y-6">
+                    <PageHeader
+                        title="Clients débiteurs"
+                        description="Analyse des clients avec des factures impayées"
+                    />
+                    <div className="flex items-center justify-center p-12 border border-black/8 rounded-lg bg-white">
+                        <p className="text-[14px] text-red-600">
+                            {error.message || "Une erreur est survenue"}
+                        </p>
+                    </div>
+                </div>
+            ) : (
+                <div className="space-y-6">
             <PageHeader
                 title="Clients débiteurs"
                 description="Analyse des clients avec des factures impayées"
@@ -120,6 +115,8 @@ export default function DebtorsPage() {
                     </div>
                 )}
             </div>
-        </div>
+                </div>
+            )}
+        </ConditionalSkeleton>
     );
 }
