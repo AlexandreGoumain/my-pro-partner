@@ -20,9 +20,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { CheckCircle2, Lock } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useEffect } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { SuspensePage } from "@/components/ui/suspense-page";
 
 function ResetPasswordForm() {
     const searchParams = useSearchParams();
@@ -171,8 +172,8 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
     return (
-        <Suspense fallback={<LoadingState variant="fullscreen" />}>
+        <SuspensePage fallback={<LoadingState variant="fullscreen" />}>
             <ResetPasswordForm />
-        </Suspense>
+        </SuspensePage>
     );
 }

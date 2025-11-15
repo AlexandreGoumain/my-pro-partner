@@ -9,7 +9,7 @@ import {
 } from "@/components/client-portal";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { PageSkeleton } from "@/components/ui/page-skeleton";
+import { ConditionalSkeleton } from "@/components/ui/conditional-skeleton";
 import { useClientDocumentDetail } from "@/hooks/use-client-document-detail";
 import {
     ArrowLeft,
@@ -37,28 +37,23 @@ export default function DocumentDetailPage() {
     const { document, isLoading, downloadPdf, isDownloading } =
         useClientDocumentDetail(documentId);
 
-    if (isLoading) {
-        return (
-            <PageSkeleton
-                layout="stats-grid"
-                statsCount={3}
-                itemCount={2}
-                statsHeight="h-20"
-                itemHeight="h-96"
-            />
-        );
-    }
-
-    if (!document) {
-        return (
-            <div className="flex items-center justify-center min-h-[400px]">
-                <p className="text-[14px] text-black/60">Document non trouvé</p>
-            </div>
-        );
-    }
-
     return (
-        <div className="space-y-6">
+        <ConditionalSkeleton
+            isLoading={isLoading}
+            skeletonProps={{
+                layout: "stats-grid",
+                statsCount: 3,
+                itemCount: 2,
+                statsHeight: "h-20",
+                itemHeight: "h-96",
+            }}
+        >
+            {!document ? (
+                <div className="flex items-center justify-center min-h-[400px]">
+                    <p className="text-[14px] text-black/60">Document non trouvé</p>
+                </div>
+            ) : (
+                <div className="space-y-6">
             {/* Header */}
             <div className="flex items-start justify-between gap-4">
                 <div className="flex items-start gap-4">
@@ -263,6 +258,8 @@ export default function DocumentDetailPage() {
                     )}
                 </Card>
             )}
-        </div>
+                </div>
+            )}
+        </ConditionalSkeleton>
     );
 }

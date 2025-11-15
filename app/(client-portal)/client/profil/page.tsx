@@ -4,31 +4,29 @@ import {
     ProfileFormCard,
     ProfileInfoCard,
 } from "@/components/client/profile";
-import { EmptyState } from "@/components/ui/empty-state";
 import { ClientTabSkeleton } from "@/components/ui/client-tab-skeleton";
+import { ConditionalSkeleton } from "@/components/ui/conditional-skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
 import { useClientProfile } from "@/hooks/use-client-profile";
 
 export default function ClientProfilPage() {
     const { profile, isLoading, isSaving, updateProfile } = useClientProfile();
 
-    if (isLoading) {
-        return <ClientTabSkeleton variant="profile" />;
-    }
-
-    if (!profile) {
-        return (
-            <EmptyState
-                title="Impossible de charger votre profil"
-                variant="inline"
-            />
-        );
-    }
-
-    const nomComplet = `${profile.nom} ${profile.prenom || ""}`.trim();
+    const nomComplet = `${profile?.nom || ""} ${profile?.prenom || ""}`.trim();
 
     return (
-        <div className="space-y-6">
+        <ConditionalSkeleton
+            isLoading={isLoading}
+            fallback={<ClientTabSkeleton variant="profile" />}
+        >
+            {!profile ? (
+                <EmptyState
+                    title="Impossible de charger votre profil"
+                    variant="inline"
+                />
+            ) : (
+                <div className="space-y-6">
             {/* Header */}
             <PageHeader
                 title="Mon profil"
@@ -44,6 +42,8 @@ export default function ClientProfilPage() {
                 isSaving={isSaving}
                 onSave={updateProfile}
             />
-        </div>
+                </div>
+            )}
+        </ConditionalSkeleton>
     );
 }

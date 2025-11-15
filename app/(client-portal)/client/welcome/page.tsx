@@ -3,6 +3,7 @@
 import { ProgressDots } from "@/components/client-portal/welcome/progress-dots";
 import { WelcomeActions } from "@/components/client-portal/welcome/welcome-actions";
 import { WelcomeStepCard } from "@/components/client-portal/welcome/welcome-step-card";
+import { ConditionalSkeleton } from "@/components/ui/conditional-skeleton";
 import { LoadingState } from "@/components/ui/loading-state";
 import { useClientAuth } from "@/hooks/use-client-auth";
 import { useWelcomeFlow } from "@/hooks/use-welcome-flow";
@@ -59,13 +60,12 @@ export default function ClientWelcomePage() {
 
     const currentStepData = steps[currentStep];
 
-    // Show loading state while fetching user data
-    if (isLoading) {
-        return <LoadingState variant="fullscreen" />;
-    }
-
     return (
-        <div className="min-h-screen bg-white flex items-center justify-center p-4">
+        <ConditionalSkeleton
+            isLoading={isLoading}
+            fallback={<LoadingState variant="fullscreen" />}
+        >
+            <div className="min-h-screen bg-white flex items-center justify-center p-4">
             <div className="w-full max-w-lg">
                 {/* Progress dots */}
                 <ProgressDots
@@ -90,6 +90,7 @@ export default function ClientWelcomePage() {
                     votre profil
                 </p>
             </div>
-        </div>
+            </div>
+        </ConditionalSkeleton>
     );
 }

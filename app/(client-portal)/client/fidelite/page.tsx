@@ -5,29 +5,27 @@ import {
     ClientLoyaltyOverview,
     ClientLoyaltyProgress,
 } from "@/components/client-loyalty";
-import { EmptyState } from "@/components/ui/empty-state";
 import { ClientTabSkeleton } from "@/components/ui/client-tab-skeleton";
+import { ConditionalSkeleton } from "@/components/ui/conditional-skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
 import { useClientLoyalty } from "@/hooks/use-client-loyalty";
 
 export default function ClientFidelitePage() {
     const { data, isLoading } = useClientLoyalty();
 
-    if (isLoading) {
-        return <ClientTabSkeleton variant="loyalty" />;
-    }
-
-    if (!data) {
-        return (
-            <EmptyState
-                title="Impossible de charger vos informations de fidélité"
-                variant="inline"
-            />
-        );
-    }
-
     return (
-        <div className="space-y-6">
+        <ConditionalSkeleton
+            isLoading={isLoading}
+            fallback={<ClientTabSkeleton variant="loyalty" />}
+        >
+            {!data ? (
+                <EmptyState
+                    title="Impossible de charger vos informations de fidélité"
+                    variant="inline"
+                />
+            ) : (
+                <div className="space-y-6">
             {/* Header */}
             <PageHeader
                 title="Programme de fidélité"
@@ -53,6 +51,8 @@ export default function ClientFidelitePage() {
                 mouvements={data.mouvements}
                 isLoading={isLoading}
             />
-        </div>
+                </div>
+            )}
+        </ConditionalSkeleton>
     );
 }

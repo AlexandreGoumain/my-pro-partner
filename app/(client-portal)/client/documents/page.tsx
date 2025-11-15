@@ -3,8 +3,9 @@
 import {
     DocumentCard,
 } from "@/components/client/documents";
-import { EmptyState } from "@/components/ui/empty-state";
 import { ClientTabSkeleton } from "@/components/ui/client-tab-skeleton";
+import { ConditionalSkeleton } from "@/components/ui/conditional-skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
 import { useClientDocuments } from "@/hooks/use-client-documents";
 import { FileText } from "lucide-react";
@@ -12,25 +13,17 @@ import { FileText } from "lucide-react";
 export default function ClientDocumentsPage() {
     const { documents, isLoading, downloadPDF } = useClientDocuments();
 
-    if (isLoading) {
-        return (
-            <div className="space-y-6">
-                <PageHeader
-                    title="Mes documents"
-                    description="Consultez et téléchargez vos devis, factures et avoirs"
-                />
-                <ClientTabSkeleton variant="documents" />
-            </div>
-        );
-    }
-
     return (
         <div className="space-y-6">
-            {/* Header */}
             <PageHeader
                 title="Mes documents"
                 description="Consultez et téléchargez vos devis, factures et avoirs"
             />
+
+            <ConditionalSkeleton
+                isLoading={isLoading}
+                fallback={<ClientTabSkeleton variant="documents" />}
+            >
 
             {/* Documents List */}
             {documents.length === 0 ? (
@@ -50,6 +43,7 @@ export default function ClientDocumentsPage() {
                     ))}
                 </div>
             )}
+            </ConditionalSkeleton>
         </div>
     );
 }
