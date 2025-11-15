@@ -6,10 +6,8 @@ import { Card } from "@/components/ui/card";
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
 } from "@/components/ui/dialog";
+import { DialogHeaderSection } from "@/components/ui/dialog-header-section";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PrimaryActionButton } from "@/components/ui/primary-action-button";
@@ -57,15 +55,12 @@ export function BulkEmailDialog({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                    <DialogTitle className="text-[20px] font-semibold tracking-[-0.01em]">
-                        Envoyer un email groupé
-                    </DialogTitle>
-                    <DialogDescription className="text-[14px] text-black/60">
-                        Envoyez un email à tous les clients du segment "
-                        {segment.nom}"
-                    </DialogDescription>
-                </DialogHeader>
+                <DialogHeaderSection
+                    title="Envoyer un email groupé"
+                    description={`Envoyez un email à tous les clients du segment "${segment.nom}"`}
+                    titleClassName="text-[20px] font-semibold tracking-[-0.01em]"
+                    descriptionClassName="text-[14px] text-black/60"
+                />
 
                 <form onSubmit={handleSubmit} className="space-y-6 mt-4">
                     {/* Recipient Info */}

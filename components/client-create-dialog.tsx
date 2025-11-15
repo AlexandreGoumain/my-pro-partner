@@ -1,25 +1,15 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { DialogHeaderSection } from "@/components/ui/dialog-header-section";
 import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
     DialogFooter,
-    DialogHeader,
-    DialogTitle,
 } from "@/components/ui/dialog";
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Form } from "@/components/ui/form";
+import { FormInput } from "@/components/ui/form-input";
 import { useCreateClient } from "@/hooks/use-clients";
 import { useFormReset } from "@/hooks/use-form-reset";
 import { clientCreateSchema, type ClientCreateInput } from "@/lib/validation";
@@ -79,14 +69,12 @@ export function ClientCreateDialog({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                    <DialogTitle className="text-[20px] font-semibold tracking-[-0.02em]">
-                        Nouveau client
-                    </DialogTitle>
-                    <DialogDescription className="text-[14px] text-black/60">
-                        Ajoutez un nouveau client à votre base de données
-                    </DialogDescription>
-                </DialogHeader>
+                <DialogHeaderSection
+                    title="Nouveau client"
+                    description="Ajoutez un nouveau client à votre base de données"
+                    titleClassName="text-[20px] font-semibold tracking-[-0.02em]"
+                    descriptionClassName="text-[14px] text-black/60"
+                />
 
                 <Form {...form}>
                     <form
@@ -99,45 +87,23 @@ export function ClientCreateDialog({
                                 Identité
                             </h3>
                             <div className="grid grid-cols-2 gap-4">
-                                <FormField
+                                <FormInput
                                     control={form.control}
                                     name="nom"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel className="text-[13px] text-black/60">
-                                                Nom *
-                                            </FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    {...field}
-                                                    placeholder="Dupont"
-                                                    className="h-11 border-black/10"
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
+                                    label="Nom"
+                                    placeholder="Dupont"
+                                    required
+                                    className="h-11 border-black/10"
+                                    labelClassName="text-[13px] text-black/60"
                                 />
 
-                                <FormField
+                                <FormInput
                                     control={form.control}
                                     name="prenom"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel className="text-[13px] text-black/60">
-                                                Prénom
-                                            </FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    {...field}
-                                                    value={field.value || ""}
-                                                    placeholder="Jean"
-                                                    className="h-11 border-black/10"
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
+                                    label="Prénom"
+                                    placeholder="Jean"
+                                    className="h-11 border-black/10"
+                                    labelClassName="text-[13px] text-black/60"
                                 />
                             </div>
                         </div>
@@ -148,48 +114,24 @@ export function ClientCreateDialog({
                                 Contact
                             </h3>
                             <div className="grid grid-cols-2 gap-4">
-                                <FormField
+                                <FormInput
                                     control={form.control}
                                     name="email"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel className="text-[13px] text-black/60">
-                                                Email
-                                            </FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    {...field}
-                                                    value={field.value || ""}
-                                                    type="email"
-                                                    placeholder="jean.dupont@example.com"
-                                                    className="h-11 border-black/10"
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
+                                    label="Email"
+                                    type="email"
+                                    placeholder="jean.dupont@example.com"
+                                    className="h-11 border-black/10"
+                                    labelClassName="text-[13px] text-black/60"
                                 />
 
-                                <FormField
+                                <FormInput
                                     control={form.control}
                                     name="telephone"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel className="text-[13px] text-black/60">
-                                                Téléphone
-                                            </FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    {...field}
-                                                    value={field.value || ""}
-                                                    type="tel"
-                                                    placeholder="06 12 34 56 78"
-                                                    className="h-11 border-black/10"
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
+                                    label="Téléphone"
+                                    type="tel"
+                                    placeholder="06 12 34 56 78"
+                                    className="h-11 border-black/10"
+                                    labelClassName="text-[13px] text-black/60"
                                 />
                             </div>
                         </div>
@@ -199,91 +141,41 @@ export function ClientCreateDialog({
                             <h3 className="text-[15px] font-medium tracking-[-0.01em]">
                                 Adresse
                             </h3>
-                            <FormField
+                            <FormInput
                                 control={form.control}
                                 name="adresse"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="text-[13px] text-black/60">
-                                            Adresse
-                                        </FormLabel>
-                                        <FormControl>
-                                            <Input
-                                                {...field}
-                                                value={field.value || ""}
-                                                placeholder="12 rue de la Paix"
-                                                className="h-11 border-black/10"
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
+                                label="Adresse"
+                                placeholder="12 rue de la Paix"
+                                className="h-11 border-black/10"
+                                labelClassName="text-[13px] text-black/60"
                             />
 
                             <div className="grid grid-cols-3 gap-4">
-                                <FormField
+                                <FormInput
                                     control={form.control}
                                     name="codePostal"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel className="text-[13px] text-black/60">
-                                                Code postal
-                                            </FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    {...field}
-                                                    value={field.value || ""}
-                                                    placeholder="75001"
-                                                    className="h-11 border-black/10"
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
+                                    label="Code postal"
+                                    placeholder="75001"
+                                    className="h-11 border-black/10"
+                                    labelClassName="text-[13px] text-black/60"
                                 />
 
-                                <FormField
+                                <FormInput
                                     control={form.control}
                                     name="ville"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel className="text-[13px] text-black/60">
-                                                Ville
-                                            </FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    {...field}
-                                                    value={field.value || ""}
-                                                    placeholder="Paris"
-                                                    className="h-11 border-black/10"
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
+                                    label="Ville"
+                                    placeholder="Paris"
+                                    className="h-11 border-black/10"
+                                    labelClassName="text-[13px] text-black/60"
                                 />
 
-                                <FormField
+                                <FormInput
                                     control={form.control}
                                     name="pays"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel className="text-[13px] text-black/60">
-                                                Pays
-                                            </FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    {...field}
-                                                    value={
-                                                        field.value || "France"
-                                                    }
-                                                    placeholder="France"
-                                                    className="h-11 border-black/10"
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
+                                    label="Pays"
+                                    placeholder="France"
+                                    className="h-11 border-black/10"
+                                    labelClassName="text-[13px] text-black/60"
                                 />
                             </div>
                         </div>
@@ -293,25 +185,15 @@ export function ClientCreateDialog({
                             <h3 className="text-[15px] font-medium tracking-[-0.01em]">
                                 Notes
                             </h3>
-                            <FormField
+                            <FormInput
                                 control={form.control}
                                 name="notes"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="text-[13px] text-black/60">
-                                            Notes internes
-                                        </FormLabel>
-                                        <FormControl>
-                                            <Textarea
-                                                {...field}
-                                                value={field.value || ""}
-                                                placeholder="Informations complémentaires..."
-                                                className="min-h-[100px] border-black/10"
-                                            />
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
+                                label="Notes internes"
+                                textarea
+                                rows={4}
+                                placeholder="Informations complémentaires..."
+                                className="border-black/10"
+                                labelClassName="text-[13px] text-black/60"
                             />
                         </div>
 

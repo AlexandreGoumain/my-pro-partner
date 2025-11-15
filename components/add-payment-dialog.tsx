@@ -5,10 +5,8 @@ import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
 } from "@/components/ui/dialog";
+import { DialogHeaderSection } from "@/components/ui/dialog-header-section";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -60,15 +58,12 @@ export function AddPaymentDialog({
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="max-w-md">
-                <DialogHeader>
-                    <DialogTitle className="text-[20px] font-semibold tracking-[-0.01em]">
-                        Enregistrer un paiement
-                    </DialogTitle>
-                    <DialogDescription className="text-[14px] text-black/60">
-                        Facture {invoice.numero} - Reste à payer:{" "}
-                        {formatCurrency(invoice.reste_a_payer)}
-                    </DialogDescription>
-                </DialogHeader>
+                <DialogHeaderSection
+                    title="Enregistrer un paiement"
+                    description={`Facture ${invoice.numero} - Reste à payer: ${formatCurrency(invoice.reste_a_payer)}`}
+                    titleClassName="text-[20px] font-semibold tracking-[-0.01em]"
+                    descriptionClassName="text-[14px] text-black/60"
+                />
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-2">

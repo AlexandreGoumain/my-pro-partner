@@ -3,10 +3,8 @@
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
 } from "@/components/ui/dialog";
+import { DialogHeaderSection } from "@/components/ui/dialog-header-section";
 import { Button } from "@/components/ui/button";
 import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { Input } from "@/components/ui/input";
@@ -56,14 +54,12 @@ export function ClientEmailDialog({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                    <DialogTitle className="text-[20px] font-semibold tracking-[-0.01em]">
-                        Envoyer un email
-                    </DialogTitle>
-                    <DialogDescription className="text-[14px] text-black/60">
-                        Envoyez un email personnalisé à {nomComplet}
-                    </DialogDescription>
-                </DialogHeader>
+                <DialogHeaderSection
+                    title="Envoyer un email"
+                    description={`Envoyez un email personnalisé à ${nomComplet}`}
+                    titleClassName="text-[20px] font-semibold tracking-[-0.01em]"
+                    descriptionClassName="text-[14px] text-black/60"
+                />
 
                 <form onSubmit={handleSubmit} className="space-y-6 mt-4">
                     {/* Recipient Info */}
