@@ -4,17 +4,10 @@ import { ErrorAlert } from "@/components/client-portal/register/error-alert";
 import { InvitationSuccessBanner } from "@/components/client-portal/register/invitation-success-banner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Form } from "@/components/ui/form";
+import { FormInput } from "@/components/ui/form-input";
 import { LoadingState } from "@/components/ui/loading-state";
-import {
-    Form,
-    FormControl,
-    FormDescription,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { SuspensePage } from "@/components/ui/suspense-page";
 import { useClientRegister } from "@/hooks/use-client-register";
 import { useInvitationVerification } from "@/hooks/use-invitation-verification";
 import {
@@ -25,7 +18,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { UserPlus } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 
 function RegisterForm() {
@@ -123,7 +116,12 @@ function RegisterForm() {
     }
 
     if (isVerifying) {
-        return <LoadingState variant="fullscreen" message="Vérification de l'invitation..." />;
+        return (
+            <LoadingState
+                variant="fullscreen"
+                message="Vérification de l'invitation..."
+            />
+        );
     }
 
     return (
@@ -167,77 +165,41 @@ function RegisterForm() {
                                 )}
 
                                 {/* Email */}
-                                <FormField
-                                    control={form.control}
+                                <FormInput
+                                    control={form.control as any}
                                     name="email"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel className="text-[14px] font-medium">
-                                                Email *
-                                            </FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    {...field}
-                                                    type="email"
-                                                    placeholder="votre@email.com"
-                                                    disabled={
-                                                        !!invitationData?.email
-                                                    }
-                                                    className="h-11 border-black/10 focus:border-black disabled:bg-black/5 disabled:text-black/60 disabled:cursor-not-allowed"
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
+                                    label="Email"
+                                    type="email"
+                                    placeholder="votre@email.com"
+                                    disabled={!!invitationData?.email}
+                                    required
+                                    labelClassName="text-[14px] font-medium"
+                                    className="h-11 border-black/10 focus:border-black disabled:bg-black/5 disabled:text-black/60 disabled:cursor-not-allowed"
                                 />
 
                                 {/* Nom */}
-                                <FormField
-                                    control={form.control}
+                                <FormInput
+                                    control={form.control as any}
                                     name="nom"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel className="text-[14px] font-medium">
-                                                Nom *
-                                            </FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    {...field}
-                                                    placeholder="Votre nom"
-                                                    disabled={
-                                                        !!invitationData?.nom
-                                                    }
-                                                    className="h-11 border-black/10 focus:border-black disabled:bg-black/5 disabled:text-black/60 disabled:cursor-not-allowed"
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
+                                    label="Nom"
+                                    placeholder="Votre nom"
+                                    disabled={!!invitationData?.nom}
+                                    required
+                                    labelClassName="text-[14px] font-medium"
+                                    className="h-11 border-black/10 focus:border-black disabled:bg-black/5 disabled:text-black/60 disabled:cursor-not-allowed"
                                 />
 
                                 {/* Téléphone */}
-                                <FormField
-                                    control={form.control}
+                                <FormInput
+                                    control={form.control as any}
                                     name="telephone"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel className="text-[14px] font-medium">
-                                                Téléphone *
-                                            </FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    {...field}
-                                                    type="tel"
-                                                    placeholder="06 12 34 56 78"
-                                                    disabled={
-                                                        !!invitationData?.telephone
-                                                    }
-                                                    className="h-11 border-black/10 focus:border-black disabled:bg-black/5 disabled:text-black/60 disabled:cursor-not-allowed"
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
+                                    label="Téléphone"
+                                    type="tel"
+                                    placeholder="06 12 34 56 78"
+                                    disabled={!!invitationData?.telephone}
+                                    required
+                                    labelClassName="text-[14px] font-medium"
+                                    className="h-11 border-black/10 focus:border-black disabled:bg-black/5 disabled:text-black/60 disabled:cursor-not-allowed"
                                 />
 
                                 {/* Optional fields - Collapsed by default */}
@@ -256,140 +218,72 @@ function RegisterForm() {
 
                                     <div className="mt-4 space-y-5 animate-in fade-in duration-200">
                                         {/* Prénom */}
-                                        <FormField
-                                            control={form.control}
+                                        <FormInput
+                                            control={form.control as any}
                                             name="prenom"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel className="text-[14px] font-medium">
-                                                        Prénom
-                                                    </FormLabel>
-                                                    <FormControl>
-                                                        <Input
-                                                            {...field}
-                                                            placeholder="Votre prénom"
-                                                            disabled={
-                                                                !!invitationData?.prenom
-                                                            }
-                                                            className="h-11 border-black/10 focus:border-black disabled:bg-black/5 disabled:text-black/60 disabled:cursor-not-allowed"
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
+                                            label="Prénom"
+                                            placeholder="Votre prénom"
+                                            disabled={!!invitationData?.prenom}
+                                            labelClassName="text-[14px] font-medium"
+                                            className="h-11 border-black/10 focus:border-black disabled:bg-black/5 disabled:text-black/60 disabled:cursor-not-allowed"
                                         />
 
                                         {/* Adresse */}
-                                        <FormField
-                                            control={form.control}
+                                        <FormInput
+                                            control={form.control as any}
                                             name="adresse"
-                                            render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel className="text-[14px] font-medium">
-                                                        Adresse
-                                                    </FormLabel>
-                                                    <FormControl>
-                                                        <Input
-                                                            {...field}
-                                                            placeholder="123 rue de la République"
-                                                            className="h-11 border-black/10 focus:border-black"
-                                                        />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )}
+                                            label="Adresse"
+                                            placeholder="123 rue de la République"
+                                            labelClassName="text-[14px] font-medium"
+                                            className="h-11 border-black/10 focus:border-black"
                                         />
 
                                         {/* Code postal & Ville */}
                                         <div className="grid grid-cols-2 gap-4">
-                                            <FormField
-                                                control={form.control}
+                                            <FormInput
+                                                control={form.control as any}
                                                 name="codePostal"
-                                                render={({ field }) => (
-                                                    <FormItem>
-                                                        <FormLabel className="text-[14px] font-medium">
-                                                            Code postal
-                                                        </FormLabel>
-                                                        <FormControl>
-                                                            <Input
-                                                                {...field}
-                                                                placeholder="75001"
-                                                                className="h-11 border-black/10 focus:border-black"
-                                                            />
-                                                        </FormControl>
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )}
+                                                label="Code postal"
+                                                placeholder="75001"
+                                                labelClassName="text-[14px] font-medium"
+                                                className="h-11 border-black/10 focus:border-black"
                                             />
 
-                                            <FormField
-                                                control={form.control}
+                                            <FormInput
+                                                control={form.control as any}
                                                 name="ville"
-                                                render={({ field }) => (
-                                                    <FormItem>
-                                                        <FormLabel className="text-[14px] font-medium">
-                                                            Ville
-                                                        </FormLabel>
-                                                        <FormControl>
-                                                            <Input
-                                                                {...field}
-                                                                placeholder="Paris"
-                                                                className="h-11 border-black/10 focus:border-black"
-                                                            />
-                                                        </FormControl>
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )}
+                                                label="Ville"
+                                                placeholder="Paris"
+                                                labelClassName="text-[14px] font-medium"
+                                                className="h-11 border-black/10 focus:border-black"
                                             />
                                         </div>
                                     </div>
                                 </details>
 
                                 {/* Password */}
-                                <FormField
-                                    control={form.control}
+                                <FormInput
+                                    control={form.control as any}
                                     name="password"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel className="text-[14px] font-medium">
-                                                Mot de passe *
-                                            </FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    {...field}
-                                                    type="password"
-                                                    placeholder="••••••••"
-                                                    className="h-11 border-black/10 focus:border-black"
-                                                />
-                                            </FormControl>
-                                            <FormDescription className="text-[12px] text-black/40">
-                                                8 caractères minimum
-                                            </FormDescription>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
+                                    label="Mot de passe"
+                                    type="password"
+                                    placeholder="••••••••"
+                                    required
+                                    description="8 caractères minimum"
+                                    labelClassName="text-[14px] font-medium"
+                                    className="h-11 border-black/10 focus:border-black"
                                 />
 
                                 {/* Confirm Password */}
-                                <FormField
-                                    control={form.control}
+                                <FormInput
+                                    control={form.control as any}
                                     name="confirmPassword"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel className="text-[14px] font-medium">
-                                                Confirmer le mot de passe *
-                                            </FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    {...field}
-                                                    type="password"
-                                                    placeholder="••••••••"
-                                                    className="h-11 border-black/10 focus:border-black"
-                                                />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
+                                    label="Confirmer le mot de passe"
+                                    type="password"
+                                    placeholder="••••••••"
+                                    required
+                                    labelClassName="text-[14px] font-medium"
+                                    className="h-11 border-black/10 focus:border-black"
                                 />
 
                                 <Button
@@ -433,8 +327,8 @@ function RegisterForm() {
 
 export default function ClientRegisterPage() {
     return (
-        <Suspense fallback={<LoadingState variant="fullscreen" />}>
+        <SuspensePage fallback={<LoadingState variant="fullscreen" />}>
             <RegisterForm />
-        </Suspense>
+        </SuspensePage>
     );
 }
