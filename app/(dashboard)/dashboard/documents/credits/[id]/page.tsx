@@ -10,6 +10,7 @@ import { DocumentStatusManager } from "@/components/document-status-manager";
 import { DocumentPdfDialog } from "@/components/pdf/document-pdf-dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ConditionalSkeleton } from "@/components/ui/conditional-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
 import { useCompanySettings } from "@/hooks/use-company-settings";
 import { useDocumentDetail } from "@/hooks/use-document-detail";
@@ -38,16 +39,13 @@ export default function CreditNoteDetailPage() {
         redirectPath: "/dashboard/documents/credits",
     });
 
-    if (isLoading) {
-        return <DocumentDetailSkeleton title="Avoir" />;
-    }
-
-    if (!credit) {
-        return null;
-    }
-
     return (
-        <div className="space-y-6">
+        <ConditionalSkeleton
+            isLoading={isLoading}
+            fallback={<DocumentDetailSkeleton title="Avoir" />}
+        >
+            {!credit ? null : (
+                <div className="space-y-6">
             <PageHeader
                 title={`Avoir ${credit.numero}`}
                 description={`Créé le ${format(
@@ -132,6 +130,8 @@ export default function CreditNoteDetailPage() {
                     company={companySettings}
                 />
             )}
-        </div>
+                </div>
+            )}
+        </ConditionalSkeleton>
     );
 }

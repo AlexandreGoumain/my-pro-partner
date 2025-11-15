@@ -9,6 +9,7 @@ import {
 } from "@/components/document-detail";
 import { DocumentPdfDialog } from "@/components/pdf/document-pdf-dialog";
 import { Card } from "@/components/ui/card";
+import { ConditionalSkeleton } from "@/components/ui/conditional-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
 import { useCompanySettings } from "@/hooks/use-company-settings";
 import { useDocumentDetail } from "@/hooks/use-document-detail";
@@ -38,16 +39,13 @@ export default function QuoteDetailPage() {
         redirectPath: "/dashboard/documents/quotes",
     });
 
-    if (isLoading) {
-        return <DocumentDetailSkeleton title="Devis" />;
-    }
-
-    if (!quote) {
-        return null;
-    }
-
     return (
-        <div className="space-y-6">
+        <ConditionalSkeleton
+            isLoading={isLoading}
+            fallback={<DocumentDetailSkeleton title="Devis" />}
+        >
+            {!quote ? null : (
+                <div className="space-y-6">
             <PageHeader
                 title={`Devis ${quote.numero}`}
                 description={`Créé le ${format(
@@ -105,6 +103,8 @@ export default function QuoteDetailPage() {
                     company={companySettings}
                 />
             )}
-        </div>
+                </div>
+            )}
+        </ConditionalSkeleton>
     );
 }

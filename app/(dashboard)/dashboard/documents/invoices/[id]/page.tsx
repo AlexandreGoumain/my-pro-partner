@@ -10,6 +10,7 @@ import {
 } from "@/components/document-detail";
 import { DocumentPdfDialog } from "@/components/pdf/document-pdf-dialog";
 import { Card } from "@/components/ui/card";
+import { ConditionalSkeleton } from "@/components/ui/conditional-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
 import { useCompanySettings } from "@/hooks/use-company-settings";
 import { useDocumentDetail } from "@/hooks/use-document-detail";
@@ -37,16 +38,13 @@ export default function InvoiceDetailPage() {
         redirectPath: "/dashboard/documents/invoices",
     });
 
-    if (isLoading) {
-        return <DocumentDetailSkeleton title="Facture" />;
-    }
-
-    if (!invoice) {
-        return null;
-    }
-
     return (
-        <div className="space-y-6">
+        <ConditionalSkeleton
+            isLoading={isLoading}
+            fallback={<DocumentDetailSkeleton title="Facture" />}
+        >
+            {!invoice ? null : (
+                <div className="space-y-6">
             <PageHeader
                 title={`Facture ${invoice.numero}`}
                 description={`Créée le ${format(
@@ -108,6 +106,8 @@ export default function InvoiceDetailPage() {
                     company={companySettings}
                 />
             )}
-        </div>
+                </div>
+            )}
+        </ConditionalSkeleton>
     );
 }
