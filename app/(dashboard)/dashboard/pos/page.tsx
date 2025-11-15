@@ -9,7 +9,7 @@ import {
     TerminalPayment,
 } from "@/components/pos";
 import { Button } from "@/components/ui/button";
-import { SearchBar } from "@/components/ui/search-bar";
+import { FilterBar } from "@/components/ui/filter-bar";
 import { usePOSPage } from "@/hooks/use-pos-page";
 import { ShoppingCart, Trash2, User } from "lucide-react";
 
@@ -44,10 +44,15 @@ export default function POSPage() {
                 <div className="flex-1 flex flex-col overflow-hidden">
                     {/* Search */}
                     <div className="p-4 bg-white border-b border-black/8">
-                        <SearchBar
-                            value={page.search}
-                            onChange={page.setSearch}
-                            placeholder="Rechercher un article..."
+                        <FilterBar
+                            filters={[
+                                {
+                                    type: "search",
+                                    value: page.search,
+                                    onChange: page.setSearch,
+                                    placeholder: "Rechercher un article...",
+                                },
+                            ]}
                         />
                     </div>
 

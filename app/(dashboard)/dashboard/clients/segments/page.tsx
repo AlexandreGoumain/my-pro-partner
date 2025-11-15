@@ -11,7 +11,7 @@ import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
-import { SearchBar } from "@/components/ui/search-bar";
+import { FilterBar } from "@/components/ui/filter-bar";
 import { SegmentCard } from "@/components/ui/segment-card";
 import { SegmentCardSkeleton } from "@/components/ui/segment-card-skeleton";
 import { SegmentSectionHeader } from "@/components/ui/segment-section-header";
@@ -98,10 +98,15 @@ export default function ClientSegmentsPage() {
                     }
                 />
 
-                <SearchBar
-                    value={searchQuery}
-                    onChange={setSearchQuery}
-                    placeholder="Rechercher un segment..."
+                <FilterBar
+                    filters={[
+                        {
+                            type: "search",
+                            value: searchQuery,
+                            onChange: setSearchQuery,
+                            placeholder: "Rechercher un segment...",
+                        },
+                    ]}
                 />
 
                 {segments.length > 0 && (
