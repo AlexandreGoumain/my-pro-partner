@@ -9,7 +9,7 @@ import {
     InvitationInfoCard,
 } from "@/components/auth";
 import { Button } from "@/components/ui/button";
-import { PageSkeleton } from "@/components/ui/page-skeleton";
+import { ConditionalSkeleton } from "@/components/ui/conditional-skeleton";
 import {
     Form,
     FormControl,
@@ -18,12 +18,13 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
+import { FormInput } from "@/components/ui/form-input";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
+import { SuspensePage } from "@/components/ui/suspense-page";
 import { useAcceptInvitation } from "@/hooks/use-accept-invitation";
 import { cn } from "@/lib/utils";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense } from "react";
 
 function AcceptInvitationContent() {
     const router = useRouter();
@@ -40,43 +41,38 @@ function AcceptInvitationContent() {
         onSubmit,
     } = useAcceptInvitation(token);
 
-    // Loading state
-    if (isVerifying) {
-        return <PageSkeleton layout="form" formSections={2} />;
-    }
-
-    // Invalid invitation
-    if (error && !invitation) {
-        return (
-            <AuthErrorState
-                title="Invitation invalide"
-                description="L'invitation que vous essayez d'utiliser n'est pas valide"
-                error={error}
-                submessage="Cette invitation a peut-être expiré ou a déjà été utilisée."
-                onBack={() => router.push("/auth/login")}
-            />
-        );
-    }
-
-    // Success state
-    if (success) {
-        return (
-            <AuthSuccessState
-                title="Compte créé avec succès !"
-                description="Vous allez être redirigé vers la page de connexion"
-                message="Votre compte a été créé avec succès !"
-                submessage="Vous pouvez maintenant vous connecter avec votre email et mot de passe."
-            />
-        );
-    }
-
-    // Form
     return (
-        <>
-            <AuthHeader
-                title="Accepter l'invitation"
-                description={`Rejoignez ${invitation?.entrepriseName || "l'équipe"}`}
-            />
+        <ConditionalSkeleton
+            isLoading={isVerifying}
+            skeletonProps={{
+                layout: "form",
+                formSections: 2,
+            }}
+        >
+            {/* Invalid invitation */}
+            {error && !invitation ? (
+                <AuthErrorState
+                    title="Invitation invalide"
+                    description="L'invitation que vous essayez d'utiliser n'est pas valide"
+                    error={error}
+                    submessage="Cette invitation a peut-être expiré ou a déjà été utilisée."
+                    onBack={() => router.push("/auth/login")}
+                />
+            ) : success ? (
+                /* Success state */
+                <AuthSuccessState
+                    title="Compte créé avec succès !"
+                    description="Vous allez être redirigé vers la page de connexion"
+                    message="Votre compte a été créé avec succès !"
+                    submessage="Vous pouvez maintenant vous connecter avec votre email et mot de passe."
+                />
+            ) : (
+                /* Form */
+                <>
+                    <AuthHeader
+                        title="Accepter l'invitation"
+                        description={`Rejoignez ${invitation?.entrepriseName || "l'équipe"}`}
+                    />
 
             {invitation && (
                 <InvitationInfoCard invitation={invitation} className="mb-6" />
@@ -90,126 +86,58 @@ function AcceptInvitationContent() {
                     className="space-y-4"
                 >
                     <div className="grid grid-cols-2 gap-4">
-                        <FormField
+                        <FormInput
                             control={form.control}
                             name="prenom"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Prénom</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            {...field}
-                                            type="text"
-                                            placeholder="Jean"
-                                            disabled={isLoading}
-                                            className={cn(
-                                                "transition-all duration-200",
-                                                form.formState.errors.prenom &&
-                                                    "border-destructive"
-                                            )}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
+                            label="Prénom"
+                            placeholder="Jean"
+                            disabled={isLoading}
+                            showErrorBorder
+                            className="transition-all duration-200"
                         />
 
-                        <FormField
+                        <FormInput
                             control={form.control}
                             name="name"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Nom</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            {...field}
-                                            type="text"
-                                            placeholder="Dupont"
-                                            disabled={isLoading}
-                                            className={cn(
-                                                "transition-all duration-200",
-                                                form.formState.errors.name &&
-                                                    "border-destructive"
-                                            )}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
+                            label="Nom"
+                            placeholder="Dupont"
+                            disabled={isLoading}
+                            showErrorBorder
+                            className="transition-all duration-200"
                         />
                     </div>
 
-                    <FormField
+                    <FormInput
                         control={form.control}
                         name="telephone"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Téléphone (optionnel)</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        {...field}
-                                        type="tel"
-                                        placeholder="06 12 34 56 78"
-                                        disabled={isLoading}
-                                        className={cn(
-                                            "transition-all duration-200",
-                                            form.formState.errors.telephone &&
-                                                "border-destructive"
-                                        )}
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
+                        label="Téléphone (optionnel)"
+                        type="tel"
+                        placeholder="06 12 34 56 78"
+                        disabled={isLoading}
+                        showErrorBorder
+                        className="transition-all duration-200"
                     />
 
-                    <FormField
+                    <FormInput
                         control={form.control}
                         name="password"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Mot de passe</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        {...field}
-                                        type="password"
-                                        placeholder="••••••••"
-                                        disabled={isLoading}
-                                        className={cn(
-                                            "transition-all duration-200",
-                                            form.formState.errors.password &&
-                                                "border-destructive"
-                                        )}
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
+                        label="Mot de passe"
+                        type="password"
+                        placeholder="••••••••"
+                        disabled={isLoading}
+                        showErrorBorder
+                        className="transition-all duration-200"
                     />
 
-                    <FormField
+                    <FormInput
                         control={form.control}
                         name="confirmPassword"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Confirmer le mot de passe</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        {...field}
-                                        type="password"
-                                        placeholder="••••••••"
-                                        disabled={isLoading}
-                                        className={cn(
-                                            "transition-all duration-200",
-                                            form.formState.errors
-                                                .confirmPassword &&
-                                                "border-destructive"
-                                        )}
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
+                        label="Confirmer le mot de passe"
+                        type="password"
+                        placeholder="••••••••"
+                        disabled={isLoading}
+                        showErrorBorder
+                        className="transition-all duration-200"
                     />
 
                     <Button
@@ -229,15 +157,22 @@ function AcceptInvitationContent() {
                 </form>
             </Form>
 
-            <AuthFooter />
-        </>
+                    <AuthFooter />
+                </>
+            )}
+        </ConditionalSkeleton>
     );
 }
 
 export default function AcceptInvitationPage() {
     return (
-        <Suspense fallback={<PageSkeleton layout="form" formSections={2} />}>
+        <SuspensePage
+            skeletonProps={{
+                layout: "form",
+                formSections: 2,
+            }}
+        >
             <AcceptInvitationContent />
-        </Suspense>
+        </SuspensePage>
     );
 }

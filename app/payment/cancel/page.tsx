@@ -5,7 +5,7 @@ import { PaymentStatusCard } from "@/components/ui/payment-status-card";
 import { usePaymentRetry } from "@/hooks/use-payment-retry";
 import { XCircle } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { SuspensePage } from "@/components/ui/suspense-page";
 
 function PaymentCancelContent() {
     const searchParams = useSearchParams();
@@ -38,8 +38,8 @@ function PaymentCancelContent() {
 
 export default function PaymentCancelPage() {
     return (
-        <Suspense fallback={<LoadingState variant="fullscreen" />}>
+        <SuspensePage fallback={<LoadingState variant="fullscreen" />}>
             <PaymentCancelContent />
-        </Suspense>
+        </SuspensePage>
     );
 }

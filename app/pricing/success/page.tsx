@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 import { LoadingState } from "@/components/ui/loading-state";
 import Link from "next/link";
-import { Suspense } from "react";
+import { SuspensePage } from "@/components/ui/suspense-page";
 
 /**
  * Success content component (must be wrapped in Suspense due to useSearchParams)
@@ -254,12 +254,10 @@ function SuccessContent() {
  */
 export default function SubscriptionSuccessPage() {
     return (
-        <Suspense
-            fallback={
-                <LoadingState variant="fullscreen" spinnerSize={28} />
-            }
+        <SuspensePage
+            fallback={<LoadingState variant="fullscreen" spinnerSize={28} />}
         >
             <SuccessContent />
-        </Suspense>
+        </SuspensePage>
     );
 }

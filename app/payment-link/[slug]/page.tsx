@@ -5,8 +5,8 @@ import { PaymentLinkAmount } from "@/components/payment-links/payment-link-amoun
 import { PaymentLinkFooter } from "@/components/payment-links/payment-link-footer";
 import { PaymentLinkQRCode } from "@/components/payment-links/payment-link-qr-code";
 import { Card } from "@/components/ui/card";
+import { ConditionalSkeleton } from "@/components/ui/conditional-skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
-import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { usePaymentLink } from "@/hooks/use-payment-link";
 import { AlertCircle } from "lucide-react";
 import Image from "next/image";
@@ -26,39 +26,32 @@ export default function PaymentLinkPage() {
         handleShowQR,
     } = usePaymentLink(slug);
 
-    // Loading state
-    if (loading) {
-        return (
-            <PageSkeleton
-                layout="simple"
-                itemCount={1}
-                itemHeight="h-[600px]"
-            />
-        );
-    }
-
-    // Invalid or expired payment link
-    if (!paymentLink || !paymentLink.isValid) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-white p-4">
-                <EmptyState
-                    icon={AlertCircle}
-                    title="Lien de paiement invalide"
-                    description="Ce lien de paiement n'est plus disponible ou a expiré."
-                    variant="default"
-                    className="max-w-md"
-                />
-            </div>
-        );
-    }
-
     const entrepriseName =
-        paymentLink.entreprise.parametres?.nom_entreprise ||
-        paymentLink.entreprise.nom;
-    const logoUrl = paymentLink.entreprise.parametres?.logo_url;
+        paymentLink?.entreprise.parametres?.nom_entreprise ||
+        paymentLink?.entreprise.nom;
+    const logoUrl = paymentLink?.entreprise.parametres?.logo_url;
 
     return (
-        <div className="min-h-screen bg-white p-4">
+        <ConditionalSkeleton
+            isLoading={loading}
+            skeletonProps={{
+                layout: "simple",
+                itemCount: 1,
+                itemHeight: "h-[600px]",
+            }}
+        >
+            {!paymentLink || !paymentLink.isValid ? (
+                <div className="min-h-screen flex items-center justify-center bg-white p-4">
+                    <EmptyState
+                        icon={AlertCircle}
+                        title="Lien de paiement invalide"
+                        description="Ce lien de paiement n'est plus disponible ou a expiré."
+                        variant="default"
+                        className="max-w-md"
+                    />
+                </div>
+            ) : (
+                <div className="min-h-screen bg-white p-4">
             <div className="max-w-2xl mx-auto py-8">
                 {/* Logo entreprise */}
                 {logoUrl && (
@@ -133,6 +126,8 @@ export default function PaymentLinkPage() {
                     </div>
                 </Card>
             </div>
-        </div>
+                </div>
+            )}
+        </ConditionalSkeleton>
     );
 }

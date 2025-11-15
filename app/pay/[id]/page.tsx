@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { PageSkeleton } from "@/components/ui/page-skeleton";
+import { ConditionalSkeleton } from "@/components/ui/conditional-skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import { usePaymentInvoice } from "@/hooks/use-payment-invoice";
 import { format } from "date-fns";
@@ -27,63 +27,54 @@ export default function PayInvoicePage() {
         formatAmount,
     } = usePaymentInvoice(documentId);
 
-    if (isLoading) {
-        return (
-            <PageSkeleton
-                layout="simple"
-                itemCount={1}
-                itemHeight="h-[500px]"
-            />
-        );
-    }
-
-    if (error || !invoice) {
-        return (
-            <div className="min-h-screen bg-black/2 flex items-center justify-center p-4">
-                <Card className="max-w-lg w-full p-8 border-black/8 shadow-sm">
-                    <div className="flex flex-col items-center text-center space-y-4">
-                        <FileText
-                            className="w-12 h-12 text-red-500"
-                            strokeWidth={2}
-                        />
-                        <h1 className="text-[20px] font-semibold tracking-[-0.01em] text-black">
-                            {error || "Facture non trouvée"}
-                        </h1>
-                        <p className="text-[14px] text-black/60">
-                            Veuillez vérifier le lien ou contacter
-                            l&apos;entreprise.
-                        </p>
-                    </div>
-                </Card>
-            </div>
-        );
-    }
-
-    if (isAlreadyPaid) {
-        return (
-            <div className="min-h-screen bg-black/2 flex items-center justify-center p-4">
-                <Card className="max-w-lg w-full p-8 border-black/8 shadow-sm">
-                    <div className="flex flex-col items-center text-center space-y-4">
-                        <div className="rounded-full h-16 w-16 bg-green-100 flex items-center justify-center">
+    return (
+        <ConditionalSkeleton
+            isLoading={isLoading}
+            skeletonProps={{
+                layout: "simple",
+                itemCount: 1,
+                itemHeight: "h-[500px]",
+            }}
+        >
+            {error || !invoice ? (
+                <div className="min-h-screen bg-black/2 flex items-center justify-center p-4">
+                    <Card className="max-w-lg w-full p-8 border-black/8 shadow-sm">
+                        <div className="flex flex-col items-center text-center space-y-4">
                             <FileText
-                                className="w-8 h-8 text-green-600"
+                                className="w-12 h-12 text-red-500"
                                 strokeWidth={2}
                             />
+                            <h1 className="text-[20px] font-semibold tracking-[-0.01em] text-black">
+                                {error || "Facture non trouvée"}
+                            </h1>
+                            <p className="text-[14px] text-black/60">
+                                Veuillez vérifier le lien ou contacter
+                                l&apos;entreprise.
+                            </p>
                         </div>
-                        <h1 className="text-[20px] font-semibold tracking-[-0.01em] text-black">
-                            Facture déjà payée
-                        </h1>
-                        <p className="text-[14px] text-black/60">
-                            Cette facture a déjà été réglée intégralement.
-                        </p>
-                    </div>
-                </Card>
-            </div>
-        );
-    }
-
-    return (
-        <div className="min-h-screen bg-black/2 flex items-center justify-center p-4">
+                    </Card>
+                </div>
+            ) : isAlreadyPaid ? (
+                <div className="min-h-screen bg-black/2 flex items-center justify-center p-4">
+                    <Card className="max-w-lg w-full p-8 border-black/8 shadow-sm">
+                        <div className="flex flex-col items-center text-center space-y-4">
+                            <div className="rounded-full h-16 w-16 bg-green-100 flex items-center justify-center">
+                                <FileText
+                                    className="w-8 h-8 text-green-600"
+                                    strokeWidth={2}
+                                />
+                            </div>
+                            <h1 className="text-[20px] font-semibold tracking-[-0.01em] text-black">
+                                Facture déjà payée
+                            </h1>
+                            <p className="text-[14px] text-black/60">
+                                Cette facture a déjà été réglée intégralement.
+                            </p>
+                        </div>
+                    </Card>
+                </div>
+            ) : (
+                <div className="min-h-screen bg-black/2 flex items-center justify-center p-4">
             <Card className="max-w-lg w-full p-8 border-black/8 shadow-sm">
                 <div className="space-y-6">
                     <div className="text-center">
@@ -166,6 +157,8 @@ export default function PayInvoicePage() {
                     </div>
                 </div>
             </Card>
-        </div>
+                </div>
+            )}
+        </ConditionalSkeleton>
     );
 }
