@@ -1,27 +1,22 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import {
+    handleTenantError,
+    requireTenantAuth,
+} from "@/lib/middleware/tenant-isolation";
 import { BankReconciliationService } from "@/lib/services/bank-reconciliation.service";
+import { NextResponse } from "next/server";
 
 /**
  * POST /api/bank/auto-match
  * Lancer le matching automatique
  */
 export async function POST() {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.entrepriseId) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    try {
+        const { entrepriseId } = await requireTenantAuth();
+
+        await BankReconciliationService.autoMatch(entrepriseId);
+
+        return NextResponse.json({ success: true });
+    } catch (error) {
+        return handleTenantError(error);
     }
-
-    await BankReconciliationService.autoMatch(session.user.entrepriseId);
-
-    return NextResponse.json({ success: true });
-  } catch (error: any) {
-    console.error("[AUTO_MATCH_ERROR]", error);
-    return NextResponse.json(
-      { error: error.message || "Erreur lors du matching automatique" },
-      { status: 500 }
-    );
-  }
 }

@@ -1,29 +1,22 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import {
+    handleTenantError,
+    requireTenantAuth,
+} from "@/lib/middleware/tenant-isolation";
 import { BankReconciliationService } from "@/lib/services/bank-reconciliation.service";
+import { NextResponse } from "next/server";
 
 /**
  * GET /api/bank/stats
  * Récupérer les statistiques de rapprochement
  */
 export async function GET() {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.entrepriseId) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    try {
+        const { entrepriseId } = await requireTenantAuth();
+
+        const stats = await BankReconciliationService.getStats(entrepriseId);
+
+        return NextResponse.json({ stats });
+    } catch (error) {
+        return handleTenantError(error);
     }
-
-    const stats = await BankReconciliationService.getStats(
-      session.user.entrepriseId
-    );
-
-    return NextResponse.json({ stats });
-  } catch (error: any) {
-    console.error("[GET_BANK_STATS_ERROR]", error);
-    return NextResponse.json(
-      { error: error.message || "Erreur lors de la récupération des stats" },
-      { status: 500 }
-    );
-  }
 }
