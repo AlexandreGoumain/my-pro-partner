@@ -1,5 +1,12 @@
 import { NextResponse } from "next/server";
-import { PlanType, PRICING_PLANS, PlanLimits, getLimitErrorMessage, getRecommendedUpgrade } from "@/lib/pricing-config";
+import {
+  PlanType,
+  PlanLimits,
+  getLimitErrorMessage,
+  getRecommendedUpgrade,
+  PRICING_PLANS,
+} from "@/lib/pricing-config";
+import { PLANS_CONFIG } from "@/lib/config/plans.config";
 import { prisma } from "@/lib/prisma";
 
 /**

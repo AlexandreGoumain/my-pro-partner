@@ -377,20 +377,22 @@ export const StoresFeature: FeatureModule = {
   routes: ["/dashboard/stores", "/dashboard/stores/new", "/dashboard/stores/[id]"],
 };
 
-export const TerminalsFeature: FeatureModule = {
-  id: "terminals",
-  name: "Terminaux",
-  navigation: {
-    main: {
-      icon: "CreditCard",
-      label: "Terminaux",
-      href: "/dashboard/terminals",
-      order: 56,
-    },
-  },
-  routes: ["/dashboard/terminals"],
-  dependencies: ["pos"],
-};
+// Feature désactivée - Nécessite du matériel Stripe Terminal
+// Pour réactiver : mettre ENABLE_PAYMENT_TERMINALS à true dans lib/config/features.config.ts
+// export const TerminalsFeature: FeatureModule = {
+//   id: "terminals",
+//   name: "Terminaux",
+//   navigation: {
+//     main: {
+//       icon: "CreditCard",
+//       label: "Terminaux",
+//       href: "/dashboard/terminals",
+//       order: 56,
+//     },
+//   },
+//   routes: ["/dashboard/terminals"],
+//   dependencies: ["pos"],
+// };
 
 // ============================================
 // FINANCE
@@ -511,7 +513,7 @@ export const FEATURE_CATALOG: Record<string, FeatureModule> = {
 
   // Multi-store
   stores: StoresFeature,
-  terminals: TerminalsFeature,
+  // terminals: TerminalsFeature, // Désactivé - Voir lib/config/features.config.ts
 
   // Finance
   payments: PaymentsFeature,

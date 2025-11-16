@@ -1,9 +1,22 @@
 /**
- * Configuration complète du pricing et des limitations par plan
- * À utiliser dans toute l'application pour gérer les permissions et limites
+ * @deprecated Ce fichier est déprécié. Utilisez `@/lib/config/plans.config.ts` à la place.
+ *
+ * Ce fichier maintient la rétrocompatibilité mais vous devriez migrer vers :
+ * - `import { PLANS_CONFIG, usePlan } from "@/lib/config/plans.config"`
+ * - `import { usePlan, useFeature } from "@/hooks/use-plan"`
+ * - `import { checkFeatureAccess, checkCanAdd } from "@/lib/utils/plan-helpers"`
+ *
+ * Voir la documentation : docs/PLANS_USAGE_GUIDE.md
  */
 
-export type PlanType = "FREE" | "STARTER" | "PRO" | "ENTERPRISE";
+import {
+  PlanType as NewPlanType,
+  PLANS_CONFIG,
+  getPlanConfig,
+  PLAN_PRICING as NEW_PLAN_PRICING,
+} from "@/lib/config/plans.config";
+
+export type PlanType = NewPlanType;
 
 export interface PlanLimits {
     // Limites de base
@@ -79,484 +92,257 @@ export interface PlanLimits {
 }
 
 /**
+ * Mapping function to convert new plan config to old PlanLimits interface
+ * @deprecated Use PLANS_CONFIG from plans.config.ts instead
+ */
+function mapToPlanLimits(planType: PlanType): PlanLimits {
+  const config = getPlanConfig(planType);
+  const { limits, features } = config;
+
+  return {
+    // Limites de base
+    maxClients: limits.maxClients,
+    maxProducts: limits.maxProducts,
+    maxDocumentsPerMonth: limits.maxDocumentsPerMonth,
+    maxUsers: limits.maxUsers,
+
+    // Assistant
+    maxQuestionsPerMonth: limits.maxQuestionsPerMonth,
+    hasAssistant: features.aiChatbot,
+    assistantResponseTime: limits.assistantResponseTime,
+
+    // Documents
+    canCreateQuotes: features.quotes,
+    canCreateInvoices: features.invoices,
+    canConvertQuoteToInvoice: features.quoteToInvoice,
+    canSendEmailDocuments: features.emailDocuments,
+    canCustomizeTemplates: features.customTemplates,
+    canExportPDF: features.pdfExport,
+    canExportExcel: features.excelExport,
+
+    // Clients
+    canSegmentClients: features.clientSegmentation,
+    canScoreClients: features.clientScoring,
+    hasClientHistory: features.clientHistory,
+    canImportClients: features.importClients,
+    canExportClients: features.exportClients,
+
+    // Stock
+    hasBasicStock: features.basicStock,
+    hasAdvancedStock: features.advancedStock,
+    canTrackStockMovements: features.stockMovements,
+    hasLowStockAlerts: features.lowStockAlerts,
+    canManageSuppliers: features.suppliers,
+
+    // Analytics
+    hasBasicAnalytics: features.basicAnalytics,
+    hasAdvancedAnalytics: features.advancedAnalytics,
+    hasPredictions: features.predictions,
+    hasProfitabilityAnalysis: features.profitability,
+    canExportReports: features.exportReports,
+
+    // Automatisations
+    hasAutomatedReminders: features.automatedReminders,
+    hasAutomatedEmails: features.automatedEmails,
+    hasAutomatedSMS: features.automatedSMS,
+    canCreateCampaigns: features.campaigns,
+    has24_7Monitoring: features.monitoring24_7,
+
+    // Impayés
+    canViewDebtors: features.debtors,
+    canSendPaymentReminders: features.paymentReminders,
+    hasAutomatedPaymentReminders: features.automatedPaymentReminders,
+    hasDebtorScoring: features.debtorScoring,
+
+    // API
+    hasAPIAccess: features.apiAccess,
+    canUseWebhooks: features.webhooks,
+    canIntegrateAccounting: features.accountingIntegration,
+    hasCustomIntegrations: features.customIntegrations,
+
+    // Support
+    supportType: limits.supportType,
+    hasAccountManager: features.accountManager,
+    hasOnboarding: features.onboarding,
+    hasTraining: features.training,
+
+    // Autres
+    hasSLA: features.sla,
+    hasEarlyAccess: features.earlyAccess,
+    canWhiteLabel: features.whiteLabel,
+  };
+}
+
+/**
  * Configuration complète de chaque plan
+ * @deprecated Use PLANS_CONFIG from plans.config.ts instead
  */
 export const PRICING_PLANS: Record<PlanType, PlanLimits> = {
-    FREE: {
-        // Limites de base
-        maxClients: 10,
-        maxProducts: 10,
-        maxDocumentsPerMonth: 10,
-        maxUsers: 1,
-
-        // Assistant
-        maxQuestionsPerMonth: 0,
-        hasAssistant: false,
-        assistantResponseTime: "standard",
-
-        // Documents
-        canCreateQuotes: true,
-        canCreateInvoices: true,
-        canConvertQuoteToInvoice: true,
-        canSendEmailDocuments: false,
-        canCustomizeTemplates: false,
-        canExportPDF: true,
-        canExportExcel: false,
-
-        // Clients
-        canSegmentClients: false,
-        canScoreClients: false,
-        hasClientHistory: true,
-        canImportClients: false,
-        canExportClients: false,
-
-        // Stock
-        hasBasicStock: true,
-        hasAdvancedStock: false,
-        canTrackStockMovements: false,
-        hasLowStockAlerts: false,
-        canManageSuppliers: false,
-
-        // Analytics
-        hasBasicAnalytics: true,
-        hasAdvancedAnalytics: false,
-        hasPredictions: false,
-        hasProfitabilityAnalysis: false,
-        canExportReports: false,
-
-        // Automatisations
-        hasAutomatedReminders: false,
-        hasAutomatedEmails: false,
-        hasAutomatedSMS: false,
-        canCreateCampaigns: false,
-        has24_7Monitoring: false,
-
-        // Impayés
-        canViewDebtors: true,
-        canSendPaymentReminders: false,
-        hasAutomatedPaymentReminders: false,
-        hasDebtorScoring: false,
-
-        // API
-        hasAPIAccess: false,
-        canUseWebhooks: false,
-        canIntegrateAccounting: false,
-        hasCustomIntegrations: false,
-
-        // Support
-        supportType: "none",
-        hasAccountManager: false,
-        hasOnboarding: false,
-        hasTraining: false,
-
-        // Autres
-        hasSLA: false,
-        hasEarlyAccess: false,
-        canWhiteLabel: false,
-    },
-
-    STARTER: {
-        // Limites de base
-        maxClients: 50,
-        maxProducts: 100,
-        maxDocumentsPerMonth: -1, // Illimité
-        maxUsers: 3,
-
-        // Assistant
-        maxQuestionsPerMonth: 100,
-        hasAssistant: true,
-        assistantResponseTime: "standard",
-
-        // Documents
-        canCreateQuotes: true,
-        canCreateInvoices: true,
-        canConvertQuoteToInvoice: true,
-        canSendEmailDocuments: true,
-        canCustomizeTemplates: true,
-        canExportPDF: true,
-        canExportExcel: true,
-
-        // Clients
-        canSegmentClients: false,
-        canScoreClients: false,
-        hasClientHistory: true,
-        canImportClients: true,
-        canExportClients: true,
-
-        // Stock
-        hasBasicStock: true,
-        hasAdvancedStock: true,
-        canTrackStockMovements: true,
-        hasLowStockAlerts: true,
-        canManageSuppliers: false,
-
-        // Analytics
-        hasBasicAnalytics: true,
-        hasAdvancedAnalytics: false,
-        hasPredictions: false,
-        hasProfitabilityAnalysis: false,
-        canExportReports: true,
-
-        // Automatisations
-        hasAutomatedReminders: false,
-        hasAutomatedEmails: false,
-        hasAutomatedSMS: false,
-        canCreateCampaigns: false,
-        has24_7Monitoring: false,
-
-        // Impayés
-        canViewDebtors: true,
-        canSendPaymentReminders: true,
-        hasAutomatedPaymentReminders: false,
-        hasDebtorScoring: false,
-
-        // API
-        hasAPIAccess: false,
-        canUseWebhooks: false,
-        canIntegrateAccounting: false,
-        hasCustomIntegrations: false,
-
-        // Support
-        supportType: "email_24h",
-        hasAccountManager: false,
-        hasOnboarding: false,
-        hasTraining: false,
-
-        // Autres
-        hasSLA: false,
-        hasEarlyAccess: false,
-        canWhiteLabel: false,
-    },
-
-    PRO: {
-        // Limites de base
-        maxClients: -1, // Illimité
-        maxProducts: -1, // Illimité
-        maxDocumentsPerMonth: -1, // Illimité
-        maxUsers: 10,
-
-        // Assistant
-        maxQuestionsPerMonth: -1, // Illimité
-        hasAssistant: true,
-        assistantResponseTime: "fast",
-
-        // Documents
-        canCreateQuotes: true,
-        canCreateInvoices: true,
-        canConvertQuoteToInvoice: true,
-        canSendEmailDocuments: true,
-        canCustomizeTemplates: true,
-        canExportPDF: true,
-        canExportExcel: true,
-
-        // Clients
-        canSegmentClients: true,
-        canScoreClients: true,
-        hasClientHistory: true,
-        canImportClients: true,
-        canExportClients: true,
-
-        // Stock
-        hasBasicStock: true,
-        hasAdvancedStock: true,
-        canTrackStockMovements: true,
-        hasLowStockAlerts: true,
-        canManageSuppliers: true,
-
-        // Analytics
-        hasBasicAnalytics: true,
-        hasAdvancedAnalytics: true,
-        hasPredictions: true,
-        hasProfitabilityAnalysis: true,
-        canExportReports: true,
-
-        // Automatisations
-        hasAutomatedReminders: true,
-        hasAutomatedEmails: true,
-        hasAutomatedSMS: true,
-        canCreateCampaigns: true,
-        has24_7Monitoring: true,
-
-        // Impayés
-        canViewDebtors: true,
-        canSendPaymentReminders: true,
-        hasAutomatedPaymentReminders: true,
-        hasDebtorScoring: true,
-
-        // API
-        hasAPIAccess: true,
-        canUseWebhooks: true,
-        canIntegrateAccounting: true,
-        hasCustomIntegrations: false,
-
-        // Support
-        supportType: "email_priority",
-        hasAccountManager: false,
-        hasOnboarding: false,
-        hasTraining: false,
-
-        // Autres
-        hasSLA: false,
-        hasEarlyAccess: false,
-        canWhiteLabel: false,
-    },
-
-    ENTERPRISE: {
-        // Limites de base
-        maxClients: -1, // Illimité
-        maxProducts: -1, // Illimité
-        maxDocumentsPerMonth: -1, // Illimité
-        maxUsers: -1, // Illimité
-
-        // Assistant
-        maxQuestionsPerMonth: -1, // Illimité
-        hasAssistant: true,
-        assistantResponseTime: "ultra-fast",
-
-        // Documents
-        canCreateQuotes: true,
-        canCreateInvoices: true,
-        canConvertQuoteToInvoice: true,
-        canSendEmailDocuments: true,
-        canCustomizeTemplates: true,
-        canExportPDF: true,
-        canExportExcel: true,
-
-        // Clients
-        canSegmentClients: true,
-        canScoreClients: true,
-        hasClientHistory: true,
-        canImportClients: true,
-        canExportClients: true,
-
-        // Stock
-        hasBasicStock: true,
-        hasAdvancedStock: true,
-        canTrackStockMovements: true,
-        hasLowStockAlerts: true,
-        canManageSuppliers: true,
-
-        // Analytics
-        hasBasicAnalytics: true,
-        hasAdvancedAnalytics: true,
-        hasPredictions: true,
-        hasProfitabilityAnalysis: true,
-        canExportReports: true,
-
-        // Automatisations
-        hasAutomatedReminders: true,
-        hasAutomatedEmails: true,
-        hasAutomatedSMS: true,
-        canCreateCampaigns: true,
-        has24_7Monitoring: true,
-
-        // Impayés
-        canViewDebtors: true,
-        canSendPaymentReminders: true,
-        hasAutomatedPaymentReminders: true,
-        hasDebtorScoring: true,
-
-        // API
-        hasAPIAccess: true,
-        canUseWebhooks: true,
-        canIntegrateAccounting: true,
-        hasCustomIntegrations: true,
-
-        // Support
-        supportType: "dedicated_24_7",
-        hasAccountManager: true,
-        hasOnboarding: true,
-        hasTraining: true,
-
-        // Autres
-        hasSLA: true,
-        hasEarlyAccess: true,
-        canWhiteLabel: true,
-    },
+  FREE: mapToPlanLimits("FREE"),
+  STARTER: mapToPlanLimits("STARTER"),
+  PRO: mapToPlanLimits("PRO"),
+  ENTERPRISE: mapToPlanLimits("ENTERPRISE"),
 };
 
 /**
  * Informations de prix pour affichage
+ * @deprecated Use PLAN_PRICING from plans.config.ts instead
  */
-export const PLAN_PRICING = {
-    FREE: {
-        name: "Free",
-        price: 0,
-        annualPrice: 0,
-        tagline: "Pour tester",
-        ideal: "Découverte",
-    },
-    STARTER: {
-        name: "Starter",
-        price: 29,
-        annualPrice: 24.17, // 290€/an ÷ 12 mois
-        tagline: "L'essentiel pour démarrer",
-        ideal: "Artisans",
-        savings: "Économisez 58€/an",
-    },
-    PRO: {
-        name: "Pro",
-        price: 79,
-        annualPrice: 65.83, // 790€/an ÷ 12 mois
-        tagline: "Le plus populaire",
-        ideal: "PME en croissance",
-        popular: true,
-        savings: "Économisez 158€/an",
-    },
-    ENTERPRISE: {
-        name: "Entreprise",
-        price: 299,
-        annualPrice: 249.17, // 2990€/an ÷ 12 mois
-        tagline: "Performance max",
-        ideal: "Grandes équipes",
-        premium: true,
-        savings: "Économisez 598€/an",
-    },
-} as const;
+export const PLAN_PRICING = NEW_PLAN_PRICING;
 
 /**
  * Helper pour obtenir les limites d'un plan
+ * @deprecated Use getPlanConfig from plans.config.ts instead
  */
 export function getPlanLimits(plan: PlanType): PlanLimits {
-    return PRICING_PLANS[plan];
+  return PRICING_PLANS[plan];
 }
 
 /**
  * Helper pour vérifier si une fonctionnalité est disponible
+ * @deprecated Use isPlanFeatureEnabled from plans.config.ts or usePlan hook instead
  */
 export function hasFeature(plan: PlanType, feature: keyof PlanLimits): boolean {
-    const limits = PRICING_PLANS[plan];
-    return Boolean(limits[feature]);
+  const limits = PRICING_PLANS[plan];
+  return Boolean(limits[feature]);
 }
 
 /**
  * Helper pour vérifier si une limite est atteinte
+ * @deprecated Use checkPlanLimit from plans.config.ts or usePlan hook instead
  */
 export function isLimitReached(
-    plan: PlanType,
-    limitKey: keyof PlanLimits,
-    currentValue: number
+  plan: PlanType,
+  limitKey: keyof PlanLimits,
+  currentValue: number
 ): boolean {
-    const limits = PRICING_PLANS[plan];
-    const limit = limits[limitKey];
+  const limits = PRICING_PLANS[plan];
+  const limit = limits[limitKey];
 
-    // -1 signifie illimité
-    if (limit === -1) return false;
+  // -1 signifie illimité
+  if (limit === -1) return false;
 
-    // Pour les booléens, on ne peut pas atteindre de limite
-    if (typeof limit === "boolean") return false;
+  // Pour les booléens, on ne peut pas atteindre de limite
+  if (typeof limit === "boolean") return false;
 
-    // Pour les nombres
-    if (typeof limit === "number") {
-        return currentValue >= limit;
-    }
+  // Pour les nombres
+  if (typeof limit === "number") {
+    return currentValue >= limit;
+  }
 
-    return false;
+  return false;
 }
 
 /**
  * Helper pour obtenir le message d'erreur quand une limite est atteinte
+ * @deprecated Use createLimitError from plan-helpers.ts instead
  */
 export function getLimitErrorMessage(
-    plan: PlanType,
-    limitKey: keyof PlanLimits
+  plan: PlanType,
+  limitKey: keyof PlanLimits
 ): string {
-    const limits = PRICING_PLANS[plan];
-    const limit = limits[limitKey];
+  const limits = PRICING_PLANS[plan];
+  const limit = limits[limitKey];
 
-    const messages: Partial<Record<keyof PlanLimits, string>> = {
-        maxClients: `Vous avez atteint la limite de ${limit} clients pour le plan ${PLAN_PRICING[plan].name}. Passez au plan supérieur pour ajouter plus de clients.`,
-        maxProducts: `Vous avez atteint la limite de ${limit} produits pour le plan ${PLAN_PRICING[plan].name}.`,
-        maxDocumentsPerMonth: `Vous avez atteint la limite de ${limit} documents ce mois-ci. Passez au plan supérieur pour créer plus de documents.`,
-        maxUsers: `Vous avez atteint la limite de ${limit} utilisateur(s) pour le plan ${PLAN_PRICING[plan].name}.`,
-        maxQuestionsPerMonth: `Vous avez atteint la limite de ${limit} questions ce mois-ci. Passez au plan supérieur pour poser plus de questions à l'assistant.`,
-    };
+  const messages: Partial<Record<keyof PlanLimits, string>> = {
+    maxClients: `Vous avez atteint la limite de ${limit} clients pour le plan ${PLAN_PRICING[plan].name}. Passez au plan supérieur pour ajouter plus de clients.`,
+    maxProducts: `Vous avez atteint la limite de ${limit} produits pour le plan ${PLAN_PRICING[plan].name}.`,
+    maxDocumentsPerMonth: `Vous avez atteint la limite de ${limit} documents ce mois-ci. Passez au plan supérieur pour créer plus de documents.`,
+    maxUsers: `Vous avez atteint la limite de ${limit} utilisateur(s) pour le plan ${PLAN_PRICING[plan].name}.`,
+    maxQuestionsPerMonth: `Vous avez atteint la limite de ${limit} questions ce mois-ci. Passez au plan supérieur pour poser plus de questions à l'assistant.`,
+  };
 
-    return messages[limitKey] || `Cette fonctionnalité n'est pas disponible dans votre plan ${PLAN_PRICING[plan].name}.`;
+  return (
+    messages[limitKey] ||
+    `Cette fonctionnalité n'est pas disponible dans votre plan ${PLAN_PRICING[plan].name}.`
+  );
 }
 
 /**
  * Helper pour obtenir le plan recommandé quand une limite est atteinte
+ * @deprecated
  */
 export function getRecommendedUpgrade(
-    currentPlan: PlanType,
-    limitKey: keyof PlanLimits
+  currentPlan: PlanType,
+  limitKey: keyof PlanLimits
 ): PlanType | null {
-    const planOrder: PlanType[] = ["FREE", "STARTER", "PRO", "ENTERPRISE"];
-    const currentIndex = planOrder.indexOf(currentPlan);
+  const planOrder: PlanType[] = ["FREE", "STARTER", "PRO", "ENTERPRISE"];
+  const currentIndex = planOrder.indexOf(currentPlan);
 
-    // Chercher le prochain plan qui a cette feature
-    for (let i = currentIndex + 1; i < planOrder.length; i++) {
-        const nextPlan = planOrder[i];
-        const nextLimits = PRICING_PLANS[nextPlan];
-        const limit = nextLimits[limitKey];
+  // Chercher le prochain plan qui a cette feature
+  for (let i = currentIndex + 1; i < planOrder.length; i++) {
+    const nextPlan = planOrder[i];
+    const nextLimits = PRICING_PLANS[nextPlan];
+    const limit = nextLimits[limitKey];
 
-        // Si c'est un booléen et qu'il est true, ou si c'est un nombre plus élevé
-        if (typeof limit === "boolean" && limit === true) {
-            return nextPlan;
-        }
-
-        if (typeof limit === "number" && limit === -1) {
-            return nextPlan;
-        }
+    // Si c'est un booléen et qu'il est true, ou si c'est un nombre plus élevé
+    if (typeof limit === "boolean" && limit === true) {
+      return nextPlan;
     }
 
-    return null;
+    if (typeof limit === "number" && limit === -1) {
+      return nextPlan;
+    }
+  }
+
+  return null;
 }
 
 /**
  * Helper pour formatter un nombre avec limite (-1 = illimité)
+ * @deprecated
  */
 export function formatLimit(limit: number): string {
-    return limit === -1 ? "Illimité" : limit.toString();
+  return limit === -1 ? "Illimité" : limit.toString();
 }
 
 /**
  * Liste des features pour chaque plan (pour affichage sur la landing)
+ * @deprecated Kept for backward compatibility
  */
 export const PLAN_FEATURES = {
-    FREE: [
-        "10 clients max",
-        "10 articles",
-        "10 documents/mois",
-        "1 utilisateur",
-        "Gestion stock basique",
-        "Pas d'assistant IA",
-    ],
-    STARTER: [
-        "50 clients",
-        "100 articles",
-        "Documents illimités",
-        "3 utilisateurs",
-        "Gestion stock avancée",
-        "Assistant IA (100 questions/mois)",
-        "Programme de fidélité",
-        "Support email",
-        "Export Excel/PDF",
-    ],
-    PRO: [
-        "Clients illimités",
-        "Articles illimités",
-        "Documents illimités",
-        "10 utilisateurs",
-        "Assistant IA illimité",
-        "Programme de fidélité avancé",
-        "Segmentation clients",
-        "Campagnes marketing",
-        "Analytics avancées",
-        "Support prioritaire",
-        "API REST complète",
-    ],
-    ENTERPRISE: [
-        "Tout illimité",
-        "Utilisateurs illimités",
-        "Support dédié 24/7",
-        "Gestionnaire de compte",
-        "API avancée",
-        "SLA 99.9% garanti",
-        "Onboarding personnalisé",
-        "Formations incluses",
-        "Intégrations sur mesure",
-        "Accès early features",
-    ],
+  FREE: [
+    "10 clients max",
+    "10 articles",
+    "10 documents/mois",
+    "1 utilisateur",
+    "Gestion stock basique",
+    "Pas d'assistant IA",
+  ],
+  STARTER: [
+    "50 clients",
+    "100 articles",
+    "Documents illimités",
+    "3 utilisateurs",
+    "Gestion stock avancée",
+    "Assistant IA (100 questions/mois)",
+    "Programme de fidélité",
+    "Support email",
+    "Export Excel/PDF",
+  ],
+  PRO: [
+    "Clients illimités",
+    "Articles illimités",
+    "Documents illimités",
+    "10 utilisateurs",
+    "Assistant IA illimité",
+    "Programme de fidélité avancé",
+    "Segmentation clients",
+    "Campagnes marketing",
+    "Analytics avancées",
+    "Support prioritaire",
+    "API REST complète",
+  ],
+  ENTERPRISE: [
+    "Tout illimité",
+    "Utilisateurs illimités",
+    "Support dédié 24/7",
+    "Gestionnaire de compte",
+    "API avancée",
+    "SLA 99.9% garanti",
+    "Onboarding personnalisé",
+    "Formations incluses",
+    "Intégrations sur mesure",
+    "Accès early features",
+  ],
 } as const;
