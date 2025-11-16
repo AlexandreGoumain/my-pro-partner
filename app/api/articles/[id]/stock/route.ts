@@ -1,4 +1,4 @@
-import { requireAuth } from "@/lib/api/auth-middleware";
+import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { prisma } from "@/lib/prisma";
 import { stockAdjustmentSchema } from "@/lib/validation";
 import { NextRequest, NextResponse } from "next/server";
@@ -9,9 +9,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const sessionOrError = await requireAuth();
-    if (sessionOrError instanceof NextResponse) return sessionOrError;
-    const session = sessionOrError;
+    const { user } = await requireTenantAuth();
 
     const { id } = await params;
 
@@ -79,7 +77,7 @@ export async function PUT(
           stock_avant,
           stock_apres,
           motif: motif || `Ajustement ${type === "ENTREE" ? "positif" : "négatif"}`,
-          createdBy: session.user?.email || null,
+          createdBy: user.email || null,
           entrepriseId,
         },
       });
@@ -98,10 +96,6 @@ export async function PUT(
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error("Erreur lors de l'ajustement du stock:", error);
-    return NextResponse.json(
-      { message: "Erreur interne du serveur" },
-      { status: 500 }
-    );
+    return handleTenantError(error);
   }
 }

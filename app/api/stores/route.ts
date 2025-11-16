@@ -1,33 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { getStores, createStore } from "@/lib/stores/stores.service";
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user?.entrepriseId) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
-    }
+    const { entrepriseId } = await requireTenantAuth();
 
-    const stores = await getStores(session.user.entrepriseId);
+    const stores = await getStores(entrepriseId);
     return NextResponse.json({ stores });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return handleTenantError(error);
   }
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user?.entrepriseId) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
-    }
+    const { entrepriseId } = await requireTenantAuth();
 
     const body = await req.json();
-    const store = await createStore(session.user.entrepriseId, body);
+    const store = await createStore(entrepriseId, body);
 
     return NextResponse.json({ store }, { status: 201 });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return handleTenantError(error);
   }
 }

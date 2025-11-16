@@ -1,4 +1,4 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { prisma } from "@/lib/prisma";
 import {
   createPaginatedResponse,
@@ -6,19 +6,12 @@ import {
 } from "@/lib/utils/pagination";
 import { mouvementStockCreateSchema } from "@/lib/validation";
 import { Prisma } from "@/lib/generated/prisma/client";
-import { getServerSession } from "next-auth/next";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET: Récupérer tous les mouvements de stock
 export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json(
-        { message: "Non autorisé" },
-        { status: 401 }
-      );
-    }
+    await requireTenantAuth();
 
     const { searchParams } = new URL(req.url);
     const articleId = searchParams.get("articleId");
@@ -71,24 +64,14 @@ export async function GET(req: NextRequest) {
       createPaginatedResponse(mouvements, total, pagination)
     );
   } catch (error) {
-    console.error("Erreur lors de la récupération des mouvements:", error);
-    return NextResponse.json(
-      { message: "Erreur interne du serveur" },
-      { status: 500 }
-    );
+    return handleTenantError(error);
   }
 }
 
 // POST: Créer un nouveau mouvement de stock
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json(
-        { message: "Non autorisé" },
-        { status: 401 }
-      );
-    }
+    const { user } = await requireTenantAuth();
 
     const body = await req.json();
     const validation = mouvementStockCreateSchema.safeParse(body);
@@ -155,7 +138,7 @@ export async function POST(req: NextRequest) {
           motif: motif || null,
           reference: reference || null,
           notes: notes || null,
-          createdBy: session.user?.email || null,
+          createdBy: user?.email || null,
           entrepriseId,
         },
         include: {
@@ -181,10 +164,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(mouvement, { status: 201 });
   } catch (error) {
-    console.error("Erreur lors de la création du mouvement:", error);
-    return NextResponse.json(
-      { message: "Erreur interne du serveur" },
-      { status: 500 }
-    );
+    return handleTenantError(error);
   }
 }

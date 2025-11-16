@@ -1,4 +1,4 @@
-import { requireAuth } from "@/lib/api/auth-middleware";
+import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -8,8 +8,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const sessionOrError = await requireAuth();
-    if (sessionOrError instanceof NextResponse) return sessionOrError;
+    await requireTenantAuth();
 
     const { id } = await params;
     const mouvement = await prisma.mouvementStock.findUnique({
@@ -36,11 +35,7 @@ export async function GET(
 
     return NextResponse.json(mouvement);
   } catch (error) {
-    console.error("Erreur lors de la récupération du mouvement:", error);
-    return NextResponse.json(
-      { message: "Erreur interne du serveur" },
-      { status: 500 }
-    );
+    return handleTenantError(error);
   }
 }
 
@@ -51,9 +46,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const sessionOrError = await requireAuth();
-    if (sessionOrError instanceof NextResponse) return sessionOrError;
-    const session = sessionOrError;
+    const { user } = await requireTenantAuth();
 
     const { id } = await params;
     // Récupérer le mouvement à annuler
@@ -95,7 +88,7 @@ export async function DELETE(
           motif: `Annulation du mouvement ${mouvementOriginal.id}`,
           reference: mouvementOriginal.reference,
           notes: `Mouvement compensatoire pour annuler: ${mouvementOriginal.type} de ${mouvementOriginal.quantite}`,
-          createdBy: session.user?.email || null,
+          createdBy: user.email || null,
           entrepriseId,
         },
       });
@@ -117,18 +110,6 @@ export async function DELETE(
       { status: 200 }
     );
   } catch (error) {
-    console.error("Erreur lors de l'annulation du mouvement:", error);
-
-    if (error instanceof Error && error.message.includes("stock insuffisant")) {
-      return NextResponse.json(
-        { message: error.message },
-        { status: 400 }
-      );
-    }
-
-    return NextResponse.json(
-      { message: "Erreur interne du serveur" },
-      { status: 500 }
-    );
+    return handleTenantError(error);
   }
 }

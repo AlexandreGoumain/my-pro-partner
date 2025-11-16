@@ -1,4 +1,4 @@
-import { requireAuth } from "@/lib/api/auth-middleware";
+import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { prisma } from "@/lib/prisma";
 import { champPersonnaliseUpdateSchema } from "@/lib/validation";
 import { NextRequest, NextResponse } from "next/server";
@@ -9,8 +9,7 @@ export async function PUT(
     { params }: { params: Promise<{ id: string; champId: string }> }
 ) {
     try {
-        const sessionOrError = await requireAuth();
-        if (sessionOrError instanceof NextResponse) return sessionOrError;
+        await requireTenantAuth();
 
         const { id, champId } = await params;
 
@@ -101,14 +100,7 @@ export async function PUT(
 
         return NextResponse.json(champ);
     } catch (error) {
-        console.error(
-            "Erreur lors de la modification du champ personnalisé:",
-            error
-        );
-        return NextResponse.json(
-            { message: "Erreur interne du serveur" },
-            { status: 500 }
-        );
+        return handleTenantError(error);
     }
 }
 
@@ -118,8 +110,7 @@ export async function DELETE(
     { params }: { params: Promise<{ id: string; champId: string }> }
 ) {
     try {
-        const sessionOrError = await requireAuth();
-        if (sessionOrError instanceof NextResponse) return sessionOrError;
+        await requireTenantAuth();
 
         const { id, champId } = await params;
 
@@ -141,13 +132,6 @@ export async function DELETE(
 
         return NextResponse.json({ message: "Champ supprimé avec succès" });
     } catch (error) {
-        console.error(
-            "Erreur lors de la suppression du champ personnalisé:",
-            error
-        );
-        return NextResponse.json(
-            { message: "Erreur interne du serveur" },
-            { status: 500 }
-        );
+        return handleTenantError(error);
     }
 }
