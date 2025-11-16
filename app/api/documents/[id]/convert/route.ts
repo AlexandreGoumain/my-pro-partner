@@ -1,6 +1,5 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { DocumentConverterService } from "@/lib/services/document-converter.service";
-import { getServerSession } from "next-auth/next";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
@@ -12,19 +11,12 @@ export async function POST(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session) {
-            return NextResponse.json(
-                { message: "Non autorisé" },
-                { status: 401 }
-            );
-        }
-
+        const { entrepriseId } = await requireTenantAuth();
         const { id } = await params;
 
         const invoice = await DocumentConverterService.convertQuoteToInvoice({
             quoteId: id,
-            entrepriseId: session.user.entrepriseId,
+            entrepriseId,
         });
 
         return NextResponse.json({ invoice }, { status: 201 });

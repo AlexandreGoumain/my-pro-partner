@@ -1,7 +1,6 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { handlePrismaError } from "@/lib/errors/prisma";
+import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth/next";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -61,14 +60,7 @@ export async function GET(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session) {
-            return NextResponse.json(
-                { message: "Non autorisé" },
-                { status: 401 }
-            );
-        }
-
+        const { entrepriseId } = await requireTenantAuth();
         const { id } = await params;
 
         const document = await prisma.document.findUnique({
@@ -99,11 +91,7 @@ export async function GET(
 
         return NextResponse.json({ document });
     } catch (error) {
-        console.error("Erreur lors de la récupération du document:", error);
-        return NextResponse.json(
-            { message: "Erreur interne du serveur" },
-            { status: 500 }
-        );
+        return handleTenantError(error);
     }
 }
 
@@ -113,14 +101,7 @@ export async function PUT(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session) {
-            return NextResponse.json(
-                { message: "Non autorisé" },
-                { status: 401 }
-            );
-        }
-
+        const { entrepriseId } = await requireTenantAuth();
         const { id } = await params;
         const body = await req.json();
 
@@ -163,14 +144,7 @@ export async function PATCH(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session) {
-            return NextResponse.json(
-                { message: "Non autorisé" },
-                { status: 401 }
-            );
-        }
-
+        const { entrepriseId } = await requireTenantAuth();
         const { id } = await params;
         const body = await req.json();
 
@@ -254,14 +228,7 @@ export async function DELETE(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session) {
-            return NextResponse.json(
-                { message: "Non autorisé" },
-                { status: 401 }
-            );
-        }
-
+        const { entrepriseId } = await requireTenantAuth();
         const { id } = await params;
 
         // Vérifier si le document a des paiements ou factures

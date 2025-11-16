@@ -1,8 +1,7 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { DocumentPdfRenderer } from "@/components/pdf/document-pdf-renderer";
 import { prisma } from "@/lib/prisma";
 import { renderToBuffer } from "@react-pdf/renderer";
-import { getServerSession } from "next-auth/next";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET: Generate and download PDF for a document
@@ -11,34 +10,14 @@ export async function GET(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.email) {
-            return NextResponse.json(
-                { message: "Non autorisé" },
-                { status: 401 }
-            );
-        }
-
+        const { entrepriseId, entreprise } = await requireTenantAuth();
         const { id } = await params;
-
-        // Get user's company
-        const user = await prisma.user.findUnique({
-            where: { email: session.user.email },
-            include: { entreprise: true },
-        });
-
-        if (!user?.entreprise) {
-            return NextResponse.json(
-                { message: "Entreprise non trouvée" },
-                { status: 404 }
-            );
-        }
 
         // Fetch document with all details
         const document = await prisma.document.findUnique({
             where: {
                 id,
-                entrepriseId: user.entreprise.id,
+                entrepriseId,
             },
             include: {
                 client: true,
@@ -57,14 +36,14 @@ export async function GET(
 
         // Get company settings
         let companySettings = await prisma.parametresEntreprise.findUnique({
-            where: { entrepriseId: user.entreprise.id },
+            where: { entrepriseId },
         });
 
         if (!companySettings) {
             companySettings = await prisma.parametresEntreprise.create({
                 data: {
-                    entrepriseId: user.entreprise.id,
-                    nom_entreprise: user.entreprise.nom,
+                    entrepriseId,
+                    nom_entreprise: entreprise.nom,
                 },
             });
         }
@@ -109,10 +88,6 @@ export async function GET(
             },
         });
     } catch (error) {
-        console.error("Erreur lors de la génération du PDF:", error);
-        return NextResponse.json(
-            { message: "Erreur interne du serveur" },
-            { status: 500 }
-        );
+        return handleTenantError(error);
     }
 }

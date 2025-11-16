@@ -1,8 +1,7 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { DocumentStatut } from "@/lib/generated/prisma";
 import { prisma } from "@/lib/prisma";
 import { generateNumeroDocument, type DocumentType } from "@/lib/types/settings";
-import { getServerSession } from "next-auth/next";
+import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -43,26 +42,7 @@ const documentSchema = z.object({
 // GET: Récupérer tous les documents
 export async function GET(req: NextRequest) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session || !session.user?.email) {
-            return NextResponse.json(
-                { message: "Non autorisé" },
-                { status: 401 }
-            );
-        }
-
-        // Récupérer l'entrepriseId de l'utilisateur
-        const user = await prisma.user.findUnique({
-            where: { email: session.user.email },
-            select: { entrepriseId: true },
-        });
-
-        if (!user?.entrepriseId) {
-            return NextResponse.json(
-                { message: "Entreprise non trouvée" },
-                { status: 404 }
-            );
-        }
+        const { entrepriseId } = await requireTenantAuth();
 
         const { searchParams } = new URL(req.url);
         const typeParam = searchParams.get("type");
@@ -82,7 +62,7 @@ export async function GET(req: NextRequest) {
 
         const documents = await prisma.document.findMany({
             where: {
-                entrepriseId: user.entrepriseId,
+                entrepriseId,
                 ...(type && { type }),
                 ...(clientId && { clientId }),
                 ...(statut && { statut }),
@@ -101,24 +81,14 @@ export async function GET(req: NextRequest) {
 
         return NextResponse.json({ documents });
     } catch (error) {
-        console.error("Erreur lors de la récupération des documents:", error);
-        return NextResponse.json(
-            { message: "Erreur interne du serveur" },
-            { status: 500 }
-        );
+        return handleTenantError(error);
     }
 }
 
 // POST: Créer un nouveau document
 export async function POST(req: NextRequest) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session) {
-            return NextResponse.json(
-                { message: "Non autorisé" },
-                { status: 401 }
-            );
-        }
+        await requireTenantAuth();
 
         const body = await req.json();
         const validation = documentSchema.safeParse(body);
@@ -330,10 +300,6 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({ document }, { status: 201 });
     } catch (error) {
-        console.error("Erreur lors de la création du document:", error);
-        return NextResponse.json(
-            { message: "Erreur interne du serveur" },
-            { status: 500 }
-        );
+        return handleTenantError(error);
     }
 }

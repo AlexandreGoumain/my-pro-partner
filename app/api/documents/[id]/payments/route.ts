@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -12,14 +11,7 @@ export async function GET(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session) {
-            return NextResponse.json(
-                { message: "Non autorisé" },
-                { status: 401 }
-            );
-        }
-
+        const { entrepriseId } = await requireTenantAuth();
         const { id } = await params;
 
         const payments = await prisma.paiement.findMany({
@@ -33,10 +25,6 @@ export async function GET(
 
         return NextResponse.json({ payments });
     } catch (error) {
-        console.error("[Payments API] Error fetching payments:", error);
-        return NextResponse.json(
-            { message: "Erreur lors de la récupération des paiements" },
-            { status: 500 }
-        );
+        return handleTenantError(error);
     }
 }

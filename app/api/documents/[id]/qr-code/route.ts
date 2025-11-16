@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { QRCodeService } from "@/lib/services/qr-code.service";
 import { prisma } from "@/lib/prisma";
 
@@ -13,18 +12,14 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.entrepriseId) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
-    }
-
+    const { entrepriseId } = await requireTenantAuth();
     const documentId = params.id;
 
     // Vérifier que le document existe et appartient à l'entreprise
     const document = await prisma.document.findFirst({
       where: {
         id: documentId,
-        entrepriseId: session.user.entrepriseId,
+        entrepriseId,
       },
     });
 
@@ -42,10 +37,6 @@ export async function GET(
       paymentUrl: `${baseUrl}/pay/${documentId}`,
     });
   } catch (error: any) {
-    console.error("[QR_CODE_GENERATION_ERROR]", error);
-    return NextResponse.json(
-      { error: error.message || "Erreur lors de la génération du QR code" },
-      { status: 500 }
-    );
+    return handleTenantError(error);
   }
 }
