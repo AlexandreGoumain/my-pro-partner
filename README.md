@@ -201,6 +201,7 @@ Application ERP SaaS **production-ready** développée avec les dernières techn
 ### 🤖 Automatisations Marketing ✅
 
 **Triggers :**
+
 - ✅ Nouveau client dans segment
 - ✅ Jalon client atteint (montant total, nombre achats)
 - ✅ Changement de segment
@@ -208,6 +209,7 @@ Application ERP SaaS **production-ready** développée avec les dernières techn
 - ✅ Tâches planifiées (cron)
 
 **Actions :**
+
 - ✅ Envoi d'email
 - ✅ Ajout/retrait de segment
 - ✅ Attribution de points fidélité
@@ -257,6 +259,7 @@ Application ERP SaaS **production-ready** développée avec les dernières techn
 Général, Plomberie, Électricité, Chauffage, Menuiserie, Peinture, Maçonnerie, Restauration, Boulangerie, Coiffure, Esthétique, Fitness, Garage, Informatique, Consulting, Commerce de détail, Immobilier, Santé, Juridique, Comptabilité
 
 **Features :**
+
 - ✅ **Navigation business-adaptive** (terminologie et icônes adaptées)
 - ✅ Catégories pré-configurées par industrie
 - ✅ Champs personnalisés templates
@@ -291,24 +294,24 @@ Général, Plomberie, Électricité, Chauffage, Menuiserie, Peinture, Maçonneri
 
 ## 🛠️ Stack technique
 
-| Catégorie          | Technologies                                      |
-| ------------------ | ------------------------------------------------- |
-| **Framework**      | Next.js 16 (App Router), React 19                 |
-| **Language**       | TypeScript 5.x (strict mode)                      |
-| **Styling**        | Tailwind CSS v4, Shadcn/ui (50+ composants)       |
-| **Database**       | PostgreSQL 16 + Prisma ORM 6                      |
-| **Auth**           | NextAuth.js v4 (JWT + OAuth Google)               |
-| **Validation**     | Zod + React Hook Form                             |
-| **State**          | TanStack Query, React Hooks (66+), Context API    |
-| **API**            | Next.js API Routes (122 endpoints RESTful)        |
-| **Payments**       | Stripe (Checkout, Subscriptions, Terminal, Links) |
-| **AI**             | OpenAI GPT-4 (chatbot, function calling)          |
-| **PDF**            | @react-pdf/renderer                               |
-| **Email**          | Resend + React Email                              |
-| **Charts**         | Recharts                                          |
-| **Date/Time**      | date-fns                                          |
-| **Icons**          | Lucide React                                      |
-| **PWA**            | next-pwa (offline mode)                           |
+| Catégorie      | Technologies                                      |
+| -------------- | ------------------------------------------------- |
+| **Framework**  | Next.js 16 (App Router), React 19                 |
+| **Language**   | TypeScript 5.x (strict mode)                      |
+| **Styling**    | Tailwind CSS v4, Shadcn/ui (50+ composants)       |
+| **Database**   | PostgreSQL 16 + Prisma ORM 6                      |
+| **Auth**       | NextAuth.js v4 (JWT + OAuth Google)               |
+| **Validation** | Zod + React Hook Form                             |
+| **State**      | TanStack Query, React Hooks (66+), Context API    |
+| **API**        | Next.js API Routes (122 endpoints RESTful)        |
+| **Payments**   | Stripe (Checkout, Subscriptions, Terminal, Links) |
+| **AI**         | OpenAI GPT-4 (chatbot, function calling)          |
+| **PDF**        | @react-pdf/renderer                               |
+| **Email**      | Resend + React Email                              |
+| **Charts**     | Recharts                                          |
+| **Date/Time**  | date-fns                                          |
+| **Icons**      | Lucide React                                      |
+| **PWA**        | next-pwa (offline mode)                           |
 
 ---
 
@@ -461,11 +464,13 @@ my-pro-partner/
 ### 40+ Entités Implémentées
 
 **Multi-Tenancy & Subscriptions**
+
 - **Entreprise** - Tenant principal (54 champs, 27 relations)
 - **Subscription** - Abonnements Stripe
 - **UsageCounter** - Compteurs mensuels (documents, questions)
 
 **Gestion Utilisateurs & Équipe**
+
 - **User** - Membres équipe (6 rôles)
 - **UserPermissions** - 30+ permissions granulaires
 - **UserSchedule** - Horaires de travail
@@ -474,6 +479,7 @@ my-pro-partner/
 - **UserInvitationToken** - Invitations équipe
 
 **Multi-Magasins**
+
 - **Store** - Emplacements physiques
 - **Register** - Caisses/terminaux POS
 - **RegisterSession** - Sessions de caisse
@@ -482,46 +488,55 @@ my-pro-partner/
 - **StockTransferItem** - Lignes de transfert
 
 **Clients**
+
 - **Client** - Données clients BtoB/BtoC
 - **InvitationToken** - Invitations portail client
 - **PasswordResetToken** - Reset mot de passe
 - **ClientNotification** - Notifications client
 
 **Catalogue**
+
 - **Categorie** - Catégories hiérarchiques
 - **ChampPersonnalise** - Champs dynamiques
 - **Article** - Produits/Services
 - **MouvementStock** - Historique mouvements
 
 **Documents**
+
 - **Document** - Devis, Factures, Avoirs
 - **LigneDocument** - Lignes de documents
 - **Paiement** - Historique paiements
 - **SerieDocument** - Séries de numérotation
 
 **Programme Fidélité**
+
 - **NiveauFidelite** - Niveaux configurables
 - **MouvementPoints** - Transactions de points
 
 **Marketing**
+
 - **Segment** - Segments clients
 - **Campaign** - Campagnes email/SMS
 - **Automation** - Automatisations
 - **AutomationExecution** - Log exécutions
 
 **Assistant IA**
+
 - **Conversation** - Conversations chatbot
 - **Message** - Messages chat
 
 **Paiements**
+
 - **PaymentLink** - Liens de paiement
 - **Terminal** - Terminaux Stripe (POS physiques)
 
 **Banque**
+
 - **BankTransaction** - Transactions bancaires
 - **ReconciliationStatus** - Statut matching
 
 **Configuration**
+
 - **ParametresEntreprise** - Paramètres globaux
 - **BusinessType** - Type d'activité (20 types)
 
@@ -597,18 +612,18 @@ NEXT_PUBLIC_APP_URL="http://localhost:3000"
 ```typescript
 // Isolation complète des données par entreprise
 export async function requireTenantAuth(): Promise<TenantContext> {
-  const session = await getServerSession(authOptions);
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-    include: { entreprise: true }
-  });
+    const session = await getServerSession(authOptions);
+    const user = await prisma.user.findUnique({
+        where: { email: session.user.email },
+        include: { entreprise: true },
+    });
 
-  // Validation abonnement
-  if (!user.entreprise.abonnementActif) {
-    throw new TenantError("Abonnement expiré", 403);
-  }
+    // Validation abonnement
+    if (!user.entreprise.abonnementActif) {
+        throw new TenantError("Abonnement expiré", 403);
+    }
 
-  return { userId: user.id, entrepriseId: user.entreprise.id };
+    return { userId: user.id, entrepriseId: user.entreprise.id };
 }
 ```
 
@@ -617,11 +632,11 @@ export async function requireTenantAuth(): Promise<TenantContext> {
 ```typescript
 // Séparation complète UI / Logique métier
 export function useArticlesPage() {
-  const { stats, filters } = useArticleStats(articles);
-  const { filteredArticles } = useArticleFilters(articles, filters);
-  const { handleCreate, handleEdit, handleDelete } = useArticles();
+    const { stats, filters } = useArticleStats(articles);
+    const { filteredArticles } = useArticleFilters(articles, filters);
+    const { handleCreate, handleEdit, handleDelete } = useArticles();
 
-  return { stats, filteredArticles, handlers };
+    return { stats, filteredArticles, handlers };
 }
 ```
 
@@ -630,19 +645,19 @@ export function useArticlesPage() {
 ```typescript
 // Extension des types NextAuth
 declare module "next-auth" {
-  interface Session {
-    user: User & {
-      id: string;
-      role: UserRole;
-      entrepriseId: string;
-      plan: PlanType;
-    };
-  }
+    interface Session {
+        user: User & {
+            id: string;
+            role: UserRole;
+            entrepriseId: string;
+            plan: PlanType;
+        };
+    }
 }
 
 // Inférence de types Prisma
 type ArticleWithCategory = Prisma.ArticleGetPayload<{
-  include: { categorie: true, store: true };
+    include: { categorie: true; store: true };
 }>;
 ```
 
@@ -651,14 +666,14 @@ type ArticleWithCategory = Prisma.ArticleGetPayload<{
 ```typescript
 // Schéma Zod partagé frontend/backend
 const articleSchema = z.object({
-  nom: z.string().min(1).max(100),
-  prix: z.number().positive(),
-  stock: z.number().int().min(0),
+    nom: z.string().min(1).max(100),
+    prix: z.number().positive(),
+    stock: z.number().int().min(0),
 });
 
 // Validation côté client (React Hook Form)
 const form = useForm<z.infer<typeof articleSchema>>({
-  resolver: zodResolver(articleSchema),
+    resolver: zodResolver(articleSchema),
 });
 
 // Validation côté serveur (API Route)
@@ -799,6 +814,7 @@ Ce projet représente **~90% d'avancement** vers une version 1.0 production :
 - ✅ **PWA avec mode offline**
 
 📚 **Le code démontre ma capacité à :**
+
 - Architecturer une application SaaS complexe avec **Clean Architecture**
 - Implémenter des **patterns professionnels** (Custom Hooks, Service Layer, Multi-Tenancy)
 - Gérer des **intégrations tierces** (Stripe, OpenAI, Resend, PDF)

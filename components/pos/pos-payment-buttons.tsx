@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { PaymentMethod } from "@/lib/types/pos";
+import { FEATURE_FLAGS } from "@/lib/config/features.config";
 import { Banknote, Check, CreditCard } from "lucide-react";
 
 export interface POSPaymentButtonsProps {
@@ -15,15 +16,19 @@ export function POSPaymentButtons({
 }: POSPaymentButtonsProps) {
     return (
         <div className="space-y-2">
-            <Button
-                onClick={onTerminalPayment}
-                disabled={processing}
-                className="w-full h-12 bg-black hover:bg-black/90 text-white"
-            >
-                <CreditCard className="h-4 w-4 mr-2" />
-                Payer par Terminal
-            </Button>
-            <div className="grid grid-cols-2 gap-2">
+            {/* Bouton Terminal - Désactivé par défaut (nécessite matériel Stripe Terminal) */}
+            {FEATURE_FLAGS.ENABLE_PAYMENT_TERMINALS && (
+                <Button
+                    onClick={onTerminalPayment}
+                    disabled={processing}
+                    className="w-full h-12 bg-black hover:bg-black/90 text-white"
+                >
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    Payer par Terminal
+                </Button>
+            )}
+
+            <div className={FEATURE_FLAGS.ENABLE_PAYMENT_TERMINALS ? "grid grid-cols-2 gap-2" : "grid grid-cols-3 gap-2"}>
                 <Button
                     onClick={() => onPayment("ESPECES")}
                     disabled={processing}
@@ -32,6 +37,15 @@ export function POSPaymentButtons({
                 >
                     <Banknote className="h-4 w-4 mr-2" />
                     Espèces
+                </Button>
+                <Button
+                    onClick={() => onPayment("CARTE_BANCAIRE")}
+                    disabled={processing}
+                    variant="outline"
+                    className="h-11 border-black/10 hover:bg-black/5"
+                >
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    Carte
                 </Button>
                 <Button
                     onClick={() => onPayment("CHEQUE")}

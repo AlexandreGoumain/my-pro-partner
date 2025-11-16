@@ -5,11 +5,29 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
 import { PrimaryActionButton } from "@/components/ui/primary-action-button";
+import { FEATURE_FLAGS } from "@/lib/config/features.config";
 import { useTerminalsPage } from "@/hooks/use-terminals-page";
-import { Plus, WifiOff } from "lucide-react";
+import { Plus, WifiOff, Lock } from "lucide-react";
 
 export default function TerminalsPage() {
     const page = useTerminalsPage();
+
+    // Si la feature est désactivée, afficher un message
+    if (!FEATURE_FLAGS.ENABLE_PAYMENT_TERMINALS) {
+        return (
+            <div className="space-y-6">
+                <PageHeader
+                    title="Terminaux de Paiement"
+                    description="Fonctionnalité temporairement désactivée"
+                />
+                <EmptyState
+                    icon={Lock}
+                    title="Fonctionnalité désactivée"
+                    description="Les terminaux de paiement physiques nécessitent du matériel Stripe Terminal. Cette fonctionnalité sera disponible prochainement."
+                />
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">

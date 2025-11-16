@@ -8,6 +8,7 @@ import { SettingsSection } from "@/components/ui/settings-section";
 import { UserSettings } from "@/lib/types/settings";
 import { Activity, Key, Shield, User } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 interface AccountTabProps {
     user?: UserSettings | null;
@@ -27,6 +28,7 @@ const getRoleLabel = (role: string) => {
 
 export function AccountTab({ user = null }: AccountTabProps) {
     const [isChangingPassword, setIsChangingPassword] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [passwordData, setPasswordData] = useState({
         currentPassword: "",
         newPassword: "",
@@ -35,8 +37,49 @@ export function AccountTab({ user = null }: AccountTabProps) {
 
     const handlePasswordChange = async (e: React.FormEvent) => {
         e.preventDefault();
-        // TODO: Implement password change
-        console.log("Password change:", passwordData);
+
+        // Validation côté client
+        if (passwordData.newPassword.length < 8) {
+            toast.error("Le nouveau mot de passe doit contenir au moins 8 caractères");
+            return;
+        }
+
+        if (passwordData.newPassword !== passwordData.confirmPassword) {
+            toast.error("Les mots de passe ne correspondent pas");
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        try {
+            const response = await fetch("/api/user/change-password", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(passwordData),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || "Erreur lors du changement de mot de passe");
+            }
+
+            toast.success("Mot de passe modifié avec succès");
+
+            // Réinitialiser le formulaire
+            setPasswordData({
+                currentPassword: "",
+                newPassword: "",
+                confirmPassword: "",
+            });
+            setIsChangingPassword(false);
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : "Une erreur est survenue");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -207,13 +250,15 @@ export function AccountTab({ user = null }: AccountTabProps) {
                             <div className="flex gap-3">
                                 <Button
                                     type="submit"
+                                    disabled={isSubmitting}
                                     className="h-10 px-4 bg-black hover:bg-black/90 text-white"
                                 >
-                                    Mettre à jour le mot de passe
+                                    {isSubmitting ? "Mise à jour..." : "Mettre à jour le mot de passe"}
                                 </Button>
                                 <Button
                                     type="button"
                                     variant="outline"
+                                    disabled={isSubmitting}
                                     onClick={() => {
                                         setIsChangingPassword(false);
                                         setPasswordData({

@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { FilterBar } from "@/components/ui/filter-bar";
 import { usePOSPage } from "@/hooks/use-pos-page";
+import { FEATURE_FLAGS } from "@/lib/config/features.config";
 import { ShoppingCart, Trash2, User } from "lucide-react";
 
 /**
@@ -143,16 +144,18 @@ export default function POSPage() {
                 </div>
             </div>
 
-            {/* Terminal Payment Dialog */}
-            <TerminalPayment
-                open={page.terminalDialogOpen}
-                onOpenChange={page.setTerminalDialogOpen}
-                amount={page.cart.totals.total_ttc}
-                onSuccess={page.handleTerminalSuccess}
-                cartItems={page.cart.items}
-                clientId={page.cart.clientId}
-                remiseGlobale={page.cart.remiseGlobale}
-            />
+            {/* Terminal Payment Dialog - Désactivé par défaut (nécessite matériel Stripe Terminal) */}
+            {FEATURE_FLAGS.ENABLE_PAYMENT_TERMINALS && (
+                <TerminalPayment
+                    open={page.terminalDialogOpen}
+                    onOpenChange={page.setTerminalDialogOpen}
+                    amount={page.cart.totals.total_ttc}
+                    onSuccess={page.handleTerminalSuccess}
+                    cartItems={page.cart.items}
+                    clientId={page.cart.clientId}
+                    remiseGlobale={page.cart.remiseGlobale}
+                />
+            )}
         </div>
     );
 }
