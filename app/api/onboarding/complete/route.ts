@@ -1,8 +1,7 @@
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { authOptions } from "../../auth/[...nextauth]/route";
+import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import {
   BusinessTemplateService,
   BusinessType,
@@ -20,13 +19,7 @@ const onboardingSchema = z.object({
 export async function POST(req: NextRequest) {
     try {
         // Verify authentication
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.email) {
-            return NextResponse.json(
-                { message: "Non autorisé" },
-                { status: 401 }
-            );
-        }
+        const { userId, entrepriseId } = await requireTenantAuth();
 
         // Parse and validate request body
         const body = await req.json();
@@ -42,24 +35,11 @@ export async function POST(req: NextRequest) {
         const { nomEntreprise, businessType, secteur, siret, adresse, telephone } =
             validation.data;
 
-        // Get user with entreprise
-        const user = await prisma.user.findUnique({
-            where: { email: session.user.email },
-            include: { entreprise: true },
-        });
-
-        if (!user || !user.entreprise) {
-            return NextResponse.json(
-                { message: "Utilisateur ou entreprise introuvable" },
-                { status: 404 }
-            );
-        }
-
         // Update entreprise and user in a transaction
         const result = await prisma.$transaction(async (tx) => {
             // Update entreprise information
             const updatedEntreprise = await tx.entreprise.update({
-                where: { id: user.entrepriseId },
+                where: { id: entrepriseId },
                 data: {
                     nom: nomEntreprise,
                     businessType: businessType as BusinessType,
@@ -70,12 +50,12 @@ export async function POST(req: NextRequest) {
 
             // Update or create parametres with additional info
             const existingParametres = await tx.parametresEntreprise.findUnique({
-                where: { entrepriseId: user.entrepriseId },
+                where: { entrepriseId },
             });
 
             if (existingParametres) {
                 await tx.parametresEntreprise.update({
-                    where: { entrepriseId: user.entrepriseId },
+                    where: { entrepriseId },
                     data: {
                         nom_entreprise: nomEntreprise,
                         adresse: adresse || null,
@@ -85,7 +65,7 @@ export async function POST(req: NextRequest) {
             } else {
                 await tx.parametresEntreprise.create({
                     data: {
-                        entrepriseId: user.entrepriseId,
+                        entrepriseId,
                         nom_entreprise: nomEntreprise,
                         adresse: adresse || null,
                         telephone: telephone || null,
@@ -95,7 +75,7 @@ export async function POST(req: NextRequest) {
 
             // Mark onboarding as complete
             const updatedUser = await tx.user.update({
-                where: { id: user.id },
+                where: { id: userId },
                 data: { onboardingComplete: true },
             });
 
@@ -105,7 +85,7 @@ export async function POST(req: NextRequest) {
         // Apply business template (categories, loyalty levels, etc.)
         try {
             await BusinessTemplateService.applyTemplate(
-                user.entrepriseId,
+                entrepriseId,
                 businessType as BusinessType
             );
         } catch (error) {
@@ -129,10 +109,6 @@ export async function POST(req: NextRequest) {
             { status: 200 }
         );
     } catch (error) {
-        console.error("Erreur lors de la complétion de l'onboarding:", error);
-        return NextResponse.json(
-            { message: "Erreur interne du serveur" },
-            { status: 500 }
-        );
+        return handleTenantError(error);
     }
 }

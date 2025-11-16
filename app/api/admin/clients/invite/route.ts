@@ -4,6 +4,7 @@ import {
   requireTenantAuth,
 } from "@/lib/middleware/tenant-isolation";
 import { prisma } from "@/lib/prisma";
+import { emailService } from "@/lib/email/email-service";
 import { z } from "zod";
 import { nanoid } from "nanoid";
 
@@ -73,7 +74,25 @@ export async function POST(req: NextRequest) {
 
     if (existingInvitation) {
       // Resend the same invitation
-      // TODO: Send email with existing token
+      // Get entreprise info for email
+      const entreprise = await prisma.entreprise.findUnique({
+        where: { id: entrepriseId },
+        include: { parametres: true },
+      });
+
+      // Send invitation email if enabled in preferences
+      if (entreprise?.parametres?.notif_client_invitation) {
+        const clientName = nom && prenom ? `${prenom} ${nom}` : undefined;
+        await emailService.sendClientInvitation({
+          to: email,
+          clientName,
+          entrepriseName: entreprise.nom || "Notre entreprise",
+          invitationToken: existingInvitation.token,
+        }).catch(err => {
+          console.error('[Email] Failed to send invitation email:', err);
+        });
+      }
+
       console.log(
         `[Client Invitation] Resending invitation to ${email} with token ${existingInvitation.token}`
       );
@@ -111,10 +130,22 @@ export async function POST(req: NextRequest) {
     // Get entreprise info for email
     const entreprise = await prisma.entreprise.findUnique({
       where: { id: entrepriseId },
-      select: { nom: true, email: true },
+      include: { parametres: true },
     });
 
-    // TODO: Send invitation email with token
+    // Send invitation email if enabled in preferences
+    if (entreprise?.parametres?.notif_client_invitation) {
+      const clientName = nom && prenom ? `${prenom} ${nom}` : undefined;
+      await emailService.sendClientInvitation({
+        to: email,
+        clientName,
+        entrepriseName: entreprise.nom || "Notre entreprise",
+        invitationToken: token,
+      }).catch(err => {
+        console.error('[Email] Failed to send invitation email:', err);
+      });
+    }
+
     console.log(
       `[Client Invitation] Invitation created for ${email} with token ${token}`
     );
