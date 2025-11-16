@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 
@@ -25,10 +24,7 @@ const checkoutSchema = z.object({
  */
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.entrepriseId) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
-    }
+    const { entrepriseId } = await requireTenantAuth();
 
     const body = await req.json();
     const validation = checkoutSchema.safeParse(body);
@@ -47,7 +43,7 @@ export async function POST(req: NextRequest) {
     if (!clientId) {
       const comptoir = await prisma.client.findFirst({
         where: {
-          entrepriseId: session.user.entrepriseId,
+          entrepriseId,
           nom: "Vente comptoir",
         },
       });
@@ -57,7 +53,7 @@ export async function POST(req: NextRequest) {
       } else {
         const newComptoir = await prisma.client.create({
           data: {
-            entrepriseId: session.user.entrepriseId,
+            entrepriseId,
             nom: "Vente comptoir",
             prenom: "",
             email: null,
@@ -71,7 +67,7 @@ export async function POST(req: NextRequest) {
     const today = new Date();
     const count = await prisma.document.count({
       where: {
-        entrepriseId: session.user.entrepriseId,
+        entrepriseId,
         type: "FACTURE",
       },
     });
@@ -114,7 +110,7 @@ export async function POST(req: NextRequest) {
     // Créer la facture
     const document = await prisma.document.create({
       data: {
-        entrepriseId: session.user.entrepriseId,
+        entrepriseId,
         clientId: finalClientId!,
         type: "FACTURE",
         numero,
@@ -165,7 +161,7 @@ export async function POST(req: NextRequest) {
 
         await prisma.mouvementStock.create({
           data: {
-            entrepriseId: session.user.entrepriseId,
+            entrepriseId,
             articleId: item.articleId,
             type: "SORTIE",
             quantite: item.quantite,
@@ -184,10 +180,6 @@ export async function POST(req: NextRequest) {
       ticketUrl: `/api/pos/ticket/${document.id}`,
     });
   } catch (error: any) {
-    console.error("[POS_CHECKOUT_ERROR]", error);
-    return NextResponse.json(
-      { error: error.message || "Erreur lors de l'encaissement" },
-      { status: 500 }
-    );
+    return handleTenantError(error);
   }
 }

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { TerminalService } from "@/lib/services/terminal.service";
 import { z } from "zod";
 
@@ -16,10 +15,7 @@ const registerSchema = z.object({
  */
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.entrepriseId) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
-    }
+    const { entrepriseId } = await requireTenantAuth();
 
     const body = await req.json();
     const validation = registerSchema.safeParse(body);
@@ -32,7 +28,7 @@ export async function POST(req: NextRequest) {
     }
 
     const terminal = await TerminalService.registerTerminal({
-      entrepriseId: session.user.entrepriseId,
+      entrepriseId,
       stripeTerminalId: validation.data.stripeTerminalId,
       label: validation.data.label,
       location: validation.data.location,
@@ -40,10 +36,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ terminal });
   } catch (error: any) {
-    console.error("[REGISTER_TERMINAL_ERROR]", error);
-    return NextResponse.json(
-      { error: error.message || "Erreur lors de l'enregistrement du terminal" },
-      { status: 500 }
-    );
+    return handleTenantError(error);
   }
 }

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { TerminalService } from "@/lib/services/terminal.service";
 import { z } from "zod";
 
@@ -17,10 +16,7 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.entrepriseId) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
-    }
+    await requireTenantAuth();
 
     const body = await req.json();
     const validation = processSchema.safeParse(body);
@@ -39,10 +35,6 @@ export async function POST(
 
     return NextResponse.json({ success: true, result });
   } catch (error: any) {
-    console.error("[PROCESS_PAYMENT_ERROR]", error);
-    return NextResponse.json(
-      { error: error.message || "Erreur lors du traitement du paiement" },
-      { status: 500 }
-    );
+    return handleTenantError(error);
   }
 }
