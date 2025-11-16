@@ -299,6 +299,323 @@ export class EmailService {
   }
 
   /**
+   * Send client approval email
+   */
+  async sendClientApproval(options: {
+    to: string;
+    clientName: string;
+    entrepriseName: string;
+    loginUrl: string;
+  }): Promise<SendEmailResult> {
+    const html = this.getClientApprovalTemplate(
+      options.clientName,
+      options.entrepriseName,
+      options.loginUrl
+    );
+
+    return this.sendEmail({
+      to: options.to,
+      subject: `Votre compte ${options.entrepriseName} a été activé`,
+      html,
+      fromName: options.entrepriseName,
+    });
+  }
+
+  /**
+   * Send client rejection email
+   */
+  async sendClientRejection(options: {
+    to: string;
+    clientName: string;
+    entrepriseName: string;
+    reason?: string;
+  }): Promise<SendEmailResult> {
+    const html = this.getClientRejectionTemplate(
+      options.clientName,
+      options.entrepriseName,
+      options.reason
+    );
+
+    return this.sendEmail({
+      to: options.to,
+      subject: `Mise à jour de votre demande d'inscription`,
+      html,
+      fromName: options.entrepriseName,
+    });
+  }
+
+  /**
+   * Send client invitation email
+   */
+  async sendClientInvitation(options: {
+    to: string;
+    clientName?: string;
+    entrepriseName: string;
+    invitationToken: string;
+  }): Promise<SendEmailResult> {
+    const invitationLink = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/client/auth/accept-invitation?token=${options.invitationToken}`;
+
+    const html = this.getClientInvitationTemplate(
+      options.clientName,
+      options.entrepriseName,
+      invitationLink
+    );
+
+    return this.sendEmail({
+      to: options.to,
+      subject: `Invitation à rejoindre ${options.entrepriseName}`,
+      html,
+      fromName: options.entrepriseName,
+    });
+  }
+
+  /**
+   * Send client welcome email
+   */
+  async sendClientWelcome(options: {
+    to: string;
+    clientName: string;
+    entrepriseName: string;
+    loginUrl: string;
+  }): Promise<SendEmailResult> {
+    const html = this.getClientWelcomeTemplate(
+      options.clientName,
+      options.entrepriseName,
+      options.loginUrl
+    );
+
+    return this.sendEmail({
+      to: options.to,
+      subject: `Bienvenue chez ${options.entrepriseName}`,
+      html,
+      fromName: options.entrepriseName,
+    });
+  }
+
+  /**
+   * Client approval email template
+   */
+  private getClientApprovalTemplate(clientName: string, entrepriseName: string, loginUrl: string): string {
+    return `
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compte activé</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #ffffff; color: #000000;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+        <div style="text-align: center; margin-bottom: 40px;">
+            <h1 style="font-size: 24px; font-weight: 600; letter-spacing: -0.5px; margin: 0;">Votre compte a été activé ✓</h1>
+        </div>
+
+        <div style="background-color: #fafafa; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; padding: 32px;">
+            <p style="font-size: 15px; line-height: 1.6; color: rgba(0,0,0,0.8); margin: 0 0 20px 0;">
+                Bonjour${clientName ? ' ' + clientName : ''},
+            </p>
+
+            <p style="font-size: 15px; line-height: 1.6; color: rgba(0,0,0,0.8); margin: 0 0 24px 0;">
+                Bonne nouvelle ! Votre compte client chez <strong>${entrepriseName}</strong> a été approuvé et activé.
+            </p>
+
+            <p style="font-size: 15px; line-height: 1.6; color: rgba(0,0,0,0.8); margin: 0 0 24px 0;">
+                Vous pouvez maintenant vous connecter à votre espace client pour :
+            </p>
+
+            <ul style="font-size: 15px; line-height: 1.8; color: rgba(0,0,0,0.8); margin: 0 0 24px 0;">
+                <li>Consulter vos documents (devis, factures)</li>
+                <li>Suivre vos points de fidélité</li>
+                <li>Gérer vos informations personnelles</li>
+            </ul>
+
+            <div style="text-align: center; margin: 32px 0;">
+                <a href="${loginUrl}" style="display: inline-block; background-color: #000000; color: #ffffff; text-decoration: none; padding: 12px 32px; border-radius: 6px; font-size: 14px; font-weight: 500;">
+                    Accéder à mon espace client
+                </a>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px;">
+            <p style="font-size: 12px; color: rgba(0,0,0,0.4); margin: 0;">
+                Merci de votre confiance !
+            </p>
+        </div>
+    </div>
+</body>
+</html>
+    `.trim();
+  }
+
+  /**
+   * Client rejection email template
+   */
+  private getClientRejectionTemplate(clientName: string, entrepriseName: string, reason?: string): string {
+    return `
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mise à jour de votre demande</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #ffffff; color: #000000;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+        <div style="text-align: center; margin-bottom: 40px;">
+            <h1 style="font-size: 24px; font-weight: 600; letter-spacing: -0.5px; margin: 0;">Mise à jour de votre demande</h1>
+        </div>
+
+        <div style="background-color: #fafafa; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; padding: 32px;">
+            <p style="font-size: 15px; line-height: 1.6; color: rgba(0,0,0,0.8); margin: 0 0 20px 0;">
+                Bonjour${clientName ? ' ' + clientName : ''},
+            </p>
+
+            <p style="font-size: 15px; line-height: 1.6; color: rgba(0,0,0,0.8); margin: 0 0 24px 0;">
+                Nous avons examiné votre demande d'inscription chez <strong>${entrepriseName}</strong>.
+            </p>
+
+            ${reason ? `
+            <div style="background-color: rgba(0,0,0,0.03); border-radius: 6px; padding: 16px; margin: 24px 0;">
+                <p style="font-size: 13px; color: rgba(0,0,0,0.5); margin: 0 0 8px 0; font-weight: 500;">MOTIF</p>
+                <p style="font-size: 14px; line-height: 1.6; color: rgba(0,0,0,0.8); margin: 0;">
+                    ${reason}
+                </p>
+            </div>
+            ` : ''}
+
+            <p style="font-size: 15px; line-height: 1.6; color: rgba(0,0,0,0.8); margin: 0;">
+                Pour toute question, n'hésitez pas à nous contacter directement.
+            </p>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px;">
+            <p style="font-size: 12px; color: rgba(0,0,0,0.4); margin: 0;">
+                Cordialement, l'équipe ${entrepriseName}
+            </p>
+        </div>
+    </div>
+</body>
+</html>
+    `.trim();
+  }
+
+  /**
+   * Client invitation email template
+   */
+  private getClientInvitationTemplate(clientName: string | undefined, entrepriseName: string, invitationLink: string): string {
+    return `
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invitation client</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #ffffff; color: #000000;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+        <div style="text-align: center; margin-bottom: 40px;">
+            <h1 style="font-size: 24px; font-weight: 600; letter-spacing: -0.5px; margin: 0;">Invitation à rejoindre notre espace client</h1>
+        </div>
+
+        <div style="background-color: #fafafa; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; padding: 32px;">
+            <p style="font-size: 15px; line-height: 1.6; color: rgba(0,0,0,0.8); margin: 0 0 20px 0;">
+                Bonjour${clientName ? ' ' + clientName : ''},
+            </p>
+
+            <p style="font-size: 15px; line-height: 1.6; color: rgba(0,0,0,0.8); margin: 0 0 24px 0;">
+                <strong>${entrepriseName}</strong> vous invite à créer votre espace client pour profiter de nombreux avantages :
+            </p>
+
+            <ul style="font-size: 15px; line-height: 1.8; color: rgba(0,0,0,0.8); margin: 0 0 24px 0;">
+                <li>Accédez à vos documents en ligne</li>
+                <li>Suivez votre programme de fidélité</li>
+                <li>Consultez votre historique</li>
+            </ul>
+
+            <div style="text-align: center; margin: 32px 0;">
+                <a href="${invitationLink}" style="display: inline-block; background-color: #000000; color: #ffffff; text-decoration: none; padding: 12px 32px; border-radius: 6px; font-size: 14px; font-weight: 500;">
+                    Créer mon compte
+                </a>
+            </div>
+
+            <div style="background-color: rgba(0,0,0,0.03); border-radius: 6px; padding: 16px; margin-top: 24px;">
+                <p style="font-size: 13px; line-height: 1.6; color: rgba(0,0,0,0.6); margin: 0;">
+                    ℹ️ Cette invitation est valable pendant 7 jours.
+                </p>
+            </div>
+        </div>
+
+        <div style="margin-top: 24px; padding: 16px; background-color: #fafafa; border-radius: 6px;">
+            <p style="font-size: 12px; color: rgba(0,0,0,0.5); margin: 0 0 8px 0;">
+                Si le bouton ne fonctionne pas, copiez ce lien :
+            </p>
+            <p style="font-size: 12px; color: rgba(0,0,0,0.8); word-break: break-all; margin: 0;">
+                ${invitationLink}
+            </p>
+        </div>
+    </div>
+</body>
+</html>
+    `.trim();
+  }
+
+  /**
+   * Client welcome email template
+   */
+  private getClientWelcomeTemplate(clientName: string, entrepriseName: string, loginUrl: string): string {
+    return `
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenue</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #ffffff; color: #000000;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+        <div style="text-align: center; margin-bottom: 40px;">
+            <h1 style="font-size: 24px; font-weight: 600; letter-spacing: -0.5px; margin: 0;">Bienvenue ! 👋</h1>
+        </div>
+
+        <div style="background-color: #fafafa; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; padding: 32px;">
+            <p style="font-size: 15px; line-height: 1.6; color: rgba(0,0,0,0.8); margin: 0 0 20px 0;">
+                Bonjour${clientName ? ' ' + clientName : ''},
+            </p>
+
+            <p style="font-size: 15px; line-height: 1.6; color: rgba(0,0,0,0.8); margin: 0 0 24px 0;">
+                Bienvenue chez <strong>${entrepriseName}</strong> ! Votre compte client a été créé avec succès.
+            </p>
+
+            <p style="font-size: 15px; line-height: 1.6; color: rgba(0,0,0,0.8); margin: 0 0 24px 0;">
+                Votre espace client vous permet de :
+            </p>
+
+            <ul style="font-size: 15px; line-height: 1.8; color: rgba(0,0,0,0.8); margin: 0 0 24px 0;">
+                <li>Consulter vos devis et factures</li>
+                <li>Suivre vos points de fidélité et avantages</li>
+                <li>Gérer vos informations personnelles</li>
+                <li>Accéder à votre historique complet</li>
+            </ul>
+
+            <div style="text-align: center; margin: 32px 0;">
+                <a href="${loginUrl}" style="display: inline-block; background-color: #000000; color: #ffffff; text-decoration: none; padding: 12px 32px; border-radius: 6px; font-size: 14px; font-weight: 500;">
+                    Accéder à mon espace
+                </a>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px;">
+            <p style="font-size: 12px; color: rgba(0,0,0,0.4); margin: 0;">
+                Merci de votre confiance !
+            </p>
+        </div>
+    </div>
+</body>
+</html>
+    `.trim();
+  }
+
+  /**
    * Validate email address format
    */
   static isValidEmail(email: string): boolean {

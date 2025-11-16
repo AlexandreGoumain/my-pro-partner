@@ -1149,6 +1149,15 @@ model ParametresEntreprise {
   conditions_paiement_defaut String?
   mentions_legales           String?
 
+  // Préférences de notification
+  notif_client_approved       Boolean @default(true)  // Envoyer email quand client approuvé
+  notif_client_rejected       Boolean @default(true)  // Envoyer email quand client rejeté
+  notif_client_invitation     Boolean @default(true)  // Envoyer email d'invitation
+  notif_client_welcome        Boolean @default(true)  // Envoyer email de bienvenue
+  notif_document_sent         Boolean @default(true)  // Envoyer email quand document envoyé
+  notif_payment_received      Boolean @default(true)  // Envoyer email quand paiement reçu
+  notif_low_stock             Boolean @default(true)  // Envoyer email si stock faible
+
   // Multi-tenant: relation one-to-one
   entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
   entrepriseId String     @unique

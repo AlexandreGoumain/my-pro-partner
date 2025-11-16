@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { emailService } from "@/lib/email/email-service";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 
@@ -75,9 +76,10 @@ export async function POST(req: NextRequest) {
     // Get entrepriseId from invitation (never sent from client for security)
     const entrepriseId = invitation.entrepriseId;
 
-    // Get entreprise info
+    // Get entreprise info with parametres for email preferences
     const entreprise = await prisma.entreprise.findUnique({
       where: { id: entrepriseId },
+      include: { parametres: true },
     });
 
     if (!entreprise) {
@@ -134,7 +136,18 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // TODO: Send welcome email to client
+    // Send welcome email if enabled in preferences
+    if (entreprise.parametres?.notif_client_welcome) {
+      const loginUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/client/auth/login`;
+      await emailService.sendClientWelcome({
+        to: email,
+        clientName: `${prenom || ''} ${nom}`.trim(),
+        entrepriseName: entreprise.nom || "Notre entreprise",
+        loginUrl,
+      }).catch(err => {
+        console.error('[Email] Failed to send welcome email:', err);
+      });
+    }
 
     console.log(
       `[Client Registration] New client registered: ${email} for entreprise ${entreprise.nom} (via invitation)`
