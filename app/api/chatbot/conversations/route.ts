@@ -3,11 +3,13 @@
 // ============================================
 
 import { NextRequest, NextResponse } from 'next/server';
-import { withAuth } from '@/lib/api/auth-middleware';
+import { requireTenantAuth, handleTenantError } from '@/lib/middleware/tenant-isolation';
 import { prisma } from '@/lib/prisma';
 
-export const GET = withAuth(async (req: NextRequest, session: unknown) => {
+export async function GET(req: NextRequest) {
   try {
+    const { entrepriseId, userId } = await requireTenantAuth();
+
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
@@ -17,8 +19,8 @@ export const GET = withAuth(async (req: NextRequest, session: unknown) => {
     const [conversations, total] = await Promise.all([
       prisma.conversation.findMany({
         where: {
-          userId: session.user.id,
-          entrepriseId: session.user.entrepriseId,
+          userId,
+          entrepriseId,
         },
         include: {
           messages: {
@@ -45,8 +47,8 @@ export const GET = withAuth(async (req: NextRequest, session: unknown) => {
       }),
       prisma.conversation.count({
         where: {
-          userId: session.user.id,
-          entrepriseId: session.user.entrepriseId,
+          userId,
+          entrepriseId,
         },
       }),
     ]);
@@ -59,10 +61,6 @@ export const GET = withAuth(async (req: NextRequest, session: unknown) => {
       pages: Math.ceil(total / limit),
     });
   } catch (error: unknown) {
-    console.error('Error fetching conversations:', error);
-    return NextResponse.json(
-      { error: 'Erreur lors de la récupération des conversations' },
-      { status: 500 }
-    );
+    return handleTenantError(error);
   }
-});
+}

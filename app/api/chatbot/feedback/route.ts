@@ -3,7 +3,7 @@
 // ============================================
 
 import { NextRequest, NextResponse } from 'next/server';
-import { withAuth } from '@/lib/api/auth-middleware';
+import { requireTenantAuth, handleTenantError } from '@/lib/middleware/tenant-isolation';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 
@@ -13,8 +13,10 @@ const feedbackSchema = z.object({
   comment: z.string().optional(),
 });
 
-export const POST = withAuth(async (req: NextRequest, session: unknown) => {
+export async function POST(req: NextRequest) {
   try {
+    const { entrepriseId, userId } = await requireTenantAuth();
+
     const body = await req.json();
     const validated = feedbackSchema.parse(body);
 
@@ -23,8 +25,8 @@ export const POST = withAuth(async (req: NextRequest, session: unknown) => {
       where: {
         id: validated.messageId,
         conversation: {
-          userId: session.user.id,
-          entrepriseId: session.user.entrepriseId,
+          userId,
+          entrepriseId,
         },
       },
     });
@@ -64,10 +66,6 @@ export const POST = withAuth(async (req: NextRequest, session: unknown) => {
       );
     }
 
-    console.error('Error saving feedback:', error);
-    return NextResponse.json(
-      { error: 'Erreur lors de l\'enregistrement du feedback' },
-      { status: 500 }
-    );
+    return handleTenantError(error);
   }
-});
+}

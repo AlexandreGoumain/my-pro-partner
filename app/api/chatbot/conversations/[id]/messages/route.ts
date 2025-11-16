@@ -3,7 +3,7 @@
 // ============================================
 
 import { NextRequest, NextResponse } from 'next/server';
-import { withAuth } from '@/lib/api/auth-middleware';
+import { requireTenantAuth, handleTenantError } from '@/lib/middleware/tenant-isolation';
 import { prisma } from '@/lib/prisma';
 
 interface RouteParams {
@@ -12,14 +12,19 @@ interface RouteParams {
   };
 }
 
-export const GET = withAuth(async (req: NextRequest, session: unknown, { params }: RouteParams) => {
+export async function GET(
+  req: NextRequest,
+  { params }: RouteParams
+) {
   try {
+    const { entrepriseId, userId } = await requireTenantAuth();
+
     // Vérifier que la conversation appartient à l'utilisateur
     const conversation = await prisma.conversation.findUnique({
       where: {
         id: params.id,
-        userId: session.user.id,
-        entrepriseId: session.user.entrepriseId,
+        userId,
+        entrepriseId,
       },
     });
 
@@ -57,10 +62,6 @@ export const GET = withAuth(async (req: NextRequest, session: unknown, { params 
       hasMore: messages.length === limit,
     });
   } catch (error: unknown) {
-    console.error('Error fetching messages:', error);
-    return NextResponse.json(
-      { error: 'Erreur lors de la récupération des messages' },
-      { status: 500 }
-    );
+    return handleTenantError(error);
   }
-});
+}

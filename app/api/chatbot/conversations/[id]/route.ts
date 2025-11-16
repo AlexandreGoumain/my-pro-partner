@@ -3,7 +3,7 @@
 // ============================================
 
 import { NextRequest, NextResponse } from 'next/server';
-import { withAuth } from '@/lib/api/auth-middleware';
+import { requireTenantAuth, handleTenantError } from '@/lib/middleware/tenant-isolation';
 import { prisma } from '@/lib/prisma';
 
 interface RouteParams {
@@ -12,13 +12,18 @@ interface RouteParams {
   };
 }
 
-export const GET = withAuth(async (req: NextRequest, session: unknown, { params }: RouteParams) => {
+export async function GET(
+  req: NextRequest,
+  { params }: RouteParams
+) {
   try {
+    const { entrepriseId, userId } = await requireTenantAuth();
+
     const conversation = await prisma.conversation.findUnique({
       where: {
         id: params.id,
-        userId: session.user.id,
-        entrepriseId: session.user.entrepriseId,
+        userId,
+        entrepriseId,
       },
       include: {
         messages: {
@@ -44,22 +49,23 @@ export const GET = withAuth(async (req: NextRequest, session: unknown, { params 
 
     return NextResponse.json(conversation);
   } catch (error: unknown) {
-    console.error('Error fetching conversation:', error);
-    return NextResponse.json(
-      { error: 'Erreur lors de la récupération de la conversation' },
-      { status: 500 }
-    );
+    return handleTenantError(error);
   }
-});
+}
 
-export const DELETE = withAuth(async (req: NextRequest, session: unknown, { params }: RouteParams) => {
+export async function DELETE(
+  req: NextRequest,
+  { params }: RouteParams
+) {
   try {
+    const { entrepriseId, userId } = await requireTenantAuth();
+
     // Vérifier que la conversation appartient à l'utilisateur
     const conversation = await prisma.conversation.findUnique({
       where: {
         id: params.id,
-        userId: session.user.id,
-        entrepriseId: session.user.entrepriseId,
+        userId,
+        entrepriseId,
       },
     });
 
@@ -80,16 +86,17 @@ export const DELETE = withAuth(async (req: NextRequest, session: unknown, { para
       message: 'Conversation supprimée',
     });
   } catch (error: unknown) {
-    console.error('Error deleting conversation:', error);
-    return NextResponse.json(
-      { error: 'Erreur lors de la suppression de la conversation' },
-      { status: 500 }
-    );
+    return handleTenantError(error);
   }
-});
+}
 
-export const PATCH = withAuth(async (req: NextRequest, session: unknown, { params }: RouteParams) => {
+export async function PATCH(
+  req: NextRequest,
+  { params }: RouteParams
+) {
   try {
+    const { entrepriseId, userId } = await requireTenantAuth();
+
     const body = await req.json();
     const { pinned, titre } = body;
 
@@ -97,8 +104,8 @@ export const PATCH = withAuth(async (req: NextRequest, session: unknown, { param
     const conversation = await prisma.conversation.findUnique({
       where: {
         id: params.id,
-        userId: session.user.id,
-        entrepriseId: session.user.entrepriseId,
+        userId,
+        entrepriseId,
       },
     });
 
@@ -120,10 +127,6 @@ export const PATCH = withAuth(async (req: NextRequest, session: unknown, { param
 
     return NextResponse.json(updated);
   } catch (error: unknown) {
-    console.error('Error updating conversation:', error);
-    return NextResponse.json(
-      { error: 'Erreur lors de la mise à jour de la conversation' },
-      { status: 500 }
-    );
+    return handleTenantError(error);
   }
-});
+}

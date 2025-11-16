@@ -3,14 +3,14 @@
 // ============================================
 
 import { NextRequest, NextResponse } from 'next/server';
-import { withAuth } from '@/lib/api/auth-middleware';
+import { requireTenantAuth, handleTenantError } from '@/lib/middleware/tenant-isolation';
 import { prisma } from '@/lib/prisma';
 import { getSystemPrompt } from '@/lib/chatbot/chatbot-prompts';
 import { chatbotTools } from '@/lib/chatbot/chatbot-actions';
 import { createOpenAIStream } from '@/lib/chatbot/api/stream-handler';
 import { nanoid } from 'nanoid';
-import { canAccessFeature, getCurrentUsage, isLimitReached } from '@/lib/middleware/feature-validation';
-import { getLimitErrorMessage } from '@/lib/pricing-config';
+import { getCurrentUsage, isLimitReached } from '@/lib/middleware/feature-validation';
+import { checkFeatureAccess, createFeatureError, createLimitError } from '@/lib/utils/plan-helpers';
 
 interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
@@ -22,32 +22,25 @@ interface RequestBody {
   conversationId?: string;
 }
 
-export const POST = withAuth(async (req: NextRequest, session: unknown) => {
+export async function POST(req: NextRequest) {
   try {
+    const { entrepriseId, userId, user, entreprise } = await requireTenantAuth();
+
     // Check if user has access to the assistant (STARTER+ only)
-    if (!canAccessFeature(session.user.plan, "hasAssistant")) {
+    // Using new centralized plan system
+    const hasAssistant = await checkFeatureAccess(entrepriseId, "aiChatbot");
+    if (!hasAssistant) {
       return NextResponse.json(
-        {
-          error: "Assistant not available in your plan",
-          code: "FEATURE_NOT_AVAILABLE",
-          currentPlan: session.user.plan,
-          message: "L'assistant n'est pas disponible dans votre plan. Passez au plan STARTER ou supérieur pour débloquer cette fonctionnalité.",
-        },
+        createFeatureError("aiChatbot"),
         { status: 403 }
       );
     }
 
     // Check quota for maxQuestionsPerMonth (except if unlimited = -1)
-    const currentUsage = await getCurrentUsage(session.user.entrepriseId, "maxQuestionsPerMonth");
-    if (isLimitReached(session.user.plan, "maxQuestionsPerMonth", currentUsage)) {
-      const message = getLimitErrorMessage(session.user.plan, "maxQuestionsPerMonth");
+    const currentUsage = await getCurrentUsage(entrepriseId, "maxQuestionsPerMonth");
+    if (isLimitReached(entreprise.plan, "maxQuestionsPerMonth", currentUsage)) {
       return NextResponse.json(
-        {
-          error: message,
-          code: "LIMIT_REACHED",
-          currentPlan: session.user.plan,
-          currentUsage,
-        },
+        createLimitError("maxQuestionsPerMonth"),
         { status: 403 }
       );
     }
@@ -86,8 +79,8 @@ export const POST = withAuth(async (req: NextRequest, session: unknown) => {
         data: {
           id: nanoid(),
           titre: title,
-          userId: session.user.id,
-          entrepriseId: session.user.entrepriseId,
+          userId,
+          entrepriseId,
         },
       });
     }
@@ -111,9 +104,9 @@ export const POST = withAuth(async (req: NextRequest, session: unknown) => {
 
     // Prepare system prompt
     const systemPrompt = getSystemPrompt({
-      userName: session.user.name || undefined,
-      entrepriseName: session.user.entrepriseName || 'Mon Entreprise',
-      userRole: session.user.role || 'utilisateur',
+      userName: user.name || undefined,
+      entrepriseName: entreprise.nom || 'Mon Entreprise',
+      userRole: user.role || 'utilisateur',
     });
 
     // Call OpenAI API
@@ -190,13 +183,6 @@ export const POST = withAuth(async (req: NextRequest, session: unknown) => {
       },
     });
   } catch (error: unknown) {
-    console.error('Error in chatbot message API:', error);
-    return new Response(
-      JSON.stringify({ error: error.message || 'Erreur lors du traitement du message' }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      }
-    );
+    return handleTenantError(error);
   }
-});
+}
