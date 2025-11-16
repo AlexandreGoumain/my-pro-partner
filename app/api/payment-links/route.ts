@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { PaymentLinkService } from "@/lib/services/payment-link.service";
 import { z } from "zod";
 
@@ -21,22 +20,15 @@ const createPaymentLinkSchema = z.object({
  */
 export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.entrepriseId) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
-    }
+    const { entrepriseId } = await requireTenantAuth();
 
     const paymentLinks = await PaymentLinkService.getPaymentLinks(
-      session.user.entrepriseId
+      entrepriseId
     );
 
     return NextResponse.json({ paymentLinks });
-  } catch (error: any) {
-    console.error("[PAYMENT_LINKS_GET_ERROR]", error);
-    return NextResponse.json(
-      { error: error.message || "Erreur lors de la récupération des liens" },
-      { status: 500 }
-    );
+  } catch (error) {
+    return handleTenantError(error);
   }
 }
 
@@ -46,10 +38,7 @@ export async function GET(req: NextRequest) {
  */
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.entrepriseId) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
-    }
+    const { entrepriseId } = await requireTenantAuth();
 
     const body = await req.json();
     const validation = createPaymentLinkSchema.safeParse(body);
@@ -64,7 +53,7 @@ export async function POST(req: NextRequest) {
     const data = validation.data;
 
     const paymentLink = await PaymentLinkService.createPaymentLink({
-      entrepriseId: session.user.entrepriseId,
+      entrepriseId,
       titre: data.titre,
       description: data.description,
       montant: data.montant,
@@ -76,11 +65,7 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ paymentLink }, { status: 201 });
-  } catch (error: any) {
-    console.error("[PAYMENT_LINK_CREATE_ERROR]", error);
-    return NextResponse.json(
-      { error: error.message || "Erreur lors de la création du lien" },
-      { status: 500 }
-    );
+  } catch (error) {
+    return handleTenantError(error);
   }
 }

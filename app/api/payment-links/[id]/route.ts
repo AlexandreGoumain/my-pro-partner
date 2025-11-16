@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { PaymentLinkService } from "@/lib/services/payment-link.service";
 import { prisma } from "@/lib/prisma";
 
@@ -13,10 +12,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.entrepriseId) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
-    }
+    const { entrepriseId } = await requireTenantAuth();
 
     const paymentLinkId = params.id;
 
@@ -24,7 +20,7 @@ export async function DELETE(
     const paymentLink = await prisma.paymentLink.findFirst({
       where: {
         id: paymentLinkId,
-        entrepriseId: session.user.entrepriseId,
+        entrepriseId,
       },
     });
 
@@ -35,12 +31,8 @@ export async function DELETE(
     await PaymentLinkService.deletePaymentLink(paymentLinkId);
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
-    console.error("[PAYMENT_LINK_DELETE_ERROR]", error);
-    return NextResponse.json(
-      { error: error.message || "Erreur lors de la suppression" },
-      { status: 500 }
-    );
+  } catch (error) {
+    return handleTenantError(error);
   }
 }
 
@@ -53,10 +45,7 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.entrepriseId) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
-    }
+    const { entrepriseId } = await requireTenantAuth();
 
     const body = await req.json();
     const { actif } = body;
@@ -64,7 +53,7 @@ export async function PATCH(
     const paymentLink = await prisma.paymentLink.updateMany({
       where: {
         id: params.id,
-        entrepriseId: session.user.entrepriseId,
+        entrepriseId,
       },
       data: { actif },
     });
@@ -74,11 +63,7 @@ export async function PATCH(
     }
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
-    console.error("[PAYMENT_LINK_UPDATE_ERROR]", error);
-    return NextResponse.json(
-      { error: error.message || "Erreur lors de la mise à jour" },
-      { status: 500 }
-    );
+  } catch (error) {
+    return handleTenantError(error);
   }
 }
