@@ -1,6 +1,5 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth/next";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -27,30 +26,12 @@ export async function GET(
 ) {
     try {
         const { id } = await params;
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.email) {
-            return NextResponse.json(
-                { message: "Non autorisé" },
-                { status: 401 }
-            );
-        }
-
-        const user = await prisma.user.findUnique({
-            where: { email: session.user.email },
-            select: { entrepriseId: true },
-        });
-
-        if (!user) {
-            return NextResponse.json(
-                { message: "Utilisateur non trouvé" },
-                { status: 404 }
-            );
-        }
+        const { entrepriseId } = await requireTenantAuth();
 
         const serie = await prisma.serieDocument.findUnique({
             where: {
                 id: id,
-                entrepriseId: user.entrepriseId,
+                entrepriseId,
             },
             include: {
                 _count: {
@@ -68,11 +49,7 @@ export async function GET(
 
         return NextResponse.json({ serie });
     } catch (error) {
-        console.error("Erreur lors de la récupération de la série:", error);
-        return NextResponse.json(
-            { message: "Erreur interne du serveur" },
-            { status: 500 }
-        );
+        return handleTenantError(error);
     }
 }
 
@@ -83,13 +60,7 @@ export async function PUT(
 ) {
     try {
         const { id } = await params;
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.email) {
-            return NextResponse.json(
-                { message: "Non autorisé" },
-                { status: 401 }
-            );
-        }
+        const { entrepriseId } = await requireTenantAuth();
 
         const body = await req.json();
         const validation = updateSerieSchema.safeParse(body);
@@ -104,23 +75,11 @@ export async function PUT(
             );
         }
 
-        const user = await prisma.user.findUnique({
-            where: { email: session.user.email },
-            select: { entrepriseId: true },
-        });
-
-        if (!user) {
-            return NextResponse.json(
-                { message: "Utilisateur non trouvé" },
-                { status: 404 }
-            );
-        }
-
         // Vérifier que la série existe et appartient à l'entreprise
         const existingSerie = await prisma.serieDocument.findUnique({
             where: {
                 id: id,
-                entrepriseId: user.entrepriseId,
+                entrepriseId,
             },
         });
 
@@ -136,7 +95,7 @@ export async function PUT(
             const codeExists = await prisma.serieDocument.findUnique({
                 where: {
                     entrepriseId_code: {
-                        entrepriseId: user.entrepriseId,
+                        entrepriseId,
                         code: validation.data.code.toUpperCase(),
                     },
                 },
@@ -154,7 +113,7 @@ export async function PUT(
         if (validation.data.est_defaut_devis && !existingSerie.est_defaut_devis) {
             await prisma.serieDocument.updateMany({
                 where: {
-                    entrepriseId: user.entrepriseId,
+                    entrepriseId,
                     est_defaut_devis: true,
                     id: { not: id },
                 },
@@ -167,7 +126,7 @@ export async function PUT(
         if (validation.data.est_defaut_factures && !existingSerie.est_defaut_factures) {
             await prisma.serieDocument.updateMany({
                 where: {
-                    entrepriseId: user.entrepriseId,
+                    entrepriseId,
                     est_defaut_factures: true,
                     id: { not: id },
                 },
@@ -180,7 +139,7 @@ export async function PUT(
         if (validation.data.est_defaut_avoirs && !existingSerie.est_defaut_avoirs) {
             await prisma.serieDocument.updateMany({
                 where: {
-                    entrepriseId: user.entrepriseId,
+                    entrepriseId,
                     est_defaut_avoirs: true,
                     id: { not: id },
                 },
@@ -206,11 +165,7 @@ export async function PUT(
 
         return NextResponse.json({ serie });
     } catch (error) {
-        console.error("Erreur lors de la mise à jour de la série:", error);
-        return NextResponse.json(
-            { message: "Erreur interne du serveur" },
-            { status: 500 }
-        );
+        return handleTenantError(error);
     }
 }
 
@@ -221,31 +176,13 @@ export async function DELETE(
 ) {
     try {
         const { id } = await params;
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.email) {
-            return NextResponse.json(
-                { message: "Non autorisé" },
-                { status: 401 }
-            );
-        }
-
-        const user = await prisma.user.findUnique({
-            where: { email: session.user.email },
-            select: { entrepriseId: true },
-        });
-
-        if (!user) {
-            return NextResponse.json(
-                { message: "Utilisateur non trouvé" },
-                { status: 404 }
-            );
-        }
+        const { entrepriseId } = await requireTenantAuth();
 
         // Vérifier que la série existe et appartient à l'entreprise
         const serie = await prisma.serieDocument.findUnique({
             where: {
                 id: id,
-                entrepriseId: user.entrepriseId,
+                entrepriseId,
             },
             include: {
                 _count: {
@@ -278,10 +215,6 @@ export async function DELETE(
 
         return NextResponse.json({ message: "Série supprimée avec succès" });
     } catch (error) {
-        console.error("Erreur lors de la suppression de la série:", error);
-        return NextResponse.json(
-            { message: "Erreur interne du serveur" },
-            { status: 500 }
-        );
+        return handleTenantError(error);
     }
 }

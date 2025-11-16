@@ -1,6 +1,5 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth/next";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET: Récupérer les préférences de notifications
@@ -8,30 +7,12 @@ import { NextRequest, NextResponse } from "next/server";
 // Une future migration ajoutera une table ParametresNotifications
 export async function GET(req: NextRequest) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.email) {
-            return NextResponse.json(
-                { message: "Non autorisé" },
-                { status: 401 }
-            );
-        }
-
-        const user = await prisma.user.findUnique({
-            where: { email: session.user.email },
-            select: { entrepriseId: true },
-        });
-
-        if (!user) {
-            return NextResponse.json(
-                { message: "Utilisateur non trouvé" },
-                { status: 404 }
-            );
-        }
+        const { entrepriseId } = await requireTenantAuth();
 
         // TODO: Récupérer depuis la base de données quand la table sera créée
         // Pour l'instant, retourner des valeurs par défaut
         const notifications = {
-            entrepriseId: user.entrepriseId,
+            entrepriseId,
             email_nouveau_client: true,
             email_document_cree: false,
             email_document_paye: true,
@@ -45,11 +26,7 @@ export async function GET(req: NextRequest) {
 
         return NextResponse.json({ notifications });
     } catch (error) {
-        console.error("Erreur lors de la récupération des notifications:", error);
-        return NextResponse.json(
-            { message: "Erreur interne du serveur" },
-            { status: 500 }
-        );
+        return handleTenantError(error);
     }
 }
 
@@ -58,27 +35,9 @@ export async function GET(req: NextRequest) {
 // Une future migration ajoutera une table ParametresNotifications
 export async function PUT(req: NextRequest) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.email) {
-            return NextResponse.json(
-                { message: "Non autorisé" },
-                { status: 401 }
-            );
-        }
+        const { entrepriseId } = await requireTenantAuth();
 
         const body = await req.json();
-
-        const user = await prisma.user.findUnique({
-            where: { email: session.user.email },
-            select: { entrepriseId: true },
-        });
-
-        if (!user) {
-            return NextResponse.json(
-                { message: "Utilisateur non trouvé" },
-                { status: 404 }
-            );
-        }
 
         // TODO: Sauvegarder dans la base de données quand la table sera créée
         // Pour l'instant, on retourne simplement les données reçues
@@ -87,14 +46,10 @@ export async function PUT(req: NextRequest) {
         return NextResponse.json({
             notifications: {
                 ...body,
-                entrepriseId: user.entrepriseId,
+                entrepriseId,
             },
         });
     } catch (error) {
-        console.error("Erreur lors de la mise à jour des notifications:", error);
-        return NextResponse.json(
-            { message: "Erreur interne du serveur" },
-            { status: 500 }
-        );
+        return handleTenantError(error);
     }
 }

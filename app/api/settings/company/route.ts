@@ -1,6 +1,5 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth/next";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -24,42 +23,23 @@ const companySettingsSchema = z.object({
 // GET: Récupérer les paramètres de l'entreprise
 export async function GET(req: NextRequest) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.email) {
-            return NextResponse.json(
-                { message: "Non autorisé" },
-                { status: 401 }
-            );
-        }
-
-        // Get user to find entreprise
-        const user = await prisma.user.findUnique({
-            where: { email: session.user.email },
-            select: { entrepriseId: true },
-        });
-
-        if (!user) {
-            return NextResponse.json(
-                { message: "Utilisateur non trouvé" },
-                { status: 404 }
-            );
-        }
+        const { entrepriseId } = await requireTenantAuth();
 
         // Get or create settings
         let settings = await prisma.parametresEntreprise.findUnique({
-            where: { entrepriseId: user.entrepriseId },
+            where: { entrepriseId },
         });
 
         if (!settings) {
             // Create default settings
             const entreprise = await prisma.entreprise.findUnique({
-                where: { id: user.entrepriseId },
+                where: { id: entrepriseId },
                 select: { nom: true, email: true },
             });
 
             settings = await prisma.parametresEntreprise.create({
                 data: {
-                    entrepriseId: user.entrepriseId,
+                    entrepriseId,
                     nom_entreprise: entreprise?.nom || "Mon Entreprise",
                     email: entreprise?.email || null,
                 },
@@ -68,24 +48,14 @@ export async function GET(req: NextRequest) {
 
         return NextResponse.json({ settings });
     } catch (error) {
-        console.error("Erreur lors de la récupération des paramètres:", error);
-        return NextResponse.json(
-            { message: "Erreur interne du serveur" },
-            { status: 500 }
-        );
+        return handleTenantError(error);
     }
 }
 
 // PUT: Mettre à jour les paramètres de l'entreprise
 export async function PUT(req: NextRequest) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.email) {
-            return NextResponse.json(
-                { message: "Non autorisé" },
-                { status: 401 }
-            );
-        }
+        const { entrepriseId } = await requireTenantAuth();
 
         const body = await req.json();
 
@@ -101,24 +71,11 @@ export async function PUT(req: NextRequest) {
             );
         }
 
-        // Get user to find entreprise
-        const user = await prisma.user.findUnique({
-            where: { email: session.user.email },
-            select: { entrepriseId: true },
-        });
-
-        if (!user) {
-            return NextResponse.json(
-                { message: "Utilisateur non trouvé" },
-                { status: 404 }
-            );
-        }
-
         // Upsert settings
         const settings = await prisma.parametresEntreprise.upsert({
-            where: { entrepriseId: user.entrepriseId },
+            where: { entrepriseId },
             create: {
-                entrepriseId: user.entrepriseId,
+                entrepriseId,
                 ...validation.data,
             },
             update: validation.data,
@@ -126,10 +83,6 @@ export async function PUT(req: NextRequest) {
 
         return NextResponse.json({ settings });
     } catch (error) {
-        console.error("Erreur lors de la mise à jour des paramètres:", error);
-        return NextResponse.json(
-            { message: "Erreur interne du serveur" },
-            { status: 500 }
-        );
+        return handleTenantError(error);
     }
 }

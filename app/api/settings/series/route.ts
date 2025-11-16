@@ -1,6 +1,5 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth/next";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -22,26 +21,7 @@ const serieSchema = z.object({
 // GET: Récupérer toutes les séries de documents
 export async function GET(req: NextRequest) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.email) {
-            return NextResponse.json(
-                { message: "Non autorisé" },
-                { status: 401 }
-            );
-        }
-
-        // Get user to find entreprise
-        const user = await prisma.user.findUnique({
-            where: { email: session.user.email },
-            select: { entrepriseId: true },
-        });
-
-        if (!user) {
-            return NextResponse.json(
-                { message: "Utilisateur non trouvé" },
-                { status: 404 }
-            );
-        }
+        const { entrepriseId } = await requireTenantAuth();
 
         const { searchParams } = new URL(req.url);
         const activeOnly = searchParams.get("active") === "true";
@@ -49,7 +29,7 @@ export async function GET(req: NextRequest) {
 
         // Build where clause
         const where: unknown = {
-            entrepriseId: user.entrepriseId,
+            entrepriseId,
         };
 
         if (activeOnly) {
@@ -78,24 +58,14 @@ export async function GET(req: NextRequest) {
 
         return NextResponse.json({ series });
     } catch (error) {
-        console.error("Erreur lors de la récupération des séries:", error);
-        return NextResponse.json(
-            { message: "Erreur interne du serveur" },
-            { status: 500 }
-        );
+        return handleTenantError(error);
     }
 }
 
 // POST: Créer une nouvelle série de documents
 export async function POST(req: NextRequest) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.email) {
-            return NextResponse.json(
-                { message: "Non autorisé" },
-                { status: 401 }
-            );
-        }
+        const { entrepriseId } = await requireTenantAuth();
 
         const body = await req.json();
 
@@ -111,24 +81,11 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Get user to find entreprise
-        const user = await prisma.user.findUnique({
-            where: { email: session.user.email },
-            select: { entrepriseId: true },
-        });
-
-        if (!user) {
-            return NextResponse.json(
-                { message: "Utilisateur non trouvé" },
-                { status: 404 }
-            );
-        }
-
         // Vérifier que le code n'existe pas déjà
         const existingSerie = await prisma.serieDocument.findUnique({
             where: {
                 entrepriseId_code: {
-                    entrepriseId: user.entrepriseId,
+                    entrepriseId,
                     code: validation.data.code.toUpperCase(),
                 },
             },
@@ -145,7 +102,7 @@ export async function POST(req: NextRequest) {
         if (validation.data.est_defaut_devis) {
             await prisma.serieDocument.updateMany({
                 where: {
-                    entrepriseId: user.entrepriseId,
+                    entrepriseId,
                     est_defaut_devis: true,
                 },
                 data: {
@@ -156,7 +113,7 @@ export async function POST(req: NextRequest) {
         if (validation.data.est_defaut_factures) {
             await prisma.serieDocument.updateMany({
                 where: {
-                    entrepriseId: user.entrepriseId,
+                    entrepriseId,
                     est_defaut_factures: true,
                 },
                 data: {
@@ -167,7 +124,7 @@ export async function POST(req: NextRequest) {
         if (validation.data.est_defaut_avoirs) {
             await prisma.serieDocument.updateMany({
                 where: {
-                    entrepriseId: user.entrepriseId,
+                    entrepriseId,
                     est_defaut_avoirs: true,
                 },
                 data: {
@@ -181,7 +138,7 @@ export async function POST(req: NextRequest) {
             data: {
                 ...validation.data,
                 code: validation.data.code.toUpperCase(),
-                entrepriseId: user.entrepriseId,
+                entrepriseId,
             },
             include: {
                 _count: {
@@ -192,10 +149,6 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({ serie }, { status: 201 });
     } catch (error) {
-        console.error("Erreur lors de la création de la série:", error);
-        return NextResponse.json(
-            { message: "Erreur interne du serveur" },
-            { status: 500 }
-        );
+        return handleTenantError(error);
     }
 }
