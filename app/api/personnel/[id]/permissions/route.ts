@@ -4,31 +4,30 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { updateUserPermissions } from "@/lib/personnel/personnel.service";
+import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
+import { updateUserPermissions, userHasPermission } from "@/lib/personnel/personnel.service";
 
 export async function PATCH(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await auth();
+    const { userId } = await requireTenantAuth();
 
-    if (!session?.user?.entrepriseId) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+    // Vérifier que l'utilisateur a la permission canManageUsers
+    const hasPermission = await userHasPermission(userId, "canManageUsers");
+    if (!hasPermission) {
+      return NextResponse.json(
+        { error: "Vous n'avez pas la permission de gérer les utilisateurs" },
+        { status: 403 }
+      );
     }
 
-    // TODO: Vérifier que l'utilisateur a la permission canManageUsers
-
     const body = await req.json();
-    const permissions = await updateUserPermissions(params.id, body, session.user.id);
+    const permissions = await updateUserPermissions(params.id, body, userId);
 
     return NextResponse.json({ permissions });
-  } catch (error: any) {
-    console.error("[PATCH /api/personnel/:id/permissions] Error:", error);
-    return NextResponse.json(
-      { error: error.message || "Erreur serveur" },
-      { status: 500 }
-    );
+  } catch (error) {
+    return handleTenantError(error);
   }
 }

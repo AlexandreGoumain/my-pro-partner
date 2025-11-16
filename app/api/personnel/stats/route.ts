@@ -4,22 +4,17 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { getPersonnelStats } from "@/lib/personnel/personnel.service";
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await auth();
+    const { entrepriseId } = await requireTenantAuth();
 
-    if (!session?.user?.entrepriseId) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
-    }
-
-    const stats = await getPersonnelStats(session.user.entrepriseId);
+    const stats = await getPersonnelStats(entrepriseId);
 
     return NextResponse.json({ stats });
   } catch (error: any) {
-    console.error("[GET /api/personnel/stats] Error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return handleTenantError(error);
   }
 }

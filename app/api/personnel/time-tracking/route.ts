@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import {
   clockIn,
   clockOut,
@@ -16,14 +16,10 @@ import {
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await auth();
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
-    }
+    const { userId } = await requireTenantAuth();
 
     const { searchParams } = new URL(req.url);
-    const userId = searchParams.get("userId") || session.user.id;
+    const targetUserId = searchParams.get("userId") || userId;
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
 
@@ -35,37 +31,32 @@ export async function GET(req: NextRequest) {
     }
 
     const entries = await getTimeEntries(
-      userId,
+      targetUserId,
       new Date(startDate),
       new Date(endDate)
     );
 
     return NextResponse.json({ entries });
-  } catch (error: any) {
-    console.error("[GET /api/personnel/time-tracking] Error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    return handleTenantError(error);
   }
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await auth();
-
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
-    }
+    const { userId } = await requireTenantAuth();
 
     const body = await req.json();
     const { action } = body;
 
     if (action === "clock-in") {
-      const entry = await clockIn(session.user.id, undefined, body.notes);
+      const entry = await clockIn(userId, undefined, body.notes);
       return NextResponse.json({ entry });
     }
 
     if (action === "clock-out") {
       const entry = await clockOut(
-        session.user.id,
+        userId,
         body.breakDuration || 0
       );
       return NextResponse.json({ entry });
@@ -80,7 +71,7 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      const entry = await createTimeEntry(body.userId || session.user.id, {
+      const entry = await createTimeEntry(body.userId || userId, {
         date: new Date(body.date),
         clockIn: new Date(body.clockIn),
         clockOut: new Date(body.clockOut),
@@ -96,8 +87,7 @@ export async function POST(req: NextRequest) {
       { error: "Action invalide. Utilisez 'clock-in', 'clock-out' ou 'manual-entry'" },
       { status: 400 }
     );
-  } catch (error: any) {
-    console.error("[POST /api/personnel/time-tracking] Error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    return handleTenantError(error);
   }
 }

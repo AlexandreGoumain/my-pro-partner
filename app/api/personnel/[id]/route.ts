@@ -7,12 +7,13 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import {
   getUserById,
   updateUser,
   deleteUser,
   toggleUserStatus,
+  userHasPermission,
 } from "@/lib/personnel/personnel.service";
 import { UserStatus } from "@prisma/client";
 
@@ -25,24 +26,13 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await auth();
+    const { entrepriseId } = await requireTenantAuth();
 
-    if (!session?.user?.entrepriseId) {
-      return NextResponse.json(
-        { error: "Non authentifié" },
-        { status: 401 }
-      );
-    }
-
-    const user = await getUserById(params.id, session.user.entrepriseId);
+    const user = await getUserById(params.id, entrepriseId);
 
     return NextResponse.json({ user });
   } catch (error: any) {
-    console.error("[GET /api/personnel/:id] Error:", error);
-    return NextResponse.json(
-      { error: error.message || "Erreur serveur" },
-      { status: 500 }
-    );
+    return handleTenantError(error);
   }
 }
 
@@ -55,17 +45,16 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await auth();
-
-    if (!session?.user?.entrepriseId) {
-      return NextResponse.json(
-        { error: "Non authentifié" },
-        { status: 401 }
-      );
-    }
+    const { entrepriseId, userId } = await requireTenantAuth();
 
     // Vérifier les permissions
-    // TODO: Ajouter vérification canManageUsers
+    const hasPermission = await userHasPermission(userId, "canManageUsers");
+    if (!hasPermission) {
+      return NextResponse.json(
+        { error: "Vous n'avez pas la permission de gérer les utilisateurs" },
+        { status: 403 }
+      );
+    }
 
     const body = await req.json();
 
@@ -73,9 +62,9 @@ export async function PATCH(
     if (body.status && Object.keys(body).length === 1) {
       const user = await toggleUserStatus(
         params.id,
-        session.user.entrepriseId,
+        entrepriseId,
         body.status as UserStatus,
-        session.user.id
+        userId
       );
       return NextResponse.json({ user });
     }
@@ -110,18 +99,14 @@ export async function PATCH(
 
     const user = await updateUser(
       params.id,
-      session.user.entrepriseId,
+      entrepriseId,
       updateData,
-      session.user.id
+      userId
     );
 
     return NextResponse.json({ user });
   } catch (error: any) {
-    console.error("[PATCH /api/personnel/:id] Error:", error);
-    return NextResponse.json(
-      { error: error.message || "Erreur lors de la mise à jour" },
-      { status: 500 }
-    );
+    return handleTenantError(error);
   }
 }
 
@@ -134,34 +119,29 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await auth();
+    const { entrepriseId, userId } = await requireTenantAuth();
 
-    if (!session?.user?.entrepriseId) {
+    // Vérifier les permissions
+    const hasPermission = await userHasPermission(userId, "canManageUsers");
+    if (!hasPermission) {
       return NextResponse.json(
-        { error: "Non authentifié" },
-        { status: 401 }
+        { error: "Vous n'avez pas la permission de gérer les utilisateurs" },
+        { status: 403 }
       );
     }
 
-    // Vérifier les permissions
-    // TODO: Ajouter vérification canManageUsers
-
     // Ne pas permettre de se supprimer soi-même
-    if (params.id === session.user.id) {
+    if (params.id === userId) {
       return NextResponse.json(
         { error: "Vous ne pouvez pas vous supprimer vous-même" },
         { status: 400 }
       );
     }
 
-    await deleteUser(params.id, session.user.entrepriseId, session.user.id);
+    await deleteUser(params.id, entrepriseId, userId);
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    console.error("[DELETE /api/personnel/:id] Error:", error);
-    return NextResponse.json(
-      { error: error.message || "Erreur lors de la suppression" },
-      { status: 500 }
-    );
+    return handleTenantError(error);
   }
 }

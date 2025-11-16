@@ -6,8 +6,8 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { createUser, getUsers, canAddUser } from "@/lib/personnel/personnel.service";
+import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
+import { createUser, getUsers, canAddUser, userHasPermission } from "@/lib/personnel/personnel.service";
 import { UserRole } from "@prisma/client";
 
 /**
@@ -16,24 +16,23 @@ import { UserRole } from "@prisma/client";
  */
 export async function GET(req: NextRequest) {
   try {
-    const session = await auth();
-
-    if (!session?.user?.entrepriseId) {
-      return NextResponse.json(
-        { error: "Non authentifié" },
-        { status: 401 }
-      );
-    }
+    const { entrepriseId, userId } = await requireTenantAuth();
 
     // Vérifier les permissions
-    // TODO: Ajouter vérification canViewUsers
+    const hasPermission = await userHasPermission(userId, "canViewUsers");
+    if (!hasPermission) {
+      return NextResponse.json(
+        { error: "Vous n'avez pas la permission de voir les utilisateurs" },
+        { status: 403 }
+      );
+    }
 
     const { searchParams } = new URL(req.url);
     const role = searchParams.get("role") as UserRole | null;
     const status = searchParams.get("status") as any;
     const search = searchParams.get("search") || undefined;
 
-    const users = await getUsers(session.user.entrepriseId, {
+    const users = await getUsers(entrepriseId, {
       role: role || undefined,
       status: status || undefined,
       search,
@@ -41,11 +40,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ users });
   } catch (error: any) {
-    console.error("[GET /api/personnel] Error:", error);
-    return NextResponse.json(
-      { error: error.message || "Erreur serveur" },
-      { status: 500 }
-    );
+    return handleTenantError(error);
   }
 }
 
@@ -55,20 +50,19 @@ export async function GET(req: NextRequest) {
  */
 export async function POST(req: NextRequest) {
   try {
-    const session = await auth();
+    const { entrepriseId, userId } = await requireTenantAuth();
 
-    if (!session?.user?.entrepriseId) {
+    // Vérifier les permissions
+    const hasPermission = await userHasPermission(userId, "canManageUsers");
+    if (!hasPermission) {
       return NextResponse.json(
-        { error: "Non authentifié" },
-        { status: 401 }
+        { error: "Vous n'avez pas la permission de gérer les utilisateurs" },
+        { status: 403 }
       );
     }
 
-    // Vérifier les permissions
-    // TODO: Ajouter vérification canManageUsers
-
     // Vérifier la limite du plan
-    const canAdd = await canAddUser(session.user.entrepriseId);
+    const canAdd = await canAddUser(entrepriseId);
     if (!canAdd) {
       return NextResponse.json(
         {
@@ -98,7 +92,7 @@ export async function POST(req: NextRequest) {
 
     // Créer l'utilisateur
     const user = await createUser(
-      session.user.entrepriseId,
+      entrepriseId,
       {
         email: body.email,
         name: body.name,
@@ -112,15 +106,11 @@ export async function POST(req: NextRequest) {
         salaireHoraire: body.salaireHoraire,
         sendInvitation: body.sendInvitation !== false, // true par défaut
       },
-      session.user.id
+      userId
     );
 
     return NextResponse.json({ user }, { status: 201 });
   } catch (error: any) {
-    console.error("[POST /api/personnel] Error:", error);
-    return NextResponse.json(
-      { error: error.message || "Erreur lors de la création de l'utilisateur" },
-      { status: 500 }
-    );
+    return handleTenantError(error);
   }
 }
