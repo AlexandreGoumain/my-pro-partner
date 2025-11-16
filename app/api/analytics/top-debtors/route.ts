@@ -1,29 +1,10 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth/next";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.email) {
-            return NextResponse.json(
-                { message: "Non autorisé" },
-                { status: 401 }
-            );
-        }
-
-        const user = await prisma.user.findUnique({
-            where: { email: session.user.email },
-            select: { entrepriseId: true },
-        });
-
-        if (!user) {
-            return NextResponse.json(
-                { message: "Utilisateur non trouvé" },
-                { status: 404 }
-            );
-        }
+        const { entrepriseId } = await requireTenantAuth();
 
         const searchParams = req.nextUrl.searchParams;
         const limit = parseInt(searchParams.get("limit") || "10");
@@ -31,7 +12,7 @@ export async function GET(req: NextRequest) {
         // Get all unpaid invoices with client details
         const unpaidInvoices = await prisma.document.findMany({
             where: {
-                entrepriseId: user.entrepriseId,
+                entrepriseId,
                 type: "FACTURE",
                 statut: {
                     notIn: ["PAYE", "ANNULE"],
@@ -63,7 +44,7 @@ export async function GET(req: NextRequest) {
         // Get all paid invoices for payment delay calculation
         const paidInvoices = await prisma.document.findMany({
             where: {
-                entrepriseId: user.entrepriseId,
+                entrepriseId,
                 type: "FACTURE",
                 statut: "PAYE",
             },
@@ -240,10 +221,6 @@ export async function GET(req: NextRequest) {
             },
         });
     } catch (error) {
-        console.error("Erreur lors de l'analyse des débiteurs:", error);
-        return NextResponse.json(
-            { message: "Erreur interne du serveur" },
-            { status: 500 }
-        );
+        return handleTenantError(error);
     }
 }

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { SubscriptionService } from "@/lib/services/subscription.service";
 import { z } from "zod";
 
@@ -14,10 +13,7 @@ const cancelSchema = z.object({
  */
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.entrepriseId) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
-    }
+    const { entrepriseId } = await requireTenantAuth();
 
     const body = await req.json();
     const validation = cancelSchema.safeParse(body);
@@ -30,7 +26,7 @@ export async function POST(req: NextRequest) {
     }
 
     await SubscriptionService.cancelSubscription(
-      session.user.entrepriseId,
+      entrepriseId,
       validation.data.reason
     );
 
@@ -39,11 +35,6 @@ export async function POST(req: NextRequest) {
       message: "Abonnement annulé avec succès. Il restera actif jusqu'à la fin de la période en cours.",
     });
   } catch (error: any) {
-    console.error("[SUBSCRIPTION_CANCEL_ERROR]", error);
-
-    return NextResponse.json(
-      { error: error.message || "Erreur lors de l'annulation de l'abonnement" },
-      { status: 500 }
-    );
+    return handleTenantError(error);
   }
 }

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { SubscriptionService } from "@/lib/services/subscription.service";
 import { z } from "zod";
 
@@ -16,10 +15,7 @@ const checkoutSchema = z.object({
 export async function POST(req: NextRequest) {
   try {
     // Vérifier l'authentification
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.entrepriseId) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
-    }
+    const { entrepriseId } = await requireTenantAuth();
 
     // Parser et valider le body
     const body = await req.json();
@@ -41,7 +37,7 @@ export async function POST(req: NextRequest) {
 
     // Créer la session Checkout
     const checkoutSession = await SubscriptionService.createCheckoutSession({
-      entrepriseId: session.user.entrepriseId,
+      entrepriseId,
       plan,
       interval,
       successUrl,
@@ -53,11 +49,6 @@ export async function POST(req: NextRequest) {
       url: checkoutSession.url,
     });
   } catch (error: any) {
-    console.error("[SUBSCRIPTION_CHECKOUT_ERROR]", error);
-
-    return NextResponse.json(
-      { error: error.message || "Erreur lors de la création de la session checkout" },
-      { status: 500 }
-    );
+    return handleTenantError(error);
   }
 }

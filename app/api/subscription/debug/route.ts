@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { prisma } from "@/lib/prisma";
 import Stripe from "stripe";
 
@@ -14,12 +13,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
  */
 export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.entrepriseId) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
-    }
-
-    const entrepriseId = session.user.entrepriseId;
+    const { entrepriseId } = await requireTenantAuth();
 
     // 1. Récupérer l'entreprise et son abonnement dans la DB
     const entreprise = await prisma.entreprise.findUnique({
@@ -94,12 +88,7 @@ export async function GET(req: NextRequest) {
       recommendations: getRecommendations(entreprise, stripeData),
     });
   } catch (error: any) {
-    console.error("[SUBSCRIPTION_DEBUG_ERROR]", error);
-
-    return NextResponse.json(
-      { error: error.message || "Erreur lors du debug" },
-      { status: 500 }
-    );
+    return handleTenantError(error);
   }
 }
 

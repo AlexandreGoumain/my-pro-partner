@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -11,12 +10,7 @@ import { prisma } from "@/lib/prisma";
  */
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.entrepriseId) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
-    }
-
-    const entrepriseId = session.user.entrepriseId;
+    const { entrepriseId } = await requireTenantAuth();
 
     // 1. Supprimer toutes les subscriptions dans la DB
     await prisma.subscription.deleteMany({
@@ -45,11 +39,6 @@ export async function POST(req: NextRequest) {
       ],
     });
   } catch (error: any) {
-    console.error("[RESET_SUBSCRIPTION_ERROR]", error);
-
-    return NextResponse.json(
-      { error: error.message || "Erreur lors du reset" },
-      { status: 500 }
-    );
+    return handleTenantError(error);
   }
 }

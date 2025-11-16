@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { SubscriptionService } from "@/lib/services/subscription.service";
 import { z } from "zod";
 
@@ -16,10 +15,7 @@ const changePlanSchema = z.object({
  */
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.entrepriseId) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
-    }
+    const { entrepriseId } = await requireTenantAuth();
 
     const body = await req.json();
     const validation = changePlanSchema.safeParse(body);
@@ -34,7 +30,7 @@ export async function POST(req: NextRequest) {
     const { plan, interval, prorate } = validation.data;
 
     await SubscriptionService.changePlan({
-      entrepriseId: session.user.entrepriseId,
+      entrepriseId,
       newPlan: plan,
       newInterval: interval,
       prorate,
@@ -45,11 +41,6 @@ export async function POST(req: NextRequest) {
       message: "Plan modifié avec succès",
     });
   } catch (error: any) {
-    console.error("[SUBSCRIPTION_CHANGE_PLAN_ERROR]", error);
-
-    return NextResponse.json(
-      { error: error.message || "Erreur lors du changement de plan" },
-      { status: 500 }
-    );
+    return handleTenantError(error);
   }
 }

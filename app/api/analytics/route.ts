@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { prisma } from "@/lib/prisma";
 
 /**
@@ -9,10 +8,7 @@ import { prisma } from "@/lib/prisma";
  */
 export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.entrepriseId) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
-    }
+    const { entrepriseId } = await requireTenantAuth();
 
     const searchParams = req.nextUrl.searchParams;
     const period = searchParams.get("period") || "30d";
@@ -47,7 +43,7 @@ export async function GET(req: NextRequest) {
     // Récupérer les documents de la période
     const documents = await prisma.document.findMany({
       where: {
-        entrepriseId: session.user.entrepriseId,
+        entrepriseId,
         type: "FACTURE",
         statut: "PAYE",
         dateEmission: {
@@ -68,7 +64,7 @@ export async function GET(req: NextRequest) {
     // Récupérer les documents de la période précédente (pour comparaison)
     const previousDocuments = await prisma.document.findMany({
       where: {
-        entrepriseId: session.user.entrepriseId,
+        entrepriseId,
         type: "FACTURE",
         statut: "PAYE",
         dateEmission: {
@@ -223,10 +219,6 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ data });
   } catch (error: any) {
-    console.error("[ANALYTICS_ERROR]", error);
-    return NextResponse.json(
-      { error: error.message || "Erreur lors de la récupération des analytics" },
-      { status: 500 }
-    );
+    return handleTenantError(error);
   }
 }

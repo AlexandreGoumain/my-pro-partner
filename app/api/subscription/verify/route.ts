@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe/stripe-config";
 import { SubscriptionService } from "@/lib/services/subscription.service";
@@ -13,14 +12,7 @@ import { SubscriptionService } from "@/lib/services/subscription.service";
  */
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.entrepriseId) {
-      return NextResponse.json(
-        { error: "Non authentifié" },
-        { status: 401 }
-      );
-    }
+    const { entrepriseId } = await requireTenantAuth();
 
     const { stripeSessionId } = await req.json();
 
@@ -44,7 +36,7 @@ export async function POST(req: Request) {
     } else {
       // Si pas de session_id, chercher l'abonnement en DB
       const dbSub = await prisma.subscription.findUnique({
-        where: { entrepriseId: session.user.entrepriseId },
+        where: { entrepriseId },
       });
 
       if (!dbSub?.stripeSubscriptionId) {
@@ -79,7 +71,7 @@ export async function POST(req: Request) {
       } else {
         await SubscriptionService.createSubscriptionFromStripe(
           stripeSubscription,
-          session.user.entrepriseId
+          entrepriseId
         );
       }
 
@@ -104,13 +96,7 @@ export async function POST(req: Request) {
     });
 
   } catch (error: any) {
-    return NextResponse.json(
-      {
-        status: "error",
-        error: error.message || "Erreur lors de la vérification"
-      },
-      { status: 500 }
-    );
+    return handleTenantError(error);
   }
 }
 

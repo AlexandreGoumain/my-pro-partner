@@ -1,29 +1,10 @@
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth/next";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.email) {
-            return NextResponse.json(
-                { message: "Non autorisé" },
-                { status: 401 }
-            );
-        }
-
-        const user = await prisma.user.findUnique({
-            where: { email: session.user.email },
-            select: { entrepriseId: true },
-        });
-
-        if (!user) {
-            return NextResponse.json(
-                { message: "Utilisateur non trouvé" },
-                { status: 404 }
-            );
-        }
+        const { entrepriseId } = await requireTenantAuth();
 
         // Get query parameters for filtering and sorting
         const searchParams = req.nextUrl.searchParams;
@@ -35,7 +16,7 @@ export async function GET(req: NextRequest) {
 
         // Build where clause
         const where: any = {
-            entrepriseId: user.entrepriseId,
+            entrepriseId,
             type: "FACTURE",
             statut: {
                 notIn: ["PAYE", "ANNULE"],
@@ -150,10 +131,6 @@ export async function GET(req: NextRequest) {
             },
         });
     } catch (error) {
-        console.error("Erreur lors de la récupération des factures impayées:", error);
-        return NextResponse.json(
-            { message: "Erreur interne du serveur" },
-            { status: 500 }
-        );
+        return handleTenantError(error);
     }
 }
