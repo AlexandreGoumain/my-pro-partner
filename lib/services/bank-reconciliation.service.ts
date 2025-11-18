@@ -16,7 +16,7 @@ export class BankReconciliationService {
         delimiter: ";", // Format français courant
       });
 
-      return records.map((record: any) => ({
+      return records.map((record: Record<string, string>) => ({
         date: this.parseDate(record.Date || record.date),
         libelle: record.Libellé || record.libelle || record.description || "",
         montant: this.parseMontant(record.Montant || record.montant || record.amount),
@@ -135,7 +135,7 @@ export class BankReconciliationService {
    */
   private static async findMatch(
     entrepriseId: string,
-    transaction: any
+    transaction: { id: string; montant: number; date: Date; libelle: string }
   ) {
     const montant = Number(transaction.montant);
     const date = transaction.date;

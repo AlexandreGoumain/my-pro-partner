@@ -13,8 +13,9 @@ export async function createDocument(
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
+  const paramsObj = params as Record<string, unknown>;
   const response = await api.post('/api/documents', params);
-  return handleApiResponse(response, `${params.type} créé avec succès`);
+  return handleApiResponse(response, `${paramsObj.type} créé avec succès`);
 }
 
 /**
@@ -25,11 +26,12 @@ export async function searchDocuments(
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
+  const paramsObj = params as Record<string, unknown>;
   const queryParams = buildQueryParams({
-    type: params.type,
-    statut: params.statut,
-    clientId: params.clientId,
-    limit: params.limit,
+    type: paramsObj.type,
+    statut: paramsObj.statut,
+    clientId: paramsObj.clientId,
+    limit: paramsObj.limit,
   });
 
   const response = await api.get(`/api/documents?${queryParams.toString()}`);
@@ -55,7 +57,8 @@ export async function getDocumentDetails(
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
-  const response = await api.get(`/api/documents/${params.documentId}`);
+  const paramsObj = params as Record<string, unknown>;
+  const response = await api.get(`/api/documents/${paramsObj.documentId as string}`);
   return handleApiResponse(response, 'Détails du document récupérés');
 }
 
@@ -67,8 +70,9 @@ export async function updateDocumentStatus(
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
-  const response = await api.patch(`/api/documents/${params.documentId}`, {
-    statut: params.statut,
+  const paramsObj = params as Record<string, unknown>;
+  const response = await api.patch(`/api/documents/${paramsObj.documentId as string}`, {
+    statut: paramsObj.statut,
   });
   return handleApiResponse(response, 'Statut mis à jour');
 }
@@ -81,7 +85,8 @@ export async function deleteDocument(
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
-  const response = await api.delete(`/api/documents/${params.documentId}`);
+  const paramsObj = params as Record<string, unknown>;
+  const response = await api.delete(`/api/documents/${paramsObj.documentId as string}`);
   return handleApiResponse(response, 'Document supprimé');
 }
 
@@ -93,7 +98,8 @@ export async function convertQuoteToInvoice(
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
-  const response = await api.post(`/api/documents/${params.devisId}/convert`, {});
+  const paramsObj = params as Record<string, unknown>;
+  const response = await api.post(`/api/documents/${paramsObj.devisId as string}/convert`, {});
   return handleApiResponse(response, 'Devis converti en facture');
 }
 
@@ -105,7 +111,8 @@ export async function duplicateDocument(
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
-  const response = await api.post(`/api/documents/${params.documentId}/duplicate`, {});
+  const paramsObj = params as Record<string, unknown>;
+  const response = await api.post(`/api/documents/${paramsObj.documentId as string}/duplicate`, {});
   return handleApiResponse(response, 'Document dupliqué');
 }
 
@@ -117,11 +124,12 @@ export async function addPayment(
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
-  const response = await api.post(`/api/documents/${params.documentId}/paiements`, {
-    montant: params.montant,
-    date: params.date,
-    methode: params.methode,
-    reference: params.reference,
+  const paramsObj = params as Record<string, unknown>;
+  const response = await api.post(`/api/documents/${paramsObj.documentId as string}/paiements`, {
+    montant: paramsObj.montant,
+    date: paramsObj.date,
+    methode: paramsObj.methode,
+    reference: paramsObj.reference,
   });
   return handleApiResponse(response, 'Paiement enregistré');
 }

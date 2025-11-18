@@ -136,7 +136,7 @@ export async function getCurrentUsage(entrepriseId: string, limitKey: keyof Plan
             return await prisma.document.count({
                 where: {
                     entrepriseId,
-                    dateCreation: {
+                    createdAt: {
                         gte: startOfMonth,
                         lte: endOfMonth,
                     },
@@ -155,7 +155,7 @@ export async function getCurrentUsage(entrepriseId: string, limitKey: keyof Plan
                     conversation: {
                         entrepriseId,
                     },
-                    role: "user", // Only count user questions, not assistant responses
+                    role: "USER", // Only count user questions, not assistant responses
                     createdAt: {
                         gte: startOfMonth,
                         lte: endOfMonth,

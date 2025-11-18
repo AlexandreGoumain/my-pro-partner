@@ -18,7 +18,7 @@ export class SyncManager {
         resolve(this.db);
       };
 
-      request.onupgradeneeded = (event: any) => {
+      request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
         const db = event.target.result;
 
         // Store pour les ventes en attente
@@ -49,7 +49,7 @@ export class SyncManager {
   /**
    * Ajouter une vente à la queue de synchronisation
    */
-  async queueSale(saleData: any) {
+  async queueSale(saleData: Record<string, unknown>) {
     if (!this.db) await this.init();
 
     return new Promise((resolve, reject) => {
@@ -70,7 +70,7 @@ export class SyncManager {
   /**
    * Ajouter un mouvement de stock à la queue
    */
-  async queueStockMovement(movementData: any) {
+  async queueStockMovement(movementData: Record<string, unknown>) {
     if (!this.db) await this.init();
 
     return new Promise((resolve, reject) => {
@@ -176,7 +176,7 @@ export class SyncManager {
   }
 
   // Helper methods
-  private getAllFromStore(store: IDBObjectStore): Promise<any[]> {
+  private getAllFromStore(store: IDBObjectStore): Promise<unknown[]> {
     return new Promise((resolve, reject) => {
       const request = store.getAll();
       request.onsuccess = () => resolve(request.result);
@@ -240,7 +240,7 @@ export class SyncManager {
   /**
    * Mettre en cache les produits pour usage offline
    */
-  async cacheProducts(products: any[]) {
+  async cacheProducts(products: unknown[]) {
     if (!this.db) await this.init();
 
     const tx = this.db!.transaction('products_cache', 'readwrite');

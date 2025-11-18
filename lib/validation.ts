@@ -361,14 +361,14 @@ export const champPersonnaliseBaseSchema = z.object({
         .string()
         .max(200, "Le placeholder ne peut pas dépasser 200 caractères")
         .optional()
-        .nullable()
-        .or(z.literal("")),
+        .or(z.literal(""))
+        .transform((val) => (val === "" ? undefined : val)),
     description: z
         .string()
         .max(500, "La description ne peut pas dépasser 500 caractères")
         .optional()
-        .nullable()
-        .or(z.literal("")),
+        .or(z.literal(""))
+        .transform((val) => (val === "" ? undefined : val)),
     options: z.array(z.string()).optional().nullable(),
     validation: validationRulesSchema,
 });
@@ -485,3 +485,324 @@ export const mouvementPointsBaseSchema = z.object({
 export const mouvementPointsCreateSchema = mouvementPointsBaseSchema;
 
 export type MouvementPointsCreateInput = z.infer<typeof mouvementPointsCreateSchema>;
+
+// ==========================================
+// STORES - Magasins Multi-stores
+// ==========================================
+
+export const storeBaseSchema = z.object({
+    nom: z
+        .string()
+        .min(1, "Le nom du magasin est requis")
+        .max(100, "Le nom ne peut pas dépasser 100 caractères"),
+    code: z
+        .string()
+        .min(1, "Le code du magasin est requis")
+        .max(20, "Le code ne peut pas dépasser 20 caractères")
+        .regex(/^[A-Z0-9]+$/, "Le code doit contenir uniquement des lettres majuscules et des chiffres"),
+
+    // Localisation
+    adresse: z
+        .string()
+        .max(200, "L'adresse ne peut pas dépasser 200 caractères")
+        .optional()
+        .or(z.literal("")),
+    codePostal: z
+        .string()
+        .max(10, "Le code postal ne peut pas dépasser 10 caractères")
+        .optional()
+        .or(z.literal("")),
+    ville: z
+        .string()
+        .max(100, "La ville ne peut pas dépasser 100 caractères")
+        .optional()
+        .or(z.literal("")),
+    pays: z
+        .string()
+        .max(100, "Le pays ne peut pas dépasser 100 caractères")
+        .default("France"),
+    latitude: z
+        .number()
+        .min(-90, "La latitude doit être entre -90 et 90")
+        .max(90, "La latitude doit être entre -90 et 90")
+        .optional(),
+    longitude: z
+        .number()
+        .min(-180, "La longitude doit être entre -180 et 180")
+        .max(180, "La longitude doit être entre -180 et 180")
+        .optional(),
+
+    // Contact
+    telephone: z
+        .string()
+        .max(20, "Le téléphone ne peut pas dépasser 20 caractères")
+        .optional()
+        .or(z.literal("")),
+    email: z
+        .string()
+        .email("Email invalide")
+        .optional()
+        .or(z.literal("")),
+
+    // Configuration
+    isMainStore: z.boolean().default(false),
+    status: z.enum(["ACTIVE", "INACTIVE", "MAINTENANCE"]).default("ACTIVE"),
+    timezone: z.string().default("Europe/Paris"),
+
+    // Horaires d'ouverture (JSON)
+    openingHours: z.unknown().optional(),
+});
+
+// Schema pour la création de magasin
+export const storeCreateSchema = storeBaseSchema;
+
+// Schema pour la mise à jour (tous les champs optionnels)
+export const storeUpdateSchema = storeBaseSchema.partial();
+
+export type StoreCreateInput = z.infer<typeof storeCreateSchema>;
+export type StoreUpdateInput = z.infer<typeof storeUpdateSchema>;
+
+// ==========================================
+// TERMINALS - Terminaux de paiement
+// ==========================================
+
+export const terminalBaseSchema = z.object({
+    stripeTerminalId: z
+        .string()
+        .min(1, "L'ID Stripe Terminal est requis"),
+    label: z
+        .string()
+        .min(1, "Le nom du terminal est requis")
+        .max(100, "Le nom ne peut pas dépasser 100 caractères"),
+    location: z
+        .string()
+        .max(200, "L'emplacement ne peut pas dépasser 200 caractères")
+        .optional()
+        .or(z.literal("")),
+    status: z.enum(["ONLINE", "OFFLINE", "MAINTENANCE"]).default("OFFLINE"),
+    device_type: z
+        .string()
+        .max(50, "Le type d'appareil ne peut pas dépasser 50 caractères")
+        .optional()
+        .or(z.literal("")),
+    serial_number: z
+        .string()
+        .max(100, "Le numéro de série ne peut pas dépasser 100 caractères")
+        .optional()
+        .or(z.literal("")),
+    ip_address: z
+        .string()
+        .max(50, "L'adresse IP ne peut pas dépasser 50 caractères")
+        .optional()
+        .or(z.literal("")),
+});
+
+export const terminalCreateSchema = terminalBaseSchema;
+export const terminalUpdateSchema = terminalBaseSchema.partial();
+
+export type TerminalCreateInput = z.infer<typeof terminalCreateSchema>;
+export type TerminalUpdateInput = z.infer<typeof terminalUpdateSchema>;
+
+// ==========================================
+// PAYMENT LINKS - Liens de paiement
+// ==========================================
+
+export const paymentLinkBaseSchema = z.object({
+    slug: z
+        .string()
+        .min(1, "Le slug est requis")
+        .max(100, "Le slug ne peut pas dépasser 100 caractères")
+        .regex(/^[a-z0-9-]+$/, "Le slug doit contenir uniquement des lettres minuscules, chiffres et tirets"),
+    titre: z
+        .string()
+        .min(1, "Le titre est requis")
+        .max(200, "Le titre ne peut pas dépasser 200 caractères"),
+    description: z
+        .string()
+        .max(1000, "La description ne peut pas dépasser 1000 caractères")
+        .optional()
+        .or(z.literal("")),
+    montant: z
+        .number({
+            required_error: "Le montant est requis",
+            invalid_type_error: "Le montant doit être un nombre",
+        })
+        .positive("Le montant doit être positif")
+        .max(999999.99, "Le montant est trop élevé"),
+    devise: z.string().default("EUR"),
+    quantiteMax: z
+        .number()
+        .int("La quantité maximum doit être un nombre entier")
+        .positive("La quantité maximum doit être positive")
+        .optional(),
+    dateExpiration: z
+        .string()
+        .optional()
+        .or(z.literal("")),
+    actif: z.boolean().default(true),
+    imageCouverture: z
+        .string()
+        .url("L'URL de l'image doit être valide")
+        .optional()
+        .or(z.literal("")),
+    messageSucces: z
+        .string()
+        .max(500, "Le message de succès ne peut pas dépasser 500 caractères")
+        .optional()
+        .or(z.literal("")),
+    metadata: z.unknown().optional(),
+});
+
+export const paymentLinkCreateSchema = paymentLinkBaseSchema;
+export const paymentLinkUpdateSchema = paymentLinkBaseSchema.partial();
+
+export type PaymentLinkCreateInput = z.infer<typeof paymentLinkCreateSchema>;
+export type PaymentLinkUpdateInput = z.infer<typeof paymentLinkUpdateSchema>;
+
+// ==========================================
+// PERSONNEL / USERS - Gestion des employés
+// ==========================================
+
+export const userBaseSchema = z.object({
+    email: z
+        .string()
+        .email("Email invalide")
+        .min(1, "L'email est requis"),
+    name: z
+        .string()
+        .max(100, "Le nom ne peut pas dépasser 100 caractères")
+        .optional()
+        .or(z.literal("")),
+    prenom: z
+        .string()
+        .max(100, "Le prénom ne peut pas dépasser 100 caractères")
+        .optional()
+        .or(z.literal("")),
+    role: z.enum(["OWNER", "ADMIN", "MANAGER", "EMPLOYEE", "ACCOUNTANT"], {
+        required_error: "Le rôle est requis",
+    }),
+    password: z
+        .string()
+        .min(8, "Le mot de passe doit contenir au moins 8 caractères")
+        .optional(),
+    telephone: z
+        .string()
+        .max(20, "Le téléphone ne peut pas dépasser 20 caractères")
+        .optional()
+        .or(z.literal("")),
+    dateNaissance: z
+        .string()
+        .optional()
+        .or(z.literal("")),
+    adresse: z
+        .string()
+        .max(200, "L'adresse ne peut pas dépasser 200 caractères")
+        .optional()
+        .or(z.literal("")),
+    codePostal: z
+        .string()
+        .max(10, "Le code postal ne peut pas dépasser 10 caractères")
+        .optional()
+        .or(z.literal("")),
+    ville: z
+        .string()
+        .max(100, "La ville ne peut pas dépasser 100 caractères")
+        .optional()
+        .or(z.literal("")),
+    photoUrl: z
+        .string()
+        .url("L'URL de la photo doit être valide")
+        .optional()
+        .or(z.literal("")),
+    poste: z
+        .string()
+        .max(100, "Le poste ne peut pas dépasser 100 caractères")
+        .optional()
+        .or(z.literal("")),
+    departement: z
+        .string()
+        .max(100, "Le département ne peut pas dépasser 100 caractères")
+        .optional()
+        .or(z.literal("")),
+    dateEmbauche: z
+        .string()
+        .optional()
+        .or(z.literal("")),
+    dateFinContrat: z
+        .string()
+        .optional()
+        .or(z.literal("")),
+    salaireHoraire: z
+        .number()
+        .positive("Le salaire horaire doit être positif")
+        .max(999.99, "Le salaire horaire est trop élevé")
+        .optional(),
+    numeroSecu: z
+        .string()
+        .max(50, "Le numéro de sécurité sociale ne peut pas dépasser 50 caractères")
+        .optional()
+        .or(z.literal("")),
+    iban: z
+        .string()
+        .max(34, "L'IBAN ne peut pas dépasser 34 caractères")
+        .optional()
+        .or(z.literal("")),
+    sendInvitation: z.boolean().default(true),
+});
+
+export const userCreateSchema = userBaseSchema.extend({
+    role: z.enum(["OWNER", "ADMIN", "MANAGER", "EMPLOYEE", "ACCOUNTANT"], {
+        required_error: "Le rôle est requis",
+    }),
+});
+
+export const userUpdateSchema = userBaseSchema.partial().extend({
+    status: z.enum(["INVITED", "ACTIVE", "INACTIVE", "SUSPENDED"]).optional(),
+});
+
+export type UserCreateInput = z.infer<typeof userCreateSchema>;
+export type UserUpdateInput = z.infer<typeof userUpdateSchema>;
+
+// ==========================================
+// AUTOMATIONS - Automatisations marketing
+// ==========================================
+
+export const automationBaseSchema = z.object({
+    nom: z
+        .string()
+        .min(1, "Le nom est requis")
+        .max(200, "Le nom ne peut pas dépasser 200 caractères"),
+    description: z
+        .string()
+        .max(1000, "La description ne peut pas dépasser 1000 caractères")
+        .optional()
+        .or(z.literal("")),
+    triggerType: z.enum([
+        "NEW_CLIENT_IN_SEGMENT",
+        "CLIENT_MILESTONE",
+        "SEGMENT_CHANGE",
+        "INACTIVITY",
+        "SCHEDULED",
+    ], {
+        required_error: "Le type de déclencheur est requis",
+    }),
+    triggerConfig: z.record(z.unknown()).default({}),
+    actionType: z.enum([
+        "SEND_EMAIL",
+        "ADD_TO_SEGMENT",
+        "REMOVE_FROM_SEGMENT",
+        "ADD_POINTS",
+        "SEND_SMS",
+        "CREATE_TASK",
+    ], {
+        required_error: "Le type d'action est requis",
+    }),
+    actionConfig: z.record(z.unknown()).default({}),
+    actif: z.boolean().default(true),
+});
+
+export const automationCreateSchema = automationBaseSchema;
+export const automationUpdateSchema = automationBaseSchema.partial();
+
+export type AutomationCreateInput = z.infer<typeof automationCreateSchema>;
+export type AutomationUpdateInput = z.infer<typeof automationUpdateSchema>;

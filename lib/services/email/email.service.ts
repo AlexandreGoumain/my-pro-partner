@@ -47,12 +47,16 @@ export class EmailService {
                 console.log("To:", options.to);
                 console.log("Subject:", options.subject);
                 console.log("Text:", options.text || "No text version");
-                console.log("HTML preview:", options.html.substring(0, 200) + "...");
+                console.log(
+                    "HTML preview:",
+                    options.html.substring(0, 200) + "..."
+                );
                 console.log("=========================================\n");
                 return true;
             }
 
-            const fromEmail = process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
+            const fromEmail =
+                process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
             const fromName = process.env.RESEND_FROM_NAME || "ERP Artisan";
 
             await client.emails.send({
@@ -78,11 +82,7 @@ export class EmailService {
     ): Promise<boolean> {
         const resetLink = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/client/reset-password?token=${resetToken}`;
 
-        const html = this.getPasswordResetTemplate(
-            clientName,
-            resetLink,
-            resetToken
-        );
+        const html = this.getPasswordResetTemplate(clientName, resetLink);
         const text = `
 Bonjour ${clientName},
 
@@ -150,8 +150,7 @@ L'équipe
     // Email templates with Apple-inspired design
     private static getPasswordResetTemplate(
         clientName: string,
-        resetLink: string,
-        resetToken: string
+        resetLink: string
     ): string {
         return `
 <!DOCTYPE html>

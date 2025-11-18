@@ -1,12 +1,13 @@
-import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@/lib/generated/prisma";
 import { NotificationType } from "@/lib/generated/prisma";
+import { prisma } from "@/lib/prisma";
 
 interface CreateNotificationOptions {
     clientId: string;
     type: NotificationType;
     titre: string;
     message?: string;
-    metadata?: Record<string, any>;
+    metadata?: Prisma.InputJsonValue;
 }
 
 export class NotificationService {
@@ -106,7 +107,12 @@ export class NotificationService {
         documentNumber: string,
         documentId: string
     ) {
-        const typeLabel = documentType === "FACTURE" ? "facture" : documentType === "DEVIS" ? "devis" : "avoir";
+        const typeLabel =
+            documentType === "FACTURE"
+                ? "facture"
+                : documentType === "DEVIS"
+                  ? "devis"
+                  : "avoir";
 
         return this.createNotification({
             clientId,

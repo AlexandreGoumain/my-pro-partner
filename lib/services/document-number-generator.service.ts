@@ -1,3 +1,4 @@
+import type { SerieDocument } from "@/lib/generated/prisma";
 import { prisma } from "@/lib/prisma";
 import { generateNumeroDocument } from "@/lib/types/settings";
 
@@ -18,7 +19,10 @@ export class DocumentNumberGeneratorService {
         documentType: "FACTURE" | "DEVIS" | "AVOIR"
     ): Promise<{ numero: string; serieId: string | null }> {
         // Try to find default serie for this document type
-        const defaultSerie = await this.findDefaultSerie(entrepriseId, documentType);
+        const defaultSerie = await this.findDefaultSerie(
+            entrepriseId,
+            documentType
+        );
 
         if (defaultSerie) {
             return this.generateWithSerie(defaultSerie, documentType);
@@ -54,7 +58,7 @@ export class DocumentNumberGeneratorService {
      * Generate number using serie system
      */
     private static async generateWithSerie(
-        serie: any,
+        serie: SerieDocument,
         documentType: "FACTURE" | "DEVIS" | "AVOIR"
     ): Promise<{ numero: string; serieId: string }> {
         // Check if counter needs to be reset
@@ -89,7 +93,10 @@ export class DocumentNumberGeneratorService {
     /**
      * Check if serie counter should be reset
      */
-    private static shouldResetCounter(serie: any, now: Date): boolean {
+    private static shouldResetCounter(
+        serie: SerieDocument,
+        now: Date
+    ): boolean {
         if (!serie.derniere_reset && serie.reset_compteur !== "AUCUN") {
             return true;
         }
@@ -151,8 +158,14 @@ export class DocumentNumberGeneratorService {
         };
 
         const fields = fieldMap[documentType];
-        const prefixe = (parametres as any)[fields.prefix] || "DOC";
-        const prochainNumero = (parametres as any)[fields.counter] || 1;
+
+        // Get prefix and counter with proper typing
+        type ParametresKey = keyof typeof parametres;
+        const prefixe =
+            (parametres[fields.prefix as ParametresKey] as string | null) ||
+            "DOC";
+        const prochainNumero =
+            (parametres[fields.counter as ParametresKey] as number | null) || 1;
         const numero = `${prefixe}${prochainNumero.toString().padStart(5, "0")}`;
 
         // Update prochain numero

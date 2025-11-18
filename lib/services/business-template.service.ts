@@ -46,7 +46,7 @@ export interface BusinessTemplate {
   }[];
   niveauxFidelite?: {
     nom: string;
-    seuil: number;
+    pointsSeuil: number;
     remise: number;
     couleur: string;
     icone: string;
@@ -55,7 +55,7 @@ export interface BusinessTemplate {
   seriesDocuments?: {
     type: "DEVIS" | "FACTURE" | "AVOIR";
     nom: string;
-    prefixe: string;
+    prefix: string;
     format: string;
   }[];
   termsAndConditions?: string;
@@ -130,7 +130,7 @@ export class BusinessTemplateService {
       niveauxFidelite: [
         {
           nom: "Client",
-          seuil: 0,
+          pointsSeuil: 0,
           remise: 0,
           couleur: "#6B7280",
           icone: "User",
@@ -138,7 +138,7 @@ export class BusinessTemplateService {
         },
         {
           nom: "Fidèle",
-          seuil: 500,
+          pointsSeuil: 500,
           remise: 5,
           couleur: "#3B82F6",
           icone: "Star",
@@ -146,7 +146,7 @@ export class BusinessTemplateService {
         },
         {
           nom: "VIP",
-          seuil: 2000,
+          pointsSeuil: 2000,
           remise: 10,
           couleur: "#F59E0B",
           icone: "Crown",
@@ -287,7 +287,7 @@ export class BusinessTemplateService {
       niveauxFidelite: [
         {
           nom: "Découverte",
-          seuil: 0,
+          pointsSeuil: 0,
           remise: 0,
           couleur: "#6B7280",
           icone: "User",
@@ -295,7 +295,7 @@ export class BusinessTemplateService {
         },
         {
           nom: "Habitué",
-          seuil: 200,
+          pointsSeuil: 200,
           remise: 5,
           couleur: "#F59E0B",
           icone: "Star",
@@ -303,7 +303,7 @@ export class BusinessTemplateService {
         },
         {
           nom: "VIP",
-          seuil: 1000,
+          pointsSeuil: 1000,
           remise: 10,
           couleur: "#DC2626",
           icone: "Crown",
@@ -318,13 +318,13 @@ export class BusinessTemplateService {
         {
           type: "FACTURE",
           nom: "Tickets",
-          prefixe: "T",
+          prefix: "T",
           format: "T{YYYY}{MM}-{0000}",
         },
         {
           type: "FACTURE",
           nom: "Notes",
-          prefixe: "N",
+          prefix: "N",
           format: "N{YYYY}-{0000}",
         },
       ],
@@ -383,7 +383,7 @@ export class BusinessTemplateService {
       niveauxFidelite: [
         {
           nom: "Client",
-          seuil: 0,
+          pointsSeuil: 0,
           remise: 0,
           couleur: "#6B7280",
           icone: "User",
@@ -391,7 +391,7 @@ export class BusinessTemplateService {
         },
         {
           nom: "Fidèle",
-          seuil: 300,
+          pointsSeuil: 300,
           remise: 10,
           couleur: "#EC4899",
           icone: "Star",
@@ -399,7 +399,7 @@ export class BusinessTemplateService {
         },
         {
           nom: "VIP",
-          seuil: 1000,
+          pointsSeuil: 1000,
           remise: 15,
           couleur: "#8B5CF6",
           icone: "Crown",
@@ -908,7 +908,7 @@ export class BusinessTemplateService {
         await prisma.niveauFidelite.create({
           data: {
             nom: niveau.nom,
-            seuil: niveau.seuil,
+            pointsSeuil: niveau.seuil,
             remise_pourcent: niveau.remise,
             couleur: niveau.couleur,
             icone: niveau.icone,
@@ -925,7 +925,7 @@ export class BusinessTemplateService {
         await prisma.serieDocument.create({
           data: {
             nom: serie.nom,
-            prefixe: serie.prefixe,
+            prefix: serie.prefixe,
             type: serie.type,
             format: serie.format,
             prochain_numero: 1,

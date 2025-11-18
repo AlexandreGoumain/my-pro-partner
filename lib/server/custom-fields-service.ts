@@ -144,7 +144,7 @@ export async function exampleArticleCreate(data: {
             nom: data.nom,
             prix_ht: data.prix_ht,
             categorieId: data.categorieId,
-            champsCustom: validation.sanitizedValues, // JSON validé et nettoyé
+            champsCustom: validation.sanitizedValues as Record<string, string | number | boolean | null>,
             tva_taux: 20,
             type: "PRODUIT",
         },

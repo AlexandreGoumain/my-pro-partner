@@ -17,7 +17,7 @@ export type {
 } from "@/lib/generated/prisma";
 
 // Re-export enums
-export { DocumentType, DocumentStatut, MoyenPaiement, TypeSegment } from "@/lib/generated/prisma";
+export { DocumentType, DocumentStatut, MoyenPaiement } from "@/lib/generated/prisma";
 
 // Re-export client-safe segment types (for use in client components)
 export type {

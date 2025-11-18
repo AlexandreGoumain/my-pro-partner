@@ -3,7 +3,7 @@
  * This is the brain of the adaptive navigation system
  */
 
-import { BusinessType } from "@prisma/client";
+import { BusinessType } from "@/lib/services/business-template.service";
 import {
   Navigation,
   NavigationItem,
@@ -267,7 +267,7 @@ export class NavigationBuilder {
   /**
    * Get setting value for a feature
    */
-  static getFeatureSetting<T = any>(
+  static getFeatureSetting<T = unknown>(
     featureId: string,
     settingKey: string,
     businessType: BusinessType,

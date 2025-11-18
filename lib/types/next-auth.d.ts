@@ -4,6 +4,8 @@ declare module "next-auth" {
   interface User {
     role?: string;
     plan?: string;
+    entrepriseId?: string;
+    onboardingComplete?: boolean;
   }
 
   interface Session {
@@ -11,6 +13,8 @@ declare module "next-auth" {
       id: string;
       role: string;
       plan: string;
+      entrepriseId: string;
+      onboardingComplete: boolean;
     } & DefaultSession["user"];
   }
 }
@@ -20,5 +24,7 @@ declare module "next-auth/jwt" {
     id: string;
     role: string;
     plan: string;
+    entrepriseId?: string;
+    onboardingComplete?: boolean;
   }
 }

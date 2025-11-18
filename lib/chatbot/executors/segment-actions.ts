@@ -13,9 +13,10 @@ export async function searchSegments(
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
+  const paramsObj = params as Record<string, unknown>;
   const queryParams = buildQueryParams({
-    search: params.query,
-    type: params.type !== 'ALL' ? params.type : undefined,
+    search: paramsObj.query,
+    type: paramsObj.type !== 'ALL' ? paramsObj.type : undefined,
   });
 
   const response = await api.get(`/api/segments?${queryParams.toString()}`);
@@ -41,8 +42,9 @@ export async function createCampaign(
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
+  const paramsObj = params as Record<string, unknown>;
   const response = await api.post('/api/campaigns', params);
-  return handleApiResponse(response, `Campagne "${params.nom}" créée`);
+  return handleApiResponse(response, `Campagne "${paramsObj.nom}" créée`);
 }
 
 /**
@@ -53,12 +55,13 @@ export async function getSegmentClients(
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
+  const paramsObj = params as Record<string, unknown>;
   const queryParams = buildQueryParams({
-    limit: params.limit || 50,
+    limit: paramsObj.limit || 50,
   });
 
   const response = await api.get(
-    `/api/segments/${params.segmentId}/clients?${queryParams.toString()}`
+    `/api/segments/${paramsObj.segmentId as string}/clients?${queryParams.toString()}`
   );
   return handleApiResponse(response, 'Clients du segment récupérés');
 }
@@ -71,7 +74,8 @@ export async function analyzeSegment(
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
-  const response = await api.get(`/api/segments/${params.segmentId}/analytics`);
+  const paramsObj = params as Record<string, unknown>;
+  const response = await api.get(`/api/segments/${paramsObj.segmentId as string}/analytics`);
   return handleApiResponse(response, 'Analyse du segment récupérée');
 }
 
@@ -83,9 +87,10 @@ export async function compareSegments(
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
+  const paramsObj = params as Record<string, unknown>;
   const queryParams = buildQueryParams({
-    segmentId1: params.segmentId1,
-    segmentId2: params.segmentId2,
+    segmentId1: paramsObj.segmentId1,
+    segmentId2: paramsObj.segmentId2,
   });
 
   const response = await api.get(`/api/segments/compare?${queryParams.toString()}`);
@@ -100,7 +105,8 @@ export async function getCampaignDetails(
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
-  const response = await api.get(`/api/campaigns/${params.campaignId}`);
+  const paramsObj = params as Record<string, unknown>;
+  const response = await api.get(`/api/campaigns/${paramsObj.campaignId as string}`);
   return handleApiResponse(response, 'Détails de la campagne récupérés');
 }
 
@@ -112,8 +118,9 @@ export async function scheduleCampaign(
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
-  const response = await api.post(`/api/campaigns/${params.campaignId}/schedule`, {
-    scheduledDate: params.scheduledDate,
+  const paramsObj = params as Record<string, unknown>;
+  const response = await api.post(`/api/campaigns/${paramsObj.campaignId as string}/schedule`, {
+    scheduledDate: paramsObj.scheduledDate,
   });
   return handleApiResponse(response, 'Campagne programmée');
 }
@@ -126,7 +133,8 @@ export async function sendCampaignNow(
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
-  const response = await api.post(`/api/campaigns/${params.campaignId}/send`, {});
+  const paramsObj = params as Record<string, unknown>;
+  const response = await api.post(`/api/campaigns/${paramsObj.campaignId as string}/send`, {});
   return handleApiResponse(response, 'Campagne envoyée');
 }
 
@@ -138,6 +146,7 @@ export async function cancelCampaign(
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
-  const response = await api.post(`/api/campaigns/${params.campaignId}/cancel`, {});
+  const paramsObj = params as Record<string, unknown>;
+  const response = await api.post(`/api/campaigns/${paramsObj.campaignId as string}/cancel`, {});
   return handleApiResponse(response, 'Campagne annulée');
 }

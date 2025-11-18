@@ -4,7 +4,7 @@
  */
 
 import { LucideIcon } from "lucide-react";
-import { BusinessType } from "@prisma/client";
+import { BusinessType } from "@/lib/services/business-template.service";
 
 // ============================================
 // NAVIGATION TYPES
@@ -59,7 +59,7 @@ export interface Navigation {
   quickActions: QuickAction[];
 
   /** Business-specific settings */
-  settings: Record<string, any>;
+  settings: Record<string, unknown>;
 
   /** Dashboard widgets to display */
   dashboardWidgets?: string[];
@@ -122,7 +122,7 @@ export interface FeatureModule {
   };
 
   /** Feature-specific settings schema */
-  settings?: Record<string, any>;
+  settings?: Record<string, unknown>;
 }
 
 // ============================================
@@ -152,7 +152,7 @@ export interface BusinessPreset {
   i18n?: Record<string, Record<string, string>>;
 
   /** Feature-specific settings */
-  settings?: Record<string, any>;
+  settings?: Record<string, unknown>;
 
   /** Custom quick actions */
   quickActions?: {
@@ -178,7 +178,7 @@ export interface NavigationBuilderOptions {
   overrideFeatures?: string[];
 
   /** Override settings */
-  overrideSettings?: Record<string, any>;
+  overrideSettings?: Record<string, unknown>;
 
   /** Override i18n */
   overrideI18n?: Record<string, Record<string, string>>;

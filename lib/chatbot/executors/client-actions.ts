@@ -13,12 +13,13 @@ export async function searchClients(
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
+  const paramsObj = params as Record<string, unknown>;
   const queryParams = buildQueryParams({
-    query: params.query,
-    ville: params.ville,
-    minPoints: params.minPoints,
-    maxPoints: params.maxPoints,
-    limit: params.limit,
+    query: paramsObj.query,
+    ville: paramsObj.ville,
+    minPoints: paramsObj.minPoints,
+    maxPoints: paramsObj.maxPoints,
+    limit: paramsObj.limit,
   });
 
   const response = await api.get(`/api/clients?${queryParams.toString()}`);
@@ -44,7 +45,8 @@ export async function getClientDetails(
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
-  const response = await api.get(`/api/clients/${params.clientId}`);
+  const paramsObj = params as Record<string, unknown>;
+  const response = await api.get(`/api/clients/${paramsObj.clientId as string}`);
   return handleApiResponse(response, `Détails du client récupérés`);
 }
 
@@ -68,11 +70,12 @@ export async function addLoyaltyPoints(
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
-  const response = await api.post(`/api/clients/${params.clientId}/loyalty`, {
-    points: params.points,
-    description: params.description,
+  const paramsObj = params as Record<string, unknown>;
+  const response = await api.post(`/api/clients/${paramsObj.clientId as string}/loyalty`, {
+    points: paramsObj.points,
+    description: paramsObj.description,
   });
-  return handleApiResponse(response, `${params.points} points ajoutés`);
+  return handleApiResponse(response, `${paramsObj.points} points ajoutés`);
 }
 
 /**
@@ -82,7 +85,8 @@ export async function updateClient(
   params: unknown,
   baseUrl: string
 ): Promise<ActionResult> {
-  const { clientId, ...updateData } = params;
+  const paramsObj = params as Record<string, unknown>;
+  const { clientId, ...updateData } = paramsObj;
   const api = createFetchHelper(baseUrl);
   const response = await api.patch(`/api/clients/${clientId}`, updateData);
   return handleApiResponse(response, 'Client mis à jour');
@@ -96,7 +100,8 @@ export async function deleteClient(
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
-  const response = await api.delete(`/api/clients/${params.clientId}`);
+  const paramsObj = params as Record<string, unknown>;
+  const response = await api.delete(`/api/clients/${paramsObj.clientId as string}`);
   return handleApiResponse(response, 'Client supprimé');
 }
 
@@ -108,7 +113,8 @@ export async function getClientHistory(
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
-  const response = await api.get(`/api/clients/${params.clientId}/history`);
+  const paramsObj = params as Record<string, unknown>;
+  const response = await api.get(`/api/clients/${paramsObj.clientId as string}/history`);
   return handleApiResponse(response, 'Historique récupéré');
 }
 
@@ -120,7 +126,8 @@ export async function exportClients(
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
-  const queryParams = buildQueryParams(params.filters || {});
+  const paramsObj = params as Record<string, unknown>;
+  const queryParams = buildQueryParams(paramsObj.filters as Record<string, unknown> || {});
   const response = await api.get(`/api/clients/export?${queryParams.toString()}`);
   return handleApiResponse(response, 'Export généré');
 }

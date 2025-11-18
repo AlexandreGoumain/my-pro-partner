@@ -13,13 +13,14 @@ export async function searchArticles(
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
+  const paramsObj = params as Record<string, unknown>;
   const queryParams = buildQueryParams({
-    query: params.query,
-    type: params.type,
-    categorieId: params.categorieId,
-    minPrice: params.minPrice,
-    maxPrice: params.maxPrice,
-    limit: params.limit,
+    query: paramsObj.query,
+    type: paramsObj.type,
+    categorieId: paramsObj.categorieId,
+    minPrice: paramsObj.minPrice,
+    maxPrice: paramsObj.maxPrice,
+    limit: paramsObj.limit,
   });
 
   const response = await api.get(`/api/articles?${queryParams.toString()}`);
@@ -57,10 +58,11 @@ export async function adjustStock(
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
-  const response = await api.post(`/api/articles/${params.articleId}/stock`, {
-    type: params.type,
-    quantite: params.quantite,
-    motif: params.motif,
+  const paramsObj = params as Record<string, unknown>;
+  const response = await api.post(`/api/articles/${paramsObj.articleId as string}/stock`, {
+    type: paramsObj.type,
+    quantite: paramsObj.quantite,
+    motif: paramsObj.motif,
   });
   return handleApiResponse(response, 'Stock ajusté');
 }
@@ -84,7 +86,8 @@ export async function updateArticle(
   params: unknown,
   baseUrl: string
 ): Promise<ActionResult> {
-  const { articleId, ...updateData } = params;
+  const paramsObj = params as Record<string, unknown>;
+  const { articleId, ...updateData } = paramsObj;
   const api = createFetchHelper(baseUrl);
   const response = await api.patch(`/api/articles/${articleId}`, updateData);
   return handleApiResponse(response, 'Article mis à jour');
@@ -98,7 +101,8 @@ export async function deleteArticle(
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
-  const response = await api.delete(`/api/articles/${params.articleId}`);
+  const paramsObj = params as Record<string, unknown>;
+  const response = await api.delete(`/api/articles/${paramsObj.articleId as string}`);
   return handleApiResponse(response, 'Article supprimé');
 }
 
@@ -110,7 +114,8 @@ export async function getArticleDetails(
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
-  const response = await api.get(`/api/articles/${params.articleId}`);
+  const paramsObj = params as Record<string, unknown>;
+  const response = await api.get(`/api/articles/${paramsObj.articleId as string}`);
   return handleApiResponse(response, 'Détails de l\'article récupérés');
 }
 
@@ -122,14 +127,15 @@ export async function getStockHistory(
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
+  const paramsObj = params as Record<string, unknown>;
   const queryParams = buildQueryParams({
-    fromDate: params.fromDate,
-    toDate: params.toDate,
-    limit: params.limit,
+    fromDate: paramsObj.fromDate,
+    toDate: paramsObj.toDate,
+    limit: paramsObj.limit,
   });
 
   const response = await api.get(
-    `/api/articles/${params.articleId}/mouvements?${queryParams.toString()}`
+    `/api/articles/${paramsObj.articleId as string}/mouvements?${queryParams.toString()}`
   );
   return handleApiResponse(response, 'Historique récupéré');
 }

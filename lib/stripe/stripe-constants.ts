@@ -3,7 +3,7 @@
  */
 
 export const STRIPE_CONFIG = {
-    API_VERSION: "2024-12-18.acacia" as const,
+    API_VERSION: "2025-10-29.clover" as const,
     CURRENCY: "eur" as const,
     PAYMENT_METHODS: ["card"] as const,
     SESSION_EXPIRATION_MINUTES: 30,
