@@ -40,7 +40,7 @@ const upgradeOptions = {
             description: "Pour développer votre activité",
             benefits: [
                 "Clients illimités",
-                "Multi-utilisateurs (jusqu'à 5)",
+                "Multi-utilisateurs (jusq&apos;à 5)",
                 "Automatisation incluse",
                 "Support prioritaire",
             ],
@@ -195,7 +195,7 @@ export function UpgradeDialog({
                             <div className="flex gap-3">
                                 <Link href="/auth/register" className="flex-1">
                                     <Button className="w-full bg-black hover:bg-black/90 text-white rounded-full h-10 text-[13px] font-semibold">
-                                        Commencer l'essai gratuit
+                                        Commencer &apos;essai gratuit
                                     </Button>
                                 </Link>
                                 <Link href={`/pricing/${option.slug}`}>

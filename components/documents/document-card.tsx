@@ -1,9 +1,8 @@
 "use client";
 
-import { memo } from "react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { DocumentStatusBadge } from "@/components/ui/document-status-badge";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -11,7 +10,8 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { DocumentStatusBadge } from "@/components/ui/document-status-badge";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import {
     Calendar,
     Edit,
@@ -22,15 +22,20 @@ import {
     Trash2,
     User,
 } from "lucide-react";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { memo } from "react";
 
 interface DocumentCardProps<T> {
     document: T & {
         id: string;
         numero: string;
         dateEmission: Date;
-        statut: "BROUILLON" | "ENVOYE" | "ACCEPTE" | "REFUSE" | "PAYE" | "ANNULE";
+        statut:
+            | "BROUILLON"
+            | "ENVOYE"
+            | "ACCEPTE"
+            | "REFUSE"
+            | "PAYE"
+            | "ANNULE";
         client: {
             nom: string;
             prenom: string | null;
@@ -113,22 +118,30 @@ export const DocumentCard = memo(function DocumentCard<T>({
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => onView?.(document as T)}>
+                            <DropdownMenuItem
+                                onClick={() => onView?.(document as T)}
+                            >
                                 <Eye className="mr-2 h-4 w-4" />
                                 Voir détails
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => onEdit?.(document as T)}>
+                            <DropdownMenuItem
+                                onClick={() => onEdit?.(document as T)}
+                            >
                                 <Edit className="mr-2 h-4 w-4" />
                                 Modifier
                             </DropdownMenuItem>
-                            {type === "DEVIS" && onConvertToInvoice && document.statut === "ACCEPTE" && (
-                                <DropdownMenuItem
-                                    onClick={() => onConvertToInvoice(document as T)}
-                                >
-                                    <Receipt className="mr-2 h-4 w-4" />
-                                    Convertir en facture
-                                </DropdownMenuItem>
-                            )}
+                            {type === "DEVIS" &&
+                                onConvertToInvoice &&
+                                document.statut === "ACCEPTE" && (
+                                    <DropdownMenuItem
+                                        onClick={() =>
+                                            onConvertToInvoice(document as T)
+                                        }
+                                    >
+                                        <Receipt className="mr-2 h-4 w-4" />
+                                        Convertir en facture
+                                    </DropdownMenuItem>
+                                )}
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
                                 onClick={() => onDelete?.(document as T)}
@@ -151,9 +164,14 @@ export const DocumentCard = memo(function DocumentCard<T>({
             <div className="p-6 space-y-4">
                 {/* Client */}
                 <div className="flex items-start gap-2">
-                    <User className="h-4 w-4 text-black/40 mt-0.5" strokeWidth={2} />
+                    <User
+                        className="h-4 w-4 text-black/40 mt-0.5"
+                        strokeWidth={2}
+                    />
                     <div className="flex-1">
-                        <p className="text-[13px] text-black/50 mb-0.5">Client</p>
+                        <p className="text-[13px] text-black/50 mb-0.5">
+                            Client
+                        </p>
                         <p className="text-[14px] font-medium">{clientName}</p>
                     </div>
                 </div>
@@ -166,19 +184,25 @@ export const DocumentCard = memo(function DocumentCard<T>({
                     />
                     <div className="flex-1">
                         <p className="text-[13px] text-black/50 mb-0.5">
-                            Date d'émission
+                            Date d&apos;émission
                         </p>
                         <p className="text-[14px] font-medium">
-                            {format(new Date(document.dateEmission), "d MMMM yyyy", {
-                                locale: fr,
-                            })}
+                            {format(
+                                new Date(document.dateEmission),
+                                "d MMMM yyyy",
+                                {
+                                    locale: fr,
+                                }
+                            )}
                         </p>
                     </div>
                 </div>
 
                 {/* Amount */}
                 <div className="pt-4 border-t border-black/5">
-                    <p className="text-[13px] text-black/50 mb-1">Montant total TTC</p>
+                    <p className="text-[13px] text-black/50 mb-1">
+                        Montant total TTC
+                    </p>
                     <p className="text-[24px] font-bold tracking-[-0.02em]">
                         {Number(document.total_ttc || 0).toFixed(2)} €
                     </p>

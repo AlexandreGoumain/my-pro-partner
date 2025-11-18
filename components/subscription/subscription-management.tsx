@@ -56,9 +56,10 @@ export function SubscriptionManagement() {
       } else {
         throw new Error("URL du portail manquante");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("[BILLING_PORTAL_ERROR]", error);
-      toast.error(error.message || "Erreur lors de l'ouverture du portail de gestion");
+      const message = error instanceof Error ? error.message : "Erreur lors de l'ouverture du portail de gestion";
+      toast.error(message);
       setLoading(false);
     }
   };
@@ -77,7 +78,7 @@ export function SubscriptionManagement() {
               Plan actuel
             </p>
             <p className="text-[13px] text-black/60 mt-1">
-              {planInfo.name} - {planInfo.price}€/mois
+              {planInfo.name} - {(planInfo.price.monthly)}€/mois
             </p>
           </div>
           <div className="flex items-center gap-2">

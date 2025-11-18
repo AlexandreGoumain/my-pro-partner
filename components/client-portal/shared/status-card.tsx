@@ -17,7 +17,7 @@ export interface StatusCardProps {
  * Shows success, error, or info states with icon, title, and description
  */
 export function StatusCard({
-    type = "info",
+    type: _type = "info",
     icon: Icon,
     title,
     description,

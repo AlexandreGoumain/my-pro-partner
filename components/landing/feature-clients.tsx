@@ -8,12 +8,12 @@ export function FeatureClients() {
         {
             icon: Search,
             title: "Recherche instantanée",
-            description: "Trouvez n'importe quel client en une fraction de seconde"
+            description: "Trouvez &apos;importe quel client en une fraction de seconde"
         },
         {
             icon: History,
             title: "Historique complet",
-            description: "Accédez à tout l'historique de vos échanges et documents"
+            description: "Accédez à tout &apos;historique de vos échanges et documents"
         },
         {
             icon: Bell,
@@ -49,7 +49,7 @@ export function FeatureClients() {
                                     <div className="p-4 rounded-lg bg-neutral-50 border border-black/[0.05]">
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
-                                                <p className="text-[12px] text-black/40 mb-1">Chiffre d'affaires</p>
+                                                <p className="text-[12px] text-black/40 mb-1">Chiffre &apos;affaires</p>
                                                 <p className="text-[18px] font-semibold text-black">24 850 €</p>
                                             </div>
                                             <div>
@@ -117,7 +117,7 @@ export function FeatureClients() {
                                 </span>
                             </div>
                             <h2 className="text-[48px] sm:text-[56px] font-semibold tracking-[-0.02em] text-black leading-[1.05]">
-                                Toute l'histoire de vos clients
+                                Toute &apos;histoire de vos clients
                             </h2>
                             <p className="text-[19px] text-black/60 leading-[1.5] tracking-[-0.01em]">
                                 Centralisez toutes les informations de vos clients en un seul endroit.

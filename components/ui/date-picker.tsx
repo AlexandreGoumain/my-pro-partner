@@ -127,7 +127,7 @@ export function DateRangePicker({
             <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
                     mode="range"
-                    selected={range}
+                    selected={range.from ? range : undefined}
                     onSelect={handleSelect}
                     disabled={disabled}
                     locale={fr}

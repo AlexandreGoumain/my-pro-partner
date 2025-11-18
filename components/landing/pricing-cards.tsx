@@ -5,7 +5,8 @@ import { Card } from "@/components/ui/card";
 import { Check, Sparkles, ArrowRight, Shield, TrendingUp, Zap, Crown, Star } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { PLAN_PRICING, PLAN_FEATURES, PlanType } from "@/lib/pricing-config";
+import { PLAN_FEATURES, PlanType } from "@/lib/pricing-config";
+import { PLANS_CONFIG } from "@/lib/config/plans.config";
 
 const plans: Array<{
     id: PlanType;
@@ -140,9 +141,10 @@ export function PricingCards() {
 
                 {/* Pricing Cards */}
                 <div className="grid lg:grid-cols-4 gap-6 mb-12">
-                    {plans.map((planConfig, index) => {
-                        const planInfo = PLAN_PRICING[planConfig.id];
+                    {plans.map((planConfig, _index) => {
+                        const plan = PLANS_CONFIG[planConfig.id];
                         const features = PLAN_FEATURES[planConfig.id];
+                        const annualPricePerMonth = Math.round(plan.price.yearly / 12);
 
                         return (
                             <Card
@@ -184,7 +186,7 @@ export function PricingCards() {
                                                         planConfig.popular || planConfig.isPremium ? "text-white" : "text-black"
                                                     }`}
                                                 >
-                                                    {planInfo.name}
+                                                    {plan.name}
                                                 </h3>
                                                 {planConfig.isPremium && (
                                                     <Crown className="w-4 h-4 text-amber-400" strokeWidth={2} />
@@ -195,7 +197,7 @@ export function PricingCards() {
                                                     planConfig.popular || planConfig.isPremium ? "text-white/60" : "text-black/50"
                                                 }`}
                                             >
-                                                {planInfo.tagline}
+                                                {plan.description}
                                             </p>
                                         </div>
 
@@ -207,7 +209,7 @@ export function PricingCards() {
                                                         planConfig.popular || planConfig.isPremium ? "text-white" : "text-black"
                                                     }`}
                                                 >
-                                                    {isAnnual ? Math.round(planInfo.annualPrice) : planInfo.price}€
+                                                    {isAnnual ? annualPricePerMonth : plan.price.monthly}€
                                                 </span>
                                                 <span
                                                     className={`text-[15px] font-medium ${
@@ -217,13 +219,13 @@ export function PricingCards() {
                                                     /mois
                                                 </span>
                                             </div>
-                                            {isAnnual && planInfo.price > 0 && planInfo.savings && (
+                                            {isAnnual && plan.price.monthly > 0 && (
                                                 <p
                                                     className={`text-[12px] ${
                                                         planConfig.popular || planConfig.isPremium ? "text-white/50" : "text-black/40"
                                                     }`}
                                                 >
-                                                    {planInfo.savings}
+                                                    Facturé {plan.price.yearly}€/an
                                                 </p>
                                             )}
                                         </div>
@@ -315,7 +317,7 @@ export function PricingCards() {
                                             <span className={`text-[11px] font-medium ${
                                                 planConfig.popular || planConfig.isPremium ? "text-white/70" : "text-black/60"
                                             }`}>
-                                                {planInfo.ideal}
+                                                Idéal pour {planConfig.id === "FREE" ? "débuter" : planConfig.id === "STARTER" ? "petites entreprises" : planConfig.id === "PRO" ? "entreprises en croissance" : "grandes organisations"}
                                             </span>
                                         </div>
                                     </div>

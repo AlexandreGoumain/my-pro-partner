@@ -1,10 +1,10 @@
-import { useState } from "react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Globe, Lock, Unlock } from "lucide-react";
-import { PortalEnableDialog } from "./portal-enable-dialog";
+import { useState } from "react";
 import { toast } from "sonner";
+import { PortalEnableDialog } from "./portal-enable-dialog";
 
 interface PortalAccessCardProps {
     client: {
@@ -21,7 +21,7 @@ export function PortalAccessCard({ client, onUpdate }: PortalAccessCardProps) {
     const [isDisabling, setIsDisabling] = useState(false);
 
     const handleDisable = async () => {
-        if (!confirm("Désactiver l'accès au portail client ?")) return;
+        if (!confirm("DÃ©sactiver l&apos;accÃ¨s au portail client ?")) return;
 
         setIsDisabling(true);
 
@@ -39,14 +39,14 @@ export function PortalAccessCard({ client, onUpdate }: PortalAccessCardProps) {
             const data = await res.json();
 
             if (!res.ok) {
-                toast.error(data.message || "Erreur lors de la désactivation");
+                toast.error(data.message || "Erreur lors de la dÃ©sactivation");
                 return;
             }
 
             toast.success(data.message);
             onUpdate();
-        } catch (error) {
-            toast.error("Erreur lors de la désactivation");
+        } catch (_error) {
+            toast.error("Erreur lors de la dÃ©sactivation");
         } finally {
             setIsDisabling(false);
         }
@@ -69,7 +69,7 @@ export function PortalAccessCard({ client, onUpdate }: PortalAccessCardProps) {
                                     Portail Client
                                 </h3>
                                 <p className="text-[13px] text-black/40">
-                                    Accès à l&apos;espace client
+                                    AccÃ¨s Ã  l&apos;espace client
                                 </p>
                             </div>
                         </div>
@@ -81,7 +81,9 @@ export function PortalAccessCard({ client, onUpdate }: PortalAccessCardProps) {
                                     : "bg-black/5 text-black/60"
                             }`}
                         >
-                            {client.clientPortalEnabled ? "Activé" : "Désactivé"}
+                            {client.clientPortalEnabled
+                                ? "ActivÃ©"
+                                : "DÃ©sactivÃ©"}
                         </Badge>
                     </div>
 
@@ -90,15 +92,14 @@ export function PortalAccessCard({ client, onUpdate }: PortalAccessCardProps) {
                             {client.lastLoginAt && (
                                 <div className="rounded-lg bg-black/5 p-3">
                                     <p className="text-[13px] text-black/60">
-                                        Dernière connexion :{" "}
-                                        {new Date(client.lastLoginAt).toLocaleDateString(
-                                            "fr-FR",
-                                            {
-                                                day: "2-digit",
-                                                month: "long",
-                                                year: "numeric",
-                                            }
-                                        )}
+                                        DerniÃ¨re connexion :{" "}
+                                        {new Date(
+                                            client.lastLoginAt
+                                        ).toLocaleDateString("fr-FR", {
+                                            day: "2-digit",
+                                            month: "long",
+                                            year: "numeric",
+                                        })}
                                     </p>
                                 </div>
                             )}
@@ -111,7 +112,9 @@ export function PortalAccessCard({ client, onUpdate }: PortalAccessCardProps) {
                             >
                                 <Lock className="h-4 w-4 mr-2 text-black/60" />
                                 <span className="text-black/80">
-                                    {isDisabling ? "Désactivation..." : "Désactiver l'accès"}
+                                    {isDisabling
+                                        ? "DÃ©sactivation..."
+                                        : "DÃ©sactiver l&apos;accÃ¨s"}
                                 </span>
                             </Button>
                         </div>
@@ -120,8 +123,8 @@ export function PortalAccessCard({ client, onUpdate }: PortalAccessCardProps) {
                             {!client.email && (
                                 <div className="rounded-lg bg-black/5 p-3">
                                     <p className="text-[13px] text-black/60">
-                                          Le client doit avoir une adresse email pour accéder
-                                        au portail
+                                        âš  Le client doit avoir une adresse
+                                        email pour accÃ©der au portail
                                     </p>
                                 </div>
                             )}
@@ -132,7 +135,7 @@ export function PortalAccessCard({ client, onUpdate }: PortalAccessCardProps) {
                                 className="w-full h-10 text-[14px] font-medium bg-black hover:bg-black/90 text-white"
                             >
                                 <Unlock className="h-4 w-4 mr-2" />
-                                Activer l'accès
+                                Activer l&apos;accÃ¨s
                             </Button>
                         </div>
                     )}

@@ -1,29 +1,38 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
-import { Package, AlertTriangle, TrendingDown, Scan, Clock, BarChart3 } from "lucide-react";
+import {
+    AlertTriangle,
+    BarChart3,
+    Clock,
+    Package,
+    TrendingDown,
+} from "lucide-react";
 
 export function FeatureInventory() {
     const features = [
         {
             icon: AlertTriangle,
             title: "Alertes de stock",
-            description: "Soyez notifié automatiquement avant la rupture de stock"
+            description:
+                "Soyez notifié automatiquement avant la rupture de stock",
         },
         {
             icon: BarChart3,
             title: "Suivi en temps réel",
-            description: "Consultez vos niveaux de stock à tout moment, partout"
+            description:
+                "Consultez vos niveaux de stock à tout moment, partout",
         },
         {
             icon: Clock,
             title: "Historique mouvements",
-            description: "Tracez toutes les entrées et sorties de votre inventaire"
+            description:
+                "Tracez toutes les entrées et sorties de votre inventaire",
         },
         {
             icon: TrendingDown,
             title: "Analyse des ventes",
-            description: "Identifiez vos produits les plus et moins vendus"
+            description: "Identifiez vos produits les plus et moins vendus",
         },
     ];
 
@@ -42,8 +51,9 @@ export function FeatureInventory() {
                                 Ne manquez plus jamais de stock
                             </h2>
                             <p className="text-[19px] text-black/60 leading-[1.5] tracking-[-0.01em]">
-                                Suivez votre inventaire en temps réel et recevez des alertes automatiques.
-                                Fini les ruptures de stock et les commandes retardées.
+                                Suivez votre inventaire en temps réel et recevez
+                                des alertes automatiques. Fini les ruptures de
+                                stock et les commandes retardées.
                             </p>
                         </div>
 
@@ -56,7 +66,10 @@ export function FeatureInventory() {
                                         className="flex items-start gap-4 p-5 rounded-xl bg-white border border-black/[0.08] hover:border-black/[0.12] transition-all duration-300"
                                     >
                                         <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-black/[0.03] flex items-center justify-center">
-                                            <Icon className="w-5 h-5 text-black" strokeWidth={2} />
+                                            <Icon
+                                                className="w-5 h-5 text-black"
+                                                strokeWidth={2}
+                                            />
                                         </div>
                                         <div className="space-y-1">
                                             <h3 className="text-[16px] font-semibold text-black tracking-[-0.01em]">
@@ -97,42 +110,78 @@ export function FeatureInventory() {
                                 <div className="flex items-center justify-between pb-4 border-b border-black/[0.08]">
                                     <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 rounded-lg bg-black flex items-center justify-center">
-                                            <Package className="w-5 h-5 text-white" strokeWidth={2} />
+                                            <Package
+                                                className="w-5 h-5 text-white"
+                                                strokeWidth={2}
+                                            />
                                         </div>
                                         <div>
-                                            <h4 className="text-[15px] font-semibold text-black">Vue d'ensemble Stock</h4>
-                                            <p className="text-[13px] text-black/40">Mis à jour en temps réel</p>
+                                            <h4 className="text-[15px] font-semibold text-black">
+                                                Vue &apos;ensemble Stock
+                                            </h4>
+                                            <p className="text-[13px] text-black/40">
+                                                Mis à jour en temps réel
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                                     <div className="p-4 rounded-lg bg-neutral-50 border border-black/[0.05]">
-                                        <p className="text-[12px] text-black/40 mb-1">Total articles</p>
-                                        <p className="text-[24px] font-semibold text-black">487</p>
+                                        <p className="text-[12px] text-black/40 mb-1">
+                                            Total articles
+                                        </p>
+                                        <p className="text-[24px] font-semibold text-black">
+                                            487
+                                        </p>
                                     </div>
                                     <div className="p-4 rounded-lg bg-red-500/5 border border-red-500/20">
-                                        <p className="text-[12px] text-red-600/60 mb-1">Stock bas</p>
-                                        <p className="text-[24px] font-semibold text-red-700">12</p>
+                                        <p className="text-[12px] text-red-600/60 mb-1">
+                                            Stock bas
+                                        </p>
+                                        <p className="text-[24px] font-semibold text-red-700">
+                                            12
+                                        </p>
                                     </div>
                                     <div className="p-4 rounded-lg bg-orange-500/5 border border-orange-500/20 col-span-2 sm:col-span-1">
-                                        <p className="text-[12px] text-orange-600/60 mb-1">À commander</p>
-                                        <p className="text-[24px] font-semibold text-orange-700">8</p>
+                                        <p className="text-[12px] text-orange-600/60 mb-1">
+                                            À commander
+                                        </p>
+                                        <p className="text-[24px] font-semibold text-orange-700">
+                                            8
+                                        </p>
                                     </div>
                                 </div>
 
                                 <div className="space-y-2">
                                     <div className="flex items-center justify-between">
-                                        <p className="text-[13px] text-black/60 font-medium">Alertes de stock</p>
+                                        <p className="text-[13px] text-black/60 font-medium">
+                                            Alertes de stock
+                                        </p>
                                         <span className="px-2 py-1 rounded-full bg-red-500/10 text-[11px] text-red-700 font-medium">
                                             3 urgentes
                                         </span>
                                     </div>
                                     <div className="space-y-2">
                                         {[
-                                            { name: "Vis inox M6", stock: 12, min: 50, status: "critical" },
-                                            { name: "Joint silicone", stock: 28, min: 30, status: "warning" },
-                                            { name: "Câble électrique", stock: 85, min: 100, status: "warning" },
+                                            {
+                                                name: "Vis inox M6",
+                                                stock: 12,
+                                                min: 50,
+                                                status: "critical",
+                                            },
+                                            {
+                                                name: "Joint silicone",
+                                                stock: 28,
+                                                min: 30,
+                                                status: "warning",
+                                            },
+                                            {
+                                                name: "Câble électrique",
+                                                stock: 85,
+                                                min: 100,
+                                                status: "warning",
+                                            },
                                         ].map((item, index) => (
                                             <div
                                                 key={index}
@@ -140,24 +189,34 @@ export function FeatureInventory() {
                                             >
                                                 <div className="flex-1">
                                                     <div className="flex items-center gap-2 mb-2">
-                                                        <span className="text-[13px] font-medium text-black">{item.name}</span>
-                                                        {item.status === 'critical' && (
-                                                            <AlertTriangle className="w-3 h-3 text-red-600" strokeWidth={2} />
+                                                        <span className="text-[13px] font-medium text-black">
+                                                            {item.name}
+                                                        </span>
+                                                        {item.status ===
+                                                            "critical" && (
+                                                            <AlertTriangle
+                                                                className="w-3 h-3 text-red-600"
+                                                                strokeWidth={2}
+                                                            />
                                                         )}
                                                     </div>
                                                     <div className="flex items-center gap-2">
                                                         <div className="flex-1 h-1.5 bg-black/[0.05] rounded-full overflow-hidden">
                                                             <div
                                                                 className={`h-full ${
-                                                                    item.status === 'critical'
-                                                                        ? 'bg-red-600'
-                                                                        : 'bg-orange-500'
+                                                                    item.status ===
+                                                                    "critical"
+                                                                        ? "bg-red-600"
+                                                                        : "bg-orange-500"
                                                                 }`}
-                                                                style={{ width: `${(item.stock / item.min) * 100}%` }}
+                                                                style={{
+                                                                    width: `${(item.stock / item.min) * 100}%`,
+                                                                }}
                                                             />
                                                         </div>
                                                         <span className="text-[11px] text-black/40 font-medium">
-                                                            {item.stock}/{item.min}
+                                                            {item.stock}/
+                                                            {item.min}
                                                         </span>
                                                     </div>
                                                 </div>

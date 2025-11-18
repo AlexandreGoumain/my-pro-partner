@@ -91,7 +91,7 @@ export function ROICalculator() {
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
                                     <label className="text-[14px] font-medium text-black/70">
-                                        Nombre de personnes dans l'équipe
+                                        Nombre de personnes dans &apos;équipe
                                     </label>
                                     <span className="text-[20px] font-semibold text-black">
                                         {employees}

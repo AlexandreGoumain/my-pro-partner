@@ -11,12 +11,14 @@ import {
 import { DocumentTemplate } from "./document-template";
 import { Download, Printer, Send } from "lucide-react";
 import { useDocumentPdf } from "@/hooks/use-document-pdf";
+import type { Document } from "@/lib/types/document.types";
+import type { CompanySettings } from "@/lib/types/settings";
 
 interface DocumentPdfDialogProps {
     isOpen: boolean;
     onClose: () => void;
-    document: any;
-    company: any;
+    document: Document;
+    company: CompanySettings;
 }
 
 export function DocumentPdfDialog({

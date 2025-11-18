@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { BusinessTemplate } from "@/lib/services/business-template.service";
-import { Check, Sparkles } from "lucide-react";
+import { Check } from "lucide-react";
 
 interface BusinessTemplateCardProps {
   template: BusinessTemplate;

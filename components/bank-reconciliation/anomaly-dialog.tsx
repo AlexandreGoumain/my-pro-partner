@@ -53,9 +53,10 @@ export function AnomalyDialog({
             onOpenChange(false);
             setNotes("");
             onSuccess();
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(error);
-            toast.error(error.message || "Erreur");
+            const message = error instanceof Error ? error.message : "Erreur";
+            toast.error(message);
         } finally {
             setIsMarking(false);
         }

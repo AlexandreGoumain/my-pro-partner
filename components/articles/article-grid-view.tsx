@@ -1,4 +1,4 @@
-import { ArticleCard } from "@/components/article-card";
+import { ArticleCard } from "@/components/articles/article-card";
 import { ArticleCardSkeleton } from "@/components/skeletons";
 import { EmptyState } from "@/components/ui/empty-state";
 import { GridSkeleton } from "@/components/ui/grid-skeleton";
@@ -30,8 +30,6 @@ export function ArticleGridView({
     articles,
     isLoading,
     emptyState,
-    typeFilter,
-    hasNoDataAtAll,
     onView,
     onEdit,
     onDuplicate,

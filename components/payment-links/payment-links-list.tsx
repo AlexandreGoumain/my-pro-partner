@@ -2,7 +2,7 @@ import type { PaymentLink } from "@/lib/types/payment-link";
 import { EmptyState } from "@/components/ui/empty-state";
 import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { PaymentLinkCard } from "./payment-link-card";
-import { Link2, Plus } from "lucide-react";
+import { Link2 } from "lucide-react";
 
 export interface PaymentLinksListProps {
     links: PaymentLink[];

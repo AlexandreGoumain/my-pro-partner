@@ -41,7 +41,7 @@ export function ExampleClientsPage() {
         setCreateDialogOpen(true);
     }
 
-    async function handleSubmitClient(formData: any) {
+    async function _handleSubmitClient(formData: Record<string, unknown>) {
         // Appel API pour créer le client
         const response = await fetch("/api/clients", {
             method: "POST",

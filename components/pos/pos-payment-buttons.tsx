@@ -39,7 +39,7 @@ export function POSPaymentButtons({
                     Espèces
                 </Button>
                 <Button
-                    onClick={() => onPayment("CARTE_BANCAIRE")}
+                    onClick={() => onPayment("CARTE")}
                     disabled={processing}
                     variant="outline"
                     className="h-11 border-black/10 hover:bg-black/5"

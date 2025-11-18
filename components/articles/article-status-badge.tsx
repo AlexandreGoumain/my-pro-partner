@@ -1,6 +1,5 @@
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, EyeOff, XCircle } from "lucide-react";
-import { ArticleStatut } from "@/lib/types/article-detail";
 
 export interface ArticleStatusBadgeProps {
     statut: string;

@@ -1,5 +1,7 @@
 import { LucideIcon } from "lucide-react";
 import { ReactNode } from "react";
+import { cn } from "@/lib/utils";
+import { DS } from "@/lib/constants/design-system";
 
 export interface SettingsSectionProps {
     icon?: LucideIcon;
@@ -9,6 +11,12 @@ export interface SettingsSectionProps {
     className?: string;
 }
 
+/**
+ * SettingsSection component
+ *
+ * Section wrapper for settings pages with icon, title, and description.
+ * Uses Design System constants for consistent styling.
+ */
 export function SettingsSection({
     icon: Icon,
     title,
@@ -17,19 +25,23 @@ export function SettingsSection({
     className = "",
 }: SettingsSectionProps) {
     return (
-        <div className={`space-y-4 ${className}`}>
+        <div className={cn("space-y-4", className)}>
             <div className="flex items-center gap-3">
                 {Icon && (
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black/5">
-                        <Icon className="h-5 w-5 text-black/60" strokeWidth={2} />
+                    <div className={cn(
+                        "flex h-10 w-10 items-center justify-center",
+                        DS.size.radius.full,
+                        DS.color.bg.hover
+                    )}>
+                        <Icon className={cn(DS.size.icon.default, DS.color.text.secondary)} strokeWidth={DS.size.icon.strokeWidth} />
                     </div>
                 )}
                 <div>
-                    <h3 className="text-[18px] font-semibold tracking-[-0.01em] text-black">
+                    <h3 className={cn("text-[18px] font-semibold", DS.text.tracking.normal, DS.color.text.primary)}>
                         {title}
                     </h3>
                     {description && (
-                        <p className="text-[14px] text-black/40 mt-0.5">{description}</p>
+                        <p className={cn(DS.text.body.base, DS.color.text.tertiary, "mt-0.5")}>{description}</p>
                     )}
                 </div>
             </div>

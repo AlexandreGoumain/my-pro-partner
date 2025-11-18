@@ -95,7 +95,7 @@ export function BusinessTemplatePreview({
                       <span className="font-medium">{niveau.nom}</span>
                       <span className="text-muted-foreground">
                         {" "}
-                        - {niveau.remise}% dès {niveau.seuil}€
+                        - {niveau.remise}% dès {niveau.pointsSeuil}€
                       </span>
                     </div>
                   </div>

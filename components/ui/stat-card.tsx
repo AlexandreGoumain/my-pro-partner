@@ -2,6 +2,7 @@ import { LucideIcon } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { DS } from "@/lib/constants/design-system";
 
 export interface StatCardProps {
     icon: LucideIcon;
@@ -19,6 +20,12 @@ export interface StatCardProps {
     size?: "sm" | "md" | "lg";
 }
 
+/**
+ * StatCard component
+ *
+ * Card component for displaying statistics with icon, value, and label.
+ * Uses Design System constants for consistent styling.
+ */
 export function StatCard({
     icon: Icon,
     label,
@@ -33,24 +40,24 @@ export function StatCard({
     const sizeStyles = {
         sm: {
             iconContainer: "h-8 w-8",
-            icon: "h-4 w-4",
+            icon: DS.size.icon.small,
             value: "text-[20px]",
-            label: "text-[13px]",
+            label: DS.text.body.small,
             badge: "text-[11px] h-5 px-1.5",
         },
         md: {
             iconContainer: "h-10 w-10",
-            icon: "h-5 w-5",
+            icon: DS.size.icon.default,
             value: "text-[32px]",
-            label: "text-[14px]",
-            badge: "text-[12px] h-5 px-2",
+            label: DS.text.body.base,
+            badge: DS.text.body.xs + " h-5 px-2",
         },
         lg: {
             iconContainer: "h-12 w-12",
-            icon: "h-6 w-6",
+            icon: DS.size.icon.large,
             value: "text-[40px]",
-            label: "text-[15px]",
-            badge: "text-[13px] h-6 px-2.5",
+            label: DS.text.body.large,
+            badge: DS.text.body.small + " h-6 px-2.5",
         },
     };
 
@@ -59,8 +66,11 @@ export function StatCard({
     return (
         <Card
             className={cn(
-                "border-black/8 shadow-sm",
-                isClickable && "cursor-pointer hover:border-black/20 transition-all duration-200",
+                DS.component.card.default,
+                isClickable && cn(
+                    "cursor-pointer hover:border-black/20",
+                    DS.animation.transition.fast
+                ),
                 className
             )}
             onClick={onClick}
@@ -69,20 +79,24 @@ export function StatCard({
                 <div className="flex items-center justify-between mb-3">
                     <div
                         className={cn(
-                            "rounded-lg bg-black/5 flex items-center justify-center",
+                            DS.size.radius.large,
+                            DS.color.bg.hover,
+                            "flex items-center justify-center",
                             styles.iconContainer
                         )}
                     >
                         <Icon
-                            className={cn("text-black/60", styles.icon)}
-                            strokeWidth={2}
+                            className={cn(DS.color.text.secondary, styles.icon)}
+                            strokeWidth={DS.size.icon.strokeWidth}
                         />
                     </div>
                     {badge && (
                         <Badge
                             variant={badge.variant || "secondary"}
                             className={cn(
-                                "bg-black/5 text-black/60 border-0",
+                                DS.color.bg.hover,
+                                DS.color.text.secondary,
+                                "border-0",
                                 styles.badge,
                                 badge.className
                             )}
@@ -94,17 +108,19 @@ export function StatCard({
                 <div className="space-y-0.5">
                     <p
                         className={cn(
-                            "font-semibold tracking-[-0.02em] text-black",
+                            "font-semibold",
+                            DS.text.tracking.tight,
+                            DS.color.text.primary,
                             styles.value
                         )}
                     >
                         {value}
                     </p>
-                    <p className={cn("text-black/60", styles.label)}>
+                    <p className={cn(DS.color.text.secondary, styles.label)}>
                         {label}
                     </p>
                     {description && (
-                        <p className="text-[12px] text-black/40 mt-0.5">
+                        <p className={cn(DS.text.body.xs, DS.color.text.tertiary, "mt-0.5")}>
                             {description}
                         </p>
                     )}

@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArticleCombobox } from "./article-combobox";
 import { Plus, Trash2 } from "lucide-react";
-import { useState, useEffect } from "react";
 
 export interface LineItem {
     id?: string;
@@ -79,7 +78,7 @@ export function LineItemsEditor({
         onChange(lines.filter((_, i) => i !== index));
     };
 
-    const handleLineChange = (index: number, field: keyof LineItem, value: any) => {
+    const handleLineChange = (index: number, field: keyof LineItem, value: LineItem[keyof LineItem]) => {
         const newLines = [...lines];
         const updatedLine = { ...newLines[index], [field]: value };
         newLines[index] = calculateLineAmounts(updatedLine);

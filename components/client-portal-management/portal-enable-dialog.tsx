@@ -61,7 +61,7 @@ export function PortalEnableDialog({
 
             toast.success(data.message);
             onSuccess();
-        } catch (error) {
+        } catch (_error) {
             toast.error("Erreur lors de l'activation");
         } finally {
             setIsLoading(false);
@@ -71,7 +71,7 @@ export function PortalEnableDialog({
     const handleCopyPassword = () => {
         if (temporaryPassword) {
             navigator.clipboard.writeText(temporaryPassword);
-            toast.success("Mot de passe copié !");
+            toast.success("Mot de passe copiï¿½ !");
         }
     };
 
@@ -91,7 +91,7 @@ export function PortalEnableDialog({
                                 Activer le portail client
                             </DialogTitle>
                             <DialogDescription className="text-[14px] text-black/60">
-                                Donnez accès au portail client à{" "}
+                                Donnez accï¿½s au portail client ï¿½{" "}
                                 <span className="font-medium text-black">
                                     {clientEmail}
                                 </span>
@@ -118,8 +118,8 @@ export function PortalEnableDialog({
 
                             <div className="rounded-lg bg-black/5 p-4">
                                 <p className="text-[13px] text-black/60">
-                                    Un mot de passe temporaire sera généré automatiquement.
-                                    Le client pourra le modifier après sa première connexion.
+                                    Un mot de passe temporaire sera gï¿½nï¿½rï¿½ automatiquement.
+                                    Le client pourra le modifier aprï¿½s sa premiï¿½re connexion.
                                 </p>
                             </div>
                         </div>
@@ -145,7 +145,7 @@ export function PortalEnableDialog({
                     <>
                         <DialogHeader>
                             <DialogTitle className="text-[18px] font-semibold tracking-[-0.01em]">
-                                Portail activé avec succès !
+                                Portail activï¿½ avec succï¿½s !
                             </DialogTitle>
                             <DialogDescription className="text-[14px] text-black/60">
                                 Communiquez ces identifiants au client
@@ -187,8 +187,8 @@ export function PortalEnableDialog({
 
                             <div className="rounded-lg bg-black/5 p-4">
                                 <p className="text-[13px] text-black/60">
-                                      Copiez ce mot de passe maintenant. Il ne sera plus
-                                    affiché après la fermeture de cette fenêtre.
+                                    ï¿½ Copiez ce mot de passe maintenant. Il ne sera plus
+                                    affichï¿½ aprï¿½s la fermeture de cette fenï¿½tre.
                                 </p>
                             </div>
                         </div>

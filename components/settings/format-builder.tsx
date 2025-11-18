@@ -6,7 +6,7 @@ import { FORMAT_VARIABLES } from "@/lib/types/settings";
 import { Plus, Trash2, Minus, GripVertical } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useRef, useCallback, useMemo } from "react";
 
 export interface FormatBuilderProps {
     value: string;
@@ -23,8 +23,13 @@ type FormatPart = {
 export function FormatBuilder({ value, code, onChange }: FormatBuilderProps) {
     const [showAdvanced, setShowAdvanced] = useState(false);
 
+    // Generate unique ID using Math.random() instead of ref
+    const generateId = useCallback(() => {
+        return `part-${Math.random().toString(36).substring(2, 11)}`;
+    }, []);
+
     // Parse format string to parts
-    const parseParts = (format: string): FormatPart[] => {
+    const parseParts = useCallback((format: string): FormatPart[] => {
         const parts: FormatPart[] = [];
         let currentText = "";
         let i = 0;
@@ -34,7 +39,7 @@ export function FormatBuilder({ value, code, onChange }: FormatBuilderProps) {
                 // Save any text before this as separator
                 if (currentText) {
                     parts.push({
-                        id: Math.random().toString(),
+                        id: generateId(),
                         type: "separator",
                         value: currentText,
                     });
@@ -46,7 +51,7 @@ export function FormatBuilder({ value, code, onChange }: FormatBuilderProps) {
                 if (endIdx !== -1) {
                     const varName = format.substring(i + 1, endIdx);
                     parts.push({
-                        id: Math.random().toString(),
+                        id: generateId(),
                         type: "variable",
                         value: varName,
                     });
@@ -64,14 +69,14 @@ export function FormatBuilder({ value, code, onChange }: FormatBuilderProps) {
         // Add any remaining text
         if (currentText) {
             parts.push({
-                id: Math.random().toString(),
+                id: generateId(),
                 type: "separator",
                 value: currentText,
             });
         }
 
         return parts;
-    };
+    }, [generateId]);
 
     // Build format string from parts
     const buildFormat = (parts: FormatPart[]): string => {
@@ -85,21 +90,21 @@ export function FormatBuilder({ value, code, onChange }: FormatBuilderProps) {
             .join("");
     };
 
-    const parts = parseParts(value);
+    const parts = useMemo(() => parseParts(value), [value, parseParts]);
 
     const handleAddVariable = (varName: string) => {
-        const newParts = [...parts, { id: Math.random().toString(), type: "variable" as const, value: varName }];
+        const newParts = [...parts, { id: generateId(), type: "variable" as const, value: varName }];
         onChange(buildFormat(newParts));
     };
 
     const handleAddSeparator = (separator: string) => {
-        const newParts = [...parts, { id: Math.random().toString(), type: "separator" as const, value: separator }];
+        const newParts = [...parts, { id: generateId(), type: "separator" as const, value: separator }];
         onChange(buildFormat(newParts));
     };
 
     const handleRemovePart = (id: string) => {
         const newParts = parts.filter((p) => p.id !== id);
-        onChange(buildFormat(newParts.length > 0 ? newParts : [{ id: Math.random().toString(), type: "variable", value: "CODE" }]));
+        onChange(buildFormat(newParts.length > 0 ? newParts : [{ id: generateId(), type: "variable", value: "CODE" }]));
     };
 
     const handleClear = () => {

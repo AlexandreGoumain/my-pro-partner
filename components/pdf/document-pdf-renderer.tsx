@@ -8,7 +8,7 @@ import {
 } from "@react-pdf/renderer";
 
 // Register fonts (optional - using default fonts for now)
-// Font.register({ family: 'Inter', src: '...' });
+// Font.register({ family:&apos;Inte&apos;, src:&apos;..&apos; });
 
 const styles = StyleSheet.create({
     page: {
@@ -293,11 +293,11 @@ export function DocumentPdfRenderer({
                             <Text>{statutLabel}</Text>
                         </View>
                         <Text style={styles.infoRow}>
-                            Date d'émission : {formatDate(document.dateEmission)}
+                            Date d&apos;émission : {formatDate(document.dateEmission)}
                         </Text>
                         {document.dateEcheance && (
                             <Text style={styles.infoRow}>
-                                Date d'échéance :{" "}
+                                Date d&apos;échéance :{" "}
                                 {formatDate(document.dateEcheance)}
                             </Text>
                         )}

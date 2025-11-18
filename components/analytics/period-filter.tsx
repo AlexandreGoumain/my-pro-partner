@@ -7,7 +7,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import type { AnalyticsPeriod } from "@/lib/types/analytics";
 
 export interface PeriodFilterProps {
     value: string;

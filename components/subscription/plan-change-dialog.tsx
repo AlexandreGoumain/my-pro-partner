@@ -10,7 +10,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { PlanType, PLAN_PRICING } from "@/lib/pricing-config";
+import { PlanType } from "@/lib/pricing-config";
+import { PLANS_CONFIG } from "@/lib/config/plans.config";
 import { useSubscription } from "@/hooks/use-subscription";
 import { useSubscriptionStatus } from "@/hooks/use-subscription-status";
 import { ArrowRight, AlertCircle, CheckCircle2, ExternalLink } from "lucide-react";
@@ -47,22 +48,26 @@ export function PlanChangeDialog({
 
   if (!targetPlan) return null;
 
-  const planInfo = PLAN_PRICING[targetPlan];
+  const plan = PLANS_CONFIG[targetPlan];
   const isNewSubscription = canSubscribe;
 
-  // Prix selon l'interval sélectionné
-  const displayPrice = interval === "year" && planInfo.annualPrice
-    ? planInfo.annualPrice
-    : planInfo.price;
+  // Prix selon &apos;interval sélectionné
+  const annualPricePerMonth = Math.round(plan.price.yearly / 12);
+  const displayPrice = interval === "year" ? annualPricePerMonth : plan.price.monthly;
 
   const handleNewSubscription = async () => {
     setError(null);
 
     try {
       // Nouveau abonnement → Redirect vers Stripe Checkout
-      await subscribe(targetPlan, interval);
-    } catch (err: any) {
-      setError(err.message || "Une erreur est survenue");
+      // Only paid plans can be subscribed to
+      if (targetPlan === "FREE") {
+        throw new Error("Cannot subscribe to FREE plan");
+      }
+      await subscribe(targetPlan as "STARTER" | "PRO" | "ENTERPRISE", interval);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Une erreur est survenue";
+      setError(message);
     }
   };
 
@@ -79,7 +84,7 @@ export function PlanChangeDialog({
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Erreur lors de l'ouverture du portail");
+        throw new Error(data.error || "Erreur lors de &apos;ouverture du portail");
       }
 
       // Rediriger vers le Billing Portal de Stripe
@@ -88,9 +93,10 @@ export function PlanChangeDialog({
       } else {
         throw new Error("URL du portail manquante");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("[BILLING_PORTAL_ERROR]", error);
-      toast.error(error.message || "Erreur lors de l'ouverture du portail");
+      const message = error instanceof Error ? error.message : "Erreur lors de &apos;ouverture du portail";
+      toast.error(message);
       setPortalLoading(false);
     }
   };
@@ -110,20 +116,20 @@ export function PlanChangeDialog({
           {/* Titre */}
           <DialogTitle className="text-[24px] font-bold tracking-[-0.02em] text-black text-center">
             {isNewSubscription
-              ? `Obtenir ${planInfo.name}`
-              : `Changer pour ${planInfo.name}`}
+              ? `Obtenir ${plan.name}`
+              : `Changer pour ${plan.name}`}
           </DialogTitle>
 
           {/* Description */}
           <DialogDescription className="text-[15px] text-black/70 text-center leading-relaxed">
             {isNewSubscription
-              ? `Commencez avec le plan ${planInfo.name}. Essai gratuit de 14 jours, aucune carte requise.`
-              : `Pour changer de plan, gérer votre abonnement ou l'annuler, utilisez le portail de gestion sécurisé de Stripe.`}
+              ? `Commencez avec le plan ${plan.name}. Essai gratuit de 14 jours, aucune carte requise.`
+              : `Pour changer de plan, gérer votre abonnement ou &apos;annuler, utilisez le portail de gestion sécurisé de Stripe.`}
           </DialogDescription>
         </DialogHeader>
 
-        {/* Sélecteur d'interval (nouveau abonnement uniquement) */}
-        {isNewSubscription && planInfo.annualPrice && (
+        {/* Sélecteur &apos;interval (nouveau abonnement uniquement) */}
+        {isNewSubscription && annualPricePerMonth > 0 && (
           <div className="px-8 pt-6">
             <div className="flex items-center gap-2 p-1 bg-black/5 rounded-lg">
               <button
@@ -164,9 +170,9 @@ export function PlanChangeDialog({
             </span>
           </div>
 
-          {interval === "year" && planInfo.annualPrice && (
+          {interval === "year" && annualPricePerMonth > 0 && (
             <p className="text-[13px] text-black/60 text-center">
-              {displayPrice * 12}€ facturé annuellement
+              {plan.price.yearly}€ facturé annuellement
             </p>
           )}
 
@@ -175,7 +181,7 @@ export function PlanChangeDialog({
             <div className="mt-4 flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-white border border-black/10">
               <CheckCircle2 className="w-4 h-4 text-black" strokeWidth={2} />
               <span className="text-[13px] font-medium text-black">
-                14 jours d'essai gratuit
+                14 jours &apos;essai gratuit
               </span>
             </div>
           )}
@@ -218,7 +224,7 @@ export function PlanChangeDialog({
               </>
             ) : isNewSubscription ? (
               <>
-                Obtenir {planInfo.name}
+                Obtenir {plan.name}
                 <ArrowRight className="w-4 h-4 ml-2" strokeWidth={2.5} />
               </>
             ) : (

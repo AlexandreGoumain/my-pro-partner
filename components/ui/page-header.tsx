@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { DS } from "@/lib/constants/design-system";
 
 export interface PageHeaderProps {
     title: string;
@@ -7,6 +8,19 @@ export interface PageHeaderProps {
     className?: string;
 }
 
+/**
+ * PageHeader component
+ *
+ * Standardized page header with title, optional description, and optional actions.
+ * Uses Design System constants for consistent styling.
+ *
+ * @example
+ * <PageHeader
+ *   title="Dashboard Clients"
+ *   description="Vue d'ensemble et gestion de votre portefeuille clients"
+ *   actions={<Button>Nouveau client</Button>}
+ * />
+ */
 export function PageHeader({
     title,
     description,
@@ -14,18 +28,18 @@ export function PageHeader({
     className,
 }: PageHeaderProps) {
     return (
-        <div className={cn("flex items-center justify-between", className)}>
-            <div>
-                <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-black">
+        <div className={cn(DS.component.pageHeader.container, className)}>
+            <div className={DS.component.pageHeader.titleSection}>
+                <h1 className={DS.component.pageHeader.title}>
                     {title}
                 </h1>
                 {description && (
-                    <p className="text-[14px] text-black/40 mt-1">
+                    <p className={cn(DS.component.pageHeader.description, "mt-1")}>
                         {description}
                     </p>
                 )}
             </div>
-            {actions && <div className="flex gap-3">{actions}</div>}
+            {actions && <div className={DS.component.pageHeader.actions}>{actions}</div>}
         </div>
     );
 }

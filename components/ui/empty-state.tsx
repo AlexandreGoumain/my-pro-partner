@@ -3,6 +3,7 @@ import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { Card } from "@/components/ui/card";
 import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
+import { DS } from "@/lib/constants/design-system";
 
 export interface EmptyStateProps {
     icon?: LucideIcon;
@@ -48,16 +49,16 @@ export function EmptyState({
 
     const textSizes = {
         sm: {
-            title: "text-[15px]",
-            description: "text-[13px]",
+            title: DS.text.body.large,
+            description: DS.text.body.small,
         },
         md: {
-            title: "text-[17px]",
-            description: "text-[14px]",
+            title: DS.text.heading.h3,
+            description: DS.text.body.base,
         },
         lg: {
-            title: "text-[20px]",
-            description: "text-[15px]",
+            title: DS.text.heading.h2,
+            description: DS.text.body.large,
         },
     };
 
@@ -68,7 +69,7 @@ export function EmptyState({
     if (variant === "inline") {
         return (
             <div className={cn("text-center py-12", className)}>
-                <p className="text-[14px] text-black/40 tracking-[-0.01em]">
+                <p className={cn(DS.text.body.base, DS.color.text.tertiary, DS.text.tracking.normal)}>
                     {title}
                 </p>
             </div>
@@ -84,19 +85,23 @@ export function EmptyState({
             {Icon && (
                 <div
                     className={cn(
-                        "rounded-full bg-black/5 flex items-center justify-center",
+                        DS.size.radius.full,
+                        DS.color.bg.hover,
+                        "flex items-center justify-center",
                         sizes.container
                     )}
                 >
                     <Icon
-                        className={cn("text-black/40", sizes.icon)}
-                        strokeWidth={2}
+                        className={cn(DS.color.text.tertiary, sizes.icon)}
+                        strokeWidth={DS.size.icon.strokeWidth}
                     />
                 </div>
             )}
             <div>
                 <h3 className={cn(
-                    "font-semibold tracking-[-0.01em] text-black",
+                    "font-semibold",
+                    DS.text.tracking.normal,
+                    DS.color.text.primary,
                     textClasses.title,
                     description ? "mb-2" : "mb-0"
                 )}>
@@ -104,7 +109,8 @@ export function EmptyState({
                 </h3>
                 {description && (
                     <p className={cn(
-                        "text-black/60 max-w-md",
+                        DS.color.text.secondary,
+                        "max-w-md",
                         textClasses.description
                     )}>
                         {description}
@@ -148,8 +154,9 @@ export function EmptyState({
     // Default and dashed variants - with card
     return (
         <Card className={cn(
-            "p-12 shadow-sm",
-            variant === "dashed" ? "border-dashed border-black/10" : "border-black/8"
+            "p-12",
+            DS.size.shadow.small,
+            variant === "dashed" ? cn("border-dashed", DS.color.border.medium) : DS.color.border.default
         )}>
             {content}
         </Card>

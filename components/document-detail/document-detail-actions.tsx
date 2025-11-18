@@ -1,8 +1,8 @@
+import { DocumentStatusManager } from "@/components/documents/document-status-manager";
 import { Button } from "@/components/ui/button";
 import { PrimaryActionButton } from "@/components/ui/primary-action-button";
-import { DocumentStatusManager } from "@/components/document-status-manager";
-import { ArrowLeft, Download, Trash2, Receipt } from "lucide-react";
-import { DocumentType, DocumentStatus } from "@/lib/types/document.types";
+import { DocumentStatus, DocumentType } from "@/lib/types/document.types";
+import { ArrowLeft, Download, Receipt, Trash2 } from "lucide-react";
 
 export interface DocumentDetailActionsProps {
     documentId: string;

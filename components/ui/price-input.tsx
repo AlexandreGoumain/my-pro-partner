@@ -23,7 +23,9 @@ export function PriceInput({
 
     useEffect(() => {
         if (!isFocused) {
-            setDisplayValue(value.toFixed(2));
+            setTimeout(() => {
+                setDisplayValue(value.toFixed(2));
+            }, 0);
         }
     }, [value, isFocused]);
 

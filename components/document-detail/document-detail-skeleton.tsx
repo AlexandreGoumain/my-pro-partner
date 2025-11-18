@@ -7,7 +7,7 @@ export interface DocumentDetailSkeletonProps {
 /**
  * Reusable loading skeleton for document detail pages
  */
-export function DocumentDetailSkeleton({ title }: DocumentDetailSkeletonProps) {
+export function DocumentDetailSkeleton({ title: _title }: DocumentDetailSkeletonProps) {
     return (
         <PageSkeleton
             layout="stats-grid"

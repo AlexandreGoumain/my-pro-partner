@@ -22,6 +22,76 @@ export interface PageSkeletonProps {
     className?: string;
 }
 
+// Grid column classes mapping
+const gridColumnClasses = {
+    2: "md:grid-cols-2",
+    3: "md:grid-cols-2 lg:grid-cols-3",
+    4: "md:grid-cols-2 lg:grid-cols-4",
+    5: "md:grid-cols-2 lg:grid-cols-5",
+};
+
+// Composant réutilisable pour le header - moved outside to avoid creating during render
+const Header = ({ headerWithAction, headerActionsCount }: { headerWithAction: boolean; headerActionsCount: number }) => (
+    <>
+        {headerWithAction ? (
+            <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                    <div className="h-9 w-48 bg-black/5 rounded-md animate-pulse" />
+                    <div className="h-5 w-64 bg-black/5 rounded-md animate-pulse" />
+                </div>
+                <div className="flex gap-3">
+                    {Array.from({ length: headerActionsCount }).map(
+                        (_, i) => (
+                            <div
+                                key={i}
+                                className="h-11 w-36 bg-black/5 rounded-md animate-pulse"
+                            />
+                        )
+                    )}
+                </div>
+            </div>
+        ) : (
+            <div className="space-y-1">
+                <div className="h-9 w-48 bg-black/5 rounded-md animate-pulse" />
+                <div className="h-5 w-64 bg-black/5 rounded-md animate-pulse" />
+            </div>
+        )}
+    </>
+);
+
+// Composant réutilisable pour la grille de stats - moved outside to avoid creating during render
+const StatsGrid = ({ statsCount, statsHeight }: { statsCount: number; statsHeight: string }) => (
+    <div
+        className={cn(
+            "grid gap-4 grid-cols-1",
+            gridColumnClasses[statsCount as 2 | 3 | 4 | 5] ||
+                gridColumnClasses[4]
+        )}
+    >
+        {Array.from({ length: statsCount }).map((_, i) => (
+            <div
+                key={i}
+                className={cn(
+                    "bg-black/5 rounded-lg animate-pulse",
+                    statsHeight
+                )}
+            />
+        ))}
+    </div>
+);
+
+// Composant réutilisable pour les tabs - moved outside to avoid creating during render
+const Tabs = ({ tabsCount }: { tabsCount: number }) => (
+    <div className="flex items-center gap-2 border-b border-black/8">
+        {Array.from({ length: tabsCount }).map((_, i) => (
+            <div
+                key={i}
+                className="h-10 w-24 bg-black/5 rounded-none rounded-t-md animate-pulse"
+            />
+        ))}
+    </div>
+);
+
 /**
  * Composant de skeleton de chargement pour les pages
  *
@@ -48,80 +118,12 @@ export function PageSkeleton({
     formSections = 2,
     className,
 }: PageSkeletonProps) {
-    const gridColumnClasses = {
-        2: "md:grid-cols-2",
-        3: "md:grid-cols-2 lg:grid-cols-3",
-        4: "md:grid-cols-2 lg:grid-cols-4",
-        5: "md:grid-cols-2 lg:grid-cols-5",
-    };
-
-    // Composant réutilisable pour le header
-    const Header = () => (
-        <>
-            {headerWithAction ? (
-                <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                        <div className="h-9 w-48 bg-black/5 rounded-md animate-pulse" />
-                        <div className="h-5 w-64 bg-black/5 rounded-md animate-pulse" />
-                    </div>
-                    <div className="flex gap-3">
-                        {Array.from({ length: headerActionsCount }).map(
-                            (_, i) => (
-                                <div
-                                    key={i}
-                                    className="h-11 w-36 bg-black/5 rounded-md animate-pulse"
-                                />
-                            )
-                        )}
-                    </div>
-                </div>
-            ) : (
-                <div className="space-y-1">
-                    <div className="h-9 w-48 bg-black/5 rounded-md animate-pulse" />
-                    <div className="h-5 w-64 bg-black/5 rounded-md animate-pulse" />
-                </div>
-            )}
-        </>
-    );
-
-    // Composant réutilisable pour la grille de stats
-    const StatsGrid = () => (
-        <div
-            className={cn(
-                "grid gap-4 grid-cols-1",
-                gridColumnClasses[statsCount as 2 | 3 | 4 | 5] ||
-                    gridColumnClasses[4]
-            )}
-        >
-            {Array.from({ length: statsCount }).map((_, i) => (
-                <div
-                    key={i}
-                    className={cn(
-                        "bg-black/5 rounded-lg animate-pulse",
-                        statsHeight
-                    )}
-                />
-            ))}
-        </div>
-    );
-
-    // Composant réutilisable pour les tabs
-    const Tabs = () => (
-        <div className="flex items-center gap-2 border-b border-black/8">
-            {Array.from({ length: tabsCount }).map((_, i) => (
-                <div
-                    key={i}
-                    className="h-10 w-24 bg-black/5 rounded-none rounded-t-md animate-pulse"
-                />
-            ))}
-        </div>
-    );
 
     if (layout === "stats") {
         return (
             <div className={cn("space-y-6", className)}>
-                <Header />
-                <StatsGrid />
+                <Header headerWithAction={headerWithAction} headerActionsCount={headerActionsCount} />
+                <StatsGrid statsCount={statsCount} statsHeight={statsHeight} />
             </div>
         );
     }
@@ -129,8 +131,8 @@ export function PageSkeleton({
     if (layout === "stats-grid") {
         return (
             <div className={cn("space-y-6", className)}>
-                <Header />
-                <StatsGrid />
+                <Header headerWithAction={headerWithAction} headerActionsCount={headerActionsCount} />
+                <StatsGrid statsCount={statsCount} statsHeight={statsHeight} />
                 <div
                     className={cn(
                         "grid gap-5 grid-cols-1",
@@ -154,7 +156,7 @@ export function PageSkeleton({
     if (layout === "grid") {
         return (
             <div className={cn("space-y-6", className)}>
-                <Header />
+                <Header headerWithAction={headerWithAction} headerActionsCount={headerActionsCount} />
                 <div
                     className={cn(
                         "grid gap-5 grid-cols-1",
@@ -178,7 +180,7 @@ export function PageSkeleton({
     if (layout === "list") {
         return (
             <div className={cn("space-y-6", className)}>
-                <Header />
+                <Header headerWithAction={headerWithAction} headerActionsCount={headerActionsCount} />
                 <div className="space-y-3">
                     {Array.from({ length: itemCount }).map((_, i) => (
                         <div
@@ -197,7 +199,7 @@ export function PageSkeleton({
     if (layout === "table") {
         return (
             <div className={cn("space-y-6", className)}>
-                <Header />
+                <Header headerWithAction={headerWithAction} headerActionsCount={headerActionsCount} />
                 {/* Table header */}
                 <div className="border border-black/8 rounded-lg overflow-hidden">
                     <div className="h-12 bg-black/5 border-b border-black/8 animate-pulse" />
@@ -225,7 +227,7 @@ export function PageSkeleton({
                 </div>
 
                 <div className="space-y-6">
-                    {withTabs && <Tabs />}
+                    {withTabs && <Tabs tabsCount={tabsCount} />}
 
                     {/* Form sections */}
                     <div className="space-y-8 mt-6">
@@ -257,8 +259,8 @@ export function PageSkeleton({
     if (layout === "dashboard") {
         return (
             <div className={cn("space-y-6", className)}>
-                <Header />
-                <StatsGrid />
+                <Header headerWithAction={headerWithAction} headerActionsCount={headerActionsCount} />
+                <StatsGrid statsCount={statsCount} statsHeight={statsHeight} />
                 {/* Content Area */}
                 <div className="grid gap-5 grid-cols-1 lg:grid-cols-2">
                     <div className="h-96 bg-black/5 rounded-lg animate-pulse" />

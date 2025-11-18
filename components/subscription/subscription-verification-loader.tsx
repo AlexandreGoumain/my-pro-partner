@@ -77,9 +77,10 @@ export function SubscriptionVerificationLoader({
                     setMessage(data.error || "Une erreur est survenue");
                     setCanRetry(true);
             }
-        } catch (error: any) {
+        } catch (error: unknown) {
             setStatus("error");
-            setMessage(error.message || "Erreur de connexion");
+            const message = error instanceof Error ? error.message : "Erreur de connexion";
+            setMessage(message);
             setCanRetry(true);
         }
     };

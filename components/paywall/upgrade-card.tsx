@@ -4,7 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { PlanType, PLAN_PRICING } from "@/lib/pricing-config";
+import { PlanType } from "@/lib/pricing-config";
+import { PLANS_CONFIG } from "@/lib/config/plans.config";
 
 interface UpgradeCardProps {
     message: string;
@@ -16,7 +17,7 @@ interface UpgradeCardProps {
  * Carte pour inciter à l'upgrade de plan
  */
 export function UpgradeCard({ message, recommendedPlan, compact = false }: UpgradeCardProps) {
-    const planInfo = recommendedPlan ? PLAN_PRICING[recommendedPlan] : null;
+    const plan = recommendedPlan ? PLANS_CONFIG[recommendedPlan] : null;
 
     if (compact) {
         return (
@@ -28,7 +29,7 @@ export function UpgradeCard({ message, recommendedPlan, compact = false }: Upgra
                             size="sm"
                             className="bg-black hover:bg-black/90 text-white rounded-md h-9 px-4 text-[13px] font-medium w-full"
                         >
-                            {recommendedPlan ? `Passer au plan ${planInfo?.name}` : "Voir les plans"}
+                            {recommendedPlan ? `Passer au plan ${plan?.name}` : "Voir les plans"}
                             <ArrowRight className="ml-2 h-3 w-3" />
                         </Button>
                     </Link>
@@ -49,15 +50,15 @@ export function UpgradeCard({ message, recommendedPlan, compact = false }: Upgra
                 <CardDescription className="text-[14px] text-black/60">{message}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 pb-6">
-                {planInfo && (
+                {plan && (
                     <div className="p-4 bg-black/[0.02] rounded-lg border border-black/8">
                         <div className="flex items-baseline gap-2 mb-1">
                             <span className="text-[28px] font-semibold text-black tracking-[-0.02em]">
-                                {planInfo.price}€
+                                {plan.price.monthly}€
                             </span>
                             <span className="text-[14px] text-black/40">/mois</span>
                         </div>
-                        <p className="text-[13px] text-black/60">{planInfo.tagline}</p>
+                        <p className="text-[13px] text-black/60">{plan.description}</p>
                     </div>
                 )}
 
@@ -66,7 +67,7 @@ export function UpgradeCard({ message, recommendedPlan, compact = false }: Upgra
                         <Button
                             className="bg-black hover:bg-black/90 text-white rounded-md h-11 px-6 text-[14px] font-medium w-full"
                         >
-                            {recommendedPlan ? `Passer au plan ${planInfo?.name}` : "Voir tous les plans"}
+                            {recommendedPlan ? `Passer au plan ${plan?.name}` : "Voir tous les plans"}
                             <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
                     </Link>

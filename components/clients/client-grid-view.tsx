@@ -1,17 +1,20 @@
-import { ClientCard } from "@/components/client-card";
+import {
+    GridPagination,
+    PaginationInfo,
+} from "@/app/(dashboard)/dashboard/clients/_components/grid-pagination";
+import { ClientCard } from "@/components/clients/client-card";
 import { ArticleCardSkeleton } from "@/components/skeletons";
 import { EmptyState } from "@/components/ui/empty-state";
 import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { ResponsiveGrid } from "@/components/ui/responsive-grid";
-import { GridPagination } from "@/app/(dashboard)/dashboard/clients/_components/grid-pagination";
-import { Users } from "lucide-react";
 import type { Client } from "@/hooks/use-clients";
+import { Users } from "lucide-react";
 
 export interface ClientGridViewProps {
     clients: Client[];
     isLoading: boolean;
     searchTerm: string;
-    pagination: unknown;
+    pagination: PaginationInfo;
     showPagination: boolean;
     onView: (client: Client) => void;
     onEdit: (client: Client) => void;

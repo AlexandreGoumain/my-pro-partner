@@ -11,7 +11,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Lock, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { PlanType, PLAN_PRICING, PlanLimits } from "@/lib/pricing-config";
+import { PlanType, PlanLimits } from "@/lib/pricing-config";
+import { PLANS_CONFIG } from "@/lib/config/plans.config";
 import { usePlanLimits } from "@/hooks/use-plan-limits";
 
 interface LimitReachedDialogProps {
@@ -93,7 +94,7 @@ export function LimitReachedDialog({
     const { getErrorMessage, getUpgradePlan, limits } = usePlanLimits(userPlan);
 
     const recommendedPlan = getUpgradePlan(limitKey);
-    const planInfo = recommendedPlan ? PLAN_PRICING[recommendedPlan] : null;
+    const plan = recommendedPlan ? PLANS_CONFIG[recommendedPlan] : null;
     const currentLimit = limits[limitKey];
 
     // Message par défaut si non fourni
@@ -107,6 +108,8 @@ export function LimitReachedDialog({
         }
         return <Lock className="w-6 h-6 text-black/60" strokeWidth={2} />;
     };
+
+    const annualPricePerMonth = plan ? Math.round(plan.price.yearly / 12) : 0;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -127,7 +130,7 @@ export function LimitReachedDialog({
                 </DialogHeader>
 
                 {/* Info du plan recommandé */}
-                {planInfo && (
+                {plan && (
                     <div className="px-6 pb-4">
                         <div className="p-4 bg-black/[0.02] rounded-lg border border-black/8">
                             <div className="flex items-center justify-between mb-3">
@@ -136,25 +139,25 @@ export function LimitReachedDialog({
                                         Plan recommandé
                                     </p>
                                     <p className="text-[16px] font-semibold text-black tracking-[-0.01em]">
-                                        {planInfo.name}
+                                        {plan.name}
                                     </p>
                                 </div>
                                 <div className="text-right">
                                     <div className="flex items-baseline gap-1">
                                         <span className="text-[24px] font-semibold text-black tracking-[-0.02em]">
-                                            {planInfo.price}€
+                                            {plan.price.monthly}€
                                         </span>
                                         <span className="text-[13px] text-black/40">/mois</span>
                                     </div>
-                                    {planInfo.annualPrice && (
+                                    {annualPricePerMonth > 0 && (
                                         <p className="text-[11px] text-black/40 mt-0.5">
-                                            ou {planInfo.annualPrice}€/mois
+                                            ou {annualPricePerMonth}€/mois
                                         </p>
                                     )}
                                 </div>
                             </div>
                             <p className="text-[13px] text-black/60 leading-relaxed">
-                                {planInfo.tagline}
+                                {plan.description}
                             </p>
                         </div>
                     </div>
@@ -175,7 +178,7 @@ export function LimitReachedDialog({
                         className="flex-1 bg-black hover:bg-black/90 text-white h-11 text-[14px] font-medium rounded-md shadow-sm"
                     >
                         <Link href={recommendedPlan ? `/pricing?plan=${recommendedPlan}` : "/pricing"}>
-                            {recommendedPlan ? `Passer au plan ${planInfo?.name}` : "Voir les plans"}
+                            {recommendedPlan ? `Passer au plan ${plan?.name}` : "Voir les plans"}
                             <ArrowRight className="ml-2 h-4 w-4" />
                         </Link>
                     </Button>

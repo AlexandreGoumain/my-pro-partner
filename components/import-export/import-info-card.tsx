@@ -6,7 +6,10 @@ export function ImportInfoCard() {
         <Card className="border-black/10">
             <div className="p-5">
                 <div className="flex items-center gap-3 mb-4">
-                    <AlertCircle className="h-5 w-5 text-black/60" strokeWidth={2} />
+                    <AlertCircle
+                        className="h-5 w-5 text-black/60"
+                        strokeWidth={2}
+                    />
                     <h3 className="text-[16px] font-semibold tracking-[-0.01em] text-black">
                         Informations importantes
                     </h3>
@@ -31,7 +34,7 @@ export function ImportInfoCard() {
                                 Encodage :
                             </strong>{" "}
                             Assurez-vous que votre fichier est encodé en UTF-8
-                            pour éviter les problèmes d'accents
+                            pour éviter les problèmes d&apos;accents
                         </p>
                     </div>
                     <div className="flex gap-3">
@@ -51,7 +54,7 @@ export function ImportInfoCard() {
                                 Validation :
                             </strong>{" "}
                             Toutes les données importées seront validées avant
-                            d'être ajoutées à la base
+                            d&apos;être ajoutées à la base
                         </p>
                     </div>
                 </div>

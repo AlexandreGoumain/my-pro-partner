@@ -156,11 +156,12 @@ export function TerminalPayment({
         onSuccess(checkoutData.document.id);
         onOpenChange(false);
       }, 1500);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
+      const message = error instanceof Error ? error.message : "Une erreur est survenue";
       setStatus("error");
-      setErrorMessage(error.message || "Une erreur est survenue");
-      toast.error(error.message);
+      setErrorMessage(message);
+      toast.error(message);
     }
   };
 
