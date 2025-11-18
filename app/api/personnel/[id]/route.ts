@@ -15,7 +15,7 @@ import {
   toggleUserStatus,
   userHasPermission,
 } from "@/lib/personnel/personnel.service";
-import { UserStatus } from "@prisma/client";
+import { UserStatus } from "@/lib/generated/prisma";
 
 /**
  * GET /api/personnel/[id]
@@ -23,15 +23,16 @@ import { UserStatus } from "@prisma/client";
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { entrepriseId } = await requireTenantAuth();
+    const { id } = await params;
 
-    const user = await getUserById(params.id, entrepriseId);
+    const user = await getUserById(id, entrepriseId);
 
     return NextResponse.json({ user });
-  } catch (error: any) {
+  } catch (error: unknown) {
     return handleTenantError(error);
   }
 }
@@ -42,10 +43,11 @@ export async function GET(
  */
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { entrepriseId, userId } = await requireTenantAuth();
+    const { id } = await params;
 
     // Vérifier les permissions
     const hasPermission = await userHasPermission(userId, "canManageUsers");
@@ -61,7 +63,7 @@ export async function PATCH(
     // Si c'est un changement de statut uniquement
     if (body.status && Object.keys(body).length === 1) {
       const user = await toggleUserStatus(
-        params.id,
+        id,
         entrepriseId,
         body.status as UserStatus,
         userId
@@ -70,7 +72,7 @@ export async function PATCH(
     }
 
     // Mise à jour complète
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
 
     if (body.name !== undefined) updateData.name = body.name;
     if (body.prenom !== undefined) updateData.prenom = body.prenom;
@@ -98,14 +100,14 @@ export async function PATCH(
     if (body.iban !== undefined) updateData.iban = body.iban;
 
     const user = await updateUser(
-      params.id,
+      id,
       entrepriseId,
       updateData,
       userId
     );
 
     return NextResponse.json({ user });
-  } catch (error: any) {
+  } catch (error: unknown) {
     return handleTenantError(error);
   }
 }
@@ -116,10 +118,11 @@ export async function PATCH(
  */
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { entrepriseId, userId } = await requireTenantAuth();
+    const { id } = await params;
 
     // Vérifier les permissions
     const hasPermission = await userHasPermission(userId, "canManageUsers");
@@ -131,17 +134,17 @@ export async function DELETE(
     }
 
     // Ne pas permettre de se supprimer soi-même
-    if (params.id === userId) {
+    if (id === userId) {
       return NextResponse.json(
         { error: "Vous ne pouvez pas vous supprimer vous-même" },
         { status: 400 }
       );
     }
 
-    await deleteUser(params.id, entrepriseId, userId);
+    await deleteUser(id, entrepriseId, userId);
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error: unknown) {
     return handleTenantError(error);
   }
 }

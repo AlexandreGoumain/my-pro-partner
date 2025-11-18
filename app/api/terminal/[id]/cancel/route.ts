@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { TerminalService } from "@/lib/services/terminal.service";
+import { validateRequest } from "@/lib/utils/validation-helper";
 import { z } from "zod";
 
 const cancelSchema = z.object({
@@ -13,28 +14,23 @@ const cancelSchema = z.object({
  */
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await requireTenantAuth();
+    const { id } = await params;
 
     const body = await req.json();
-    const validation = cancelSchema.safeParse(body);
-
-    if (!validation.success) {
-      return NextResponse.json(
-        { error: "Données invalides", details: validation.error.errors },
-        { status: 400 }
-      );
-    }
+    const result = validateRequest(cancelSchema, body);
+    if (!result.success) return result.response;
 
     await TerminalService.cancelPayment({
-      terminalId: params.id,
-      paymentIntentId: validation.data.paymentIntentId,
+      terminalId: id,
+      paymentIntentId: result.data.paymentIntentId,
     });
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error) {
     return handleTenantError(error);
   }
 }

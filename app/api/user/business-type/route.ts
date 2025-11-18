@@ -5,7 +5,7 @@ import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-is
  * GET /api/user/business-type
  * Returns the current user's business type
  */
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
     const { entreprise } = await requireTenantAuth();
 

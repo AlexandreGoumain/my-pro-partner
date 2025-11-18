@@ -1,27 +1,35 @@
-import { NextRequest, NextResponse } from "next/server";
-import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
-import { getStores, createStore } from "@/lib/stores/stores.service";
+import { createCrudRoutes } from "@/lib/api/crud-factory";
+import { storeCreateSchema, storeUpdateSchema } from "@/lib/validation";
+import { prisma } from "@/lib/prisma";
+import { ConflictError } from "@/lib/errors";
 
-export async function GET(req: NextRequest) {
-  try {
-    const { entrepriseId } = await requireTenantAuth();
+export const { GET, POST } = createCrudRoutes({
+  modelName: "store",
+  resourceName: "Magasin",
+  createSchema: storeCreateSchema,
+  updateSchema: storeUpdateSchema,
+  searchFields: ["nom", "code", "ville"],
+  include: {
+    registers: true,
+    _count: {
+      select: { documents: true, stockItems: true },
+    },
+  },
+  orderBy: [{ isMainStore: "desc" }, { createdAt: "asc" }],
 
-    const stores = await getStores(entrepriseId);
-    return NextResponse.json({ stores });
-  } catch (error: any) {
-    return handleTenantError(error);
-  }
-}
+  // Validate unique code before creating
+  beforeCreate: async (data, entrepriseId) => {
+    const existingStore = await prisma.store.findFirst({
+      where: {
+        code: data.code,
+        entrepriseId,
+      },
+    });
 
-export async function POST(req: NextRequest) {
-  try {
-    const { entrepriseId } = await requireTenantAuth();
+    if (existingStore) {
+      throw new ConflictError(`Un magasin avec le code ${data.code} existe déjà`);
+    }
 
-    const body = await req.json();
-    const store = await createStore(entrepriseId, body);
-
-    return NextResponse.json({ store }, { status: 201 });
-  } catch (error: any) {
-    return handleTenantError(error);
-  }
-}
+    return data;
+  },
+});

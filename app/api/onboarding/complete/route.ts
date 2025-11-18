@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
+import { validateRequest } from "@/lib/utils/validation-helper";
 import {
   BusinessTemplateService,
   BusinessType,
@@ -23,20 +24,14 @@ export async function POST(req: NextRequest) {
 
         // Parse and validate request body
         const body = await req.json();
-        const validation = onboardingSchema.safeParse(body);
-
-        if (!validation.success) {
-            return NextResponse.json(
-                { message: "Données invalides", errors: validation.error.errors },
-                { status: 400 }
-            );
-        }
+        const validationResult = validateRequest(onboardingSchema, body);
+        if (!validationResult.success) return validationResult.response;
 
         const { nomEntreprise, businessType, secteur, siret, adresse, telephone } =
-            validation.data;
+            validationResult.data;
 
         // Update entreprise and user in a transaction
-        const result = await prisma.$transaction(async (tx) => {
+        const transactionResult = await prisma.$transaction(async (tx) => {
             // Update entreprise information
             const updatedEntreprise = await tx.entreprise.update({
                 where: { id: entrepriseId },
@@ -97,13 +92,13 @@ export async function POST(req: NextRequest) {
             {
                 message: "Onboarding complété avec succès",
                 user: {
-                    id: result.user.id,
-                    email: result.user.email,
-                    onboardingComplete: result.user.onboardingComplete,
+                    id: transactionResult.user.id,
+                    email: transactionResult.user.email,
+                    onboardingComplete: transactionResult.user.onboardingComplete,
                 },
                 entreprise: {
-                    id: result.entreprise.id,
-                    nom: result.entreprise.nom,
+                    id: transactionResult.entreprise.id,
+                    nom: transactionResult.entreprise.nom,
                 },
             },
             { status: 200 }

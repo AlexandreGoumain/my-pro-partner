@@ -4,6 +4,7 @@ import { generateNumeroDocument, type DocumentType } from "@/lib/types/settings"
 import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { validateRequest } from "@/lib/utils/validation-helper";
 
 const lineItemSchema = z.object({
     ordre: z.number(),
@@ -23,11 +24,8 @@ const documentSchema = z.object({
     type: z.enum(["DEVIS", "FACTURE", "AVOIR"]),
     clientId: z.string().min(1, "Client requis"),
     serieId: z.string().optional().nullable(), // ID de la série de numérotation
-    dateEmission: z.string().transform((s) => new Date(s)),
-    dateEcheance: z
-        .string()
-        .transform((s) => new Date(s))
-        .optional().nullable(),
+    dateEmission: z.coerce.date(),
+    dateEcheance: z.coerce.date().optional().nullable(),
     statut: z.enum(["BROUILLON", "ENVOYE", "ACCEPTE", "REFUSE", "PAYE", "ANNULE"]).default("BROUILLON"),
     notes: z.string().optional().nullable(),
     conditions_paiement: z.string().optional().nullable(),
@@ -91,21 +89,12 @@ export async function POST(req: NextRequest) {
         await requireTenantAuth();
 
         const body = await req.json();
-        const validation = documentSchema.safeParse(body);
-
-        if (!validation.success) {
-            return NextResponse.json(
-                {
-                    message: "Données invalides",
-                    errors: validation.error.errors,
-                },
-                { status: 400 }
-            );
-        }
+        const result = validateRequest(documentSchema, body);
+        if (!result.success) return result.response;
 
         // Get client to verify existence and get entrepriseId
         const client = await prisma.client.findUnique({
-            where: { id: validation.data.clientId },
+            where: { id: result.data.clientId },
             select: { id: true, entrepriseId: true },
         });
 
@@ -118,22 +107,22 @@ export async function POST(req: NextRequest) {
 
         // Generate document number
         let numero: string;
-        let serieId: string | null = validation.data.serieId || null;
+        let serieId: string | null = result.data.serieId || null;
 
         // Try to use a serie if serieId is provided or find default serie
         if (!serieId) {
             // Try to find default serie for this document type
             const typeField =
-                validation.data.type === "DEVIS"
+                result.data.type === "DEVIS"
                     ? "pour_devis"
-                    : validation.data.type === "FACTURE"
+                    : result.data.type === "FACTURE"
                     ? "pour_factures"
                     : "pour_avoirs";
 
             const defaultField =
-                validation.data.type === "DEVIS"
+                result.data.type === "DEVIS"
                     ? "est_defaut_devis"
-                    : validation.data.type === "FACTURE"
+                    : result.data.type === "FACTURE"
                     ? "est_defaut_factures"
                     : "est_defaut_avoirs";
 
@@ -173,15 +162,15 @@ export async function POST(req: NextRequest) {
             }
 
             const typeField =
-                validation.data.type === "DEVIS"
+                result.data.type === "DEVIS"
                     ? "pour_devis"
-                    : validation.data.type === "FACTURE"
+                    : result.data.type === "FACTURE"
                     ? "pour_factures"
                     : "pour_avoirs";
 
             if (!serie[typeField]) {
                 return NextResponse.json(
-                    { message: `Cette série ne supporte pas les ${validation.data.type.toLowerCase()}s` },
+                    { message: `Cette série ne supporte pas les ${result.data.type.toLowerCase()}s` },
                     { status: 400 }
                 );
             }
@@ -208,7 +197,7 @@ export async function POST(req: NextRequest) {
                 serie.format_numero,
                 currentNumero,
                 serie.code,
-                validation.data.type
+                result.data.type
             );
 
             // Update serie prochain_numero and derniere_reset if needed
@@ -237,7 +226,7 @@ export async function POST(req: NextRequest) {
             let prefixe: string;
             let prochainNumero: number;
 
-            if (validation.data.type === "DEVIS") {
+            if (result.data.type === "DEVIS") {
                 prefixe = parametres.prefixe_devis;
                 prochainNumero = parametres.prochain_numero_devis;
                 numero = `${prefixe}${prochainNumero.toString().padStart(5, "0")}`;
@@ -246,7 +235,7 @@ export async function POST(req: NextRequest) {
                     where: { entrepriseId: client.entrepriseId },
                     data: { prochain_numero_devis: prochainNumero + 1 },
                 });
-            } else if (validation.data.type === "FACTURE") {
+            } else if (result.data.type === "FACTURE") {
                 prefixe = parametres.prefixe_facture;
                 prochainNumero = parametres.prochain_numero_facture;
                 numero = `${prefixe}${prochainNumero.toString().padStart(5, "0")}`;
@@ -263,7 +252,7 @@ export async function POST(req: NextRequest) {
         }
 
         // Extract lignes from validation data
-        const { lignes, ...documentData } = validation.data;
+        const { lignes, ...documentData } = result.data;
 
         // Calculate reste_a_payer taking down payment into account
         const acompteMontant = documentData.acompte_montant || 0;

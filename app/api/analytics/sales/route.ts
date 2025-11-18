@@ -2,7 +2,7 @@ import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-is
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
     try {
         const { entrepriseId } = await requireTenantAuth();
 
@@ -72,7 +72,6 @@ export async function GET(req: NextRequest) {
                 : 0;
 
         // Calculate conversion rate
-        const acceptedQuotes = quotes.filter((q) => q.statut === "ACCEPTE").length;
         const conversionRate =
             quotes.length > 0 ? (invoices.length / quotes.length) * 100 : 0;
 

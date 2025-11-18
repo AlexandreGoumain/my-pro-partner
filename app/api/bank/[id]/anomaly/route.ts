@@ -5,6 +5,7 @@ import {
 import { BankReconciliationService } from "@/lib/services/bank-reconciliation.service";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { validateRequest } from "@/lib/utils/validation-helper";
 
 const anomalySchema = z.object({
     notes: z.string(),
@@ -16,27 +17,19 @@ const anomalySchema = z.object({
  */
 export async function POST(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params;
         await requireTenantAuth();
 
         const body = await req.json();
-        const validation = anomalySchema.safeParse(body);
-
-        if (!validation.success) {
-            return NextResponse.json(
-                {
-                    error: "Données invalides",
-                    details: validation.error.errors,
-                },
-                { status: 400 }
-            );
-        }
+        const result = validateRequest(anomalySchema, body);
+        if (!result.success) return result.response;
 
         await BankReconciliationService.markAsAnomaly(
-            params.id,
-            validation.data.notes
+            id,
+            result.data.notes
         );
 
         return NextResponse.json({ success: true });

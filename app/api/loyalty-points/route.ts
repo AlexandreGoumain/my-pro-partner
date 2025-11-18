@@ -1,142 +1,91 @@
-import { prisma } from "@/lib/prisma";
-import {
-    createPaginatedResponse,
-    getPaginationParams,
-} from "@/lib/utils/pagination";
+import { createCrudRoutes } from "@/lib/api/crud-factory";
 import { mouvementPointsCreateSchema } from "@/lib/validation";
-import {
-    handleTenantError,
-    requireTenantAuth,
-} from "@/lib/middleware/tenant-isolation";
-import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { TypeMouvementPoints } from "@/lib/generated/prisma";
 
-export async function GET(req: NextRequest) {
-    try {
-        const { entrepriseId } = await requireTenantAuth();
+export const { GET, POST } = createCrudRoutes({
+  modelName: "mouvementPoints",
+  resourceName: "Mouvement de points",
+  createSchema: mouvementPointsCreateSchema,
+  updateSchema: mouvementPointsCreateSchema, // Not used for loyalty points
 
-        const { searchParams } = new URL(req.url);
-        const clientId = searchParams.get("clientId");
-        const type = searchParams.get("type");
-        const pagination = getPaginationParams(searchParams);
+  include: {
+    client: {
+      select: {
+        id: true,
+        nom: true,
+        prenom: true,
+        email: true,
+      },
+    },
+  },
 
-        const where = {
-            entrepriseId,
-            ...(clientId && { clientId }),
-            ...(type && { type }),
-        };
+  orderBy: { createdAt: "desc" },
 
-        const [mouvements, total] = await Promise.all([
-            prisma.mouvementPoints.findMany({
-                where,
-                orderBy: { createdAt: "desc" },
-                skip: pagination.skip,
-                take: pagination.limit,
-                include: {
-                    client: {
-                        select: {
-                            id: true,
-                            nom: true,
-                            prenom: true,
-                            email: true,
-                        },
-                    },
-                },
-            }),
-            prisma.mouvementPoints.count({ where }),
-        ]);
+  // Custom filters for clientId and type
+  customWhere: (searchParams) => {
+    const clientId = searchParams.get("clientId");
+    const type = searchParams.get("type");
 
-        return NextResponse.json(
-            createPaginatedResponse(mouvements, total, pagination)
-        );
-    } catch (error) {
-        return handleTenantError(error);
+    return {
+      ...(clientId && { clientId }),
+      ...(type && { type: type as TypeMouvementPoints }),
+    };
+  },
+
+  // Business logic for creating a movement
+  beforeCreate: async (data, entrepriseId) => {
+    const { clientId, type, points, description, reference, dateExpiration } = data;
+
+    // Verify that the client exists and belongs to the tenant
+    const client = await prisma.client.findFirst({
+      where: {
+        id: clientId,
+        entrepriseId,
+      },
+    });
+
+    if (!client) {
+      throw new Error("Client non trouvé");
     }
-}
 
-export async function POST(req: NextRequest) {
-    try {
-        const { entrepriseId } = await requireTenantAuth();
-
-        const body = await req.json();
-        const validation = mouvementPointsCreateSchema.safeParse(body);
-
-        if (!validation.success) {
-            return NextResponse.json(
-                {
-                    message: "Données invalides",
-                    errors: validation.error.errors,
-                },
-                { status: 400 }
-            );
-        }
-
-        const { clientId, type, points, description, reference, dateExpiration } = validation.data;
-
-        // Verify that the client exists and belongs to the tenant
-        const client = await prisma.client.findFirst({
-            where: {
-                id: clientId,
-                entrepriseId,
-            },
-        });
-
-        if (!client) {
-            return NextResponse.json(
-                { message: "Client non trouvé" },
-                { status: 404 }
-            );
-        }
-
-        // Calculate new points balance
-        let pointsChange = points;
-        if (type === "DEPENSE" || type === "EXPIRATION") {
-            pointsChange = -Math.abs(points);
-        } else {
-            pointsChange = Math.abs(points);
-        }
-
-        const newBalance = client.points_solde + pointsChange;
-
-        if (newBalance < 0) {
-            return NextResponse.json(
-                { message: "Le solde de points ne peut pas être négatif" },
-                { status: 400 }
-            );
-        }
-
-        // Create the movement and update client balance in a transaction
-        const [mouvement] = await prisma.$transaction([
-            prisma.mouvementPoints.create({
-                data: {
-                    type,
-                    points: Math.abs(points),
-                    description: description || undefined,
-                    reference: reference || undefined,
-                    dateExpiration: dateExpiration ? new Date(dateExpiration) : undefined,
-                    clientId,
-                    entrepriseId,
-                },
-                include: {
-                    client: {
-                        select: {
-                            id: true,
-                            nom: true,
-                            prenom: true,
-                            email: true,
-                        },
-                    },
-                },
-            }),
-            prisma.client.update({
-                where: { id: clientId },
-                data: {
-                    points_solde: newBalance,
-                },
-            }),
-        ]);
-
-        return NextResponse.json(mouvement, { status: 201 });
-    } catch (error) {
-        return handleTenantError(error);
+    // Calculate new points balance
+    let pointsChange = points;
+    if (type === "DEPENSE" || type === "EXPIRATION") {
+      pointsChange = -Math.abs(points);
+    } else {
+      pointsChange = Math.abs(points);
     }
-}
+
+    const newBalance = client.points_solde + pointsChange;
+
+    if (newBalance < 0) {
+      throw new Error("Le solde de points ne peut pas être négatif");
+    }
+
+    // Store the new balance to update later (will be used in afterCreate)
+    const dataWithBalance = {
+      type,
+      points: Math.abs(points),
+      description: description || undefined,
+      reference: reference || undefined,
+      dateExpiration: dateExpiration ? new Date(dateExpiration) : undefined,
+      clientId,
+      entrepriseId,
+      _newBalance: newBalance, // Internal property for afterCreate hook
+    };
+
+    return dataWithBalance;
+  },
+
+  // Update client balance after creating movement
+  afterCreate: async (mouvement) => {
+    // Update client balance
+    await prisma.client.update({
+      where: { id: mouvement.clientId },
+      data: {
+        points_solde: (mouvement as typeof mouvement & { _newBalance: number })._newBalance,
+      },
+    });
+  },
+});

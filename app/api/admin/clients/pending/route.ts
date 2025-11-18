@@ -9,7 +9,7 @@ import { prisma } from "@/lib/prisma";
  * GET /api/admin/clients/pending
  * Get all clients pending admin approval
  */
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
     const { entrepriseId } = await requireTenantAuth();
 

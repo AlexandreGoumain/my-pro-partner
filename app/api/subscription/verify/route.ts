@@ -95,7 +95,7 @@ export async function POST(req: Request) {
         : null,
     });
 
-  } catch (error: any) {
+  } catch (error) {
     return handleTenantError(error);
   }
 }
@@ -116,7 +116,7 @@ function mapStripeStatus(status: string): string {
 }
 
 // Helper pour extraire le plan depuis Stripe
-function getPlanFromStripeSubscription(subscription: any): string {
+function getPlanFromStripeSubscription(subscription: { items: { data: Array<{ price: { id: string } }> } }): string {
   const priceId = subscription.items.data[0].price.id;
 
   if (priceId === process.env.STRIPE_PRICE_STARTER_MONTHLY ||

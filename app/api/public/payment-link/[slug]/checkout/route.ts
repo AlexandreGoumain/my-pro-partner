@@ -7,10 +7,11 @@ import { PaymentLinkService } from "@/lib/services/payment-link.service";
  */
 export async function POST(
   req: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const paymentLink = await PaymentLinkService.getPaymentLinkBySlug(params.slug);
+    const { slug } = await params;
+    const paymentLink = await PaymentLinkService.getPaymentLinkBySlug(slug);
 
     if (!paymentLink || !paymentLink.isValid) {
       return NextResponse.json(
@@ -20,8 +21,8 @@ export async function POST(
     }
 
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-    const successUrl = `${baseUrl}/payment-link/${params.slug}/success?session_id={CHECKOUT_SESSION_ID}`;
-    const cancelUrl = `${baseUrl}/payment-link/${params.slug}?canceled=true`;
+    const successUrl = `${baseUrl}/payment-link/${slug}/success?session_id={CHECKOUT_SESSION_ID}`;
+    const cancelUrl = `${baseUrl}/payment-link/${slug}?canceled=true`;
 
     const session = await PaymentLinkService.createCheckoutSession({
       paymentLink,
@@ -33,10 +34,10 @@ export async function POST(
       sessionId: session.id,
       url: session.url,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("[PAYMENT_LINK_CHECKOUT_ERROR]", error);
     return NextResponse.json(
-      { error: error.message || "Erreur lors de la création de la session" },
+      { error: error instanceof Error ? error.message : "Erreur lors de la création de la session" },
       { status: 500 }
     );
   }

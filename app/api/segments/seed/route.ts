@@ -83,7 +83,7 @@ const predefinedSegments = [
 // POST /api/segments/seed - Seed predefined segments
 // ============================================
 
-export async function POST(req: NextRequest) {
+export async function POST(_req: NextRequest) {
   try {
     const { entrepriseId } = await requireTenantAuth();
 

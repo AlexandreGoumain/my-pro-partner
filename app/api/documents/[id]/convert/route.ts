@@ -1,4 +1,4 @@
-import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
+import { requireTenantAuth } from "@/lib/middleware/tenant-isolation";
 import { DocumentConverterService } from "@/lib/services/document-converter.service";
 import { NextRequest, NextResponse } from "next/server";
 

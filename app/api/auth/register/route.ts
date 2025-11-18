@@ -2,21 +2,16 @@ import { prisma } from "@/lib/prisma";
 import { registerBackendSchema } from "@/lib/validation";
 import bcrypt from "bcryptjs";
 import { NextRequest, NextResponse } from "next/server";
+import { validateRequest } from "@/lib/utils/validation-helper";
 
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
 
-        // Validation
-        const validation = registerBackendSchema.safeParse(body);
-        if (!validation.success) {
-            return NextResponse.json(
-                { message: "Données invalides" },
-                { status: 400 }
-            );
-        }
+        const validationResult = validateRequest(registerBackendSchema, body);
+        if (!validationResult.success) return validationResult.response;
 
-        const { email, password, name } = validation.data;
+        const { email, password, name } = validationResult.data;
 
         // Vérifier si l'utilisateur existe
         const existingUser = await prisma.user.findUnique({
@@ -46,7 +41,7 @@ export async function POST(req: NextRequest) {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Créer l'entreprise et l'utilisateur atomiquement
-        const result = await prisma.$transaction(async (tx) => {
+        const transactionResult = await prisma.$transaction(async (tx) => {
             // Créer l'entreprise
             const entreprise = await tx.entreprise.create({
                 data: {
@@ -85,14 +80,14 @@ export async function POST(req: NextRequest) {
             {
                 message: "Utilisateur et entreprise créés avec succès",
                 user: {
-                    id: result.user.id,
-                    email: result.user.email,
-                    name: result.user.name,
+                    id: transactionResult.user.id,
+                    email: transactionResult.user.email,
+                    name: transactionResult.user.name,
                 },
                 entreprise: {
-                    id: result.entreprise.id,
-                    nom: result.entreprise.nom,
-                    plan: result.entreprise.plan,
+                    id: transactionResult.entreprise.id,
+                    nom: transactionResult.entreprise.nom,
+                    plan: transactionResult.entreprise.plan,
                 },
             },
             { status: 201 }

@@ -7,14 +7,19 @@ import { prisma } from "@/lib/prisma";
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const document = await prisma.document.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         client: true,
-        entreprise: true,
+        entreprise: {
+          include: {
+            parametres: true,
+          },
+        },
         lignes: {
           include: {
             article: true,
@@ -157,8 +162,8 @@ export async function GET(
 <body>
   <div class="header">
     <div class="company-name">${document.entreprise.nom}</div>
-    ${document.entreprise.adresse ? `<div>${document.entreprise.adresse}</div>` : ""}
-    ${document.entreprise.telephone ? `<div>Tél: ${document.entreprise.telephone}</div>` : ""}
+    ${document.entreprise.parametres?.adresse ? `<div>${document.entreprise.parametres.adresse}</div>` : ""}
+    ${document.entreprise.parametres?.telephone ? `<div>Tél: ${document.entreprise.parametres.telephone}</div>` : ""}
     ${document.entreprise.siret ? `<div>SIRET: ${document.entreprise.siret}</div>` : ""}
   </div>
 
@@ -248,10 +253,10 @@ export async function GET(
         "Content-Type": "text/html",
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("[TICKET_GENERATION_ERROR]", error);
     return NextResponse.json(
-      { error: error.message || "Erreur lors de la génération du ticket" },
+      { error: error instanceof Error ? error.message : "Erreur lors de la génération du ticket" },
       { status: 500 }
     );
   }

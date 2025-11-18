@@ -6,7 +6,7 @@ import { SubscriptionService } from "@/lib/services/subscription.service";
  * GET /api/subscription/invoices
  * Récupérer toutes les factures Stripe de l'abonnement
  */
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
     const { entrepriseId } = await requireTenantAuth();
 
@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     }));
 
     return NextResponse.json({ invoices: formattedInvoices });
-  } catch (error: any) {
+  } catch (error) {
     return handleTenantError(error);
   }
 }

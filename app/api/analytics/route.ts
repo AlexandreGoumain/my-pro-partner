@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { prisma } from "@/lib/prisma";
+import { calculatePeriodDates, calculatePercentageChange, type Period } from "@/lib/utils/date-periods";
 
 /**
  * GET /api/analytics
@@ -11,34 +12,15 @@ export async function GET(req: NextRequest) {
     const { entrepriseId } = await requireTenantAuth();
 
     const searchParams = req.nextUrl.searchParams;
-    const period = searchParams.get("period") || "30d";
+    const periodParam = searchParams.get("period") || "30d";
 
-    // Calculer la date de début selon la période
-    const now = new Date();
-    let startDate: Date;
-    let previousStartDate: Date;
+    // Validate and cast period
+    const period = (["7d", "30d", "90d", "12m"].includes(periodParam)
+      ? periodParam
+      : "30d") as Exclude<Period, "custom">;
 
-    switch (period) {
-      case "7d":
-        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        previousStartDate = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
-        break;
-      case "30d":
-        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        previousStartDate = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
-        break;
-      case "90d":
-        startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
-        previousStartDate = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000);
-        break;
-      case "12m":
-        startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
-        previousStartDate = new Date(now.getTime() - 730 * 24 * 60 * 60 * 1000);
-        break;
-      default:
-        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        previousStartDate = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
-    }
+    // Use centralized date period calculation
+    const { startDate, previousStartDate } = calculatePeriodDates(period);
 
     // Récupérer les documents de la période
     const documents = await prisma.document.findMany({
@@ -83,17 +65,11 @@ export async function GET(req: NextRequest) {
       (sum, doc) => sum + Number(doc.total_ttc),
       0
     );
-    const revenueChange =
-      previousRevenue > 0
-        ? ((totalRevenue - previousRevenue) / previousRevenue) * 100
-        : 0;
+    const revenueChange = calculatePercentageChange(totalRevenue, previousRevenue);
 
     const totalOrders = documents.length;
     const previousOrders = previousDocuments.length;
-    const ordersChange =
-      previousOrders > 0
-        ? ((totalOrders - previousOrders) / previousOrders) * 100
-        : 0;
+    const ordersChange = calculatePercentageChange(totalOrders, previousOrders);
 
     // Clients uniques
     const clientIds = new Set(documents.map((doc) => doc.clientId));
@@ -101,24 +77,18 @@ export async function GET(req: NextRequest) {
     const previousClientIds = new Set(
       previousDocuments.map((doc) => doc.clientId)
     );
-    const clientsChange =
-      previousClientIds.size > 0
-        ? ((totalClients - previousClientIds.size) / previousClientIds.size) * 100
-        : 0;
+    const clientsChange = calculatePercentageChange(totalClients, previousClientIds.size);
 
     // Panier moyen
     const averageOrder = totalOrders > 0 ? totalRevenue / totalOrders : 0;
     const previousAverageOrder =
       previousOrders > 0 ? previousRevenue / previousOrders : 0;
-    const averageOrderChange =
-      previousAverageOrder > 0
-        ? ((averageOrder - previousAverageOrder) / previousAverageOrder) * 100
-        : 0;
+    const averageOrderChange = calculatePercentageChange(averageOrder, previousAverageOrder);
 
     // Top clients
     const clientStats = new Map<
       string,
-      { client: any; totalSpent: number; orderCount: number }
+      { client: { id: string; nom: string; prenom: string | null }; totalSpent: number; orderCount: number }
     >();
 
     documents.forEach((doc) => {
@@ -157,13 +127,13 @@ export async function GET(req: NextRequest) {
         if (ligne.article) {
           const existing = productStats.get(ligne.article.id);
           if (existing) {
-            existing.totalSold += ligne.quantite;
+            existing.totalSold += Number(ligne.quantite);
             existing.revenue += Number(ligne.montant_ttc);
           } else {
             productStats.set(ligne.article.id, {
               id: ligne.article.id,
               nom: ligne.article.nom,
-              totalSold: ligne.quantite,
+              totalSold: Number(ligne.quantite),
               revenue: Number(ligne.montant_ttc),
             });
           }
@@ -218,7 +188,7 @@ export async function GET(req: NextRequest) {
     };
 
     return NextResponse.json({ data });
-  } catch (error: any) {
+  } catch (error) {
     return handleTenantError(error);
   }
 }

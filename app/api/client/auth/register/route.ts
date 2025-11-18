@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { emailService } from "@/lib/email/email-service";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
+import { validateRequest } from "@/lib/utils/validation-helper";
 
 const registerSchema = z.object({
   nom: z.string().min(1, "Le nom est requis"),
@@ -23,17 +24,8 @@ const registerSchema = z.object({
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const validation = registerSchema.safeParse(body);
-
-    if (!validation.success) {
-      return NextResponse.json(
-        {
-          message: "Données invalides",
-          errors: validation.error.errors,
-        },
-        { status: 400 }
-      );
-    }
+    const result = validateRequest(registerSchema, body);
+    if (!result.success) return result.response;
 
     const {
       nom,
@@ -45,7 +37,7 @@ export async function POST(req: NextRequest) {
       codePostal,
       ville,
       invitationToken,
-    } = validation.data;
+    } = result.data;
 
     // Verify invitation token (required)
     const invitation = await prisma.invitationToken.findUnique({

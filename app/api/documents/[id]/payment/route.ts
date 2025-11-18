@@ -62,7 +62,7 @@ export async function POST(
 
         // Create Stripe checkout session
         const session = await stripe.checkout.sessions.create({
-            payment_method_types: STRIPE_CONFIG.PAYMENT_METHODS,
+            payment_method_types: [...STRIPE_CONFIG.PAYMENT_METHODS],
             line_items: [
                 {
                     price_data: {

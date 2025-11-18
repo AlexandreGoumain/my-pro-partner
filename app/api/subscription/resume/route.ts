@@ -6,7 +6,7 @@ import { SubscriptionService } from "@/lib/services/subscription.service";
  * POST /api/subscription/resume
  * Réactiver un abonnement qui était en attente d'annulation
  */
-export async function POST(req: NextRequest) {
+export async function POST(_req: NextRequest) {
   try {
     const { entrepriseId } = await requireTenantAuth();
 
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
       success: true,
       message: "Abonnement réactivé avec succès",
     });
-  } catch (error: any) {
+  } catch (error) {
     return handleTenantError(error);
   }
 }

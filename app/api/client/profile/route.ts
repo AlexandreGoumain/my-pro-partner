@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireClientAuth, handleClientAuthError } from "@/lib/middleware/client-auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { validateRequest } from "@/lib/utils/validation-helper";
 
 const profileUpdateSchema = z.object({
     telephone: z.string().optional().or(z.literal("")),
@@ -19,31 +20,22 @@ export async function PUT(req: NextRequest) {
         const { client } = await requireClientAuth(req);
 
         const body = await req.json();
-        const validation = profileUpdateSchema.safeParse(body);
-
-        if (!validation.success) {
-            return NextResponse.json(
-                {
-                    message: "Données invalides",
-                    errors: validation.error.errors,
-                },
-                { status: 400 }
-            );
-        }
+        const result = validateRequest(profileUpdateSchema, body);
+        if (!result.success) return result.response;
 
         // Update only allowed fields
         const updatedClient = await prisma.client.update({
             where: { id: client.id },
             data: {
-                telephone: validation.data.telephone || undefined,
-                adresse: validation.data.adresse || undefined,
-                codePostal: validation.data.codePostal || undefined,
-                ville: validation.data.ville || undefined,
+                telephone: result.data.telephone || undefined,
+                adresse: result.data.adresse || undefined,
+                codePostal: result.data.codePostal || undefined,
+                ville: result.data.ville || undefined,
             },
         });
 
         // Remove password from response
-        const { password, ...clientWithoutPassword } = updatedClient;
+        const { password: _password, ...clientWithoutPassword } = updatedClient;
 
         return NextResponse.json({
             client: clientWithoutPassword,

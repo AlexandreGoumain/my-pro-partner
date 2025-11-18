@@ -57,6 +57,7 @@ export async function GET(
                     total_tva: Number(document.total_tva),
                     total_ttc: Number(document.total_ttc),
                     reste_a_payer: Number(document.reste_a_payer),
+                    acompte_montant: Number(document.acompte_montant),
                     lignes: document.lignes.map((ligne) => ({
                         ...ligne,
                         quantite: Number(ligne.quantite),
@@ -81,7 +82,7 @@ export async function GET(
         const filename = `${typeLabel}_${document.numero}.pdf`;
 
         // Return PDF as download
-        return new NextResponse(pdfBuffer, {
+        return new NextResponse(new Uint8Array(pdfBuffer), {
             headers: {
                 "Content-Type": "application/pdf",
                 "Content-Disposition": `attachment; filename="${filename}"`,

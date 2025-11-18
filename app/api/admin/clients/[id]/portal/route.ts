@@ -1,13 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
 import {
     handleTenantError,
     requireTenantAuth,
 } from "@/lib/middleware/tenant-isolation";
 import { prisma } from "@/lib/prisma";
-import bcrypt from "bcryptjs";
-import { z } from "zod";
-import { nanoid } from "nanoid";
 import { EmailService } from "@/lib/services/email/email.service";
+import { validateRequest } from "@/lib/utils/validation-helper";
+import bcrypt from "bcryptjs";
+import { nanoid } from "nanoid";
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 
 const enablePortalSchema = z.object({
     enable: z.boolean(),
@@ -27,19 +28,10 @@ export async function POST(
         const { id: clientId } = await params;
 
         const body = await req.json();
-        const validation = enablePortalSchema.safeParse(body);
+        const result = validateRequest(enablePortalSchema, body);
+        if (!result.success) return result.response;
 
-        if (!validation.success) {
-            return NextResponse.json(
-                {
-                    message: "Donn�es invalides",
-                    errors: validation.error.errors,
-                },
-                { status: 400 }
-            );
-        }
-
-        const { enable, sendInvitation = false } = validation.data;
+        const { enable, sendInvitation = false } = result.data;
 
         // Check if client exists and belongs to company
         const client = await prisma.client.findFirst({
@@ -59,7 +51,10 @@ export async function POST(
         // Check if client has an email
         if (!client.email) {
             return NextResponse.json(
-                { message: "Le client doit avoir une adresse email pour acc�der au portail" },
+                {
+                    message:
+                        "Le client doit avoir une adresse email pour acc�der au portail",
+                },
                 { status: 400 }
             );
         }
@@ -104,7 +99,8 @@ export async function POST(
                 id: updatedClient.id,
                 clientPortalEnabled: updatedClient.clientPortalEnabled,
             },
-            temporaryPassword: enable && temporaryPassword ? temporaryPassword : undefined,
+            temporaryPassword:
+                enable && temporaryPassword ? temporaryPassword : undefined,
             message: enable
                 ? "Portail activé avec succès"
                 : "Portail désactivé avec succès",

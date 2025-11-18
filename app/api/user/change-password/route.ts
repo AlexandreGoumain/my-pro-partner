@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { validateRequest } from "@/lib/utils/validation-helper";
 
 const changePasswordSchema = z.object({
     currentPassword: z.string().min(1, "Le mot de passe actuel est requis"),
@@ -20,19 +21,10 @@ export async function POST(req: NextRequest) {
 
         // Parser et valider le body
         const body = await req.json();
-        const validation = changePasswordSchema.safeParse(body);
+        const result = validateRequest(changePasswordSchema, body);
+        if (!result.success) return result.response;
 
-        if (!validation.success) {
-            return NextResponse.json(
-                {
-                    message: "Données invalides",
-                    errors: validation.error.flatten().fieldErrors
-                },
-                { status: 400 }
-            );
-        }
-
-        const { currentPassword, newPassword } = validation.data;
+        const { currentPassword, newPassword } = result.data;
 
         // Récupérer l'utilisateur avec son mot de passe
         const user = await prisma.user.findUnique({

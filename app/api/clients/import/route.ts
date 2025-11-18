@@ -5,33 +5,46 @@ import {
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { validateRequest } from "@/lib/utils/validation-helper";
 
 const clientImportSchema = z.object({
   nom: z.string().min(1, "Le nom est requis"),
   prenom: z
     .union([z.string(), z.null(), z.undefined()])
-    .transform((val) => val || null),
+    .transform((val) => (val && val.trim() !== "" ? val : null))
+    .nullable(),
   email: z
     .union([z.string().email("Email invalide"), z.literal(""), z.null(), z.undefined()])
-    .transform((val) => (val === "" || !val ? null : val)),
+    .transform((val) => (val === "" || !val ? null : val))
+    .nullable(),
   telephone: z
     .union([z.string(), z.null(), z.undefined()])
-    .transform((val) => val || null),
+    .transform((val) => (val && val.trim() !== "" ? val : null))
+    .nullable(),
   adresse: z
     .union([z.string(), z.null(), z.undefined()])
-    .transform((val) => val || null),
+    .transform((val) => (val && val.trim() !== "" ? val : null))
+    .nullable(),
   ville: z
     .union([z.string(), z.null(), z.undefined()])
-    .transform((val) => val || null),
+    .transform((val) => (val && val.trim() !== "" ? val : null))
+    .nullable(),
   codePostal: z
     .union([z.string(), z.null(), z.undefined()])
-    .transform((val) => val || null),
+    .transform((val) => (val && val.trim() !== "" ? val : null))
+    .nullable(),
   pays: z
     .union([z.string(), z.null(), z.undefined()])
-    .transform((val) => val || "France"),
+    .transform((val) => (val && val.trim() !== "" ? val : "France"))
+    .default("France"),
   notes: z
     .union([z.string(), z.null(), z.undefined()])
-    .transform((val) => val || null),
+    .transform((val) => (val && val.trim() !== "" ? val : null))
+    .nullable(),
+});
+
+const importRequestSchema = z.object({
+  clients: z.array(clientImportSchema),
 });
 
 export async function POST(req: NextRequest) {
@@ -39,11 +52,10 @@ export async function POST(req: NextRequest) {
     const { entrepriseId } = await requireTenantAuth();
     const body = await req.json();
 
-    const { clients } = z
-      .object({
-        clients: z.array(clientImportSchema),
-      })
-      .parse(body);
+    const result = validateRequest(importRequestSchema, body);
+    if (!result.success) return result.response;
+
+    const { clients } = result.data;
 
     if (clients.length === 0) {
       return NextResponse.json(
@@ -132,8 +144,15 @@ export async function POST(req: NextRequest) {
     // Create clients in batch
     const createdClients = await prisma.client.createMany({
       data: clients.map((client) => ({
-        ...client,
+        nom: client.nom,
+        prenom: client.prenom || null,
         email: client.email && client.email.trim() !== "" ? client.email : null,
+        telephone: client.telephone || null,
+        adresse: client.adresse || null,
+        ville: client.ville || null,
+        codePostal: client.codePostal || null,
+        pays: client.pays || "France",
+        notes: client.notes || null,
         entrepriseId,
       })),
       skipDuplicates: true,
@@ -156,14 +175,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error("❌ Error importing clients:", error);
-
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { message: "Données invalides", errors: error.errors },
-        { status: 400 }
-      );
-    }
-
     return handleTenantError(error);
   }
 }

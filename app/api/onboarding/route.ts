@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import { validateRequest } from "@/lib/utils/validation-helper";
 import { z } from "zod";
 
 const onboardingSchema = z.object({
@@ -16,17 +17,8 @@ const onboardingSchema = z.object({
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
-        const validation = onboardingSchema.safeParse(body);
-
-        if (!validation.success) {
-            return NextResponse.json(
-                {
-                    message: "Données invalides",
-                    errors: validation.error.errors,
-                },
-                { status: 400 }
-            );
-        }
+        const validationResult = validateRequest(onboardingSchema, body);
+        if (!validationResult.success) return validationResult.response;
 
         const {
             nomEntreprise,
@@ -36,7 +28,7 @@ export async function POST(req: NextRequest) {
             prenom,
             siret,
             telephone,
-        } = validation.data;
+        } = validationResult.data;
 
         const existingUser = await prisma.user.findUnique({
             where: { email },
@@ -64,7 +56,7 @@ export async function POST(req: NextRequest) {
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        const result = await prisma.$transaction(async (tx) => {
+        const transactionResult = await prisma.$transaction(async (tx) => {
             const entreprise = await tx.entreprise.create({
                 data: {
                     nom: nomEntreprise,
@@ -80,7 +72,7 @@ export async function POST(req: NextRequest) {
                     email,
                     password: hashedPassword,
                     name: prenom ? `${prenom} ${nom}` : nom,
-                    role: "admin",
+                    role: "ADMIN",
                     entrepriseId: entreprise.id,
                 },
             });
@@ -102,14 +94,14 @@ export async function POST(req: NextRequest) {
             {
                 message: "Compte créé avec succès",
                 entreprise: {
-                    id: result.entreprise.id,
-                    nom: result.entreprise.nom,
-                    plan: result.entreprise.plan,
+                    id: transactionResult.entreprise.id,
+                    nom: transactionResult.entreprise.nom,
+                    plan: transactionResult.entreprise.plan,
                 },
                 user: {
-                    id: result.user.id,
-                    email: result.user.email,
-                    name: result.user.name,
+                    id: transactionResult.user.id,
+                    email: transactionResult.user.email,
+                    name: transactionResult.user.name,
                 },
             },
             { status: 201 }

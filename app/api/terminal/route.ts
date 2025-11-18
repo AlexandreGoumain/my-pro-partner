@@ -1,19 +1,28 @@
-import { NextResponse } from "next/server";
-import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
-import { TerminalService } from "@/lib/services/terminal.service";
+import { createCrudRoutes } from "@/lib/api/crud-factory";
+import { terminalCreateSchema, terminalUpdateSchema } from "@/lib/validation";
+import { prisma } from "@/lib/prisma";
+import { ConflictError } from "@/lib/errors";
 
-/**
- * GET /api/terminal
- * Récupérer tous les terminaux d'une entreprise
- */
-export async function GET() {
-  try {
-    const { entrepriseId } = await requireTenantAuth();
+export const { GET, POST } = createCrudRoutes({
+  modelName: "terminal",
+  resourceName: "Terminal",
+  createSchema: terminalCreateSchema,
+  updateSchema: terminalUpdateSchema,
+  searchFields: ["label", "location", "stripeTerminalId"],
+  orderBy: { createdAt: "desc" },
 
-    const terminals = await TerminalService.getTerminals(entrepriseId);
+  // Validate unique Stripe Terminal ID before creating
+  beforeCreate: async (data, _entrepriseId) => {
+    const existingTerminal = await prisma.terminal.findUnique({
+      where: { stripeTerminalId: data.stripeTerminalId },
+    });
 
-    return NextResponse.json({ terminals });
-  } catch (error: any) {
-    return handleTenantError(error);
-  }
-}
+    if (existingTerminal) {
+      throw new ConflictError(
+        `Un terminal avec l'ID Stripe ${data.stripeTerminalId} existe déjà`
+      );
+    }
+
+    return data;
+  },
+});

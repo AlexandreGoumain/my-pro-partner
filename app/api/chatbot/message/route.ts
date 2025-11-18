@@ -149,16 +149,18 @@ export async function POST(req: NextRequest) {
       onStreamEnd: async (fullText, toolCalls) => {
         // Save assistant message to database
         try {
+          const metadata: { timestamp: string; toolCalls?: unknown[] } = {
+            timestamp: new Date().toISOString(),
+            ...(toolCalls.length > 0 && { toolCalls }),
+          };
+
           await prisma.message.create({
             data: {
               conversationId: conversation!.id,
               role: 'ASSISTANT',
               content: fullText,
               model: 'gpt-4o-mini',
-              metadata: {
-                timestamp: new Date().toISOString(),
-                toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
-              },
+              metadata,
             },
           });
 

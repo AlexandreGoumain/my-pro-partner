@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
                 signature,
                 STRIPE_WEBHOOK_SECRET
             );
-        } catch (err) {
+        } catch (_err) {
             return NextResponse.json(
                 { received: false, error: STRIPE_ERRORS.WEBHOOK_VERIFICATION_FAILED },
                 { status: 400 }
@@ -160,7 +160,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session): Promis
             reference: document.numero,
             description: `Paiement de ${paidAmount}€ pour ${document.type === "FACTURE" ? "la facture" : "le document"} ${document.numero}`,
         });
-    } catch (loyaltyError) {
+    } catch (_loyaltyError) {
         // Ignore loyalty errors - payment was successful
     }
 }
@@ -179,24 +179,34 @@ async function handleSubscriptionCheckout(session: Stripe.Checkout.Session): Pro
     const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
 
     // Créer l'abonnement en BDD
-    const dbSubscription = await SubscriptionService.createSubscriptionFromStripe(subscription, entrepriseId);
+    await SubscriptionService.createSubscriptionFromStripe(subscription, entrepriseId);
 
     // Envoyer email de confirmation
     try {
         const entreprise = await prisma.entreprise.findUnique({
             where: { id: entrepriseId },
-            include: { utilisateur: true },
+            include: {
+                users: {
+                    where: { role: "ADMIN" },
+                    take: 1,
+                }
+            },
         });
 
-        if (entreprise?.utilisateur?.email) {
+        const dbSubscription = await prisma.subscription.findUnique({
+            where: { stripeSubscriptionId: subscription.id },
+        });
+
+        const adminUser = entreprise?.users[0];
+        if (adminUser?.email && entreprise && dbSubscription) {
             await EmailNotificationService.sendSubscriptionConfirmation({
-                email: entreprise.utilisateur.email,
+                email: adminUser.email,
                 entrepriseName: entreprise.nom,
                 plan: dbSubscription.plan,
                 trialEnd: dbSubscription.trialEnd || undefined,
             });
         }
-    } catch (error) {
+    } catch (_error) {
         // Ignore email errors
     }
 }
@@ -247,7 +257,12 @@ async function handleTrialWillEnd(subscription: Stripe.Subscription): Promise<vo
             where: { stripeSubscriptionId: subscription.id },
             include: {
                 entreprise: {
-                    include: { utilisateur: true },
+                    include: {
+                        users: {
+                            where: { role: "ADMIN" },
+                            take: 1,
+                        }
+                    },
                 },
             },
         });
@@ -257,19 +272,20 @@ async function handleTrialWillEnd(subscription: Stripe.Subscription): Promise<vo
         }
 
         // Envoyer email d'alerte avant fin d'essai
-        if (dbSubscription.entreprise.utilisateur?.email && dbSubscription.trialEnd) {
+        const adminUser = dbSubscription.entreprise.users[0];
+        if (adminUser?.email && dbSubscription.trialEnd) {
             const daysRemaining = Math.ceil(
                 (new Date(dbSubscription.trialEnd).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
             );
 
             await EmailNotificationService.sendTrialEndingWarning({
-                email: dbSubscription.entreprise.utilisateur.email,
+                email: adminUser.email,
                 entrepriseName: dbSubscription.entreprise.nom,
                 daysRemaining: Math.max(1, daysRemaining),
                 plan: dbSubscription.plan,
             });
         }
-    } catch (error) {
+    } catch (_error) {
         // Ne pas throw pour ne pas faire échouer le webhook
     }
 }
@@ -280,11 +296,15 @@ async function handleTrialWillEnd(subscription: Stripe.Subscription): Promise<vo
 async function handleInvoicePaid(invoice: Stripe.Invoice): Promise<void> {
     try {
         // Si c'est une facture d'abonnement
-        if (invoice.subscription) {
-            const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
+        const subscriptionRef = (invoice as unknown as { subscription?: string | { id: string } }).subscription;
+        if (subscriptionRef) {
+            const subscriptionId = typeof subscriptionRef === 'string'
+                ? subscriptionRef
+                : subscriptionRef.id;
+            const subscription = await stripe.subscriptions.retrieve(subscriptionId);
             await SubscriptionService.updateSubscriptionFromStripe(subscription);
         }
-    } catch (error) {
+    } catch (_error) {
         // Ne pas throw pour ne pas faire échouer le webhook
     }
 }
@@ -294,24 +314,34 @@ async function handleInvoicePaid(invoice: Stripe.Invoice): Promise<void> {
  */
 async function handleInvoicePaymentFailed(invoice: Stripe.Invoice): Promise<void> {
     try {
-        if (invoice.subscription) {
-            const subscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
+        const subscriptionRef = (invoice as unknown as { subscription?: string | { id: string } }).subscription;
+        if (subscriptionRef) {
+            const subscriptionId = typeof subscriptionRef === 'string'
+                ? subscriptionRef
+                : subscriptionRef.id;
+            const subscription = await stripe.subscriptions.retrieve(subscriptionId);
             await SubscriptionService.updateSubscriptionFromStripe(subscription);
 
             const dbSubscription = await prisma.subscription.findUnique({
                 where: { stripeSubscriptionId: subscription.id },
                 include: {
                     entreprise: {
-                        include: { utilisateur: true },
+                        include: {
+                            users: {
+                                where: { role: "ADMIN" },
+                                take: 1,
+                            }
+                        },
                     },
                 },
             });
 
             if (dbSubscription) {
                 // Envoyer email de paiement échoué
-                if (dbSubscription.entreprise.utilisateur?.email) {
+                const adminUser = dbSubscription.entreprise.users[0];
+                if (adminUser?.email) {
                     await EmailNotificationService.sendPaymentFailed({
-                        email: dbSubscription.entreprise.utilisateur.email,
+                        email: adminUser.email,
                         entrepriseName: dbSubscription.entreprise.nom,
                         amount: (invoice.amount_due || 0) / 100,
                         reason: invoice.last_finalization_error?.message,
@@ -319,7 +349,7 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice): Promise<void
                 }
             }
         }
-    } catch (error) {
+    } catch (_error) {
         // Ne pas throw pour ne pas faire échouer le webhook
     }
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { SubscriptionService } from "@/lib/services/subscription.service";
+import { validateRequest } from "@/lib/utils/validation-helper";
 import { z } from "zod";
 
 const changePlanSchema = z.object({
@@ -18,16 +19,10 @@ export async function POST(req: NextRequest) {
     const { entrepriseId } = await requireTenantAuth();
 
     const body = await req.json();
-    const validation = changePlanSchema.safeParse(body);
+    const result = validateRequest(changePlanSchema, body);
+    if (!result.success) return result.response;
 
-    if (!validation.success) {
-      return NextResponse.json(
-        { error: "Données invalides", details: validation.error.errors },
-        { status: 400 }
-      );
-    }
-
-    const { plan, interval, prorate } = validation.data;
+    const { plan, interval, prorate } = result.data;
 
     await SubscriptionService.changePlan({
       entrepriseId,
@@ -40,7 +35,7 @@ export async function POST(req: NextRequest) {
       success: true,
       message: "Plan modifié avec succès",
     });
-  } catch (error: any) {
+  } catch (error) {
     return handleTenantError(error);
   }
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { SubscriptionService } from "@/lib/services/subscription.service";
+import { validateRequest } from "@/lib/utils/validation-helper";
 import { z } from "zod";
 
 const cancelSchema = z.object({
@@ -16,25 +17,19 @@ export async function POST(req: NextRequest) {
     const { entrepriseId } = await requireTenantAuth();
 
     const body = await req.json();
-    const validation = cancelSchema.safeParse(body);
-
-    if (!validation.success) {
-      return NextResponse.json(
-        { error: "Données invalides" },
-        { status: 400 }
-      );
-    }
+    const result = validateRequest(cancelSchema, body);
+    if (!result.success) return result.response;
 
     await SubscriptionService.cancelSubscription(
       entrepriseId,
-      validation.data.reason
+      result.data.reason
     );
 
     return NextResponse.json({
       success: true,
       message: "Abonnement annulé avec succès. Il restera actif jusqu'à la fin de la période en cours.",
     });
-  } catch (error: any) {
+  } catch (error) {
     return handleTenantError(error);
   }
 }

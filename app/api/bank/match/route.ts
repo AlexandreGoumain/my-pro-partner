@@ -5,6 +5,7 @@ import {
 import { BankReconciliationService } from "@/lib/services/bank-reconciliation.service";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { validateRequest } from "@/lib/utils/validation-helper";
 
 const matchSchema = z.object({
     transactionId: z.string(),
@@ -20,21 +21,12 @@ export async function POST(req: NextRequest) {
         await requireTenantAuth();
 
         const body = await req.json();
-        const validation = matchSchema.safeParse(body);
-
-        if (!validation.success) {
-            return NextResponse.json(
-                {
-                    error: "Données invalides",
-                    details: validation.error.errors,
-                },
-                { status: 400 }
-            );
-        }
+        const result = validateRequest(matchSchema, body);
+        if (!result.success) return result.response;
 
         await BankReconciliationService.manualMatch({
-            transactionId: validation.data.transactionId,
-            documentId: validation.data.documentId,
+            transactionId: result.data.transactionId,
+            documentId: result.data.documentId,
         });
 
         return NextResponse.json({ success: true });

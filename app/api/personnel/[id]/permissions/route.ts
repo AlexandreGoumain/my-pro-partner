@@ -9,10 +9,11 @@ import { updateUserPermissions, userHasPermission } from "@/lib/personnel/person
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await requireTenantAuth();
+    const { id } = await params;
 
     // Vérifier que l'utilisateur a la permission canManageUsers
     const hasPermission = await userHasPermission(userId, "canManageUsers");
@@ -24,7 +25,7 @@ export async function PATCH(
     }
 
     const body = await req.json();
-    const permissions = await updateUserPermissions(params.id, body, userId);
+    const permissions = await updateUserPermissions(id, body, userId);
 
     return NextResponse.json({ permissions });
   } catch (error) {

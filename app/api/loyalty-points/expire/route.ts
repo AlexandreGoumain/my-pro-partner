@@ -10,7 +10,7 @@ import { NextRequest, NextResponse } from "next/server";
  * Expire tous les points qui ont dépassé leur date d'expiration
  * Crée un mouvement EXPIRATION pour chaque batch de points expirés
  */
-export async function POST(req: NextRequest) {
+export async function POST(_req: NextRequest) {
     try {
         const { entrepriseId } = await requireTenantAuth();
 

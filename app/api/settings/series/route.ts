@@ -2,6 +2,7 @@ import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-is
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { validateRequest } from "@/lib/utils/validation-helper";
 
 const serieSchema = z.object({
     code: z.string().min(1, "Le code est requis").max(10, "Le code ne peut pas dépasser 10 caractères"),
@@ -28,7 +29,7 @@ export async function GET(req: NextRequest) {
         const typeFilter = searchParams.get("type"); // "devis", "factures", "avoirs"
 
         // Build where clause
-        const where: unknown = {
+        const where: Record<string, unknown> = {
             entrepriseId,
         };
 
@@ -70,23 +71,15 @@ export async function POST(req: NextRequest) {
         const body = await req.json();
 
         // Validate input
-        const validation = serieSchema.safeParse(body);
-        if (!validation.success) {
-            return NextResponse.json(
-                {
-                    message: "Données invalides",
-                    errors: validation.error.errors,
-                },
-                { status: 400 }
-            );
-        }
+        const result = validateRequest(serieSchema, body);
+        if (!result.success) return result.response;
 
         // Vérifier que le code n'existe pas déjà
         const existingSerie = await prisma.serieDocument.findUnique({
             where: {
                 entrepriseId_code: {
                     entrepriseId,
-                    code: validation.data.code.toUpperCase(),
+                    code: result.data.code.toUpperCase(),
                 },
             },
         });
@@ -99,7 +92,7 @@ export async function POST(req: NextRequest) {
         }
 
         // Gérer les séries par défaut par type
-        if (validation.data.est_defaut_devis) {
+        if (result.data.est_defaut_devis) {
             await prisma.serieDocument.updateMany({
                 where: {
                     entrepriseId,
@@ -110,7 +103,7 @@ export async function POST(req: NextRequest) {
                 },
             });
         }
-        if (validation.data.est_defaut_factures) {
+        if (result.data.est_defaut_factures) {
             await prisma.serieDocument.updateMany({
                 where: {
                     entrepriseId,
@@ -121,7 +114,7 @@ export async function POST(req: NextRequest) {
                 },
             });
         }
-        if (validation.data.est_defaut_avoirs) {
+        if (result.data.est_defaut_avoirs) {
             await prisma.serieDocument.updateMany({
                 where: {
                     entrepriseId,
@@ -136,8 +129,8 @@ export async function POST(req: NextRequest) {
         // Create serie
         const serie = await prisma.serieDocument.create({
             data: {
-                ...validation.data,
-                code: validation.data.code.toUpperCase(),
+                ...result.data,
+                code: result.data.code.toUpperCase(),
                 entrepriseId,
             },
             include: {
