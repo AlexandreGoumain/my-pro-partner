@@ -31,7 +31,7 @@ try {
       console.log(`  ✅ ${dep}`);
     }
   }
-} catch (e) {
+} catch (_e) {
   console.log('  ❌ Erreur lors de la lecture de package.json');
   errors++;
 }

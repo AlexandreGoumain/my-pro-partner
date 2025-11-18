@@ -41,7 +41,6 @@ async function main() {
   const tables: TableInfo[] = [];
   const criticalIssues: string[] = [];
   const warnings: string[] = [];
-  const optimizations: string[] = [];
 
   // ============================================
   // 1. ANALYSER CHAQUE TABLE
@@ -59,7 +58,7 @@ async function main() {
 
     try {
       // Compter les enregistrements
-      const count = await (prisma as any)[tableName.toLowerCase()]?.count() || 0;
+      const count = await (prisma as Record<string, { count?: () => Promise<number> }>)[tableName.toLowerCase()]?.count?.() || 0;
       console.log(`   Records: ${count}`);
 
       // Vérifier les index
@@ -162,9 +161,10 @@ async function main() {
         optimizations: tableOptimizations,
       });
 
-    } catch (error: any) {
-      console.log(`   ❌ Error: ${error.message}`);
-      criticalIssues.push(`❌ ${tableName}: Cannot analyze (${error.message})`);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.log(`   ❌ Error: ${errorMessage}`);
+      criticalIssues.push(`❌ ${tableName}: Cannot analyze (${errorMessage})`);
     }
   }
 
@@ -180,7 +180,7 @@ async function main() {
       foreignKey: "entrepriseId",
       async check() {
         const orphans = await prisma.user.findMany({
-          where: { entreprise: null },
+          where: { entrepriseId: undefined },
         });
         return orphans.length;
       },
@@ -191,7 +191,7 @@ async function main() {
       foreignKey: "entrepriseId",
       async check() {
         const orphans = await prisma.client.findMany({
-          where: { entreprise: null },
+          where: { entrepriseId: undefined },
         });
         return orphans.length;
       },
@@ -202,7 +202,7 @@ async function main() {
       foreignKey: "entrepriseId",
       async check() {
         const orphans = await prisma.document.findMany({
-          where: { entreprise: null },
+          where: { entrepriseId: undefined },
         });
         return orphans.length;
       },
@@ -219,7 +219,7 @@ async function main() {
       } else {
         console.log(`   ✓ ${check.parent} → ${check.child}: OK`);
       }
-    } catch (error) {
+    } catch {
       // Table might not exist yet
     }
   }

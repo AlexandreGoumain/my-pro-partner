@@ -12,7 +12,21 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "check-installation.js",
   ]),
+  {
+    rules: {
+      // Allow unused variables if they start with underscore
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
+    },
+  },
 ]);
 
 export default eslintConfig;
