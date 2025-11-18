@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { FieldBuilderInline } from "@/components/field-builder-inline";
+import { FieldBuilderInline } from "@/components/custom-fields/field-builder-inline";
 import type { CategorieWithCount } from "@/lib/types/category";
 import type { ChampPersonnaliseCreateInput } from "@/lib/types/custom-fields";
 import { ChevronRight, Info, Lightbulb } from "lucide-react";
@@ -68,8 +68,9 @@ export function CategoryDialog({
                     <DialogDescription>
                         {isSubCategory ? (
                             <span className="flex items-center gap-1">
-                                Cette sous-catégorie sera rangée dans la catégorie parente.
-                                La hiérarchie est limitée à 2 niveaux.
+                                Cette sous-catégorie sera rangée dans la
+                                catégorie parente. La hiérarchie est limitée à 2
+                                niveaux.
                             </span>
                         ) : (
                             "Cette catégorie sera une catégorie principale. Vous pourrez ensuite créer des sous-catégories."
@@ -85,15 +86,18 @@ export function CategoryDialog({
                                 { num: 1, label: "Informations" },
                                 { num: 2, label: "Template" },
                             ].map((step, idx) => (
-                                <div key={step.num} className="flex items-center">
+                                <div
+                                    key={step.num}
+                                    className="flex items-center"
+                                >
                                     <div className="flex flex-col items-center gap-1">
                                         <div
                                             className={`flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all ${
                                                 currentStep === step.num
                                                     ? "border-primary bg-primary text-primary-foreground"
                                                     : currentStep > step.num
-                                                    ? "border-primary bg-primary/20 text-primary"
-                                                    : "border-muted-foreground/30 text-muted-foreground"
+                                                      ? "border-primary bg-primary/20 text-primary"
+                                                      : "border-muted-foreground/30 text-muted-foreground"
                                             }`}
                                         >
                                             {currentStep > step.num ? (
@@ -148,7 +152,10 @@ export function CategoryDialog({
                                             })
                                         }
                                         onKeyDown={(e) => {
-                                            if (e.key === "Enter" && formData.nom.trim()) {
+                                            if (
+                                                e.key === "Enter" &&
+                                                formData.nom.trim()
+                                            ) {
                                                 onSubmit();
                                             }
                                         }}
@@ -161,7 +168,10 @@ export function CategoryDialog({
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="description" className="text-base">
+                                    <Label
+                                        htmlFor="description"
+                                        className="text-base"
+                                    >
                                         Description (optionnel)
                                     </Label>
                                     <Textarea
@@ -188,8 +198,10 @@ export function CategoryDialog({
                                                     Conseil
                                                 </p>
                                                 <p className="text-amber-700">
-                                                    Créez d'abord vos catégories principales, puis
-                                                    créez des sous-catégories avec des templates
+                                                    Créez d&apos;abord vos
+                                                    catégories principales, puis
+                                                    créez des sous-catégories
+                                                    avec des templates
                                                     personnalisés si besoin.
                                                 </p>
                                             </div>
@@ -217,7 +229,9 @@ export function CategoryDialog({
                                                         <strong>
                                                             {
                                                                 categories.find(
-                                                                    (c) => c.id === formData.parentId
+                                                                    (c) =>
+                                                                        c.id ===
+                                                                        formData.parentId
                                                                 )?.nom
                                                             }
                                                         </strong>
@@ -227,7 +241,10 @@ export function CategoryDialog({
                                         </Card>
 
                                         <div className="space-y-2">
-                                            <Label htmlFor="nom" className="text-base">
+                                            <Label
+                                                htmlFor="nom"
+                                                className="text-base"
+                                            >
                                                 Nom de la sous-catégorie *
                                             </Label>
                                             <Input
@@ -241,7 +258,10 @@ export function CategoryDialog({
                                                     })
                                                 }
                                                 onKeyDown={(e) => {
-                                                    if (e.key === "Enter" && formData.nom.trim()) {
+                                                    if (
+                                                        e.key === "Enter" &&
+                                                        formData.nom.trim()
+                                                    ) {
                                                         onNext();
                                                     }
                                                 }}
@@ -254,7 +274,10 @@ export function CategoryDialog({
                                         </div>
 
                                         <div className="space-y-2">
-                                            <Label htmlFor="description" className="text-base">
+                                            <Label
+                                                htmlFor="description"
+                                                className="text-base"
+                                            >
                                                 Description (optionnel)
                                             </Label>
                                             <Textarea
@@ -264,7 +287,8 @@ export function CategoryDialog({
                                                 onChange={(e) =>
                                                     onFormDataChange({
                                                         ...formData,
-                                                        description: e.target.value,
+                                                        description:
+                                                            e.target.value,
                                                     })
                                                 }
                                                 rows={3}
@@ -281,8 +305,11 @@ export function CategoryDialog({
                                                             Conseil
                                                         </p>
                                                         <p className="text-amber-700">
-                                                            Vous pouvez définir un template spécifique
-                                                            pour cette sous-catégorie à l'étape
+                                                            Vous pouvez définir
+                                                            un template
+                                                            spécifique pour
+                                                            cette sous-catégorie
+                                                            à l&apos;étape
                                                             suivante.
                                                         </p>
                                                     </div>
@@ -334,10 +361,14 @@ export function CategoryDialog({
                                 {isSubmitting ? (
                                     <>
                                         <Spinner className="mr-2" />
-                                        {editMode ? "Enregistrement..." : "Création..."}
+                                        {editMode
+                                            ? "Enregistrement..."
+                                            : "Création..."}
                                     </>
+                                ) : editMode ? (
+                                    "Enregistrer"
                                 ) : (
-                                    editMode ? "Enregistrer" : "Créer"
+                                    "Créer"
                                 )}
                             </Button>
                         </>
@@ -372,7 +403,9 @@ export function CategoryDialog({
                                 <Button
                                     variant="outline"
                                     onClick={onSubmit}
-                                    disabled={!formData.nom.trim() || isSubmitting}
+                                    disabled={
+                                        !formData.nom.trim() || isSubmitting
+                                    }
                                 >
                                     {isSubmitting ? (
                                         <>
@@ -385,15 +418,21 @@ export function CategoryDialog({
                                 </Button>
                                 <Button
                                     onClick={onSubmit}
-                                    disabled={!formData.nom.trim() || isSubmitting}
+                                    disabled={
+                                        !formData.nom.trim() || isSubmitting
+                                    }
                                 >
                                     {isSubmitting ? (
                                         <>
                                             <Spinner className="mr-2" />
-                                            {editMode ? "Enregistrement..." : "Création..."}
+                                            {editMode
+                                                ? "Enregistrement..."
+                                                : "Création..."}
                                         </>
+                                    ) : editMode ? (
+                                        "Enregistrer"
                                     ) : (
-                                        editMode ? "Enregistrer" : "Créer"
+                                        "Créer"
                                     )}
                                 </Button>
                             </div>

@@ -14,13 +14,13 @@ export function CategoryInfoCard() {
                         <ul className="text-sm text-blue-700 space-y-1 list-disc list-inside">
                             <li>
                                 <strong>Catégorie principale</strong> : Par exemple
-                                "Plomberie" ou "Services" - Simple organisation sans champs
+                                &quot;Plomberie&quot; ou &quot;Services&quot; - Simple organisation sans champs
                                 personnalisés
                             </li>
                             <li>
                                 <strong>Sous-catégorie</strong> : Cliquez sur le + à droite
-                                d'une catégorie pour créer une sous-catégorie avec un
-                                template personnalisé (ex: "Installation" sous "Plomberie")
+                                d&apos;une catégorie pour créer une sous-catégorie avec un
+                                template personnalisé (ex: &quot;Installation&quot; sous &quot;Plomberie&quot;)
                             </li>
                             <li>
                                 Survolez une catégorie pour voir les actions disponibles
