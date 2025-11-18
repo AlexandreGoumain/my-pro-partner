@@ -1,12 +1,12 @@
 "use client";
 
-import { CustomFieldsManager } from "@/components/custom-fields-manager";
+import { CustomFieldsManager } from "@/components/custom-fields/custom-fields-manager";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CardSection } from "@/components/ui/card-section";
+import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { useCategorie } from "@/hooks/use-categories";
 import { ArrowLeft } from "lucide-react";
-import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import Link from "next/link";
 import { use } from "react";
 
@@ -76,9 +76,7 @@ export default function CategoryTemplatePage({
 
             <CardSection title="Informations" contentClassName="space-y-2">
                 <div>
-                    <span className="text-sm text-muted-foreground">
-                        Nom :
-                    </span>{" "}
+                    <span className="text-sm text-muted-foreground">Nom :</span>{" "}
                     <span className="font-medium">{categorie.nom}</span>
                 </div>
                 {categorie.description && (

@@ -35,7 +35,7 @@ export default function PaymentLinkPage() {
         <ConditionalSkeleton
             isLoading={loading}
             skeletonProps={{
-                layout: "simple",
+                layout: "form",
                 itemCount: 1,
                 itemHeight: "h-[600px]",
             }}
@@ -58,7 +58,7 @@ export default function PaymentLinkPage() {
                     <div className="text-center mb-8">
                         <Image
                             src={logoUrl}
-                            alt={entrepriseName}
+                            alt={entrepriseName || ''}
                             width={120}
                             height={40}
                             className="mx-auto"
@@ -120,7 +120,7 @@ export default function PaymentLinkPage() {
                         {/* Footer */}
                         <div className="mt-8 pt-6 border-t border-black/8">
                             <PaymentLinkFooter
-                                entrepriseName={entrepriseName}
+                                entrepriseName={entrepriseName || ''}
                             />
                         </div>
                     </div>

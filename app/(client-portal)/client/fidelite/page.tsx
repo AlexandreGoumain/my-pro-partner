@@ -26,31 +26,31 @@ export default function ClientFidelitePage() {
                 />
             ) : (
                 <div className="space-y-6">
-            {/* Header */}
-            <PageHeader
-                title="Programme de fidélité"
-                description="Gagnez des points et profitez d'avantages exclusifs"
-            />
+                    {/* Header */}
+                    <PageHeader
+                        title="Programme de fidélité"
+                        description="Gagnez des points et profitez d'avantages exclusifs"
+                    />
 
-            {/* Overview Cards */}
-            <ClientLoyaltyOverview
-                points={data.client.points_solde}
-                niveau={data.client.niveauFidelite || null}
-                pointsExpiringSoon={data.pointsExpiringSoon}
-            />
+                    {/* Overview Cards */}
+                    <ClientLoyaltyOverview
+                        points={data.client.points_solde}
+                        niveau={data.client.niveauFidelite || null}
+                        pointsExpiringSoon={data.pointsExpiringSoon}
+                    />
 
-            {/* Progress to Next Level */}
-            <ClientLoyaltyProgress
-                currentLevel={data.client.niveauFidelite || null}
-                nextLevel={data.nextLevel}
-                points={data.client.points_solde}
-            />
+                    {/* Progress to Next Level */}
+                    <ClientLoyaltyProgress
+                        currentLevel={data.client.niveauFidelite || null}
+                        nextLevel={data.nextLevel}
+                        points={data.client.points_solde}
+                    />
 
-            {/* Points History */}
-            <ClientLoyaltyHistory
-                mouvements={data.mouvements}
-                isLoading={isLoading}
-            />
+                    {/* Points History */}
+                    <ClientLoyaltyHistory
+                        mouvements={data.mouvements}
+                        isLoading={isLoading}
+                    />
                 </div>
             )}
         </ConditionalSkeleton>

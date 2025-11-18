@@ -19,7 +19,7 @@ export async function middleware(request: NextRequest) {
 
   // Si l'utilisateur est connecté
   if (token) {
-    const onboardingComplete = (token as unknown).onboardingComplete;
+    const onboardingComplete = (token as { onboardingComplete?: boolean }).onboardingComplete;
 
     // Si onboarding non complété et essaie d'accéder au dashboard
     if (!onboardingComplete && isDashboard) {

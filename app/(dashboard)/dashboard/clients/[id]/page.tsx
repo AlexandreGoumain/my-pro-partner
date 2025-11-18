@@ -10,9 +10,9 @@ import {
     ClientQuickActions,
 } from "@/components/client-detail";
 import { ClientDocumentsTab } from "@/components/client-detail/client-documents-tab";
-import { ClientEditDialog } from "@/components/client-edit-dialog";
-import { ClientEmailDialog } from "@/components/client-email-dialog";
-import { DeleteConfirmDialog } from "@/components/delete-confirm-dialog";
+import { ClientEditDialog } from "@/components/clients/client-edit-dialog";
+import { ClientEmailDialog } from "@/components/clients/client-email-dialog";
+import { DeleteConfirmDialog } from "@/components/shared/delete-confirm-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -159,16 +159,16 @@ export default function ClientDetailPage() {
                                 <h3 className="text-[15px] font-medium tracking-[-0.01em] text-black">
                                     Notes internes
                                 </h3>
-                                <PrimaryActionButton
+                                <Button
                                     size="sm"
-                                    className="h-9 px-4 text-[13px]"
+                                    className="h-9 px-4 text-[13px] bg-black hover:bg-black/90 text-white"
                                 >
                                     <MessageSquare
                                         className="h-4 w-4 mr-2"
                                         strokeWidth={2}
                                     />
                                     Ajouter une note
-                                </PrimaryActionButton>
+                                </Button>
                             </div>
                             {client.notes ? (
                                 <p className="text-[14px] text-black/80 whitespace-pre-wrap leading-relaxed">

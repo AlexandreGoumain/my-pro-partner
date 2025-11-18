@@ -1,7 +1,7 @@
 "use client";
 
-import { CampaignSchedulerDialog } from "@/components/campaign-scheduler-dialog";
 import { CampaignStats, CampaignsList } from "@/components/campaigns";
+import { CampaignSchedulerDialog } from "@/components/campaigns/campaign-scheduler-dialog";
 import { ConditionalSkeleton } from "@/components/ui/conditional-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
 import { PrimaryActionButton } from "@/components/ui/primary-action-button";
@@ -48,61 +48,61 @@ export default function CampaignsPage() {
             }}
         >
             <div className="space-y-6">
-            <PageHeader
-                title="Campagnes"
-                description="Planifiez et envoyez des campagnes à vos segments"
-                actions={
-                    <PrimaryActionButton icon={Plus} onClick={handleCreate}>
-                        Nouvelle campagne
-                    </PrimaryActionButton>
-                }
-            />
+                <PageHeader
+                    title="Campagnes"
+                    description="Planifiez et envoyez des campagnes à vos segments"
+                    actions={
+                        <PrimaryActionButton icon={Plus} onClick={handleCreate}>
+                            Nouvelle campagne
+                        </PrimaryActionButton>
+                    }
+                />
 
-            <CampaignStats
-                total={stats.total}
-                draft={stats.draft}
-                scheduled={stats.scheduled}
-                sent={stats.sent}
-            />
+                <CampaignStats
+                    total={stats.total}
+                    draft={stats.draft}
+                    scheduled={stats.scheduled}
+                    sent={stats.sent}
+                />
 
-            <StyledTabs
-                defaultValue="all"
-                tabs={[
-                    {
-                        value: "all",
-                        label: "Toutes",
-                        content: campaignListComponent,
-                    },
-                    {
-                        value: "draft",
-                        label: "Brouillons",
-                        content: campaignListComponent,
-                    },
-                    {
-                        value: "scheduled",
-                        label: "Planifiées",
-                        content: campaignListComponent,
-                    },
-                    {
-                        value: "sent",
-                        label: "Envoyées",
-                        content: campaignListComponent,
-                    },
-                ]}
-                onValueChange={(value) => {
-                    if (value === "all") setStatusFilter(null);
-                    else if (value === "draft") setStatusFilter("DRAFT");
-                    else if (value === "scheduled")
-                        setStatusFilter("SCHEDULED");
-                    else if (value === "sent") setStatusFilter("SENT");
-                }}
-            />
+                <StyledTabs
+                    defaultValue="all"
+                    tabs={[
+                        {
+                            value: "all",
+                            label: "Toutes",
+                            content: campaignListComponent,
+                        },
+                        {
+                            value: "draft",
+                            label: "Brouillons",
+                            content: campaignListComponent,
+                        },
+                        {
+                            value: "scheduled",
+                            label: "Planifiées",
+                            content: campaignListComponent,
+                        },
+                        {
+                            value: "sent",
+                            label: "Envoyées",
+                            content: campaignListComponent,
+                        },
+                    ]}
+                    onValueChange={(value) => {
+                        if (value === "all") setStatusFilter(null);
+                        else if (value === "draft") setStatusFilter("DRAFT");
+                        else if (value === "scheduled")
+                            setStatusFilter("SCHEDULED");
+                        else if (value === "sent") setStatusFilter("SENT");
+                    }}
+                />
 
-            <CampaignSchedulerDialog
-                open={schedulerOpen}
-                onOpenChange={setSchedulerOpen}
-                campaign={editingCampaign}
-            />
+                <CampaignSchedulerDialog
+                    open={schedulerOpen}
+                    onOpenChange={setSchedulerOpen}
+                    campaign={editingCampaign}
+                />
             </div>
         </ConditionalSkeleton>
     );

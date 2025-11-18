@@ -1,7 +1,7 @@
 "use client";
 
-import { AddPaymentDialog } from "@/components/add-payment-dialog";
 import { DocumentListPage } from "@/components/documents";
+import { AddPaymentDialog } from "@/components/documents/add-payment-dialog";
 import { useDocumentPage } from "@/hooks/use-document-page";
 import { useInvoicePayment } from "@/hooks/use-invoice-payment";
 import type { Invoice } from "@/lib/types/document.types";

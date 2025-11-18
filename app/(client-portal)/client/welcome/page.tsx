@@ -66,30 +66,30 @@ export default function ClientWelcomePage() {
             fallback={<LoadingState variant="fullscreen" />}
         >
             <div className="min-h-screen bg-white flex items-center justify-center p-4">
-            <div className="w-full max-w-lg">
-                {/* Progress dots */}
-                <ProgressDots
-                    totalSteps={steps.length}
-                    currentStep={currentStep}
-                    className="mb-12"
-                />
+                <div className="w-full max-w-lg">
+                    {/* Progress dots */}
+                    <ProgressDots
+                        totalSteps={steps.length}
+                        currentStep={currentStep}
+                        className="mb-12"
+                    />
 
-                {/* Main card */}
-                <WelcomeStepCard step={currentStepData} className="mb-12" />
+                    {/* Main card */}
+                    <WelcomeStepCard step={currentStepData} className="mb-12" />
 
-                {/* Actions */}
-                <WelcomeActions
-                    isLastStep={isLastStep}
-                    onNext={goToNextStep}
-                    onSkip={skipOnboarding}
-                />
+                    {/* Actions */}
+                    <WelcomeActions
+                        isLastStep={isLastStep}
+                        onNext={goToNextStep}
+                        onSkip={skipOnboarding}
+                    />
 
-                {/* Footer */}
-                <p className="text-center text-[13px] text-black/40 mt-6">
-                    Vous pouvez modifier vos informations à tout moment dans
-                    votre profil
-                </p>
-            </div>
+                    {/* Footer */}
+                    <p className="text-center text-[13px] text-black/40 mt-6">
+                        Vous pouvez modifier vos informations à tout moment dans
+                        votre profil
+                    </p>
+                </div>
             </div>
         </ConditionalSkeleton>
     );

@@ -10,20 +10,11 @@ import {
 } from "@/components/auth";
 import { Button } from "@/components/ui/button";
 import { ConditionalSkeleton } from "@/components/ui/conditional-skeleton";
-import {
-    Form,
-    FormControl,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 import { FormInput } from "@/components/ui/form-input";
-import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { SuspensePage } from "@/components/ui/suspense-page";
 import { useAcceptInvitation } from "@/hooks/use-accept-invitation";
-import { cn } from "@/lib/utils";
 import { useRouter, useSearchParams } from "next/navigation";
 
 function AcceptInvitationContent() {

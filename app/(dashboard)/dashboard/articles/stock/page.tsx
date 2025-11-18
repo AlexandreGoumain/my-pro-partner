@@ -1,9 +1,9 @@
 "use client";
 
 import { StockFiltersCard, StockStats } from "@/components/stock";
-import { StockAlertsList } from "@/components/stock-alerts-list";
-import { StockHistoryTable } from "@/components/stock-history-table";
-import { StockMovementDialog } from "@/components/stock-movement-dialog";
+import { StockAlertsList } from "@/components/stock/stock-alerts-list";
+import { StockHistoryTable } from "@/components/stock/stock-history-table";
+import { StockMovementDialog } from "@/components/stock/stock-movement-dialog";
 import { PageHeader } from "@/components/ui/page-header";
 import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";

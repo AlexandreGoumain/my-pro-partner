@@ -8,7 +8,7 @@ import {
     CategoryStatsGrid,
     CategoryTreeView,
 } from "@/components/categories";
-import { DeleteConfirmDialog } from "@/components/delete-confirm-dialog";
+import { DeleteConfirmDialog } from "@/components/shared/delete-confirm-dialog";
 import { useCategoryHandlers } from "@/hooks/use-category-handlers";
 import { useMemo } from "react";
 

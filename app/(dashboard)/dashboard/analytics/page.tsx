@@ -40,55 +40,57 @@ export default function AnalyticsPage() {
         >
             {!analytics ? null : (
                 <div className="space-y-6">
-            <PageHeader
-                title="Analytics & Statistiques"
-                description="Vue d'ensemble de vos performances de vente"
-            />
+                    <PageHeader
+                        title="Analytics & Statistiques"
+                        description="Vue d'ensemble de vos performances de vente"
+                    />
 
-            {/* Revenue cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <AnalyticsKPICard
-                    title="Chiffre d'affaires total"
-                    value={formatCurrency(analytics.totalRevenue)}
-                    icon={Euro}
-                />
+                    {/* Revenue cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <AnalyticsKPICard
+                            title="Chiffre d'affaires total"
+                            value={formatCurrency(analytics.totalRevenue)}
+                            icon={Euro}
+                        />
 
-                <AnalyticsKPICard
-                    title="CA ce mois"
-                    value={formatCurrency(analytics.revenueThisMonth)}
-                    subtitle={`${formatTrendPercentage(trend)} vs mois dernier`}
-                    icon={trend.isPositive ? TrendingUp : TrendingDown}
-                />
+                        <AnalyticsKPICard
+                            title="CA ce mois"
+                            value={formatCurrency(analytics.revenueThisMonth)}
+                            subtitle={`${formatTrendPercentage(trend)} vs mois dernier`}
+                            icon={trend.isPositive ? TrendingUp : TrendingDown}
+                        />
 
-                <AnalyticsKPICard
-                    title="Devis"
-                    value={analytics.totalQuotes}
-                    subtitle={`Valeur moyenne: ${formatCurrency(analytics.averageQuoteValue)}`}
-                    icon={FileText}
-                />
+                        <AnalyticsKPICard
+                            title="Devis"
+                            value={analytics.totalQuotes}
+                            subtitle={`Valeur moyenne: ${formatCurrency(analytics.averageQuoteValue)}`}
+                            icon={FileText}
+                        />
 
-                <AnalyticsKPICard
-                    title="Factures"
-                    value={analytics.totalInvoices}
-                    subtitle={`Valeur moyenne: ${formatCurrency(analytics.averageInvoiceValue)}`}
-                    icon={Receipt}
-                />
-            </div>
+                        <AnalyticsKPICard
+                            title="Factures"
+                            value={analytics.totalInvoices}
+                            subtitle={`Valeur moyenne: ${formatCurrency(analytics.averageInvoiceValue)}`}
+                            icon={Receipt}
+                        />
+                    </div>
 
-            {/* Detailed stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <InvoiceStatusCard
-                    paidInvoices={analytics.paidInvoices}
-                    unpaidInvoices={analytics.unpaidInvoices}
-                    overdueInvoices={analytics.overdueInvoices}
-                />
+                    {/* Detailed stats */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <InvoiceStatusCard
+                            paidInvoices={analytics.paidInvoices}
+                            unpaidInvoices={analytics.unpaidInvoices}
+                            overdueInvoices={analytics.overdueInvoices}
+                        />
 
-                <ConversionRateCard conversionRate={analytics.conversionRate} />
+                        <ConversionRateCard
+                            conversionRate={analytics.conversionRate}
+                        />
 
-                <OverdueInvoicesCard
-                    overdueInvoices={analytics.overdueInvoices}
-                />
-            </div>
+                        <OverdueInvoicesCard
+                            overdueInvoices={analytics.overdueInvoices}
+                        />
+                    </div>
                 </div>
             )}
         </ConditionalSkeleton>

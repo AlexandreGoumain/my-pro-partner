@@ -8,17 +8,17 @@ import {
     ClientSegmentBanner,
     ClientStatsGrid,
 } from "@/components/clients";
-import { InviteClientDialog } from "@/components/invite-client-dialog";
-import { PendingClientsSection } from "@/components/pending-clients-section";
+import { InviteClientDialog } from "@/components/clients/invite-client-dialog";
+import { PendingClientsSection } from "@/components/clients/pending-clients-section";
 import { DataTable } from "@/components/ui/data-table";
 import { FilterBar } from "@/components/ui/filter-bar";
 import { PageHeader } from "@/components/ui/page-header";
+import { SuspensePage } from "@/components/ui/suspense-page";
 import { UsageLimitCard } from "@/components/ui/usage-limit-card";
 import { useClientsPage } from "@/hooks/use-clients-page";
 import { CLIENT_COLUMN_LABELS } from "@/lib/constants/clients";
 import { CLIENT_CSV_MAPPINGS } from "@/lib/constants/csv-mappings";
 import { Users as UsersIcon } from "lucide-react";
-import { SuspensePage } from "@/components/ui/suspense-page";
 
 function ClientsPageContent() {
     const handlers = useClientsPage();

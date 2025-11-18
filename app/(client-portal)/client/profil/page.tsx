@@ -1,9 +1,6 @@
 "use client";
 
-import {
-    ProfileFormCard,
-    ProfileInfoCard,
-} from "@/components/client/profile";
+import { ProfileFormCard, ProfileInfoCard } from "@/components/client/profile";
 import { ClientTabSkeleton } from "@/components/ui/client-tab-skeleton";
 import { ConditionalSkeleton } from "@/components/ui/conditional-skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -27,21 +24,24 @@ export default function ClientProfilPage() {
                 />
             ) : (
                 <div className="space-y-6">
-            {/* Header */}
-            <PageHeader
-                title="Mon profil"
-                description="Consultez et modifiez vos informations personnelles"
-            />
+                    {/* Header */}
+                    <PageHeader
+                        title="Mon profil"
+                        description="Consultez et modifiez vos informations personnelles"
+                    />
 
-            {/* Profile Info (Read-Only) */}
-            <ProfileInfoCard nomComplet={nomComplet} email={profile.email} />
+                    {/* Profile Info (Read-Only) */}
+                    <ProfileInfoCard
+                        nomComplet={nomComplet}
+                        email={profile.email}
+                    />
 
-            {/* Editable Contact Info */}
-            <ProfileFormCard
-                profile={profile}
-                isSaving={isSaving}
-                onSave={updateProfile}
-            />
+                    {/* Editable Contact Info */}
+                    <ProfileFormCard
+                        profile={profile}
+                        isSaving={isSaving}
+                        onSave={updateProfile}
+                    />
                 </div>
             )}
         </ConditionalSkeleton>

@@ -1,12 +1,12 @@
 "use client";
 
-import { DeleteConfirmDialog } from "@/components/delete-confirm-dialog";
 import {
     LoyaltyLevelDialog,
     LoyaltyLevelGrid,
     LoyaltyLevelHeader,
     LoyaltyLevelStats,
 } from "@/components/loyalty";
+import { DeleteConfirmDialog } from "@/components/shared/delete-confirm-dialog";
 import { useLoyaltyLevelsPage } from "@/hooks/use-loyalty-levels-page";
 
 export default function LoyaltyLevelsPage() {
