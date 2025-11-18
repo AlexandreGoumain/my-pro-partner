@@ -3,6 +3,40 @@
 @tailwind utilities;
 
 :root {
+    /* Spacing System - Stripe-exact */
+    --spacing-xs: 8px;
+    --spacing-sm: 16px;
+    --spacing-md: 24px;
+    --spacing-lg: 32px;
+    --spacing-xl: 48px;
+    --spacing-2xl: 64px;
+    --spacing-3xl: 96px;
+
+    /* Section Spacing - Premium */
+    --section-padding-top: 72px;
+    --section-padding-bottom: 72px;
+    --section-padding-top-large: 110px;
+    --section-padding-bottom-large: 110px;
+
+    /* Column & Row Gaps */
+    --column-padding-normal: 24px;
+    --column-padding-large: 48px;
+    --row-gap-small: 24px;
+    --row-gap-medium: 48px;
+    --row-gap-large: 64px;
+
+    /* Easing Curves - Premium */
+    --ease-out-sine: cubic-bezier(0.61, 1, 0.88, 1);
+    --ease-out-quad: cubic-bezier(0.5, 1, 0.89, 1);
+    --ease-in-out-cubic: cubic-bezier(0.65, 0, 0.35, 1);
+
+    /* Typography - Fluid Sizing */
+    --title-font-min: 48;
+    --title-font-max: 96;
+    --subtitle-font-min: 18;
+    --subtitle-font-max: 24;
+
+    /* Radius */
     --radius: 0.625rem;
     --radius-sm: calc(var(--radius) - 4px);
     --radius-md: calc(var(--radius) - 2px);
@@ -85,6 +119,115 @@
 }
 
 @layer utilities {
+    /* Fluid Typography - Stripe Style */
+    .fluid-title {
+        font-size: calc(var(--title-font-min) * 1px + (var(--title-font-max) - var(--title-font-min)) * ((100vw - 320px) / (1920 - 320)));
+        line-height: 0.95;
+        letter-spacing: -0.04em;
+    }
+
+    .fluid-subtitle {
+        font-size: calc(var(--subtitle-font-min) * 1px + (var(--subtitle-font-max) - var(--subtitle-font-min)) * ((100vw - 320px) / (1920 - 320)));
+        line-height: 1.5;
+    }
+
+    /* Premium Easing */
+    .ease-premium {
+        transition-timing-function: var(--ease-out-sine);
+    }
+
+    /* Progressive Disclosure */
+    .scroll-fade-in {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.8s var(--ease-out-sine), transform 0.8s var(--ease-out-sine);
+    }
+
+    .scroll-fade-in.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* Hover Arrow Animation */
+    .hover-arrow {
+        display: inline-flex;
+        align-items: center;
+        transition: transform 0.3s var(--ease-out-sine);
+    }
+
+    .hover-arrow svg {
+        margin-left: 8px;
+        transition: transform 0.3s var(--ease-out-sine);
+    }
+
+    .hover-arrow:hover svg {
+        transform: translateX(4px);
+    }
+
+    /* Gradient Backgrounds */
+    .gradient-subtle {
+        background: linear-gradient(135deg, rgba(0,0,0,0.01) 0%, rgba(0,0,0,0.02) 100%);
+    }
+
+    .gradient-depth {
+        position: relative;
+    }
+
+    .gradient-depth::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to bottom, rgba(0,0,0,0.02), transparent 50%);
+        border-radius: inherit;
+        pointer-events: none;
+    }
+
+    /* CTA Gradient Hover */
+    .cta-gradient {
+        background: linear-gradient(90deg, #000 0%, #1a1a1a 100%);
+        transition: background 0.4s var(--ease-out-sine), transform 0.2s var(--ease-out-sine);
+    }
+
+    .cta-gradient:hover {
+        background: linear-gradient(90deg, #1a1a1a 0%, #000 100%);
+        transform: translateY(-1px);
+    }
+
+    /* Shadow Depth - Multi-layer Stripe-style */
+    .shadow-stripe {
+        box-shadow:
+            0 20px 60px rgba(50, 50, 93, 0.18),
+            0 10px 30px rgba(0, 0, 0, 0.12),
+            inset 0 -2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .shadow-stripe-hover {
+        transition: box-shadow 0.4s var(--ease-out-sine);
+    }
+
+    .shadow-stripe-hover:hover {
+        box-shadow:
+            0 30px 80px rgba(50, 50, 93, 0.22),
+            0 15px 40px rgba(0, 0, 0, 0.15),
+            inset 0 -2px 6px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Premium Card Shadow */
+    .card-shadow {
+        box-shadow:
+            0 20px 60px rgba(50, 50, 93, 0.18),
+            0 10px 30px rgba(0, 0, 0, 0.12);
+    }
+
+    /* Letter Spacing Premium */
+    .tracking-tight-premium {
+        letter-spacing: -0.04em;
+    }
+
+    .tracking-wide-premium {
+        letter-spacing: 0.02em;
+    }
+
     /* Smooth animations for article cards */
     .article-card-enter {
         animation: fadeInUp 0.4s ease-out;
@@ -99,24 +242,6 @@
             opacity: 1;
             transform: translateY(0);
         }
-    }
-
-    /* Hover glow effect */
-    .hover-glow {
-        transition: box-shadow 0.3s ease;
-    }
-
-    .hover-glow:hover {
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-    }
-
-    /* Smooth scale animation */
-    .scale-on-hover {
-        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .scale-on-hover:hover {
-        transform: scale(1.02);
     }
 
     /* Accordion animations */

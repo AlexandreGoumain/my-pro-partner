@@ -1,14 +1,16 @@
-import { AIAssistant } from "@/components/landing/ai-assistant";
-import { BentoGrid } from "@/components/landing/bento-grid";
-import { CTASection } from "@/components/landing/cta-section";
-import { Footer } from "@/components/landing/footer";
-import { Hero } from "@/components/landing/hero";
-import { HowItWorks } from "@/components/landing/how-it-works";
 import { Navigation } from "@/components/landing/navigation";
-import { PricingCards } from "@/components/landing/pricing-cards";
-import { ProblemsSolutions } from "@/components/landing/problems-solutions";
-import { TrustBadges } from "@/components/landing/trust-badges";
-import { VideoDemo } from "@/components/landing/video-demo";
+import { Hero } from "@/components/landing/hero";
+import { TrustSignals } from "@/components/landing/trust-signals";
+import { Stats } from "@/components/landing/stats";
+import { Features } from "@/components/landing/features";
+import { Templates } from "@/components/landing/templates";
+import { AIDemo } from "@/components/landing/ai-demo";
+import { Comparison } from "@/components/landing/comparison";
+import { Pricing } from "@/components/landing/pricing";
+import { FAQ } from "@/components/landing/faq";
+import { CTA } from "@/components/landing/cta";
+import { Footer } from "@/components/landing/footer";
+import { ScrollReveal } from "@/components/scroll-reveal";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -49,17 +51,19 @@ export const metadata: Metadata = {
 export default function LandingPage() {
     return (
         <>
+            <ScrollReveal />
             <Navigation />
-            <main>
+            <main className="min-h-screen">
                 <Hero />
-                <TrustBadges />
-                <ProblemsSolutions />
-                <AIAssistant />
-                <VideoDemo />
-                <BentoGrid />
-                <HowItWorks />
-                <PricingCards />
-                <CTASection />
+                <TrustSignals />
+                <Stats />
+                <Features />
+                <Templates />
+                <AIDemo />
+                <Comparison />
+                <Pricing />
+                <FAQ />
+                <CTA />
             </main>
             <Footer />
         </>
