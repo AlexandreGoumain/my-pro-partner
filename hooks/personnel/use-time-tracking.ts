@@ -55,11 +55,12 @@ export function useTimeTracking() {
         // Chercher si il y a une entrée en cours (clockOut = null)
         const ongoing = data.entries.find((e: TimeEntry) => !e.clockOut);
         setCurrentEntry(ongoing || null);
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("Error fetching time entries:", error);
+        const message = error instanceof Error ? error.message : "Impossible de charger les pointages";
         toast({
           title: "Erreur",
-          description: error.message || "Impossible de charger les pointages",
+          description: message,
           variant: "destructive",
         });
       } finally {
@@ -99,11 +100,12 @@ export function useTimeTracking() {
       });
 
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error clocking in:", error);
+      const message = error instanceof Error ? error.message : "Impossible d'enregistrer le pointage";
       toast({
         title: "Erreur",
-        description: error.message || "Impossible d'enregistrer le pointage",
+        description: message,
         variant: "destructive",
       });
       return false;
@@ -145,11 +147,12 @@ export function useTimeTracking() {
       });
 
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error clocking out:", error);
+      const message = error instanceof Error ? error.message : "Impossible d'enregistrer le pointage";
       toast({
         title: "Erreur",
-        description: error.message || "Impossible d'enregistrer le pointage",
+        description: message,
         variant: "destructive",
       });
       return false;
@@ -194,11 +197,12 @@ export function useTimeTracking() {
       });
 
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error creating manual entry:", error);
+      const message = error instanceof Error ? error.message : "Impossible de créer l'entrée";
       toast({
         title: "Erreur",
-        description: error.message || "Impossible de créer l'entrée",
+        description: message,
         variant: "destructive",
       });
       return false;

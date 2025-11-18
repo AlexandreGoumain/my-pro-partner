@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
         const { client } = await requireClientAuth(req);
 
         // Remove password from response
-        const { password, ...clientWithoutPassword } = client;
+        const { password: _password, ...clientWithoutPassword } = client;
 
         return NextResponse.json({
             client: clientWithoutPassword,

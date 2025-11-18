@@ -29,7 +29,8 @@ export class TerminalService {
     location?: string;
   }) {
     // Récupérer les infos du terminal depuis Stripe
-    const reader = await stripe.terminal.readers.retrieve(stripeTerminalId);
+    const readerResponse = await stripe.terminal.readers.retrieve(stripeTerminalId);
+    const reader = readerResponse as Stripe.Terminal.Reader;
 
     const terminal = await prisma.terminal.create({
       data: {
@@ -37,7 +38,7 @@ export class TerminalService {
         stripeTerminalId,
         label,
         location,
-        device_type: reader.device_type,
+        device_type: reader.device_type || null,
         serial_number: reader.serial_number || null,
         ip_address: reader.ip_address || null,
         status: reader.status === "online" ? "ONLINE" : "OFFLINE",
@@ -177,7 +178,8 @@ export class TerminalService {
     }
 
     try {
-      const reader = await stripe.terminal.readers.retrieve(terminal.stripeTerminalId);
+      const readerResponse = await stripe.terminal.readers.retrieve(terminal.stripeTerminalId);
+      const reader = readerResponse as Stripe.Terminal.Reader;
 
       await prisma.terminal.update({
         where: { id: terminalId },

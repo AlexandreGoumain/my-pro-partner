@@ -114,7 +114,7 @@ export function useMessageStreaming({
                       router.push(event.path);
                       continue;
                     }
-                  } catch (parseError) {
+                  } catch (_parseError) {
                     // Not valid JSON, treat as text
                     assistantMessage += line;
                   }
@@ -146,7 +146,7 @@ export function useMessageStreaming({
         // Reload conversations
         await loadConversations();
       } catch (err: unknown) {
-        setError(err);
+        setError(err as Error);
         console.error('Error sending message:', err);
       } finally {
         setIsLoading(false);

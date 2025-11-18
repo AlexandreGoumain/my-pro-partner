@@ -64,7 +64,7 @@ export function useUnpaidInvoices(): UseUnpaidInvoicesReturn {
                 return;
             }
 
-            const response = await fetch(`/api/clients/${invoice.clientId}/send-reminder`, {
+            const response = await fetch(`/api/clients/${invoice.client.id}/send-reminder`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { SignJWT } from "jose";
 import { z } from "zod";
+import { validateRequest } from "@/lib/utils/validation-helper";
 
 const CLIENT_JWT_SECRET = process.env.CLIENT_JWT_SECRET || process.env.NEXTAUTH_SECRET || "secret";
 
@@ -18,19 +19,10 @@ const loginSchema = z.object({
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
-        const validation = loginSchema.safeParse(body);
+        const result = validateRequest(loginSchema, body);
+        if (!result.success) return result.response;
 
-        if (!validation.success) {
-            return NextResponse.json(
-                {
-                    message: "Données invalides",
-                    errors: validation.error.errors,
-                },
-                { status: 400 }
-            );
-        }
-
-        const { email, password } = validation.data;
+        const { email, password } = result.data;
 
         // Find client by email
         const client = await prisma.client.findFirst({
@@ -97,7 +89,7 @@ export async function POST(req: NextRequest) {
             .sign(new TextEncoder().encode(CLIENT_JWT_SECRET));
 
         // Return client info (without password)
-        const { password: _, ...clientWithoutPassword } = client;
+        const { password: _password, ...clientWithoutPassword } = client;
 
         return NextResponse.json({
             token,

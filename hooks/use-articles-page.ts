@@ -2,6 +2,8 @@ import {
     createColumns,
     type Article,
 } from "@/app/(dashboard)/dashboard/articles/_components/data-table/columns";
+import { type ColumnDef } from "@tanstack/react-table";
+import { type LucideIcon } from "lucide-react";
 import { useLimitDialog } from "@/components/providers/limit-dialog-provider";
 import { useArticleFilters } from "@/hooks/use-article-filters";
 import { useArticleHandlers } from "@/hooks/use-article-handlers";
@@ -70,12 +72,12 @@ export interface ArticlesPageHandlers {
         title: string;
         description: string;
         buttonText: string;
-        icon: any;
+        icon: LucideIcon;
     };
-    columns: any[];
+    columns: ColumnDef<Article>[];
 
     // Pricing
-    userPlan: any;
+    userPlan: Record<string, unknown>;
     checkLimit: (limitKey: keyof PlanLimits, currentValue: number) => boolean;
 }
 

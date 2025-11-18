@@ -36,8 +36,8 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
     }
 
     // Enregistrer le background sync si supporté
-    if ('serviceWorker' in navigator && 'sync' in (self as any).registration) {
-      navigator.serviceWorker.ready.then((registration) => {
+    if ('serviceWorker' in navigator && 'sync' in (self as unknown as { registration: ServiceWorkerRegistration & { sync?: unknown } }).registration) {
+      navigator.serviceWorker.ready.then((_registration) => {
         // Le background sync sera déclenché automatiquement par le SyncManager
         console.log('Background sync available');
       });

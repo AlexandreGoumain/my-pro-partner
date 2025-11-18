@@ -1,5 +1,6 @@
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { DS } from "@/lib/constants/design-system";
 import { Search } from "lucide-react";
 
 export interface SearchBarProps {
@@ -9,6 +10,12 @@ export interface SearchBarProps {
     className?: string;
 }
 
+/**
+ * SearchBar component
+ *
+ * Reusable search input with icon.
+ * Uses Design System constants for consistent styling.
+ */
 export function SearchBar({
     value,
     onChange,
@@ -18,14 +25,23 @@ export function SearchBar({
     return (
         <div className={cn("relative max-w-md", className)}>
             <Search
-                className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-black/40 bg-white"
-                strokeWidth={2}
+                className={cn(
+                    "absolute left-3 top-1/2 -translate-y-1/2 bg-white",
+                    DS.size.icon.small,
+                    DS.color.text.tertiary
+                )}
+                strokeWidth={DS.size.icon.strokeWidth}
             />
             <Input
                 placeholder={placeholder}
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
-                className="pl-10 h-11 text-[14px] border-black/10 focus-visible:ring-black/20 bg-white"
+                className={cn(
+                    "pl-10 h-11 bg-white",
+                    DS.text.body.base,
+                    DS.color.border.medium,
+                    "focus-visible:ring-black/20"
+                )}
             />
         </div>
     );

@@ -3,7 +3,7 @@
 import { DataQualityCard } from "@/components/ui/data-quality-card";
 import { MonthlyEvolutionCard } from "@/components/ui/monthly-evolution-card";
 import { PageHeader } from "@/components/ui/page-header";
-import { StatisticsGrid, StatConfig } from "@/components/ui/statistics-grid";
+import { StatisticsGrid } from "@/components/ui/statistics-grid";
 import { TopCitiesCard } from "@/components/ui/top-cities-card";
 import { useClientsStats } from "@/hooks/use-clients";
 import { calculatePercentage } from "@/lib/utils/statistics";
@@ -75,7 +75,8 @@ export default function ClientStatisticsPage() {
                                     {Math.abs(stats.growth).toFixed(0)}%
                                 </>
                             ),
-                            variant: stats.growth >= 0 ? "default" : "destructive",
+                            variant:
+                                stats.growth >= 0 ? "default" : "destructive",
                             className: "text-xs",
                         },
                     },
@@ -85,7 +86,10 @@ export default function ClientStatisticsPage() {
                         label: "Avec email",
                         value: stats.withEmail,
                         badge: {
-                            text: calculatePercentage(stats.withEmail, stats.total),
+                            text: calculatePercentage(
+                                stats.withEmail,
+                                stats.total
+                            ),
                         },
                     },
                     {
@@ -94,7 +98,10 @@ export default function ClientStatisticsPage() {
                         label: "Avec téléphone",
                         value: stats.withPhone,
                         badge: {
-                            text: calculatePercentage(stats.withPhone, stats.total),
+                            text: calculatePercentage(
+                                stats.withPhone,
+                                stats.total
+                            ),
                         },
                     },
                 ]}

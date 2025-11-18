@@ -8,15 +8,16 @@ import { TerminalService } from "@/lib/services/terminal.service";
  */
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await requireTenantAuth();
+    const { id } = await params;
 
-    await TerminalService.deleteTerminal(params.id);
+    await TerminalService.deleteTerminal(id);
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error) {
     return handleTenantError(error);
   }
 }

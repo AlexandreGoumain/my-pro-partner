@@ -1,125 +1,68 @@
+import { createCrudRoutes } from "@/lib/api/crud-factory";
+import { niveauFideliteCreateSchema, niveauFideliteUpdateSchema } from "@/lib/validation";
 import { prisma } from "@/lib/prisma";
-import {
-    createPaginatedResponse,
-    getPaginationParams,
-} from "@/lib/utils/pagination";
-import { niveauFideliteCreateSchema } from "@/lib/validation";
-import {
-    handleTenantError,
-    requireTenantAuth,
-} from "@/lib/middleware/tenant-isolation";
-import { NextRequest, NextResponse } from "next/server";
+import { ConflictError } from "@/lib/errors";
 
 /**
- * Recalcule automatiquement l'ordre de tous les niveaux de fidélité
- * en fonction de leur seuil de points (tri croissant)
+ * Recalculate loyalty levels order based on points threshold
  */
 async function recalculateOrdres(entrepriseId: string) {
-    const niveaux = await prisma.niveauFidelite.findMany({
-        where: { entrepriseId },
-        orderBy: { seuilPoints: "asc" },
+  const niveaux = await prisma.niveauFidelite.findMany({
+    where: { entrepriseId },
+    orderBy: { seuilPoints: "asc" },
+  });
+
+  const updatePromises = niveaux.map((niveau, index) =>
+    prisma.niveauFidelite.update({
+      where: { id: niveau.id },
+      data: { ordre: index + 1 },
+    })
+  );
+
+  await Promise.all(updatePromises);
+}
+
+export const { GET, POST } = createCrudRoutes({
+  modelName: "niveauFidelite",
+  resourceName: "Niveau de fidélité",
+  createSchema: niveauFideliteCreateSchema,
+  updateSchema: niveauFideliteUpdateSchema,
+  searchFields: ["nom", "description"],
+  orderBy: { ordre: "asc" },
+
+  // Custom filters
+  customWhere: (searchParams) => {
+    const filters: Record<string, unknown> = {};
+
+    const actifOnly = searchParams.get("actifOnly");
+    if (actifOnly === "true") {
+      filters.actif = true;
+    }
+
+    return filters;
+  },
+
+  // Validate name uniqueness before creation
+  beforeCreate: async (data, entrepriseId) => {
+    const existingNom = await prisma.niveauFidelite.findFirst({
+      where: {
+        entrepriseId,
+        nom: data.nom,
+      },
     });
 
-    // Mettre à jour l'ordre de chaque niveau
-    const updatePromises = niveaux.map((niveau, index) =>
-        prisma.niveauFidelite.update({
-            where: { id: niveau.id },
-            data: { ordre: index + 1 },
-        })
-    );
-
-    await Promise.all(updatePromises);
-}
-
-export async function GET(req: NextRequest) {
-    try {
-        const { entrepriseId } = await requireTenantAuth();
-
-        const { searchParams } = new URL(req.url);
-        const search = searchParams.get("search");
-        const actifOnly = searchParams.get("actifOnly") === "true";
-        const pagination = getPaginationParams(searchParams);
-
-        const where = {
-            entrepriseId,
-            ...(actifOnly && { actif: true }),
-            ...(search && {
-                OR: [
-                    { nom: { contains: search, mode: "insensitive" as const } },
-                    { description: { contains: search, mode: "insensitive" as const } },
-                ],
-            }),
-        };
-
-        const [niveaux, total] = await Promise.all([
-            prisma.niveauFidelite.findMany({
-                where,
-                orderBy: { ordre: "asc" },
-                skip: pagination.skip,
-                take: pagination.limit,
-            }),
-            prisma.niveauFidelite.count({ where }),
-        ]);
-
-        return NextResponse.json(
-            createPaginatedResponse(niveaux, total, pagination)
-        );
-    } catch (error) {
-        return handleTenantError(error);
+    if (existingNom) {
+      throw new ConflictError("Un niveau avec ce nom existe déjà");
     }
-}
 
-export async function POST(req: NextRequest) {
-    try {
-        const { entrepriseId } = await requireTenantAuth();
+    return {
+      ...data,
+      ordre: 0, // Temporary, will be recalculated
+    };
+  },
 
-        const body = await req.json();
-        const validation = niveauFideliteCreateSchema.safeParse(body);
-
-        if (!validation.success) {
-            return NextResponse.json(
-                {
-                    message: "Données invalides",
-                    errors: validation.error.errors,
-                },
-                { status: 400 }
-            );
-        }
-
-        // Vérifier si le nom existe déjà
-        const existingNom = await prisma.niveauFidelite.findFirst({
-            where: {
-                entrepriseId,
-                nom: validation.data.nom,
-            },
-        });
-
-        if (existingNom) {
-            return NextResponse.json(
-                { message: "Un niveau avec ce nom existe déjà" },
-                { status: 400 }
-            );
-        }
-
-        // Créer le niveau avec un ordre temporaire
-        const niveau = await prisma.niveauFidelite.create({
-            data: {
-                ...validation.data,
-                ordre: 0, // Temporaire, sera recalculé
-                entrepriseId,
-            },
-        });
-
-        // Recalculer automatiquement les ordres de tous les niveaux
-        await recalculateOrdres(entrepriseId);
-
-        // Récupérer le niveau avec son ordre final
-        const niveauFinal = await prisma.niveauFidelite.findUnique({
-            where: { id: niveau.id },
-        });
-
-        return NextResponse.json(niveauFinal, { status: 201 });
-    } catch (error) {
-        return handleTenantError(error);
-    }
-}
+  // Recalculate orders after creation
+  afterCreate: async (niveau, entrepriseId) => {
+    await recalculateOrdres(entrepriseId);
+  },
+});

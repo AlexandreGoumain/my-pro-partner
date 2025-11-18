@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
+import { validateRequest } from "@/lib/utils/validation-helper";
 
 const resetPasswordSchema = z.object({
     token: z.string().min(1, "Token requis"),
@@ -17,19 +18,10 @@ const resetPasswordSchema = z.object({
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
-        const validation = resetPasswordSchema.safeParse(body);
+        const result = validateRequest(resetPasswordSchema, body);
+        if (!result.success) return result.response;
 
-        if (!validation.success) {
-            return NextResponse.json(
-                {
-                    message: "Données invalides",
-                    errors: validation.error.errors,
-                },
-                { status: 400 }
-            );
-        }
-
-        const { token, newPassword } = validation.data;
+        const { token, newPassword } = result.data;
 
         // Find the reset token
         const resetToken = await prisma.passwordResetToken.findUnique({

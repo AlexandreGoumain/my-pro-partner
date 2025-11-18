@@ -1,11 +1,11 @@
-import { CreditCard, RotateCcw, Clock, HeadphonesIcon } from "lucide-react";
+import { Clock, CreditCard, HeadphonesIcon, RotateCcw } from "lucide-react";
 
 export function Guarantees() {
     const guarantees = [
         {
             icon: CreditCard,
             title: "Sans engagement",
-            description: "Aucune carte bancaire requise pendant l'essai",
+            description: "Aucune carte bancaire requise pendant &apos;essai",
         },
         {
             icon: RotateCcw,
@@ -32,8 +32,8 @@ export function Guarantees() {
                         Essayez sans risque
                     </h2>
                     <p className="text-[17px] text-black/60 max-w-[600px] mx-auto">
-                        Nous voulons que vous soyez 100% satisfait. C'est pourquoi nous
-                        offrons ces garanties.
+                        Nous voulons que vous soyez 100% satisfait. &apos;est
+                        pourquoi nous offrons ces garanties.
                     </p>
                 </div>
 

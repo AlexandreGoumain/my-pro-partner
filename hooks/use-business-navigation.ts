@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { BusinessType } from "@prisma/client";
+import { BusinessType } from "@/lib/generated/prisma";
 import { NavigationBuilder } from "@/lib/navigation/core/navigation-builder";
 import { ResolvedNavigation } from "@/lib/navigation/core/types";
 
@@ -25,7 +25,7 @@ export function useBusinessNavigation() {
 
         if (session?.user) {
           // Try to get from session first
-          businessType = (session.user as any).businessType || "GENERAL";
+          businessType = (session.user as unknown as { businessType?: BusinessType }).businessType || "GENERAL";
 
           // If not in session, fetch from API
           if (!businessType || businessType === "GENERAL") {
@@ -75,7 +75,7 @@ export function useBusinessNavigation() {
     },
 
     /** Get feature setting */
-    getFeatureSetting: <T = any>(
+    getFeatureSetting: <T = unknown>(
       featureId: string,
       settingKey: string,
       defaultValue?: T

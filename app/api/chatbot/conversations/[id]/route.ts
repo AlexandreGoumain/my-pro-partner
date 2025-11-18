@@ -7,9 +7,9 @@ import { requireTenantAuth, handleTenantError } from '@/lib/middleware/tenant-is
 import { prisma } from '@/lib/prisma';
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export async function GET(
@@ -18,10 +18,11 @@ export async function GET(
 ) {
   try {
     const { entrepriseId, userId } = await requireTenantAuth();
+    const { id } = await params;
 
     const conversation = await prisma.conversation.findUnique({
       where: {
-        id: params.id,
+        id,
         userId,
         entrepriseId,
       },
@@ -59,11 +60,12 @@ export async function DELETE(
 ) {
   try {
     const { entrepriseId, userId } = await requireTenantAuth();
+    const { id } = await params;
 
     // Vérifier que la conversation appartient à l'utilisateur
     const conversation = await prisma.conversation.findUnique({
       where: {
-        id: params.id,
+        id,
         userId,
         entrepriseId,
       },
@@ -78,7 +80,7 @@ export async function DELETE(
 
     // Supprimer la conversation (cascade delete sur messages)
     await prisma.conversation.delete({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json({
@@ -96,6 +98,7 @@ export async function PATCH(
 ) {
   try {
     const { entrepriseId, userId } = await requireTenantAuth();
+    const { id } = await params;
 
     const body = await req.json();
     const { pinned, titre } = body;
@@ -103,7 +106,7 @@ export async function PATCH(
     // Vérifier que la conversation appartient à l'utilisateur
     const conversation = await prisma.conversation.findUnique({
       where: {
-        id: params.id,
+        id,
         userId,
         entrepriseId,
       },
@@ -118,7 +121,7 @@ export async function PATCH(
 
     // Mettre à jour la conversation
     const updated = await prisma.conversation.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...(pinned !== undefined && { pinned }),
         ...(titre && { titre }),

@@ -55,10 +55,11 @@ export function useFECExport() {
 
       const data = await response.json();
       setStats(data.stats);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Une erreur est survenue";
       toast({
         title: "Erreur",
-        description: error.message,
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -107,7 +108,7 @@ export function useFECExport() {
         title: "Export réussi",
         description: `Le fichier FEC a été téléchargé : ${filename}`,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Erreur d'export",
         description: error.message,

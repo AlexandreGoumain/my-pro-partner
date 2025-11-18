@@ -166,7 +166,7 @@ function RegisterForm() {
 
                                 {/* Email */}
                                 <FormInput
-                                    control={form.control as any}
+                                    control={form.control}
                                     name="email"
                                     label="Email"
                                     type="email"
@@ -179,7 +179,7 @@ function RegisterForm() {
 
                                 {/* Nom */}
                                 <FormInput
-                                    control={form.control as any}
+                                    control={form.control}
                                     name="nom"
                                     label="Nom"
                                     placeholder="Votre nom"
@@ -191,7 +191,7 @@ function RegisterForm() {
 
                                 {/* Téléphone */}
                                 <FormInput
-                                    control={form.control as any}
+                                    control={form.control}
                                     name="telephone"
                                     label="Téléphone"
                                     type="tel"
@@ -219,7 +219,7 @@ function RegisterForm() {
                                     <div className="mt-4 space-y-5 animate-in fade-in duration-200">
                                         {/* Prénom */}
                                         <FormInput
-                                            control={form.control as any}
+                                            control={form.control}
                                             name="prenom"
                                             label="Prénom"
                                             placeholder="Votre prénom"
@@ -230,7 +230,7 @@ function RegisterForm() {
 
                                         {/* Adresse */}
                                         <FormInput
-                                            control={form.control as any}
+                                            control={form.control}
                                             name="adresse"
                                             label="Adresse"
                                             placeholder="123 rue de la République"
@@ -241,7 +241,7 @@ function RegisterForm() {
                                         {/* Code postal & Ville */}
                                         <div className="grid grid-cols-2 gap-4">
                                             <FormInput
-                                                control={form.control as any}
+                                                control={form.control}
                                                 name="codePostal"
                                                 label="Code postal"
                                                 placeholder="75001"
@@ -250,7 +250,7 @@ function RegisterForm() {
                                             />
 
                                             <FormInput
-                                                control={form.control as any}
+                                                control={form.control}
                                                 name="ville"
                                                 label="Ville"
                                                 placeholder="Paris"
@@ -263,7 +263,7 @@ function RegisterForm() {
 
                                 {/* Password */}
                                 <FormInput
-                                    control={form.control as any}
+                                    control={form.control}
                                     name="password"
                                     label="Mot de passe"
                                     type="password"
@@ -276,7 +276,7 @@ function RegisterForm() {
 
                                 {/* Confirm Password */}
                                 <FormInput
-                                    control={form.control as any}
+                                    control={form.control}
                                     name="confirmPassword"
                                     label="Confirmer le mot de passe"
                                     type="password"

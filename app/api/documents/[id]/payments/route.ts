@@ -11,7 +11,7 @@ export async function GET(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const { entrepriseId } = await requireTenantAuth();
+        const { entrepriseId: _entrepriseId } = await requireTenantAuth();
         const { id } = await params;
 
         const payments = await prisma.paiement.findMany({

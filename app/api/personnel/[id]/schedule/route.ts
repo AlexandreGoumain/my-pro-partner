@@ -10,12 +10,13 @@ import { getUserSchedule, setUserSchedule } from "@/lib/personnel/personnel.serv
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await requireTenantAuth();
+    const { id } = await params;
 
-    const schedule = await getUserSchedule(params.id);
+    const schedule = await getUserSchedule(id);
     return NextResponse.json({ schedule });
   } catch (error) {
     return handleTenantError(error);
@@ -24,13 +25,14 @@ export async function GET(
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await requireTenantAuth();
+    const { id } = await params;
 
     const body = await req.json();
-    const schedule = await setUserSchedule(params.id, body.schedules || []);
+    const schedule = await setUserSchedule(id, body.schedules || []);
 
     return NextResponse.json({ schedule });
   } catch (error) {

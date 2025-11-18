@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
+import { validateRequest } from "@/lib/utils/validation-helper";
 
 const acceptInvitationSchema = z.object({
   token: z.string().min(1, "Le token est requis"),
@@ -20,19 +21,10 @@ const acceptInvitationSchema = z.object({
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const validation = acceptInvitationSchema.safeParse(body);
+    const result = validateRequest(acceptInvitationSchema, body);
+    if (!result.success) return result.response;
 
-    if (!validation.success) {
-      return NextResponse.json(
-        {
-          message: "Données invalides",
-          errors: validation.error.errors,
-        },
-        { status: 400 }
-      );
-    }
-
-    const { token, password, name, prenom, telephone } = validation.data;
+    const { token, password, name, prenom, telephone } = result.data;
 
     // Vérifier le token d'invitation
     const invitation = await prisma.userInvitationToken.findUnique({
@@ -83,7 +75,7 @@ export async function POST(req: NextRequest) {
         name: name || invitation.name || "",
         prenom: prenom || invitation.prenom || "",
         telephone: telephone || "",
-        role: invitation.role as any,
+        role: invitation.role,
         status: "ACTIVE",
         entrepriseId: invitation.entrepriseId,
         onboardingComplete: true,
@@ -94,7 +86,7 @@ export async function POST(req: NextRequest) {
     const { getDefaultPermissions } = await import(
       "@/lib/personnel/roles-config"
     );
-    const defaultPerms = getDefaultPermissions(invitation.role as any);
+    const defaultPerms = getDefaultPermissions(invitation.role);
 
     await prisma.userPermissions.create({
       data: {
@@ -154,13 +146,6 @@ export async function GET(req: NextRequest) {
     // Vérifier le token d'invitation
     const invitation = await prisma.userInvitationToken.findUnique({
       where: { token },
-      include: {
-        entreprise: {
-          select: {
-            nom: true,
-          },
-        },
-      },
     });
 
     if (!invitation) {
@@ -184,6 +169,12 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    // Get entreprise name
+    const entreprise = await prisma.entreprise.findUnique({
+      where: { id: invitation.entrepriseId },
+      select: { nom: true },
+    });
+
     return NextResponse.json({
       valid: true,
       invitation: {
@@ -191,7 +182,7 @@ export async function GET(req: NextRequest) {
         name: invitation.name,
         prenom: invitation.prenom,
         role: invitation.role,
-        entrepriseName: invitation.entreprise.nom,
+        entrepriseName: entreprise?.nom || "Entreprise",
         expiresAt: invitation.expiresAt,
       },
     });

@@ -1,4 +1,4 @@
-import type { PaymentLink } from "@/lib/types/payment-link";
+import type { PaymentLink, PaymentLinkFormData } from "@/lib/types/payment-link";
 import { usePaymentLinks } from "./use-payment-links";
 import { useState } from "react";
 
@@ -25,7 +25,7 @@ export interface PaymentLinksPageState {
     handleStatsClose: () => void;
 
     // Payment link actions
-    createPaymentLink: (formData: any) => Promise<boolean>;
+    createPaymentLink: (formData: PaymentLinkFormData) => Promise<boolean>;
     toggleActive: (link: PaymentLink) => Promise<void>;
     deletePaymentLink: (link: PaymentLink) => Promise<void>;
     copyLink: (link: PaymentLink) => void;

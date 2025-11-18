@@ -10,6 +10,7 @@ import { render } from "@react-email/render";
 import { CampaignEmail } from "@/lib/email/templates/campaign";
 import { generateUnsubscribeLink } from "@/lib/email/email-utils";
 import { z } from "zod";
+import { validateRequest } from "@/lib/utils/validation-helper";
 
 // Validation schema
 const sendEmailSchema = z.object({
@@ -30,19 +31,10 @@ export async function POST(
     const { id } = await params;
     const body = await req.json();
 
-    // Validate request body
-    const validation = sendEmailSchema.safeParse(body);
-    if (!validation.success) {
-      return NextResponse.json(
-        {
-          message: "Données invalides",
-          errors: validation.error.flatten().fieldErrors,
-        },
-        { status: 400 }
-      );
-    }
+    const result = validateRequest(sendEmailSchema, body);
+    if (!result.success) return result.response;
 
-    const { subject, body: emailBody } = validation.data;
+    const { subject, body: emailBody } = result.data;
 
     // Get segment
     const segment = await prisma.segment.findUnique({
@@ -71,7 +63,7 @@ export async function POST(
     // Apply segment criteria
     const recipients = applySegmentCriteria(
       allClients,
-      segment.criteres as unknown
+      segment.criteres as Record<string, unknown>
     ).filter((c) => c.email); // Only clients with email
 
     if (recipients.length === 0) {
@@ -107,7 +99,7 @@ export async function POST(
             body: emailBody,
             clientName: recipient.nom || "",
             clientFirstName: recipient.prenom || "",
-            clientEmail: recipient.email,
+            clientEmail: recipient.email || "",
             entrepriseName: entreprise?.nom || "MyProPartner",
             unsubscribeUrl,
           })
@@ -115,7 +107,7 @@ export async function POST(
 
         // Send email
         const result = await emailService.sendEmail({
-          to: recipient.email,
+          to: recipient.email || "",
           subject,
           html: emailHtml,
           fromName: entreprise?.nom || 'MyProPartner',

@@ -1,12 +1,12 @@
 "use client";
 
-import { CSVImportDialog } from "@/components/csv-import-dialog";
 import {
     ExportSection,
     ImportExportStats,
     ImportInfoCard,
     ImportSection,
 } from "@/components/import-export";
+import { CSVImportDialog } from "@/components/import-export/csv-import-dialog";
 import { PageHeader } from "@/components/ui/page-header";
 import { useImportExportPage } from "@/hooks/use-import-export-page";
 import { CSV_MAPPINGS } from "@/lib/constants/import-export-config";

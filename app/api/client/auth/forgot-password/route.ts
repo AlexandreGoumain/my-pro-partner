@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import { nanoid } from "nanoid";
 import { EmailService } from "@/lib/services/email/email.service";
+import { validateRequest } from "@/lib/utils/validation-helper";
 
 const forgotPasswordSchema = z.object({
     email: z.string().email("Email invalide"),
@@ -15,19 +16,10 @@ const forgotPasswordSchema = z.object({
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
-        const validation = forgotPasswordSchema.safeParse(body);
+        const result = validateRequest(forgotPasswordSchema, body);
+        if (!result.success) return result.response;
 
-        if (!validation.success) {
-            return NextResponse.json(
-                {
-                    message: "Données invalides",
-                    errors: validation.error.errors,
-                },
-                { status: 400 }
-            );
-        }
-
-        const { email } = validation.data;
+        const { email } = result.data;
 
         // Find client with this email
         const client = await prisma.client.findFirst({

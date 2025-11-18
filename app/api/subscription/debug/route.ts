@@ -4,14 +4,14 @@ import { prisma } from "@/lib/prisma";
 import Stripe from "stripe";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-11-20.acacia",
+  apiVersion: "2025-10-29.clover",
 });
 
 /**
  * GET /api/subscription/debug
  * Afficher l'état complet de l'abonnement (DB + Stripe)
  */
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
     const { entrepriseId } = await requireTenantAuth();
 
@@ -29,26 +29,26 @@ export async function GET(req: NextRequest) {
 
     // 2. Récupérer les infos de Stripe si il y a un customer ID
     let stripeData = null;
-    if (entreprise.stripeCustomerId) {
+    if (entreprise.subscription?.stripeCustomerId) {
       try {
-        const customer = await stripe.customers.retrieve(entreprise.stripeCustomerId);
+        const customer = await stripe.customers.retrieve(entreprise.subscription.stripeCustomerId);
 
         // Récupérer les subscriptions actives
         const subscriptions = await stripe.subscriptions.list({
-          customer: entreprise.stripeCustomerId,
+          customer: entreprise.subscription.stripeCustomerId,
           limit: 10,
         });
 
         stripeData = {
           customer: {
             id: customer.id,
-            email: (customer as any).email,
-            name: (customer as any).name,
+            email: customer.deleted ? null : customer.email,
+            name: customer.deleted ? null : customer.name,
           },
           subscriptions: subscriptions.data.map((sub) => ({
             id: sub.id,
             status: sub.status,
-            current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
+            current_period_end: sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : null,
             cancel_at_period_end: sub.cancel_at_period_end,
             cancel_at: sub.cancel_at ? new Date(sub.cancel_at * 1000).toISOString() : null,
             trial_end: sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null,
@@ -60,8 +60,8 @@ export async function GET(req: NextRequest) {
             })),
           })),
         };
-      } catch (err: any) {
-        stripeData = { error: err.message };
+      } catch (err) {
+        stripeData = { error: err instanceof Error ? err.message : 'Unknown error' };
       }
     }
 
@@ -72,7 +72,7 @@ export async function GET(req: NextRequest) {
           id: entreprise.id,
           nom: entreprise.nom,
           plan: entreprise.plan,
-          stripeCustomerId: entreprise.stripeCustomerId,
+          stripeCustomerId: entreprise.subscription?.stripeCustomerId,
         },
         subscription: entreprise.subscription ? {
           id: entreprise.subscription.id,
@@ -87,7 +87,7 @@ export async function GET(req: NextRequest) {
       stripe: stripeData,
       recommendations: getRecommendations(entreprise, stripeData),
     });
-  } catch (error: any) {
+  } catch (error) {
     return handleTenantError(error);
   }
 }
@@ -95,7 +95,7 @@ export async function GET(req: NextRequest) {
 /**
  * Générer des recommandations basées sur l'état
  */
-function getRecommendations(entreprise: any, stripeData: any): string[] {
+function getRecommendations(entreprise: { id: string; nom: string; plan: string; subscription: { plan: string; status: string; cancelAtPeriodEnd: boolean } | null }, stripeData: { subscriptions?: Array<{ status: string; cancel_at_period_end: boolean }> } | null): string[] {
   const recommendations: string[] = [];
 
   // Vérifier si le plan DB correspond à Stripe

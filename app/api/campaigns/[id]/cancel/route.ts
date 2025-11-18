@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import {
   handleTenantError,
-  requireTenantAuth,
+  verifyResourceAccess,
 } from "@/lib/middleware/tenant-isolation";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -14,26 +14,13 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { entrepriseId } = await requireTenantAuth();
     const { id } = await params;
 
-    const campaign = await prisma.campaign.findUnique({
-      where: { id },
-    });
-
-    if (!campaign) {
-      return NextResponse.json(
-        { message: "Campagne non trouvée" },
-        { status: 404 }
-      );
-    }
-
-    if (campaign.entrepriseId !== entrepriseId) {
-      return NextResponse.json(
-        { message: "Accès non autorisé" },
-        { status: 403 }
-      );
-    }
+    const { resource: campaign } = await verifyResourceAccess(
+      id,
+      (id) => prisma.campaign.findUnique({ where: { id } }),
+      'Campagne'
+    );
 
     // Can only cancel scheduled campaigns
     if (campaign.statut !== "SCHEDULED") {

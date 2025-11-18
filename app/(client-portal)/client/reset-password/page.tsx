@@ -4,7 +4,6 @@ import { PasswordInput } from "@/components/client-portal/reset-password/passwor
 import { StatusCard } from "@/components/client-portal/shared/status-card";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { LoadingState } from "@/components/ui/loading-state";
 import {
     Form,
     FormControl,
@@ -14,6 +13,8 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
+import { LoadingState } from "@/components/ui/loading-state";
+import { SuspensePage } from "@/components/ui/suspense-page";
 import { useResetPassword } from "@/hooks/use-reset-password";
 import { resetPasswordSchema, type ResetPasswordInput } from "@/lib/validation";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,7 +24,6 @@ import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { SuspensePage } from "@/components/ui/suspense-page";
 
 function ResetPasswordForm() {
     const searchParams = useSearchParams();

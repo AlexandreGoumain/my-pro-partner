@@ -8,7 +8,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { createUser, getUsers, canAddUser, userHasPermission } from "@/lib/personnel/personnel.service";
-import { UserRole } from "@prisma/client";
+import { UserRole } from "@/lib/generated/prisma";
 
 /**
  * GET /api/personnel
@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const role = searchParams.get("role") as UserRole | null;
-    const status = searchParams.get("status") as any;
+    const status = searchParams.get("status") as string | null;
     const search = searchParams.get("search") || undefined;
 
     const users = await getUsers(entrepriseId, {
@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
     });
 
     return NextResponse.json({ users });
-  } catch (error: any) {
+  } catch (error: unknown) {
     return handleTenantError(error);
   }
 }
@@ -110,7 +110,7 @@ export async function POST(req: NextRequest) {
     );
 
     return NextResponse.json({ user }, { status: 201 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     return handleTenantError(error);
   }
 }

@@ -1,83 +1,46 @@
-import {
-    handleTenantError,
-    requireTenantAuth,
-} from "@/lib/middleware/tenant-isolation";
-import { validateFeatureAccess } from "@/lib/middleware/feature-validation";
+import { createCrudRoutes } from "@/lib/api/crud-factory";
+import { automationCreateSchema, automationUpdateSchema } from "@/lib/validation";
 import { prisma } from "@/lib/prisma";
-import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
+import { ForbiddenError } from "@/lib/errors";
 
-const automationCreateSchema = z.object({
-    nom: z.string().min(1, "Le nom est requis"),
-    description: z.string().optional(),
-    triggerType: z.enum([
-        "NEW_CLIENT_IN_SEGMENT",
-        "CLIENT_MILESTONE",
-        "SEGMENT_CHANGE",
-        "INACTIVITY",
-        "SCHEDULED",
-    ]),
-    triggerConfig: z.record(z.any()).default({}),
-    actionType: z.enum([
-        "SEND_EMAIL",
-        "ADD_TO_SEGMENT",
-        "REMOVE_FROM_SEGMENT",
-        "ADD_POINTS",
-        "SEND_SMS",
-        "CREATE_TASK",
-    ]),
-    actionConfig: z.record(z.any()).default({}),
-    actif: z.boolean().default(true),
+export const { GET, POST } = createCrudRoutes({
+  modelName: "automation",
+  resourceName: "Automation",
+  createSchema: automationCreateSchema,
+  updateSchema: automationUpdateSchema,
+  searchFields: ["nom", "description"],
+  include: {
+    _count: {
+      select: { executions: true },
+    },
+  },
+  orderBy: { createdAt: "desc" },
+
+  // Check if user's plan allows automations (PRO+ only)
+  beforeCreate: async (data, entrepriseId) => {
+    // Fetch entreprise to check plan
+    const entreprise = await prisma.entreprise.findUnique({
+      where: { id: entrepriseId },
+      select: { plan: true },
+    });
+
+    if (!entreprise) {
+      throw new ForbiddenError("Entreprise non trouvée");
+    }
+
+    // Check if plan has automated reminders feature
+    const hasFeature = ["PRO", "ENTERPRISE"].includes(entreprise.plan);
+    if (!hasFeature) {
+      throw new ForbiddenError(
+        "Les automations ne sont disponibles qu'à partir du plan PRO"
+      );
+    }
+
+    // Cast JSON fields properly
+    return {
+      ...data,
+      triggerConfig: data.triggerConfig || {},
+      actionConfig: data.actionConfig || {},
+    };
+  },
 });
-
-export async function GET(req: NextRequest) {
-    try {
-        const { entrepriseId } = await requireTenantAuth();
-
-        const automations = await prisma.automation.findMany({
-            where: { entrepriseId },
-            orderBy: { createdAt: "desc" },
-        });
-
-        return NextResponse.json({
-            data: automations,
-            total: automations.length,
-        });
-    } catch (error) {
-        return handleTenantError(error);
-    }
-}
-
-export async function POST(req: NextRequest) {
-    try {
-        const { entrepriseId, entreprise } = await requireTenantAuth();
-
-        // Check if user's plan allows automations (PRO+ only)
-        const featureCheck = await validateFeatureAccess(entreprise.plan, "hasAutomatedReminders");
-        if (featureCheck) return featureCheck;
-
-        const body = await req.json();
-        const validation = automationCreateSchema.safeParse(body);
-
-        if (!validation.success) {
-            return NextResponse.json(
-                {
-                    message: "Données invalides",
-                    errors: validation.error.errors,
-                },
-                { status: 400 }
-            );
-        }
-
-        const automation = await prisma.automation.create({
-            data: {
-                ...validation.data,
-                entrepriseId,
-            },
-        });
-
-        return NextResponse.json(automation, { status: 201 });
-    } catch (error) {
-        return handleTenantError(error);
-    }
-}

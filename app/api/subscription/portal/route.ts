@@ -14,7 +14,7 @@ async function handlePortalRequest() {
     );
 
     return NextResponse.json({ url: portalUrl });
-  } catch (error: any) {
+  } catch (error) {
     return handleTenantError(error);
   }
 }
@@ -22,13 +22,13 @@ async function handlePortalRequest() {
 /**
  * GET /api/subscription/portal
  */
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   return handlePortalRequest();
 }
 
 /**
  * POST /api/subscription/portal
  */
-export async function POST(req: NextRequest) {
+export async function POST(_req: NextRequest) {
   return handlePortalRequest();
 }

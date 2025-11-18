@@ -1,181 +1,70 @@
+import { createResourceByIdRoutes } from "@/lib/api/crud-factory";
+import { BusinessError, ForbiddenError, NotFoundError } from "@/lib/errors";
 import { prisma } from "@/lib/prisma";
 import { categorieUpdateSchema } from "@/lib/validation";
-import {
-    handleTenantError,
-    requireTenantAuth,
-    validateTenantAccess,
-} from "@/lib/middleware/tenant-isolation";
-import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(
-    req: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
-    try {
-        const { entrepriseId } = await requireTenantAuth();
-        const { id } = await params;
-
-        const categorie = await prisma.categorie.findUnique({
-            where: { id },
-            include: {
-                parent: true,
-                enfants: true,
-                articles: {
-                    where: { actif: true },
-                    select: {
-                        id: true,
-                        nom: true,
-                        reference: true,
-                    },
-                },
-            },
-        });
-
-        if (!categorie) {
-            return NextResponse.json(
-                { message: "Catégorie non trouvée" },
-                { status: 404 }
-            );
-        }
-
-        validateTenantAccess(categorie.entrepriseId, entrepriseId);
-
-        return NextResponse.json(categorie);
-    } catch (error) {
-        return handleTenantError(error);
-    }
-}
-
-async function updateCategorie(
-    req: NextRequest,
-    params: Promise<{ id: string }>
-) {
-    const { entrepriseId } = await requireTenantAuth();
-    const { id } = await params;
-    const body = await req.json();
-    const validation = categorieUpdateSchema.safeParse(body);
-
-    if (!validation.success) {
-        return NextResponse.json(
-            {
-                message: "Données invalides",
-                errors: validation.error.errors,
-            },
-            { status: 400 }
-        );
-    }
-
-    const existingCategorie = await prisma.categorie.findUnique({
-        where: { id },
-    });
-
-    if (!existingCategorie) {
-        return NextResponse.json(
-            { message: "Catégorie non trouvée" },
-            { status: 404 }
-        );
-    }
-
-    validateTenantAccess(existingCategorie.entrepriseId, entrepriseId);
-
-    if (validation.data.parentId) {
-        const parentCategorie = await prisma.categorie.findUnique({
-            where: { id: validation.data.parentId },
-            include: {
-                parent: true,
-            },
-        });
-
-        if (!parentCategorie) {
-            return NextResponse.json(
-                { message: "Catégorie parente introuvable" },
-                { status: 404 }
-            );
-        }
-
-        if (parentCategorie.entrepriseId !== entrepriseId) {
-            return NextResponse.json(
-                { message: "Catégorie parente invalide" },
-                { status: 403 }
-            );
-        }
-
-        if (validation.data.parentId === id) {
-            return NextResponse.json(
-                { message: "Une catégorie ne peut pas être son propre parent" },
-                { status: 400 }
-            );
-        }
-
-        if (parentCategorie?.parentId === id) {
-            return NextResponse.json(
-                {
-                    message:
-                        "Cette opération créerait une boucle de catégories",
-                },
-                { status: 400 }
-            );
-        }
-
-        if (parentCategorie.parentId) {
-            return NextResponse.json(
-                {
-                    message:
-                        "Impossible de créer une sous-sous-catégorie. La hiérarchie est limitée à 2 niveaux (catégorie et sous-catégorie).",
-                },
-                { status: 400 }
-            );
-        }
-    }
-
-    const categorie = await prisma.categorie.update({
-        where: { id },
-        data: validation.data,
-        include: {
-            parent: true,
-            enfants: true,
-            articles: {
-                where: { actif: true },
-                select: { id: true },
-            },
+export const { GET, PUT, DELETE } = createResourceByIdRoutes({
+    modelName: "categorie",
+    resourceName: "Catégorie",
+    createSchema: categorieUpdateSchema, // Dummy schema (required by type, not used for resource-by-id routes)
+    updateSchema: categorieUpdateSchema,
+    include: {
+        parent: true,
+        enfants: true,
+        articles: {
+            where: { actif: true },
+            select: { id: true, nom: true, reference: true },
         },
-    });
+    },
 
-    return NextResponse.json(categorie);
-}
+    // Validate parent category before update
+    beforeUpdate: async (data, categorieId, entrepriseId) => {
+        // If updating parentId, validate the new parent
+        if (data.parentId) {
+            const parentCategorie = await prisma.categorie.findUnique({
+                where: { id: data.parentId },
+                include: { parent: true },
+            });
 
-export async function PUT(
-    req: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
-    try {
-        return await updateCategorie(req, params);
-    } catch (error) {
-        return handleTenantError(error);
-    }
-}
+            if (!parentCategorie) {
+                throw new NotFoundError("Catégorie parente", data.parentId);
+            }
 
-export async function PATCH(
-    req: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
-    try {
-        return await updateCategorie(req, params);
-    } catch (error) {
-        return handleTenantError(error);
-    }
-}
+            if (parentCategorie.entrepriseId !== entrepriseId) {
+                throw new ForbiddenError(
+                    "Cette catégorie parente n'appartient pas à votre entreprise"
+                );
+            }
 
-export async function DELETE(
-    req: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
-    try {
-        const { entrepriseId } = await requireTenantAuth();
-        const { id } = await params;
+            // Category cannot be its own parent
+            if (data.parentId === categorieId) {
+                throw new BusinessError(
+                    "Une catégorie ne peut pas être son propre parent"
+                );
+            }
 
+            // Prevent circular references (parent's parent cannot be the category itself)
+            if (parentCategorie?.parentId === categorieId) {
+                throw new BusinessError(
+                    "Cette opération créerait une boucle de catégories"
+                );
+            }
+
+            // Limit hierarchy to 2 levels
+            if (parentCategorie.parentId) {
+                throw new BusinessError(
+                    "Impossible de créer une sous-sous-catégorie. La hiérarchie est limitée à 2 niveaux (catégorie et sous-catégorie)."
+                );
+            }
+        }
+
+        return data;
+    },
+
+    // Check for children and articles before deletion
+    beforeDelete: async (categorieId, _entrepriseId) => {
         const categorie = await prisma.categorie.findUnique({
-            where: { id },
+            where: { id: categorieId },
             include: {
                 enfants: true,
                 articles: true,
@@ -183,40 +72,22 @@ export async function DELETE(
         });
 
         if (!categorie) {
-            return NextResponse.json(
-                { message: "Catégorie non trouvée" },
-                { status: 404 }
-            );
+            throw new NotFoundError("Catégorie", categorieId);
         }
 
-        validateTenantAccess(categorie.entrepriseId, entrepriseId);
-
         if (categorie.enfants.length > 0) {
-            return NextResponse.json(
-                {
-                    message: `Impossible de supprimer cette catégorie car elle contient ${categorie.enfants.length} sous-catégorie(s)`,
-                },
-                { status: 400 }
+            throw new BusinessError(
+                `Impossible de supprimer cette catégorie car elle contient ${categorie.enfants.length} sous-catégorie(s)`
             );
         }
 
         if (categorie.articles.length > 0) {
-            return NextResponse.json(
-                {
-                    message: `Impossible de supprimer cette catégorie car elle contient ${categorie.articles.length} article(s)`,
-                },
-                { status: 400 }
+            throw new BusinessError(
+                `Impossible de supprimer cette catégorie car elle contient ${categorie.articles.length} article(s)`
             );
         }
+    },
+});
 
-        await prisma.categorie.delete({
-            where: { id },
-        });
-
-        return NextResponse.json({
-            message: "Catégorie supprimée avec succès",
-        });
-    } catch (error) {
-        return handleTenantError(error);
-    }
-}
+// PATCH is the same as PUT for categories
+export { PUT as PATCH };

@@ -104,9 +104,10 @@ export function usePOSPage(): UsePOSPageReturn {
 
             // Vider le panier
             cart.clearCart();
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(error);
-            toast.error(error.message || "Erreur lors de l'encaissement");
+            const message = error instanceof Error ? error.message : "Erreur lors de l'encaissement";
+            toast.error(message);
         } finally {
             setProcessing(false);
         }

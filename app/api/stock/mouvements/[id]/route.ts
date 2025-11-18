@@ -88,7 +88,7 @@ export async function DELETE(
           motif: `Annulation du mouvement ${mouvementOriginal.id}`,
           reference: mouvementOriginal.reference,
           notes: `Mouvement compensatoire pour annuler: ${mouvementOriginal.type} de ${mouvementOriginal.quantite}`,
-          createdBy: user.email || null,
+          createdBy: user.id,
           entrepriseId,
         },
       });
@@ -101,7 +101,7 @@ export async function DELETE(
 
       // Supprimer le mouvement original
       await tx.mouvementStock.delete({
-        where: { id: (await params).id },
+        where: { id },
       });
     });
 

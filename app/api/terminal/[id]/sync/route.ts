@@ -8,15 +8,16 @@ import { TerminalService } from "@/lib/services/terminal.service";
  */
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await requireTenantAuth();
+    const { id } = await params;
 
-    const reader = await TerminalService.syncTerminalStatus(params.id);
+    const reader = await TerminalService.syncTerminalStatus(id);
 
     return NextResponse.json({ success: true, reader });
-  } catch (error: any) {
+  } catch (error) {
     return handleTenantError(error);
   }
 }

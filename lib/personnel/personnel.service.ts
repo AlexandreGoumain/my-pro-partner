@@ -12,8 +12,7 @@
 
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-import { UserRole, UserStatus } from "@prisma/client";
-import { DEFAULT_ROLE_PERMISSIONS, getDefaultPermissions } from "./roles-config";
+import { UserRole, UserStatus, DEFAULT_ROLE_PERMISSIONS, getDefaultPermissions } from "./roles-config";
 import { emailService } from "@/lib/email/email-service";
 import { nanoid } from "nanoid";
 
@@ -69,7 +68,7 @@ export interface UserWithPermissions {
   dateEmbauche?: Date | null;
   photoUrl?: string | null;
   lastLoginAt?: Date | null;
-  permissions?: any;
+  permissions?: Record<string, boolean>;
   createdAt: Date;
 }
 
@@ -147,7 +146,7 @@ export async function createUser(
         data.role,
         createdByUserId
       );
-    } catch (error) {
+    } catch (_error) {
       // Ne pas échouer la création si l'email échoue
     }
   }
@@ -166,7 +165,7 @@ export async function getUsers(
     search?: string;
   }
 ) {
-  const where: any = {
+  const where: Record<string, unknown> = {
     entrepriseId,
   };
 
@@ -422,7 +421,7 @@ export async function userHasPermission(
 
   if (!userPerms) return false;
 
-  return (userPerms as any)[permission] === true;
+  return (userPerms as Record<string, unknown>)[permission] === true;
 }
 
 // ============================================
@@ -654,7 +653,7 @@ export async function logUserActivity(data: {
   action: "LOGIN" | "LOGOUT" | "CREATE" | "UPDATE" | "DELETE" | "VIEW" | "EXPORT" | "PRINT" | "SEND_EMAIL" | "PAYMENT_RECEIVED" | "SETTINGS_CHANGED";
   resource?: string;
   resourceId?: string;
-  details?: any;
+  details?: Record<string, unknown>;
   ipAddress?: string;
   userAgent?: string;
 }) {
@@ -702,7 +701,7 @@ export async function getCompanyActivities(
     endDate?: Date;
   }
 ) {
-  const where: any = {};
+  const where: Record<string, unknown> = {};
 
   if (filters?.userId) {
     where.userId = filters.userId;
@@ -877,7 +876,7 @@ export async function sendUserInvitation(
     }
 
     return true;
-  } catch (error) {
+  } catch (_error) {
     return false;
   }
 }
@@ -902,7 +901,8 @@ function generateTemporaryPassword(): string {
  * Vérifier si l'entreprise peut ajouter un nouvel utilisateur (limite plan)
  */
 export async function canAddUser(entrepriseId: string): Promise<boolean> {
-  const { getPlanLimits, PlanType } = await import("@/lib/pricing-config");
+  const { getPlanLimits } = await import("@/lib/pricing-config");
+  type PlanType = "FREE" | "STARTER" | "PRO" | "ENTERPRISE";
 
   const entreprise = await prisma.entreprise.findUnique({
     where: { id: entrepriseId },

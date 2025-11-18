@@ -33,7 +33,7 @@ export default function RegisterPage() {
                     className="space-y-4"
                 >
                     <FormInput
-                        control={form.control as any}
+                        control={form.control}
                         name="name"
                         label="Nom complet"
                         type="text"
@@ -44,7 +44,7 @@ export default function RegisterPage() {
                     />
 
                     <FormInput
-                        control={form.control as any}
+                        control={form.control}
                         name="email"
                         label="Email"
                         type="email"
@@ -55,7 +55,7 @@ export default function RegisterPage() {
                     />
 
                     <FormInput
-                        control={form.control as any}
+                        control={form.control}
                         name="password"
                         label="Mot de passe"
                         type="password"
@@ -66,7 +66,7 @@ export default function RegisterPage() {
                     />
 
                     <FormInput
-                        control={form.control as any}
+                        control={form.control}
                         name="confirmPassword"
                         label="Confirmer le mot de passe"
                         type="password"

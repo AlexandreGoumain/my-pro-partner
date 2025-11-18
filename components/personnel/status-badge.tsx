@@ -5,7 +5,7 @@
 import { Badge } from "@/components/ui/badge";
 import { UserStatus } from "@/hooks/personnel/use-personnel";
 import { STATUS_LABELS } from "@/lib/personnel/roles-config";
-import { CheckCircle2, XCircle, Ban, Mail } from "lucide-react";
+import { CheckCircle2, XCircle, Ban, Mail, LucideIcon } from "lucide-react";
 
 interface StatusBadgeProps {
   status: UserStatus;
@@ -19,7 +19,7 @@ const STATUS_COLORS: Record<UserStatus, string> = {
   INVITED: "bg-yellow-100 text-yellow-800 border-yellow-200",
 };
 
-const STATUS_ICONS: Record<UserStatus, any> = {
+const STATUS_ICONS: Record<UserStatus, LucideIcon> = {
   ACTIVE: CheckCircle2,
   INACTIVE: XCircle,
   SUSPENDED: Ban,

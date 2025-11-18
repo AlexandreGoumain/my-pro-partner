@@ -7,9 +7,9 @@ import { requireTenantAuth, handleTenantError } from '@/lib/middleware/tenant-is
 import { prisma } from '@/lib/prisma';
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export async function GET(
@@ -17,12 +17,13 @@ export async function GET(
   { params }: RouteParams
 ) {
   try {
+    const { id } = await params;
     const { entrepriseId, userId } = await requireTenantAuth();
 
     // Vérifier que la conversation appartient à l'utilisateur
     const conversation = await prisma.conversation.findUnique({
       where: {
-        id: params.id,
+        id,
         userId,
         entrepriseId,
       },
@@ -42,7 +43,7 @@ export async function GET(
 
     const messages = await prisma.message.findMany({
       where: {
-        conversationId: params.id,
+        conversationId: id,
         ...(before && { createdAt: { lt: new Date(before) } }),
       },
       orderBy: { createdAt: 'desc' },

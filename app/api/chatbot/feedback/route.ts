@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireTenantAuth, handleTenantError } from '@/lib/middleware/tenant-isolation';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+import { validateRequest } from '@/lib/utils/validation-helper';
 
 const feedbackSchema = z.object({
   messageId: z.string(),
@@ -18,12 +19,15 @@ export async function POST(req: NextRequest) {
     const { entrepriseId, userId } = await requireTenantAuth();
 
     const body = await req.json();
-    const validated = feedbackSchema.parse(body);
+    const result = validateRequest(feedbackSchema, body);
+    if (!result.success) return result.response;
+
+    const { messageId, feedback, comment } = result.data;
 
     // Vérifier que le message existe et appartient à une conversation de l'utilisateur
     const message = await prisma.message.findFirst({
       where: {
-        id: validated.messageId,
+        id: messageId,
         conversation: {
           userId,
           entrepriseId,
@@ -43,14 +47,14 @@ export async function POST(req: NextRequest) {
     const updatedMetadata = {
       ...currentMetadata,
       feedback: {
-        type: validated.feedback,
-        comment: validated.comment,
+        type: feedback,
+        comment: comment,
         timestamp: new Date().toISOString(),
       },
     };
 
     await prisma.message.update({
-      where: { id: validated.messageId },
+      where: { id: messageId },
       data: { metadata: updatedMetadata },
     });
 
@@ -59,13 +63,6 @@ export async function POST(req: NextRequest) {
       message: 'Feedback enregistré',
     });
   } catch (error: unknown) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Données invalides', details: error.errors },
-        { status: 400 }
-      );
-    }
-
     return handleTenantError(error);
   }
 }

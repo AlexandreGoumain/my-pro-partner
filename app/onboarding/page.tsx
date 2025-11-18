@@ -21,7 +21,6 @@ export default function OnboardingPage() {
         error,
         onSubmit,
         step,
-        nextStep,
         prevStep,
         canGoNext,
         handleNext,

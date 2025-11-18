@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { TerminalService } from "@/lib/services/terminal.service";
+import { validateRequest } from "@/lib/utils/validation-helper";
 import { z } from "zod";
 
 const paymentIntentSchema = z.object({
@@ -15,30 +16,25 @@ const paymentIntentSchema = z.object({
  */
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await requireTenantAuth();
+    const { id } = await params;
 
     const body = await req.json();
-    const validation = paymentIntentSchema.safeParse(body);
-
-    if (!validation.success) {
-      return NextResponse.json(
-        { error: "Données invalides", details: validation.error.errors },
-        { status: 400 }
-      );
-    }
+    const result = validateRequest(paymentIntentSchema, body);
+    if (!result.success) return result.response;
 
     const paymentIntent = await TerminalService.createPaymentIntent({
-      terminalId: params.id,
-      amount: validation.data.amount,
-      currency: validation.data.currency,
-      description: validation.data.description,
+      terminalId: id,
+      amount: result.data.amount,
+      currency: result.data.currency,
+      description: result.data.description,
     });
 
     return NextResponse.json({ paymentIntent });
-  } catch (error: any) {
+  } catch (error) {
     return handleTenantError(error);
   }
 }

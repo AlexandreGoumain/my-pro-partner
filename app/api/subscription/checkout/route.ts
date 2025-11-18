@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { SubscriptionService } from "@/lib/services/subscription.service";
+import { validateRequest } from "@/lib/utils/validation-helper";
 import { z } from "zod";
 
 const checkoutSchema = z.object({
@@ -19,16 +20,10 @@ export async function POST(req: NextRequest) {
 
     // Parser et valider le body
     const body = await req.json();
-    const validation = checkoutSchema.safeParse(body);
+    const result = validateRequest(checkoutSchema, body);
+    if (!result.success) return result.response;
 
-    if (!validation.success) {
-      return NextResponse.json(
-        { error: "Données invalides", details: validation.error.errors },
-        { status: 400 }
-      );
-    }
-
-    const { plan, interval } = validation.data;
+    const { plan, interval } = result.data;
 
     // Construire les URLs de succès et annulation
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
@@ -48,7 +43,7 @@ export async function POST(req: NextRequest) {
       sessionId: checkoutSession.id,
       url: checkoutSession.url,
     });
-  } catch (error: any) {
+  } catch (error) {
     return handleTenantError(error);
   }
 }

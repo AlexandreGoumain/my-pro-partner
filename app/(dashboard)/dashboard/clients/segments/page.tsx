@@ -1,11 +1,11 @@
 "use client";
 
-import { BulkEmailDialog } from "@/components/bulk-email-dialog";
-import { DeleteConfirmDialog } from "@/components/delete-confirm-dialog";
+import { BulkEmailDialog } from "@/components/campaigns/bulk-email-dialog";
 import { PlanGate } from "@/components/paywall";
 import { useLimitDialog } from "@/components/providers/limit-dialog-provider";
-import { SegmentBuilderDialog } from "@/components/segment-builder-dialog";
-import { SegmentComparisonDialog } from "@/components/segment-comparison-dialog";
+import { SegmentBuilderDialog } from "@/components/segments/segment-builder-dialog";
+import { SegmentComparisonDialog } from "@/components/segments/segment-comparison-dialog";
+import { DeleteConfirmDialog } from "@/components/shared/delete-confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FilterBar } from "@/components/ui/filter-bar";

@@ -2,7 +2,7 @@
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, Clock, FileText, Mail, Phone, MapPin } from "lucide-react";
+import { Clock, FileText, Mail, Phone, MapPin } from "lucide-react";
 import Link from "next/link";
 
 export interface Debtor {

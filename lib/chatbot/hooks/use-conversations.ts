@@ -58,12 +58,15 @@ export function useConversations(): ConversationsState {
 
       setCurrentConversationId(id);
 
-      return conversation.messages.map((m: unknown) => ({
-        id: m.id,
-        role: m.role.toLowerCase() as 'user' | 'assistant',
-        content: m.content,
-        createdAt: new Date(m.createdAt),
-      }));
+      return conversation.messages.map((m: unknown) => {
+        const message = m as Record<string, unknown>;
+        return {
+          id: message.id as string,
+          role: (message.role as string).toLowerCase() as 'user' | 'assistant',
+          content: message.content as string,
+          createdAt: new Date(message.createdAt as string),
+        };
+      });
     } catch (error) {
       console.error('Error loading conversation:', error);
       return [];

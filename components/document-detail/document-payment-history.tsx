@@ -1,6 +1,6 @@
 "use client";
 
-import { PaymentHistory } from "@/components/payment-history";
+import { PaymentHistory } from "@/components/documents/payment-history";
 import { usePayments } from "@/hooks/use-payments";
 import { Card } from "@/components/ui/card";
 import { GridSkeleton } from "@/components/ui/grid-skeleton";

@@ -1,4 +1,4 @@
-import { CategoryFilter } from "@/components/category-filter";
+import { CategoryFilter } from "@/components/categories/category-filter";
 import { FilterBar } from "@/components/ui/filter-bar";
 import {
     Select,

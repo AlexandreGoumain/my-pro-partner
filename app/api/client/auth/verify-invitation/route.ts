@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { validateRequest } from "@/lib/utils/validation-helper";
 
 const verifyInvitationSchema = z.object({
   token: z.string().min(1, "Token requis"),
@@ -13,19 +14,10 @@ const verifyInvitationSchema = z.object({
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const validation = verifyInvitationSchema.safeParse(body);
+    const result = validateRequest(verifyInvitationSchema, body);
+    if (!result.success) return result.response;
 
-    if (!validation.success) {
-      return NextResponse.json(
-        {
-          message: "Données invalides",
-          errors: validation.error.errors,
-        },
-        { status: 400 }
-      );
-    }
-
-    const { token } = validation.data;
+    const { token } = result.data;
 
     // Find invitation token
     const invitation = await prisma.invitationToken.findUnique({

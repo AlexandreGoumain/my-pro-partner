@@ -379,7 +379,7 @@ export class FECService {
   /**
    * Formate un montant au format FEC (avec virgule, 2 décimales)
    */
-  private static formatMontant(montant: any): string {
+  private static formatMontant(montant: string | number): string {
     const num = Number(montant);
     if (num === 0) return "";
     return num.toFixed(2).replace(".", ",");

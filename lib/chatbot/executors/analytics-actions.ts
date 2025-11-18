@@ -13,9 +13,10 @@ export async function getStatistics(
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
+  const paramsObj = params as Record<string, unknown>;
   const queryParams = buildQueryParams({
-    fromDate: params.fromDate,
-    toDate: params.toDate,
+    fromDate: paramsObj.fromDate,
+    toDate: paramsObj.toDate,
   });
 
   const response = await api.get(`/api/statistics?${queryParams.toString()}`);
@@ -42,8 +43,9 @@ export async function searchAll(
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
-  const limit = params.limit || 5;
-  const query = encodeURIComponent(params.query);
+  const paramsObj = params as Record<string, unknown>;
+  const limit = paramsObj.limit || 5;
+  const query = encodeURIComponent(paramsObj.query as string);
 
   try {
     const [clientsRes, articlesRes, documentsRes] = await Promise.all([
@@ -67,7 +69,7 @@ export async function searchAll(
       },
       message: 'Recherche effectuée',
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       success: false,
       error: 'Erreur lors de la recherche',
@@ -83,9 +85,10 @@ export async function quickInvoice(
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
+  const paramsObj = params as Record<string, unknown>;
 
   // Get article details first
-  const articleRes = await api.get(`/api/articles/${params.articleId}`);
+  const articleRes = await api.get(`/api/articles/${paramsObj.articleId as string}`);
   if (!articleRes.ok) {
     return { success: false, error: 'Article non trouvé' };
   }
@@ -95,12 +98,12 @@ export async function quickInvoice(
   // Create invoice
   const response = await api.post('/api/documents', {
     type: 'FACTURE',
-    clientId: params.clientId,
+    clientId: paramsObj.clientId,
     lignes: [
       {
-        articleId: params.articleId,
+        articleId: paramsObj.articleId,
         description: article.nom,
-        quantite: params.quantite || 1,
+        quantite: paramsObj.quantite || 1,
         prix_unitaire: article.prix_ht,
         tva_taux: article.tva_taux,
       },
@@ -118,7 +121,8 @@ export async function getRecentActivity(
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
-  const days = params.days || 7;
+  const paramsObj = params as Record<string, unknown>;
+  const days = paramsObj.days || 7;
   const fromDate = new Date();
   fromDate.setDate(fromDate.getDate() - days);
 
@@ -145,7 +149,7 @@ export async function getRecentActivity(
       },
       message: `Activité des ${days} derniers jours`,
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       success: false,
       error: 'Erreur lors de la récupération',
@@ -161,12 +165,13 @@ export async function queryUnpaidInvoices(
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
+  const paramsObj = params as Record<string, unknown>;
   const queryParams = buildQueryParams({
-    sortBy: params.sortBy || 'dateEcheance',
-    sortOrder: params.sortOrder || 'asc',
-    overdueOnly: params.overdueOnly?.toString(),
-    minAmount: params.minAmount?.toString(),
-    clientId: params.clientId,
+    sortBy: paramsObj.sortBy || 'dateEcheance',
+    sortOrder: paramsObj.sortOrder || 'asc',
+    overdueOnly: paramsObj.overdueOnly?.toString(),
+    minAmount: paramsObj.minAmount?.toString(),
+    clientId: paramsObj.clientId,
   });
 
   const response = await api.get(
@@ -183,8 +188,9 @@ export async function queryTopDebtors(
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
+  const paramsObj = params as Record<string, unknown>;
   const queryParams = buildQueryParams({
-    limit: params.limit?.toString() || '10',
+    limit: paramsObj.limit?.toString() || '10',
   });
 
   const response = await api.get(
@@ -201,9 +207,10 @@ export async function analyzeProfitability(
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
+  const paramsObj = params as Record<string, unknown>;
   const queryParams = buildQueryParams({
-    period: params.period || 'all',
-    topLimit: params.topLimit?.toString() || '10',
+    period: paramsObj.period || 'all',
+    topLimit: paramsObj.topLimit?.toString() || '10',
   });
 
   const response = await api.get(
@@ -220,9 +227,10 @@ export async function identifyBestClients(
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
-  const limit = params.limit || 10;
-  const period = params.period || 'year';
-  const sortBy = params.sortBy || 'revenue';
+  const paramsObj = params as Record<string, unknown>;
+  const limit = paramsObj.limit || 10;
+  const period = paramsObj.period || 'year';
+  const sortBy = paramsObj.sortBy || 'revenue';
 
   try {
     // Get all paid invoices for the period
@@ -287,7 +295,7 @@ export async function identifyBestClients(
       data: { bestClients, period, sortBy },
       message: `Top ${limit} meilleurs clients identifiés`,
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       success: false,
       error: 'Erreur lors de l\'analyse des meilleurs clients',
@@ -303,7 +311,8 @@ export async function predictRevenue(
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
-  const months = params.months || 1;
+  const paramsObj = params as Record<string, unknown>;
+  const months = paramsObj.months || 1;
 
   try {
     // Get historical data (last 12 months of paid invoices)
@@ -369,7 +378,7 @@ export async function predictRevenue(
       },
       message: `CA prévu pour les ${months} prochains mois: ${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(prediction)}`,
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       success: false,
       error: 'Erreur lors de la prédiction du chiffre d\'affaires',
@@ -385,8 +394,9 @@ export async function generatePaymentReminder(
   baseUrl: string
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
-  const invoiceId = params.invoiceId;
-  const tone = params.tone || 'friendly';
+  const paramsObj = params as Record<string, unknown>;
+  const invoiceId = paramsObj.invoiceId;
+  const tone = paramsObj.tone || 'friendly';
 
   try {
     // Get invoice details
@@ -475,7 +485,7 @@ Merci beaucoup et à bientôt !`;
       },
       message: 'Email de rappel généré',
     };
-  } catch (error) {
+  } catch (_error) {
     return {
       success: false,
       error: 'Erreur lors de la génération du rappel',

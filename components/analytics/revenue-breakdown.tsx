@@ -20,7 +20,6 @@ export interface RevenueBreakdownProps {
 export function RevenueBreakdown({
     title,
     items,
-    totalRevenue,
     className = "",
 }: RevenueBreakdownProps) {
     const formatCurrency = (value: number) => {

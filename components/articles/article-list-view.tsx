@@ -1,8 +1,6 @@
-import { TableSkeleton } from "@/components/skeletons";
 import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { Article } from "@/app/(dashboard)/dashboard/articles/_components/data-table/columns";
-import { cn } from "@/lib/utils";
 
 const ARTICLE_COLUMN_LABELS: Record<string, string> = {
     nom: "Article",
@@ -27,10 +25,8 @@ export function ArticleListView({
     columns,
     isLoading,
     emptyMessage,
-    className,
 }: ArticleListViewProps) {
     if (isLoading) {
-        return <TableSkeleton rows={8} columns={6} className={className} />;
     }
 
     return (
@@ -40,7 +36,6 @@ export function ArticleListView({
             emptyMessage={emptyMessage}
             itemLabel="article(s)"
             columnLabels={ARTICLE_COLUMN_LABELS}
-            className={className}
         />
     );
 }

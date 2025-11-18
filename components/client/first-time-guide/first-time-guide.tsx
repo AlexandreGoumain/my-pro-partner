@@ -17,7 +17,7 @@ export interface FirstTimeGuideProps {
  * Shows helpful tips for new users after onboarding
  * Can be dismissed permanently
  */
-export function FirstTimeGuide({ userName }: FirstTimeGuideProps) {
+export function FirstTimeGuide({ userName: _userName }: FirstTimeGuideProps) {
     const {
         isVisible,
         currentTip,

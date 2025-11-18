@@ -13,6 +13,7 @@ export interface TenantContext {
     plan: string;
     abonnementActif: boolean;
     dateExpiration: Date | null;
+    businessType: string;
   };
   user: {
     id: string;
@@ -50,6 +51,7 @@ export async function requireTenantAuth(): Promise<TenantContext> {
           plan: true,
           abonnementActif: true,
           dateExpiration: true,
+          businessType: true,
         },
       },
     },
@@ -134,4 +136,40 @@ export function validateTenantAccess(
       403,
     );
   }
+}
+
+/**
+ * Verify resource access with tenant isolation
+ * Combines authentication, resource fetching, existence check, and ownership verification
+ *
+ * @param resourceId - ID of the resource to verify
+ * @param fetchResource - Function to fetch the resource from database
+ * @param resourceName - Human-readable name for error messages (e.g., "Campagne", "Client")
+ * @returns Object containing the resource and tenant context
+ * @throws TenantError with 404 if resource not found
+ * @throws TenantError with 403 if resource doesn't belong to user's company
+ *
+ * @example
+ * const { resource: campaign, context } = await verifyResourceAccess(
+ *   params.id,
+ *   (id) => prisma.campaign.findUnique({ where: { id } }),
+ *   'Campagne'
+ * );
+ */
+export async function verifyResourceAccess<T extends { entrepriseId: string }>(
+  resourceId: string,
+  fetchResource: (id: string) => Promise<T | null>,
+  resourceName: string,
+): Promise<{ resource: T; context: TenantContext }> {
+  const context = await requireTenantAuth();
+
+  const resource = await fetchResource(resourceId);
+
+  if (!resource) {
+    throw new TenantError(`${resourceName} non trouvé`, 404);
+  }
+
+  validateTenantAccess(resource.entrepriseId, context.entrepriseId);
+
+  return { resource, context };
 }

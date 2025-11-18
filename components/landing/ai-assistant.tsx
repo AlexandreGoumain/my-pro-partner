@@ -121,7 +121,7 @@ export function AIAssistant() {
                     <Card className="inline-block bg-white/[0.05] border-white/[0.1] p-8">
                         <div className="space-y-6">
                             <h3 className="text-[28px] font-semibold text-white tracking-[-0.02em]">
-                                Transformez votre gestion d'entreprise
+                                Transformez votre gestion &apos;entreprise
                             </h3>
                             <p className="text-[16px] text-white/60 max-w-[600px]">
                                 Pendant que vos concurrents perdent des heures, vous obtenez des insights en 3 secondes.

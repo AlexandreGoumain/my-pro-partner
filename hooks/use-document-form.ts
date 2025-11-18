@@ -5,7 +5,7 @@ import {
 } from "@/lib/constants/document.constants";
 import type {
     Article,
-    Client,
+    DocumentClient as Client,
     DocumentFormData,
     DocumentStatus,
     DocumentType,
@@ -239,12 +239,13 @@ export function useDocumentForm({
 
             toast.success(successMessage);
             router.push(`${redirectPath}/${data.document?.id || documentId}`);
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(
                 "[Document Form] Error creating/updating document:",
                 error
             );
-            toast.error(error.message || MESSAGES.ERRORS.CREATE_DOCUMENT);
+            const message = error instanceof Error ? error.message : MESSAGES.ERRORS.CREATE_DOCUMENT;
+            toast.error(message);
         } finally {
             setIsSubmitting(false);
         }

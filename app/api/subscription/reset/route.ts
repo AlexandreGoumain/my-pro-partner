@@ -8,7 +8,7 @@ import { prisma } from "@/lib/prisma";
  * Nettoyer complètement l'état de l'abonnement et remettre en FREE
  * À utiliser UNIQUEMENT en cas d'état incohérent
  */
-export async function POST(req: NextRequest) {
+export async function POST(_req: NextRequest) {
   try {
     const { entrepriseId } = await requireTenantAuth();
 
@@ -17,12 +17,11 @@ export async function POST(req: NextRequest) {
       where: { entrepriseId },
     });
 
-    // 2. Remettre l'entreprise en FREE et supprimer les IDs Stripe
+    // 2. Remettre l'entreprise en FREE
     await prisma.entreprise.update({
       where: { id: entrepriseId },
       data: {
         plan: "FREE",
-        stripeCustomerId: null,
       },
     });
 
@@ -38,7 +37,7 @@ export async function POST(req: NextRequest) {
         "ℹ️  Vous pouvez maintenant souscrire à nouveau à un plan",
       ],
     });
-  } catch (error: any) {
+  } catch (error) {
     return handleTenantError(error);
   }
 }

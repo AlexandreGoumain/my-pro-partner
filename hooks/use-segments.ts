@@ -6,42 +6,72 @@ import {
   UpdateSegmentForm,
   Client,
 } from "@/lib/types";
+import { createResourceHooks } from "@/lib/hooks/create-resource-hooks";
 
 const API_BASE = "/api/segments";
 
-// ============================================
-// FETCH FUNCTIONS
-// ============================================
+// Create base hooks using factory
+const segmentHooks = createResourceHooks<Segment>({
+  resourceName: "segments",
+  endpoint: "/api/segments",
+});
 
-async function fetchSegments(params?: {
-  type?: string;
-  actif?: boolean;
-}): Promise<{ data: Segment[]; total: number }> {
-  const searchParams = new URLSearchParams();
-  if (params?.type) searchParams.set("type", params.type);
-  if (params?.actif !== undefined)
-    searchParams.set("actif", params.actif.toString());
+// Export query keys
+export const segmentKeys = segmentHooks.keys;
 
-  const response = await fetch(`${API_BASE}?${searchParams.toString()}`);
+// Export base hooks from factory with custom wrapper for useSegments to support params
+export function useSegments(params?: { type?: string; actif?: boolean }) {
+  // Note: factory useList doesn't support custom params yet, so we keep custom implementation
+  return useQuery({
+    queryKey: ["segments", params],
+    queryFn: async () => {
+      const searchParams = new URLSearchParams();
+      if (params?.type) searchParams.set("type", params.type);
+      if (params?.actif !== undefined) searchParams.set("actif", params.actif.toString());
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch segments");
-  }
-
-  return response.json();
+      const response = await fetch(`${API_BASE}?${searchParams.toString()}`);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to fetch segments");
+      }
+      return response.json();
+    },
+  });
 }
 
-async function fetchSegmentById(id: string): Promise<Segment> {
-  const response = await fetch(`${API_BASE}/${id}`);
+export const useSegment = segmentHooks.useDetail;
+export const useCreateSegment = () => segmentHooks.useCreate<CreateSegmentForm>();
+export const useDeleteSegment = segmentHooks.useDelete;
 
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch segment");
-  }
+// Custom update hook using PATCH instead of PUT
+export function useUpdateSegment() {
+  const queryClient = useQueryClient();
 
-  return response.json();
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: UpdateSegmentForm }) => {
+      const response = await fetch(`${API_BASE}/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to update segment");
+      }
+
+      return response.json();
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["segments"] });
+      queryClient.invalidateQueries({ queryKey: ["segments", variables.id] });
+    },
+  });
 }
+
+// ============================================
+// CUSTOM HOOKS SPECIFIC TO SEGMENTS
+// ============================================
 
 async function fetchSegmentClients(
   id: string,
@@ -58,50 +88,6 @@ async function fetchSegmentClients(
   }
 
   return response.json();
-}
-
-async function createSegment(data: CreateSegmentForm): Promise<Segment> {
-  const response = await fetch(API_BASE, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to create segment");
-  }
-
-  return response.json();
-}
-
-async function updateSegment(
-  id: string,
-  data: UpdateSegmentForm
-): Promise<Segment> {
-  const response = await fetch(`${API_BASE}/${id}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to update segment");
-  }
-
-  return response.json();
-}
-
-async function deleteSegment(id: string): Promise<void> {
-  const response = await fetch(`${API_BASE}/${id}`, {
-    method: "DELETE",
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to delete segment");
-  }
 }
 
 async function seedSegments(): Promise<{
@@ -134,65 +120,11 @@ async function exportSegment(
   return response.blob();
 }
 
-// ============================================
-// REACT QUERY HOOKS
-// ============================================
-
-export function useSegments(params?: { type?: string; actif?: boolean }) {
-  return useQuery({
-    queryKey: ["segments", params],
-    queryFn: () => fetchSegments(params),
-  });
-}
-
-export function useSegment(id: string) {
-  return useQuery({
-    queryKey: ["segments", id],
-    queryFn: () => fetchSegmentById(id),
-    enabled: !!id,
-  });
-}
-
 export function useSegmentClients(id: string, page = 1, limit = 50) {
   return useQuery({
     queryKey: ["segments", id, "clients", page, limit],
     queryFn: () => fetchSegmentClients(id, page, limit),
     enabled: !!id,
-  });
-}
-
-export function useCreateSegment() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: createSegment,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["segments"] });
-    },
-  });
-}
-
-export function useUpdateSegment() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateSegmentForm }) =>
-      updateSegment(id, data),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["segments"] });
-      queryClient.invalidateQueries({ queryKey: ["segments", variables.id] });
-    },
-  });
-}
-
-export function useDeleteSegment() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: deleteSegment,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["segments"] });
-    },
   });
 }
 

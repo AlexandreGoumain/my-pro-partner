@@ -13,9 +13,9 @@ export interface ConditionalSkeletonProps {
     children: ReactNode;
 
     /**
-     * Props à passer au PageSkeleton
+     * Props à passer au PageSkeleton (optionnel si fallback est fourni)
      */
-    skeletonProps: PageSkeletonProps;
+    skeletonProps?: PageSkeletonProps;
 
     /**
      * Fallback personnalisé optionnel à la place du PageSkeleton
@@ -62,7 +62,7 @@ export interface ConditionalSkeletonProps {
 export function ConditionalSkeleton({
     isLoading,
     children,
-    skeletonProps,
+    skeletonProps = { layout: "grid" },
     fallback,
 }: ConditionalSkeletonProps) {
     if (isLoading) {

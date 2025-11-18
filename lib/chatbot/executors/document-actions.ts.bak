@@ -1,0 +1,127 @@
+// ============================================
+// DOCUMENT ACTIONS
+// ============================================
+
+import type { ActionResult } from '../chatbot-actions';
+import { createFetchHelper, buildQueryParams, handleApiResponse } from './utils';
+
+/**
+ * Create a new document (invoice, quote, credit note)
+ */
+export async function createDocument(
+  params: unknown,
+  baseUrl: string
+): Promise<ActionResult> {
+  const api = createFetchHelper(baseUrl);
+  const response = await api.post('/api/documents', params);
+  return handleApiResponse(response, `${(params as any).type} créé avec succès`);
+}
+
+/**
+ * Search documents with filters
+ */
+export async function searchDocuments(
+  params: unknown,
+  baseUrl: string
+): Promise<ActionResult> {
+  const api = createFetchHelper(baseUrl);
+  const queryParams = buildQueryParams({
+    type: (params as any).type,
+    statut: (params as any).statut,
+    clientId: (params as any).clientId,
+    limit: (params as any).limit,
+  });
+
+  const response = await api.get(`/api/documents?${queryParams.toString()}`);
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Erreur inconnue' }));
+    return { success: false, error: error.error || 'Erreur lors de la recherche' };
+  }
+
+  const data = await response.json();
+  return {
+    success: true,
+    data: data.documents || data,
+    message: `${data.documents?.length || 0} document(s) trouvé(s)`,
+  };
+}
+
+/**
+ * Get document details
+ */
+export async function getDocumentDetails(
+  params: unknown,
+  baseUrl: string
+): Promise<ActionResult> {
+  const api = createFetchHelper(baseUrl);
+  const response = await api.get(`/api/documents/${(params as any).documentId}`);
+  return handleApiResponse(response, 'Détails du document récupérés');
+}
+
+/**
+ * Update document status
+ */
+export async function updateDocumentStatus(
+  params: unknown,
+  baseUrl: string
+): Promise<ActionResult> {
+  const api = createFetchHelper(baseUrl);
+  const response = await api.patch(`/api/documents/${(params as any).documentId}`, {
+    statut: (params as any).statut,
+  });
+  return handleApiResponse(response, 'Statut mis à jour');
+}
+
+/**
+ * Delete a document
+ */
+export async function deleteDocument(
+  params: unknown,
+  baseUrl: string
+): Promise<ActionResult> {
+  const api = createFetchHelper(baseUrl);
+  const response = await api.delete(`/api/documents/${(params as any).documentId}`);
+  return handleApiResponse(response, 'Document supprimé');
+}
+
+/**
+ * Convert a quote to an invoice
+ */
+export async function convertQuoteToInvoice(
+  params: unknown,
+  baseUrl: string
+): Promise<ActionResult> {
+  const api = createFetchHelper(baseUrl);
+  const response = await api.post(`/api/documents/${(params as any).devisId}/convert`, {});
+  return handleApiResponse(response, 'Devis converti en facture');
+}
+
+/**
+ * Duplicate a document
+ */
+export async function duplicateDocument(
+  params: unknown,
+  baseUrl: string
+): Promise<ActionResult> {
+  const api = createFetchHelper(baseUrl);
+  const response = await api.post(`/api/documents/${(params as any).documentId}/duplicate`, {});
+  return handleApiResponse(response, 'Document dupliqué');
+}
+
+/**
+ * Add a payment to an invoice
+ */
+export async function addPayment(
+  params: unknown,
+  baseUrl: string
+): Promise<ActionResult> {
+  const api = createFetchHelper(baseUrl);
+  const response = await api.post(`/api/documents/${(params as any).documentId}/paiements`, {
+    montant: (params as any).montant,
+    date: (params as any).date,
+    methode: (params as any).methode,
+    reference: (params as any).reference,
+  });
+  return handleApiResponse(response, 'Paiement enregistré');
+}

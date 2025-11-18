@@ -1,241 +1,99 @@
+import { createResourceByIdRoutes } from "@/lib/api/crud-factory";
+import { ConflictError, ForbiddenError } from "@/lib/errors";
 import { prisma } from "@/lib/prisma";
-import {
-  handleTenantError,
-  requireTenantAuth,
-} from "@/lib/middleware/tenant-isolation";
-import { NextRequest, NextResponse } from "next/server";
+import { SegmentService } from "@/lib/services/segment.service";
 import { z } from "zod";
-import { TypeSegment } from "@/lib/generated/prisma";
-import { applySegmentCriteria } from "@/lib/types/segment";
 
-// ============================================
-// VALIDATION SCHEMAS
-// ============================================
-
+// Validation schema
 const segmentUpdateSchema = z.object({
-  nom: z.string().min(1).optional(),
-  description: z.string().optional(),
-  icone: z.string().optional(),
-  couleur: z.string().optional(),
-  criteres: z.any().optional(),
-  actif: z.boolean().optional(),
+    nom: z.string().min(1).optional(),
+    description: z.string().optional(),
+    icone: z.string().optional(),
+    couleur: z.string().optional(),
+    criteres: z.union([z.record(z.unknown()), z.array(z.unknown())]).optional(),
+    actif: z.boolean().optional(),
 });
 
-// ============================================
-// GET /api/segments/[id] - Get segment by ID
-// ============================================
+export const { GET, PUT, DELETE } = createResourceByIdRoutes({
+    modelName: "segment",
+    resourceName: "Segment",
+    createSchema: segmentUpdateSchema, // Dummy schema (required by type, not used for resource-by-id routes)
+    updateSchema: segmentUpdateSchema,
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { entrepriseId } = await requireTenantAuth();
-    const { id } = await params;
+    // Validate before update
+    beforeUpdate: async (data, segmentId, entrepriseId) => {
+        // Get existing segment
+        const existingSegment = await prisma.segment.findUnique({
+            where: { id: segmentId },
+        });
 
-    const segment = await prisma.segment.findUnique({
-      where: { id },
-    });
+        if (!existingSegment) {
+            return data;
+        }
 
-    if (!segment) {
-      return NextResponse.json(
-        { message: "Segment non trouvé" },
-        { status: 404 }
-      );
-    }
+        // Don't allow editing predefined segments
+        if (existingSegment.type === "PREDEFINED") {
+            throw new ForbiddenError(
+                "Les segments prédéfinis ne peuvent pas être modifiés"
+            );
+        }
 
-    // Verify tenant access
-    if (segment.entrepriseId !== entrepriseId) {
-      return NextResponse.json(
-        { message: "Accès non autorisé" },
-        { status: 403 }
-      );
-    }
+        // If name is being changed, check uniqueness
+        if (data.nom && data.nom !== existingSegment.nom) {
+            const duplicate = await prisma.segment.findUnique({
+                where: {
+                    entrepriseId_nom: {
+                        entrepriseId,
+                        nom: data.nom,
+                    },
+                },
+            });
 
-    // Calculate current client count
-    const clients = await prisma.client.findMany({
-      where: { entrepriseId },
-    });
+            if (duplicate) {
+                throw new ConflictError("Un segment avec ce nom existe déjà");
+            }
+        }
 
-    const filteredClients = applySegmentCriteria(
-      clients,
-      segment.criteres as unknown
-    );
+        // Add timestamp if criteria changed
+        if (data.criteres) {
+            return {
+                ...data,
+                derniereCalcul: new Date(),
+            };
+        }
 
-    const segmentWithCount = {
-      ...segment,
-      nombreClients: filteredClients.length,
-    };
+        return data;
+    },
 
-    // Update count in database (async)
-    prisma.segment
-      .update({
-        where: { id },
-        data: {
-          nombreClients: filteredClients.length,
-          derniereCalcul: new Date(),
-        },
-      })
-      .catch((error) => {
-        console.error("Error updating segment count:", error);
-      });
+    // Recalculate client count after update if criteria changed
+    afterUpdate: async (segment, entrepriseId) => {
+        await SegmentService.refreshSegmentCount(segment.id, entrepriseId);
+    },
 
-    return NextResponse.json(segmentWithCount);
-  } catch (error) {
-    return handleTenantError(error);
-  }
-}
+    // Validate before deletion
+    beforeDelete: async (segmentId, _entrepriseId) => {
+        const segment = await prisma.segment.findUnique({
+            where: { id: segmentId },
+        });
 
-// ============================================
-// PATCH /api/segments/[id] - Update segment
-// ============================================
+        if (segment?.type === "PREDEFINED") {
+            throw new ForbiddenError(
+                "Les segments prédéfinis ne peuvent pas être supprimés"
+            );
+        }
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { entrepriseId } = await requireTenantAuth();
-    const { id } = await params;
+        // Check if segment is used in campaigns
+        const campaignCount = await prisma.campaign.count({
+            where: { segmentId },
+        });
 
-    // Check if segment exists and user has access
-    const existingSegment = await prisma.segment.findUnique({
-      where: { id },
-    });
+        if (campaignCount > 0) {
+            throw new ConflictError(
+                `Impossible de supprimer ce segment car ${campaignCount} campagne(s) l'utilisent`
+            );
+        }
+    },
+});
 
-    if (!existingSegment) {
-      return NextResponse.json(
-        { message: "Segment non trouvé" },
-        { status: 404 }
-      );
-    }
-
-    if (existingSegment.entrepriseId !== entrepriseId) {
-      return NextResponse.json(
-        { message: "Accès non autorisé" },
-        { status: 403 }
-      );
-    }
-
-    // Don't allow editing predefined segments
-    if (existingSegment.type === "PREDEFINED") {
-      return NextResponse.json(
-        { message: "Les segments prédéfinis ne peuvent pas être modifiés" },
-        { status: 403 }
-      );
-    }
-
-    const body = await req.json();
-    const validation = segmentUpdateSchema.safeParse(body);
-
-    if (!validation.success) {
-      return NextResponse.json(
-        {
-          message: "Données invalides",
-          errors: validation.error.errors,
-        },
-        { status: 400 }
-      );
-    }
-
-    // If name is being changed, check uniqueness
-    if (validation.data.nom && validation.data.nom !== existingSegment.nom) {
-      const duplicate = await prisma.segment.findUnique({
-        where: {
-          entrepriseId_nom: {
-            entrepriseId,
-            nom: validation.data.nom,
-          },
-        },
-      });
-
-      if (duplicate) {
-        return NextResponse.json(
-          { message: "Un segment avec ce nom existe déjà" },
-          { status: 409 }
-        );
-      }
-    }
-
-    // Recalculate client count if criteria changed
-    let nombreClients = existingSegment.nombreClients;
-    if (validation.data.criteres) {
-      const clients = await prisma.client.findMany({
-        where: { entrepriseId },
-      });
-
-      const filteredClients = applySegmentCriteria(
-        clients,
-        validation.data.criteres as unknown
-      );
-
-      nombreClients = filteredClients.length;
-    }
-
-    const updatedSegment = await prisma.segment.update({
-      where: { id },
-      data: {
-        ...validation.data,
-        ...(validation.data.criteres && {
-          nombreClients,
-          derniereCalcul: new Date(),
-        }),
-      },
-    });
-
-    return NextResponse.json(updatedSegment);
-  } catch (error) {
-    return handleTenantError(error);
-  }
-}
-
-// ============================================
-// DELETE /api/segments/[id] - Delete segment
-// ============================================
-
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const { entrepriseId } = await requireTenantAuth();
-    const { id } = await params;
-
-    const segment = await prisma.segment.findUnique({
-      where: { id },
-    });
-
-    if (!segment) {
-      return NextResponse.json(
-        { message: "Segment non trouvé" },
-        { status: 404 }
-      );
-    }
-
-    if (segment.entrepriseId !== entrepriseId) {
-      return NextResponse.json(
-        { message: "Accès non autorisé" },
-        { status: 403 }
-      );
-    }
-
-    // Don't allow deleting predefined segments
-    if (segment.type === "PREDEFINED") {
-      return NextResponse.json(
-        { message: "Les segments prédéfinis ne peuvent pas être supprimés" },
-        { status: 403 }
-      );
-    }
-
-    await prisma.segment.delete({
-      where: { id },
-    });
-
-    return NextResponse.json(
-      { message: "Segment supprimé avec succès" },
-      { status: 200 }
-    );
-  } catch (error) {
-    return handleTenantError(error);
-  }
-}
+// Use PUT as PATCH for segments
+export { PUT as PATCH };

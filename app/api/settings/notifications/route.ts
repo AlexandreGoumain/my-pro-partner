@@ -1,11 +1,10 @@
 import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
-import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET: Récupérer les préférences de notifications
 // Note: Pour l'instant, on retourne des valeurs par défaut
 // Une future migration ajoutera une table ParametresNotifications
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
     try {
         const { entrepriseId } = await requireTenantAuth();
 

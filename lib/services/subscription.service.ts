@@ -9,7 +9,7 @@ import {
   SUBSCRIPTION_ERROR_MESSAGES,
   getStripePriceConfig,
 } from "@/lib/stripe/subscription-config";
-import { PlanAbonnement, SubscriptionStatus } from "@prisma/client";
+import { SubscriptionStatus } from "@/lib/generated/prisma";
 
 /**
  * Service de gestion des abonnements Stripe
@@ -142,6 +142,15 @@ export class SubscriptionService {
     // Mapper le statut Stripe vers notre enum
     const status = this.mapStripeStatus(stripeSubscription.status);
 
+    // Gérer les dates qui peuvent être null/undefined
+    const currentPeriodStart = (stripeSubscription as unknown as { current_period_start?: number }).current_period_start
+      ? new Date((stripeSubscription as unknown as { current_period_start: number }).current_period_start * 1000)
+      : new Date();
+
+    const currentPeriodEnd = (stripeSubscription as unknown as { current_period_end?: number }).current_period_end
+      ? new Date((stripeSubscription as unknown as { current_period_end: number }).current_period_end * 1000)
+      : new Date();
+
     // Créer l'abonnement en BDD
     await prisma.subscription.create({
       data: {
@@ -152,8 +161,8 @@ export class SubscriptionService {
         stripeProductId: stripeSubscription.items.data[0].price.product as string,
         plan: planInfo.plan,
         status,
-        currentPeriodStart: new Date(stripeSubscription.current_period_start * 1000),
-        currentPeriodEnd: new Date(stripeSubscription.current_period_end * 1000),
+        currentPeriodStart,
+        currentPeriodEnd,
         trialStart: stripeSubscription.trial_start
           ? new Date(stripeSubscription.trial_start * 1000)
           : null,
@@ -174,7 +183,7 @@ export class SubscriptionService {
         plan: planInfo.plan,
         abonnementActif: status === "ACTIVE" || status === "TRIALING",
         dateAbonnement: new Date(),
-        dateExpiration: new Date(stripeSubscription.current_period_end * 1000),
+        dateExpiration: currentPeriodEnd,
       },
     });
   }
@@ -194,12 +203,12 @@ export class SubscriptionService {
     const status = this.mapStripeStatus(stripeSubscription.status);
 
     // Gérer les dates qui peuvent être null/undefined
-    const currentPeriodStart = stripeSubscription.current_period_start
-      ? new Date(stripeSubscription.current_period_start * 1000)
+    const currentPeriodStart = (stripeSubscription as unknown as { current_period_start?: number }).current_period_start
+      ? new Date((stripeSubscription as unknown as { current_period_start: number }).current_period_start * 1000)
       : new Date();
 
-    const currentPeriodEnd = stripeSubscription.current_period_end
-      ? new Date(stripeSubscription.current_period_end * 1000)
+    const currentPeriodEnd = (stripeSubscription as unknown as { current_period_end?: number }).current_period_end
+      ? new Date((stripeSubscription as unknown as { current_period_end: number }).current_period_end * 1000)
       : new Date();
 
     // Mettre à jour l'abonnement
@@ -227,12 +236,16 @@ export class SubscriptionService {
     });
 
     if (subscription) {
+      const periodEnd = (stripeSubscription as unknown as { current_period_end?: number }).current_period_end
+        ? new Date((stripeSubscription as unknown as { current_period_end: number }).current_period_end * 1000)
+        : new Date();
+
       await prisma.entreprise.update({
         where: { id: subscription.entrepriseId },
         data: {
           plan: planInfo.plan,
           abonnementActif: status === "ACTIVE" || status === "TRIALING",
-          dateExpiration: new Date(stripeSubscription.current_period_end * 1000),
+          dateExpiration: periodEnd,
         },
       });
     }

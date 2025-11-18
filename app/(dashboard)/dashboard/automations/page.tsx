@@ -1,7 +1,7 @@
 "use client";
 
-import { AutomationBuilderDialog } from "@/components/automation-builder-dialog";
 import { AutomationStats, AutomationsList } from "@/components/automations";
+import { AutomationBuilderDialog } from "@/components/automations/automation-builder-dialog";
 import { ConditionalSkeleton } from "@/components/ui/conditional-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
 import { PrimaryActionButton } from "@/components/ui/primary-action-button";
@@ -34,39 +34,39 @@ export default function AutomationsPage() {
             }}
         >
             <div className="space-y-6">
-            <PageHeader
-                title="Automations"
-                description="Configurez des règles automatiques pour vos segments"
-                actions={
-                    <PrimaryActionButton icon={Plus} onClick={handleCreate}>
-                        Nouvelle automation
-                    </PrimaryActionButton>
-                }
-            />
+                <PageHeader
+                    title="Automations"
+                    description="Configurez des règles automatiques pour vos segments"
+                    actions={
+                        <PrimaryActionButton icon={Plus} onClick={handleCreate}>
+                            Nouvelle automation
+                        </PrimaryActionButton>
+                    }
+                />
 
-            {/* Stats */}
-            <AutomationStats
-                total={stats.total}
-                active={stats.active}
-                inactive={stats.inactive}
-                totalExecutions={stats.totalExecutions}
-            />
+                {/* Stats */}
+                <AutomationStats
+                    total={stats.total}
+                    active={stats.active}
+                    inactive={stats.inactive}
+                    totalExecutions={stats.totalExecutions}
+                />
 
-            {/* Automations List */}
-            <AutomationsList
-                automations={automations}
-                onToggle={handleToggle}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                onCreate={handleCreate}
-            />
+                {/* Automations List */}
+                <AutomationsList
+                    automations={automations}
+                    onToggle={handleToggle}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onCreate={handleCreate}
+                />
 
-            {/* Automation Builder Dialog */}
-            <AutomationBuilderDialog
-                open={builderOpen}
-                onOpenChange={setBuilderOpen}
-                automation={editingAutomation}
-            />
+                {/* Automation Builder Dialog */}
+                <AutomationBuilderDialog
+                    open={builderOpen}
+                    onOpenChange={setBuilderOpen}
+                    automation={editingAutomation}
+                />
             </div>
         </ConditionalSkeleton>
     );

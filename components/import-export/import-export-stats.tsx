@@ -47,7 +47,7 @@ export function ImportExportStats({ clientsCount }: ImportExportStatsProps) {
                                 2
                             </p>
                             <p className="text-[14px] text-black/60">
-                                Formats d'export
+                                Formats d&apos;export
                             </p>
                         </div>
                     </div>

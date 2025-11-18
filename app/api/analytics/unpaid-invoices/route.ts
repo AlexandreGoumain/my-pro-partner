@@ -15,7 +15,14 @@ export async function GET(req: NextRequest) {
         const overdueOnly = searchParams.get("overdueOnly") === "true";
 
         // Build where clause
-        const where: any = {
+        const where: {
+            entrepriseId: string;
+            type: string;
+            statut: { notIn: string[] };
+            reste_a_payer: { gt?: number; gte?: number };
+            clientId?: string;
+            dateEcheance?: { lt: Date };
+        } = {
             entrepriseId,
             type: "FACTURE",
             statut: {

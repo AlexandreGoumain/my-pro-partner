@@ -9,12 +9,11 @@ import { prisma } from "@/lib/prisma";
  */
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { entrepriseId } = await requireTenantAuth();
-
-    const paymentLinkId = params.id;
+    const { id: paymentLinkId } = await params;
 
     // Vérifier que le lien appartient à l'entreprise
     const paymentLink = await prisma.paymentLink.findFirst({
@@ -42,17 +41,18 @@ export async function DELETE(
  */
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { entrepriseId } = await requireTenantAuth();
+    const { id } = await params;
 
     const body = await req.json();
     const { actif } = body;
 
     const paymentLink = await prisma.paymentLink.updateMany({
       where: {
-        id: params.id,
+        id,
         entrepriseId,
       },
       data: { actif },

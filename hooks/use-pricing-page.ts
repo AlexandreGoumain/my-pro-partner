@@ -49,8 +49,9 @@ export function usePricingPage() {
             } else {
                 throw new Error("URL de checkout manquante");
             }
-        } catch (error: any) {
-            toast.error(error.message || "Erreur lors de la souscription");
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Erreur lors de la souscription";
+            toast.error(message);
             setState((prev) => ({ ...prev, loadingPlan: null, loading: false }));
         }
     };

@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Separator } from "@/components/ui/separator";
+import { FormItem, FormMessage } from "@/components/ui/form";
 import {
     Archive,
     Briefcase,
@@ -210,7 +210,11 @@ export function SummaryStep({ form, articleType, categories }: StepProps) {
                 )}
             </div>
 
-            <FormField control={form.control} name="root" render={() => <FormItem><FormMessage /></FormItem>} />
+            {form.formState.errors.root && (
+                <FormItem>
+                    <FormMessage>{form.formState.errors.root.message}</FormMessage>
+                </FormItem>
+            )}
         </div>
     );
 }

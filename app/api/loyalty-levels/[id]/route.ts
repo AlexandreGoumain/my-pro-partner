@@ -1,14 +1,10 @@
+import { createResourceByIdRoutes } from "@/lib/api/crud-factory";
+import { BusinessError, ConflictError } from "@/lib/errors";
 import { prisma } from "@/lib/prisma";
 import { niveauFideliteUpdateSchema } from "@/lib/validation";
-import {
-    handleTenantError,
-    requireTenantAuth,
-} from "@/lib/middleware/tenant-isolation";
-import { NextRequest, NextResponse } from "next/server";
 
 /**
- * Recalcule automatiquement l'ordre de tous les niveaux de fidélité
- * en fonction de leur seuil de points (tri croissant)
+ * Recalculate loyalty levels order based on points threshold
  */
 async function recalculateOrdres(entrepriseId: string) {
     const niveaux = await prisma.niveauFidelite.findMany({
@@ -16,7 +12,6 @@ async function recalculateOrdres(entrepriseId: string) {
         orderBy: { seuilPoints: "asc" },
     });
 
-    // Mettre à jour l'ordre de chaque niveau
     const updatePromises = niveaux.map((niveau, index) =>
         prisma.niveauFidelite.update({
             where: { id: niveau.id },
@@ -27,155 +22,55 @@ async function recalculateOrdres(entrepriseId: string) {
     await Promise.all(updatePromises);
 }
 
-export async function GET(
-    req: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
-    try {
-        const { entrepriseId } = await requireTenantAuth();
+export const { GET, PUT, DELETE } = createResourceByIdRoutes({
+    modelName: "niveauFidelite",
+    resourceName: "Niveau de fidélité",
+    createSchema: niveauFideliteUpdateSchema, // Dummy schema (required by type, not used for resource-by-id routes)
+    updateSchema: niveauFideliteUpdateSchema,
 
-        const niveau = await prisma.niveauFidelite.findFirst({
-            where: {
-                id: (await params).id,
-                entrepriseId,
-            },
-        });
-
-        if (!niveau) {
-            return NextResponse.json(
-                { message: "Niveau de fidélité introuvable" },
-                { status: 404 }
-            );
-        }
-
-        return NextResponse.json(niveau);
-    } catch (error) {
-        return handleTenantError(error);
-    }
-}
-
-export async function PUT(
-    req: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
-    try {
-        const { entrepriseId } = await requireTenantAuth();
-
-        const body = await req.json();
-        const validation = niveauFideliteUpdateSchema.safeParse(body);
-
-        if (!validation.success) {
-            return NextResponse.json(
-                {
-                    message: "Données invalides",
-                    errors: validation.error.errors,
-                },
-                { status: 400 }
-            );
-        }
-
-        // Vérifier que le niveau existe
-        const existing = await prisma.niveauFidelite.findFirst({
-            where: {
-                id: (await params).id,
-                entrepriseId,
-            },
-        });
-
-        if (!existing) {
-            return NextResponse.json(
-                { message: "Niveau de fidélité introuvable" },
-                { status: 404 }
-            );
-        }
-
-        // Vérifier si le nom existe déjà (autre que le niveau actuel)
-        if (validation.data.nom) {
+    // Validate name uniqueness before update
+    beforeUpdate: async (data, niveauId, entrepriseId) => {
+        if (data.nom) {
             const existingNom = await prisma.niveauFidelite.findFirst({
                 where: {
                     entrepriseId,
-                    nom: validation.data.nom,
-                    id: { not: (await params).id },
+                    nom: data.nom,
+                    id: { not: niveauId },
                 },
             });
 
             if (existingNom) {
-                return NextResponse.json(
-                    { message: "Un niveau avec ce nom existe déjà" },
-                    { status: 400 }
-                );
+                throw new ConflictError("Un niveau avec ce nom existe déjà");
             }
         }
 
-        const niveau = await prisma.niveauFidelite.update({
-            where: { id: (await params).id },
-            data: validation.data,
-        });
+        return data;
+    },
 
-        // Recalculer automatiquement les ordres si le seuil de points a changé
-        if (validation.data.seuilPoints !== undefined) {
-            await recalculateOrdres(entrepriseId);
-        }
+    // Recalculate orders after update if threshold changed
+    afterUpdate: async (niveau, entrepriseId) => {
+        // If seuilPoints was updated, recalculate all orders
+        await recalculateOrdres(entrepriseId);
+    },
 
-        // Récupérer le niveau avec son ordre final
-        const niveauFinal = await prisma.niveauFidelite.findUnique({
-            where: { id: (await params).id },
-        });
-
-        return NextResponse.json(niveauFinal);
-    } catch (error) {
-        return handleTenantError(error);
-    }
-}
-
-export async function DELETE(
-    req: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
-    try {
-        const { entrepriseId } = await requireTenantAuth();
-
-        // Vérifier que le niveau existe
-        const existing = await prisma.niveauFidelite.findFirst({
-            where: {
-                id: (await params).id,
-                entrepriseId,
-            },
-        });
-
-        if (!existing) {
-            return NextResponse.json(
-                { message: "Niveau de fidélité introuvable" },
-                { status: 404 }
-            );
-        }
-
-        // Vérifier s'il y a des clients qui utilisent ce niveau
+    // Check if clients use this level before deletion
+    beforeDelete: async (niveauId, entrepriseId) => {
         const clientsCount = await prisma.client.count({
             where: {
-                niveauFideliteId: (await params).id,
+                niveauFideliteId: niveauId,
                 entrepriseId,
             },
         });
 
         if (clientsCount > 0) {
-            return NextResponse.json(
-                {
-                    message: `Impossible de supprimer ce niveau : ${clientsCount} client(s) l'utilisent actuellement`,
-                },
-                { status: 400 }
+            throw new BusinessError(
+                `Impossible de supprimer ce niveau : ${clientsCount} client(s) l'utilisent actuellement`
             );
         }
+    },
 
-        await prisma.niveauFidelite.delete({
-            where: { id: (await params).id },
-        });
-
-        // Recalculer automatiquement les ordres après la suppression
+    // Recalculate orders after deletion
+    afterDelete: async (niveauId, entrepriseId) => {
         await recalculateOrdres(entrepriseId);
-
-        return NextResponse.json({ message: "Niveau supprimé avec succès" });
-    } catch (error) {
-        return handleTenantError(error);
-    }
-}
+    },
+});

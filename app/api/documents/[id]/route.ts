@@ -3,19 +3,14 @@ import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-is
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { validateRequest } from "@/lib/utils/validation-helper";
 
 const documentUpdateSchema = z.object({
     numero: z.string().min(1).optional(),
     type: z.enum(["DEVIS", "FACTURE", "AVOIR"]).optional(),
     clientId: z.string().optional(),
-    dateEmission: z
-        .string()
-        .transform((s) => new Date(s))
-        .optional(),
-    dateEcheance: z
-        .string()
-        .transform((s) => new Date(s))
-        .optional(),
+    dateEmission: z.coerce.date().optional(),
+    dateEcheance: z.coerce.date().optional(),
     statut: z
         .enum(["BROUILLON", "ENVOYE", "ACCEPTE", "REFUSE", "PAYE", "ANNULE"])
         .optional(),
@@ -60,7 +55,7 @@ export async function GET(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const { entrepriseId } = await requireTenantAuth();
+        const { entrepriseId: _entrepriseId } = await requireTenantAuth();
         const { id } = await params;
 
         const document = await prisma.document.findUnique({
@@ -101,24 +96,16 @@ export async function PUT(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const { entrepriseId } = await requireTenantAuth();
+        const { entrepriseId: _entrepriseId } = await requireTenantAuth();
         const { id } = await params;
         const body = await req.json();
 
-        const validation = documentUpdateSchema.safeParse(body);
-        if (!validation.success) {
-            return NextResponse.json(
-                {
-                    message: "Données invalides",
-                    errors: validation.error.errors,
-                },
-                { status: 400 }
-            );
-        }
+        const result = validateRequest(documentUpdateSchema, body);
+        if (!result.success) return result.response;
 
         const document = await prisma.document.update({
             where: { id },
-            data: validation.data,
+            data: result.data,
             include: {
                 client: true,
                 lignes: {
@@ -144,22 +131,14 @@ export async function PATCH(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const { entrepriseId } = await requireTenantAuth();
+        const { entrepriseId: _entrepriseId } = await requireTenantAuth();
         const { id } = await params;
         const body = await req.json();
 
-        const validation = documentCompleteUpdateSchema.safeParse(body);
-        if (!validation.success) {
-            return NextResponse.json(
-                {
-                    message: "Données invalides",
-                    errors: validation.error.errors,
-                },
-                { status: 400 }
-            );
-        }
+        const result = validateRequest(documentCompleteUpdateSchema, body);
+        if (!result.success) return result.response;
 
-        const data = validation.data;
+        const data = result.data;
 
         // Utiliser une transaction pour mettre à jour le document et ses lignes
         const document = await prisma.$transaction(async (tx) => {
@@ -228,7 +207,7 @@ export async function DELETE(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const { entrepriseId } = await requireTenantAuth();
+        const { entrepriseId: _entrepriseId } = await requireTenantAuth();
         const { id } = await params;
 
         // Vérifier si le document a des paiements ou factures

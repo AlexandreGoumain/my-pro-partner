@@ -2,14 +2,16 @@ import { prisma } from "@/lib/prisma";
 import {
   handleTenantError,
   requireTenantAuth,
+  verifyResourceAccess,
 } from "@/lib/middleware/tenant-isolation";
 import { validateFeatureAccess } from "@/lib/middleware/feature-validation";
 import { NextRequest, NextResponse } from "next/server";
-import { applySegmentCriteria } from "@/lib/types/segment";
+import { applySegmentCriteria, type SegmentCriteria } from "@/lib/types/segment";
 import { emailService } from "@/lib/email/email-service";
 import { render } from "@react-email/render";
 import { CampaignEmail } from "@/lib/email/templates/campaign";
-import { generateUnsubscribeLink, getClientVariables } from "@/lib/email/email-utils";
+import { generateUnsubscribeLink } from "@/lib/email/email-utils";
+import type { Client } from "@/lib/generated/prisma";
 
 // ============================================
 // POST /api/campaigns/[id]/send - Send campaign immediately
@@ -28,26 +30,14 @@ export async function POST(
 
     const { id } = await params;
 
-    const campaign = await prisma.campaign.findUnique({
-      where: { id },
-      include: {
-        segment: true,
-      },
-    });
-
-    if (!campaign) {
-      return NextResponse.json(
-        { message: "Campagne non trouvée" },
-        { status: 404 }
-      );
-    }
-
-    if (campaign.entrepriseId !== entrepriseId) {
-      return NextResponse.json(
-        { message: "Accès non autorisé" },
-        { status: 403 }
-      );
-    }
+    const { resource: campaign } = await verifyResourceAccess(
+      id,
+      (id) => prisma.campaign.findUnique({
+        where: { id },
+        include: { segment: true },
+      }),
+      'Campagne'
+    );
 
     // Can only send draft or scheduled campaigns
     if (campaign.statut !== "DRAFT" && campaign.statut !== "SCHEDULED") {
@@ -66,7 +56,7 @@ export async function POST(
     }
 
     // Get recipients
-    let recipients: unknown[] = [];
+    let recipients: Client[] = [];
     if (campaign.segmentId && campaign.segment) {
       const allClients = await prisma.client.findMany({
         where: { entrepriseId },
@@ -74,7 +64,7 @@ export async function POST(
 
       recipients = applySegmentCriteria(
         allClients,
-        campaign.segment.criteres as unknown
+        campaign.segment.criteres as unknown as SegmentCriteria
       );
     } else {
       recipients = await prisma.client.findMany({
@@ -84,9 +74,9 @@ export async function POST(
 
     // Filter recipients based on campaign type
     if (campaign.type === "EMAIL") {
-      recipients = recipients.filter((c) => c.email);
+      recipients = recipients.filter((c: Client) => c.email);
     } else if (campaign.type === "SMS") {
-      recipients = recipients.filter((c) => c.telephone);
+      recipients = recipients.filter((c: Client) => c.telephone);
     }
 
     // Update campaign status to sending
@@ -120,7 +110,7 @@ export async function POST(
             body: campaign.body!,
             clientName: recipient.nom || '',
             clientFirstName: recipient.prenom || '',
-            clientEmail: recipient.email,
+            clientEmail: recipient.email || '',
             entrepriseName: entrepriseInfo?.nom || 'MyProPartner',
             unsubscribeUrl,
           })
@@ -128,7 +118,7 @@ export async function POST(
 
         // Send email
         const result = await emailService.sendEmail({
-          to: recipient.email,
+          to: recipient.email || '',
           subject: campaign.subject!,
           html: emailHtml,
           fromName: entrepriseInfo?.nom || 'MyProPartner',

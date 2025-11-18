@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { createResourceHooks } from "@/lib/hooks/create-resource-hooks";
 
 const API_BASE = "/api/campaigns";
 
@@ -35,66 +36,47 @@ export interface CreateCampaignData {
   scheduledAt?: Date;
 }
 
+// Create base hooks using factory
+const campaignHooks = createResourceHooks<Campaign>({
+  resourceName: "campaigns",
+  endpoint: "/api/campaigns",
+});
+
+// Export query keys
+export const campaignKeys = campaignHooks.keys;
+
+// Export base hooks from factory
+export const useCampaigns = campaignHooks.useList;
+export const useCampaign = campaignHooks.useDetail;
+export const useCreateCampaign = () => campaignHooks.useCreate<CreateCampaignData>();
+export const useDeleteCampaign = campaignHooks.useDelete;
+
+// Custom update hook using PATCH instead of PUT
+export function useUpdateCampaign() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<CreateCampaignData> }) => {
+      const response = await fetch(`${API_BASE}/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to update campaign");
+      }
+      return response.json();
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["campaigns"] });
+      queryClient.invalidateQueries({ queryKey: ["campaigns", variables.id] });
+    },
+  });
+}
+
 // ============================================
-// FETCH FUNCTIONS
+// CUSTOM HOOKS SPECIFIC TO CAMPAIGNS
 // ============================================
-
-async function fetchCampaigns(): Promise<{ data: Campaign[]; total: number }> {
-  const response = await fetch(API_BASE);
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch campaigns");
-  }
-  return response.json();
-}
-
-async function fetchCampaign(id: string): Promise<Campaign> {
-  const response = await fetch(`${API_BASE}/${id}`);
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch campaign");
-  }
-  return response.json();
-}
-
-async function createCampaign(data: CreateCampaignData): Promise<Campaign> {
-  const response = await fetch(API_BASE, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to create campaign");
-  }
-  return response.json();
-}
-
-async function updateCampaign(
-  id: string,
-  data: Partial<CreateCampaignData>
-): Promise<Campaign> {
-  const response = await fetch(`${API_BASE}/${id}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to update campaign");
-  }
-  return response.json();
-}
-
-async function deleteCampaign(id: string): Promise<void> {
-  const response = await fetch(`${API_BASE}/${id}`, {
-    method: "DELETE",
-  });
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to delete campaign");
-  }
-}
 
 async function scheduleCampaign(id: string, scheduledAt: Date): Promise<Campaign> {
   const response = await fetch(`${API_BASE}/${id}/schedule`, {
@@ -129,57 +111,6 @@ async function cancelCampaign(id: string): Promise<Campaign> {
     throw new Error(error.message || "Failed to cancel campaign");
   }
   return response.json();
-}
-
-// ============================================
-// HOOKS
-// ============================================
-
-export function useCampaigns() {
-  return useQuery({
-    queryKey: ["campaigns"],
-    queryFn: fetchCampaigns,
-  });
-}
-
-export function useCampaign(id: string) {
-  return useQuery({
-    queryKey: ["campaigns", id],
-    queryFn: () => fetchCampaign(id),
-    enabled: !!id,
-  });
-}
-
-export function useCreateCampaign() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: createCampaign,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["campaigns"] });
-    },
-  });
-}
-
-export function useUpdateCampaign() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<CreateCampaignData> }) =>
-      updateCampaign(id, data),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["campaigns"] });
-      queryClient.invalidateQueries({ queryKey: ["campaigns", variables.id] });
-    },
-  });
-}
-
-export function useDeleteCampaign() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: deleteCampaign,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["campaigns"] });
-    },
-  });
 }
 
 export function useScheduleCampaign() {

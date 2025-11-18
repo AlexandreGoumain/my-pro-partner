@@ -1,14 +1,14 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
-import { BarChart3, TrendingUp, PieChart, Download, Calendar, Target } from "lucide-react";
+import { BarChart3, TrendingUp, PieChart, Download, Target } from "lucide-react";
 
 export function FeatureAnalytics() {
     const features = [
         {
             icon: TrendingUp,
             title: "Évolution du CA",
-            description: "Visualisez la croissance de votre chiffre d'affaires en temps réel"
+            description: "Visualisez la croissance de votre chiffre &apos;affaires en temps réel"
         },
         {
             icon: PieChart,
@@ -42,7 +42,7 @@ export function FeatureAnalytics() {
                                         </div>
                                         <div>
                                             <h4 className="text-[15px] font-semibold text-black">Tableau de bord</h4>
-                                            <p className="text-[13px] text-black/40">Vue d'ensemble mensuelle</p>
+                                            <p className="text-[13px] text-black/40">Vue &apos;ensemble mensuelle</p>
                                         </div>
                                     </div>
                                     <button className="px-3 py-1.5 rounded-lg border border-black/[0.08] text-[12px] font-medium hover:bg-black/5 transition-colors">
@@ -140,7 +140,7 @@ export function FeatureAnalytics() {
                                 Prenez les bonnes décisions
                             </h2>
                             <p className="text-[19px] text-black/60 leading-[1.5] tracking-[-0.01em]">
-                                Visualisez vos performances en un coup d'œil. Tableaux de bord intuitifs,
+                                Visualisez vos performances en un coup &apos;œil. Tableaux de bord intuitifs,
                                 rapports détaillés, et insights pour faire croître votre business.
                             </p>
                         </div>

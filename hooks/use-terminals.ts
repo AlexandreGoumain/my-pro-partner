@@ -18,7 +18,7 @@ export function useTerminals() {
         queryKey: TERMINALS_QUERY_KEY,
         queryFn: async () => {
             const response = await api.get("/api/terminal");
-            return response;
+            return response as { terminals: Terminal[] };
         },
     });
 }
@@ -31,7 +31,7 @@ export function useStripeReaders(enabled = false) {
         queryKey: STRIPE_READERS_QUERY_KEY,
         queryFn: async () => {
             const response = await api.get("/api/terminal/list-stripe");
-            return response;
+            return response as { terminals: StripeReader[] };
         },
         enabled,
     });
@@ -50,7 +50,7 @@ export function useRegisterTerminal() {
     >({
         mutationFn: async (data: RegisterTerminalInput) => {
             const response = await api.post("/api/terminal/register", data);
-            return response;
+            return response as { terminal: Terminal };
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: TERMINALS_QUERY_KEY });

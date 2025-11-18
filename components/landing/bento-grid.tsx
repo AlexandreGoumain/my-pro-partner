@@ -53,7 +53,7 @@ const features = [
     },
 ];
 
-function FeatureCard({ feature, index }: { feature: typeof features[0]; index: number }) {
+function FeatureCard({ feature, index: _index }: { feature: typeof features[0]; index: number }) {
     const [isHovered, setIsHovered] = useState(false);
     const Icon = feature.icon;
     const isHighlight = feature.highlight;

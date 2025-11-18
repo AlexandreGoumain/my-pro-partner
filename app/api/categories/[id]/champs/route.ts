@@ -1,10 +1,10 @@
-import { prisma } from "@/lib/prisma";
-import { champPersonnaliseCreateSchema } from "@/lib/validation";
 import {
     handleTenantError,
-    requireTenantAuth,
-    validateTenantAccess,
+    verifyResourceAccess,
 } from "@/lib/middleware/tenant-isolation";
+import { prisma } from "@/lib/prisma";
+import { validateRequest } from "@/lib/utils/validation-helper";
+import { champPersonnaliseCreateSchema } from "@/lib/validation";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
@@ -12,22 +12,17 @@ export async function GET(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const { entrepriseId } = await requireTenantAuth();
         const { id } = await params;
 
-        const categorie = await prisma.categorie.findUnique({
-            where: { id },
-            select: { entrepriseId: true },
-        });
-
-        if (!categorie) {
-            return NextResponse.json(
-                { message: "Catégorie introuvable" },
-                { status: 404 }
-            );
-        }
-
-        validateTenantAccess(categorie.entrepriseId, entrepriseId);
+        await verifyResourceAccess(
+            id,
+            (id) =>
+                prisma.categorie.findUnique({
+                    where: { id },
+                    select: { id: true, entrepriseId: true },
+                }),
+            "Catégorie"
+        );
 
         const champs = await prisma.champPersonnalise.findMany({
             where: { categorieId: id },
@@ -45,41 +40,27 @@ export async function POST(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const { entrepriseId } = await requireTenantAuth();
         const { id } = await params;
-
-        const categorie = await prisma.categorie.findUnique({
-            where: { id },
-            select: { entrepriseId: true },
-        });
-
-        if (!categorie) {
-            return NextResponse.json(
-                { message: "Catégorie introuvable" },
-                { status: 404 }
-            );
-        }
-
-        validateTenantAccess(categorie.entrepriseId, entrepriseId);
-
         const body = await req.json();
-        const validation = champPersonnaliseCreateSchema.safeParse(body);
 
-        if (!validation.success) {
-            return NextResponse.json(
-                {
-                    message: "Données invalides",
-                    errors: validation.error.errors,
-                },
-                { status: 400 }
-            );
-        }
+        await verifyResourceAccess(
+            id,
+            (id) =>
+                prisma.categorie.findUnique({
+                    where: { id },
+                    select: { id: true, entrepriseId: true },
+                }),
+            "Catégorie"
+        );
+
+        const result = validateRequest(champPersonnaliseCreateSchema, body);
+        if (!result.success) return result.response;
 
         const existingChamp = await prisma.champPersonnalise.findUnique({
             where: {
                 categorieId_code: {
                     categorieId: id,
-                    code: validation.data.code,
+                    code: result.data.code,
                 },
             },
         });
@@ -95,15 +76,13 @@ export async function POST(
         }
 
         const cleanedData = {
-            ...validation.data,
+            ...result.data,
             categorieId: id,
-            placeholder: validation.data.placeholder || null,
-            description: validation.data.description || null,
-            options: validation.data.options
-                ? validation.data.options
-                : undefined,
-            validation: validation.data.validation
-                ? validation.data.validation
+            placeholder: result.data.placeholder || null,
+            description: result.data.description || null,
+            options: result.data.options ? result.data.options : undefined,
+            validation: result.data.validation
+                ? result.data.validation
                 : undefined,
         };
 

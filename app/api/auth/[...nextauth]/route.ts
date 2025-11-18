@@ -84,7 +84,7 @@ export const authOptions: NextAuthOptions = {
 
                     if (!existingUser) {
                         // Create entreprise + user automatically for OAuth
-                        const result = await prisma.$transaction(async (tx) => {
+                        await prisma.$transaction(async (tx) => {
                             // Check if entreprise with this email already exists
                             let entreprise = await tx.entreprise.findUnique({
                                 where: { email: user.email! },
@@ -156,8 +156,8 @@ export const authOptions: NextAuthOptions = {
             if (user) {
                 token.id = user.id;
                 token.role = user.role || "user";
-                token.entrepriseId = (user as unknown).entrepriseId;
-                token.onboardingComplete = (user as unknown).onboardingComplete;
+                token.entrepriseId = user.entrepriseId;
+                token.onboardingComplete = user.onboardingComplete;
                 token.plan = user.plan || "FREE";
             }
 
@@ -204,8 +204,8 @@ export const authOptions: NextAuthOptions = {
                 session.user.id = token.id as string;
                 session.user.role = token.role as string;
                 session.user.plan = token.plan as string;
-                (session.user as unknown).entrepriseId = token.entrepriseId as string;
-                (session.user as unknown).onboardingComplete = token.onboardingComplete as boolean;
+                session.user.entrepriseId = token.entrepriseId as string;
+                session.user.onboardingComplete = token.onboardingComplete as boolean;
             }
             return session;
         },

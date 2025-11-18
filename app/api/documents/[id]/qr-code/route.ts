@@ -9,11 +9,11 @@ import { prisma } from "@/lib/prisma";
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { entrepriseId } = await requireTenantAuth();
-    const documentId = params.id;
+    const { id: documentId } = await params;
 
     // Vérifier que le document existe et appartient à l'entreprise
     const document = await prisma.document.findFirst({
@@ -36,7 +36,7 @@ export async function GET(
       qrCode: qrCodeDataURL,
       paymentUrl: `${baseUrl}/pay/${documentId}`,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     return handleTenantError(error);
   }
 }

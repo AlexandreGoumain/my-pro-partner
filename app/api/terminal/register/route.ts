@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { TerminalService } from "@/lib/services/terminal.service";
+import { validateRequest } from "@/lib/utils/validation-helper";
 import { z } from "zod";
 
 const registerSchema = z.object({
@@ -18,24 +19,18 @@ export async function POST(req: NextRequest) {
     const { entrepriseId } = await requireTenantAuth();
 
     const body = await req.json();
-    const validation = registerSchema.safeParse(body);
-
-    if (!validation.success) {
-      return NextResponse.json(
-        { error: "Données invalides", details: validation.error.errors },
-        { status: 400 }
-      );
-    }
+    const result = validateRequest(registerSchema, body);
+    if (!result.success) return result.response;
 
     const terminal = await TerminalService.registerTerminal({
       entrepriseId,
-      stripeTerminalId: validation.data.stripeTerminalId,
-      label: validation.data.label,
-      location: validation.data.location,
+      stripeTerminalId: result.data.stripeTerminalId,
+      label: result.data.label,
+      location: result.data.location,
     });
 
     return NextResponse.json({ terminal });
-  } catch (error: any) {
+  } catch (error) {
     return handleTenantError(error);
   }
 }

@@ -7,14 +7,14 @@ import {
     StatsGrid,
     TransactionCard,
 } from "@/components/bank-reconciliation";
-import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
 import { PrimaryActionButton } from "@/components/ui/primary-action-button";
+import { SuspensePage } from "@/components/ui/suspense-page";
 import { useBankReconciliation } from "@/hooks/use-bank-reconciliation";
 import { FileText, RefreshCw, Upload } from "lucide-react";
-import { SuspensePage } from "@/components/ui/suspense-page";
 
 function BankReconciliationPageContent() {
     const {
@@ -61,7 +61,9 @@ function BankReconciliationPageContent() {
                             onClick={() => fileInputRef.current?.click()}
                             disabled={isUploading}
                         >
-                            {isUploading ? "Import en cours..." : "Importer CSV"}
+                            {isUploading
+                                ? "Import en cours..."
+                                : "Importer CSV"}
                         </PrimaryActionButton>
                         <input
                             ref={fileInputRef}

@@ -4,6 +4,7 @@
  */
 
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@/lib/generated/prisma";
 
 // ============================================
 // STORES
@@ -25,17 +26,17 @@ export async function getStores(entrepriseId: string) {
   });
 }
 
-export async function createStore(entrepriseId: string, data: any) {
+export async function createStore(entrepriseId: string, data: Omit<Prisma.StoreCreateInput, 'entreprise'>) {
   return await prisma.store.create({
     data: {
       ...data,
-      entrepriseId,
+      entreprise: { connect: { id: entrepriseId } },
     },
     include: { registers: true },
   });
 }
 
-export async function updateStore(storeId: string, data: any) {
+export async function updateStore(storeId: string, data: Prisma.StoreUpdateInput) {
   return await prisma.store.update({
     where: { id: storeId },
     data,
@@ -65,11 +66,11 @@ export async function getRegisters(storeId: string) {
   });
 }
 
-export async function createRegister(storeId: string, data: any) {
+export async function createRegister(storeId: string, data: Omit<Prisma.RegisterCreateInput, 'store'>) {
   return await prisma.register.create({
     data: {
       ...data,
-      storeId,
+      store: { connect: { id: storeId } },
     },
   });
 }
@@ -78,7 +79,7 @@ export async function createRegister(storeId: string, data: any) {
 // TRANSFERS
 // ============================================
 
-export async function getTransfers(entrepriseId: string, filters?: any) {
+export async function getTransfers(entrepriseId: string, filters?: Prisma.StockTransferWhereInput) {
   return await prisma.stockTransfer.findMany({
     where: {
       entrepriseId,
@@ -95,14 +96,23 @@ export async function getTransfers(entrepriseId: string, filters?: any) {
   });
 }
 
-export async function createTransfer(entrepriseId: string, data: any) {
+export async function createTransfer(
+  entrepriseId: string,
+  data: {
+    fromStoreId: string;
+    toStoreId: string;
+    items: Prisma.StockTransferItemCreateWithoutTransferInput[];
+    notes?: string;
+    requestedBy?: string;
+  }
+) {
   const { fromStoreId, toStoreId, items, ...rest } = data;
 
   return await prisma.stockTransfer.create({
     data: {
-      entrepriseId,
-      fromStoreId,
-      toStoreId,
+      entreprise: { connect: { id: entrepriseId } },
+      fromStore: { connect: { id: fromStoreId } },
+      toStore: { connect: { id: toStoreId } },
       numero: `TR-${Date.now()}`,
       ...rest,
       items: {

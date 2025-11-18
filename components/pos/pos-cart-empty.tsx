@@ -6,7 +6,7 @@ export function POSCartEmpty() {
             <ShoppingCart className="h-12 w-12 text-black/20 mx-auto mb-3" />
             <p className="text-[14px] text-black/60">Panier vide</p>
             <p className="text-[13px] text-black/40 mt-1">
-                Cliquez sur un article pour l'ajouter
+                Cliquez sur un article pour &apos;ajouter
             </p>
         </div>
     );

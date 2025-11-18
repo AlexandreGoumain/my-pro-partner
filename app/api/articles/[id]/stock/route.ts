@@ -1,6 +1,7 @@
 import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { prisma } from "@/lib/prisma";
 import { stockAdjustmentSchema } from "@/lib/validation";
+import { validateRequest } from "@/lib/utils/validation-helper";
 import { NextRequest, NextResponse } from "next/server";
 
 // PUT: Ajuster rapidement le stock d'un article
@@ -14,19 +15,10 @@ export async function PUT(
     const { id } = await params;
 
     const body = await req.json();
-    const validation = stockAdjustmentSchema.safeParse(body);
+    const validationResult = validateRequest(stockAdjustmentSchema, body);
+    if (!validationResult.success) return validationResult.response;
 
-    if (!validation.success) {
-      return NextResponse.json(
-        {
-          message: "Données invalides",
-          errors: validation.error.errors,
-        },
-        { status: 400 }
-      );
-    }
-
-    const { quantite, motif } = validation.data;
+    const { quantite, motif } = validationResult.data;
 
     // Vérifier que l'article existe et a la gestion de stock activée
     const article = await prisma.article.findUnique({
@@ -77,7 +69,7 @@ export async function PUT(
           stock_avant,
           stock_apres,
           motif: motif || `Ajustement ${type === "ENTREE" ? "positif" : "négatif"}`,
-          createdBy: user.email || null,
+          createdBy: user.id,
           entrepriseId,
         },
       });

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { prisma } from "@/lib/prisma";
+import { validateRequest } from "@/lib/utils/validation-helper";
 import { z } from "zod";
 
 const checkoutSchema = z.object({
@@ -14,7 +15,7 @@ const checkoutSchema = z.object({
     })
   ),
   clientId: z.string().optional().nullable(),
-  remiseGlobale: z.number().optional().default(0),
+  remiseGlobale: z.number().default(0),
   paymentMethod: z.enum(["CARTE", "ESPECES", "CHEQUE", "VIREMENT"]),
 });
 
@@ -27,16 +28,10 @@ export async function POST(req: NextRequest) {
     const { entrepriseId } = await requireTenantAuth();
 
     const body = await req.json();
-    const validation = checkoutSchema.safeParse(body);
+    const result = validateRequest(checkoutSchema, body);
+    if (!result.success) return result.response;
 
-    if (!validation.success) {
-      return NextResponse.json(
-        { error: "Données invalides", details: validation.error.errors },
-        { status: 400 }
-      );
-    }
-
-    const { items, clientId, remiseGlobale, paymentMethod } = validation.data;
+    const { items, clientId, remiseGlobale, paymentMethod } = result.data;
 
     // Si pas de client, créer un client générique "Vente comptoir"
     let finalClientId = clientId;
@@ -84,7 +79,7 @@ export async function POST(req: NextRequest) {
         : 0;
       const montant_ht_apres_remise = montant_ht_ligne - remise_ligne;
       const montant_apres_remise_globale =
-        montant_ht_apres_remise * (1 - remiseGlobale / 100);
+        montant_ht_apres_remise * (1 - (remiseGlobale || 0) / 100);
       const tva_ligne = (montant_apres_remise_globale * item.tva_taux) / 100;
       const montant_ttc = montant_apres_remise_globale + tva_ligne;
 
@@ -179,7 +174,7 @@ export async function POST(req: NextRequest) {
       document,
       ticketUrl: `/api/pos/ticket/${document.id}`,
     });
-  } catch (error: any) {
+  } catch (error) {
     return handleTenantError(error);
   }
 }

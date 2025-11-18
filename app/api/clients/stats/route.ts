@@ -3,6 +3,7 @@ import {
     handleTenantError,
     requireTenantAuth,
 } from "@/lib/middleware/tenant-isolation";
+import { getDaysAgo, calculatePercentageChange } from "@/lib/utils/date-periods";
 import { NextRequest, NextResponse } from "next/server";
 
 export interface MonthlyData {
@@ -36,13 +37,13 @@ export interface ClientsStats {
     dataQuality: DataQuality;
 }
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
     try {
         const { entrepriseId } = await requireTenantAuth();
 
         const now = new Date();
-        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        const ninetyDaysAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+        const thirtyDaysAgo = getDaysAgo(30);
+        const ninetyDaysAgo = getDaysAgo(90);
 
         // Dates for current and last month
         const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -163,7 +164,7 @@ export async function GET(req: NextRequest) {
         ]);
 
         const completionRate = total > 0 ? (complete / total) * 100 : 0;
-        const growth = lastMonth > 0 ? ((currentMonth - lastMonth) / lastMonth) * 100 : currentMonth > 0 ? 100 : 0;
+        const growth = calculatePercentageChange(currentMonth, lastMonth);
 
         // Format top cities
         const topCities: CityData[] = cityAggregation.map(item => ({

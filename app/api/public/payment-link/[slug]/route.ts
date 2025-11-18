@@ -7,10 +7,11 @@ import { PaymentLinkService } from "@/lib/services/payment-link.service";
  */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const paymentLink = await PaymentLinkService.getPaymentLinkBySlug(params.slug);
+    const { slug } = await params;
+    const paymentLink = await PaymentLinkService.getPaymentLinkBySlug(slug);
 
     if (!paymentLink) {
       return NextResponse.json(
@@ -23,10 +24,10 @@ export async function GET(
     await PaymentLinkService.incrementViews(paymentLink.id);
 
     return NextResponse.json({ paymentLink });
-  } catch (error: any) {
+  } catch (error) {
     console.error("[PUBLIC_PAYMENT_LINK_ERROR]", error);
     return NextResponse.json(
-      { error: error.message || "Erreur lors de la récupération du lien" },
+      { error: error instanceof Error ? error.message : "Erreur lors de la récupération du lien" },
       { status: 500 }
     );
   }

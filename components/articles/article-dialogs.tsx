@@ -1,7 +1,7 @@
 import { ArticleCreateDialog } from "@/components/article-create-dialog";
-import { ArticleEditDialog } from "@/components/article-edit-dialog";
-import { ArticleViewDialog } from "@/components/article-view-dialog";
-import { DeleteConfirmDialog } from "@/components/delete-confirm-dialog";
+import { ArticleEditDialog } from "@/components/articles/article-edit-dialog";
+import { ArticleViewDialog } from "@/components/articles/article-view-dialog";
+import { DeleteConfirmDialog } from "@/components/shared/delete-confirm-dialog";
 import { Article } from "@/app/(dashboard)/dashboard/articles/_components/data-table/columns";
 
 export interface ArticleDialogsProps {

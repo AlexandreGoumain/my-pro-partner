@@ -4,6 +4,7 @@ import {
     requireTenantAuth,
 } from "@/lib/middleware/tenant-isolation";
 import { prisma } from "@/lib/prisma";
+import { validateRequest } from "@/lib/utils/validation-helper";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -25,19 +26,10 @@ export async function POST(
         const { id: clientId } = await params;
 
         const body = await req.json();
-        const validation = approveSchema.safeParse(body);
+        const result = validateRequest(approveSchema, body);
+        if (!result.success) return result.response;
 
-        if (!validation.success) {
-            return NextResponse.json(
-                {
-                    message: "Données invalides",
-                    errors: validation.error.errors,
-                },
-                { status: 400 }
-            );
-        }
-
-        const { approve, reason } = validation.data;
+        const { approve, reason } = result.data;
 
         // Check if client exists and belongs to company
         const client = await prisma.client.findFirst({

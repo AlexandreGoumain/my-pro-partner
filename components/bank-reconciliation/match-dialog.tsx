@@ -85,9 +85,10 @@ export function MatchDialog({
             onOpenChange(false);
             setSelectedInvoice("");
             onSuccess();
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(error);
-            toast.error(error.message || "Erreur lors du rapprochement");
+            const message = error instanceof Error ? error.message : "Erreur lors du rapprochement";
+            toast.error(message);
         } finally {
             setIsMatching(false);
         }

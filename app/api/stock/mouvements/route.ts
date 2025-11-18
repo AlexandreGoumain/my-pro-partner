@@ -1,33 +1,42 @@
-import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
-import { prisma } from "@/lib/prisma";
-import {
-  createPaginatedResponse,
-  getPaginationParams,
-} from "@/lib/utils/pagination";
+import { createCrudRoutes } from "@/lib/api/crud-factory";
 import { mouvementStockCreateSchema } from "@/lib/validation";
-import { Prisma } from "@/lib/generated/prisma/client";
-import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { requireTenantAuth } from "@/lib/middleware/tenant-isolation";
 
-// GET: Récupérer tous les mouvements de stock
-export async function GET(req: NextRequest) {
-  try {
-    await requireTenantAuth();
+export const { GET, POST } = createCrudRoutes({
+  modelName: "mouvementStock",
+  resourceName: "Mouvement de stock",
+  createSchema: mouvementStockCreateSchema,
+  updateSchema: mouvementStockCreateSchema, // Not used for stock movements
 
-    const { searchParams } = new URL(req.url);
+  include: {
+    article: {
+      select: {
+        id: true,
+        reference: true,
+        nom: true,
+        unite: true,
+      },
+    },
+  },
+
+  orderBy: { createdAt: "desc" },
+
+  // Custom filters for articleId, type, and date range
+  customWhere: (searchParams) => {
     const articleId = searchParams.get("articleId");
     const type = searchParams.get("type");
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
-    const pagination = getPaginationParams(searchParams);
 
-    const where: Prisma.MouvementStockWhereInput = {};
+    const where: Record<string, unknown> = {};
 
     if (articleId) {
       where.articleId = articleId;
     }
 
     if (type) {
-      where.type = type as Prisma.EnumTypeMouvementFilter<"MouvementStock">;
+      where.type = type;
     }
 
     if (startDate || endDate) {
@@ -40,53 +49,12 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    const [mouvements, total] = await Promise.all([
-      prisma.mouvementStock.findMany({
-        where,
-        include: {
-          article: {
-            select: {
-              id: true,
-              reference: true,
-              nom: true,
-              unite: true,
-            },
-          },
-        },
-        orderBy: { createdAt: "desc" },
-        skip: pagination.skip,
-        take: pagination.limit,
-      }),
-      prisma.mouvementStock.count({ where }),
-    ]);
+    return where;
+  },
 
-    return NextResponse.json(
-      createPaginatedResponse(mouvements, total, pagination)
-    );
-  } catch (error) {
-    return handleTenantError(error);
-  }
-}
-
-// POST: Créer un nouveau mouvement de stock
-export async function POST(req: NextRequest) {
-  try {
-    const { user } = await requireTenantAuth();
-
-    const body = await req.json();
-    const validation = mouvementStockCreateSchema.safeParse(body);
-
-    if (!validation.success) {
-      return NextResponse.json(
-        {
-          message: "Données invalides",
-          errors: validation.error.errors,
-        },
-        { status: 400 }
-      );
-    }
-
-    const { articleId, type, quantite, motif, reference, notes } = validation.data;
+  // Business logic for creating a stock movement
+  beforeCreate: async (data) => {
+    const { articleId, type, quantite, motif, reference, notes } = data;
 
     // Vérifier que l'article existe et a la gestion de stock activée
     const article = await prisma.article.findUnique({
@@ -94,17 +62,11 @@ export async function POST(req: NextRequest) {
     });
 
     if (!article) {
-      return NextResponse.json(
-        { message: "Article non trouvé" },
-        { status: 404 }
-      );
+      throw new Error("Article non trouvé");
     }
 
     if (!article.gestion_stock) {
-      return NextResponse.json(
-        { message: "La gestion de stock n'est pas activée pour cet article" },
-        { status: 400 }
-      );
+      throw new Error("La gestion de stock n'est pas activée pour cet article");
     }
 
     // Calculer le nouveau stock
@@ -113,57 +75,34 @@ export async function POST(req: NextRequest) {
 
     // Vérifier que le stock ne devient pas négatif
     if (stock_apres < 0) {
-      return NextResponse.json(
-        {
-          message: "Stock insuffisant",
-          details: `Stock actuel: ${stock_avant}, quantité demandée: ${Math.abs(quantite)}`,
-        },
-        { status: 400 }
+      throw new Error(
+        `Stock insuffisant. Stock actuel: ${stock_avant}, quantité demandée: ${Math.abs(quantite)}`
       );
     }
 
-    // Get entrepriseId from article
-    const entrepriseId = article.entrepriseId;
+    // Get current user email for createdBy
+    const { user } = await requireTenantAuth();
 
-    // Créer le mouvement et mettre à jour le stock en une transaction
-    const mouvement = await prisma.$transaction(async (tx) => {
-      // Créer le mouvement
-      const newMouvement = await tx.mouvementStock.create({
-        data: {
-          articleId,
-          type,
-          quantite,
-          stock_avant,
-          stock_apres,
-          motif: motif || null,
-          reference: reference || null,
-          notes: notes || null,
-          createdBy: user?.email || null,
-          entrepriseId,
-        },
-        include: {
-          article: {
-            select: {
-              id: true,
-              reference: true,
-              nom: true,
-              unite: true,
-            },
-          },
-        },
-      });
+    return {
+      articleId,
+      type,
+      quantite,
+      stock_avant,
+      stock_apres,
+      motif: motif || undefined,
+      reference: reference || undefined,
+      notes: notes || undefined,
+      createdBy: user?.email || undefined,
+      entrepriseId: article.entrepriseId,
+      _stockApres: stock_apres, // Store for afterCreate
+    };
+  },
 
-      // Mettre à jour le stock de l'article
-      await tx.article.update({
-        where: { id: articleId },
-        data: { stock_actuel: stock_apres },
-      });
-
-      return newMouvement;
+  // Update article stock after creating movement (using transaction)
+  afterCreate: async (mouvement) => {
+    await prisma.article.update({
+      where: { id: mouvement.articleId },
+      data: { stock_actuel: (mouvement as unknown as { _stockApres: number })._stockApres },
     });
-
-    return NextResponse.json(mouvement, { status: 201 });
-  } catch (error) {
-    return handleTenantError(error);
-  }
-}
+  },
+});

@@ -17,7 +17,6 @@ import {
 } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { useEffect } from "react";
 import {
   Select,

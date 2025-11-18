@@ -1,71 +1,57 @@
-import { NextRequest, NextResponse } from "next/server";
-import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
-import { PaymentLinkService } from "@/lib/services/payment-link.service";
-import { z } from "zod";
+import { createCrudRoutes } from "@/lib/api/crud-factory";
+import { paymentLinkCreateSchema, paymentLinkUpdateSchema } from "@/lib/validation";
+import { prisma } from "@/lib/prisma";
+import { ConflictError } from "@/lib/errors";
+import { Prisma } from "@prisma/client";
 
-const createPaymentLinkSchema = z.object({
-  titre: z.string().min(1, "Le titre est requis"),
-  description: z.string().optional(),
-  montant: z.number().positive("Le montant doit être positif"),
-  quantiteMax: z.number().int().positive().optional(),
-  dateExpiration: z.string().datetime().optional(),
-  imageCouverture: z.string().url().optional(),
-  messageSucces: z.string().optional(),
-  metadata: z.any().optional(),
-});
+export const { GET, POST } = createCrudRoutes({
+  modelName: "paymentLink",
+  resourceName: "Lien de paiement",
+  createSchema: paymentLinkCreateSchema,
+  updateSchema: paymentLinkUpdateSchema,
+  searchFields: ["titre", "slug", "description"],
+  orderBy: { createdAt: "desc" },
 
-/**
- * GET /api/payment-links
- * Récupérer tous les liens de paiement
- */
-export async function GET(req: NextRequest) {
-  try {
-    const { entrepriseId } = await requireTenantAuth();
+  // Custom filters for active/expired links
+  customWhere: (searchParams, _entrepriseId) => {
+    const filters: Prisma.PaymentLinkWhereInput = {};
 
-    const paymentLinks = await PaymentLinkService.getPaymentLinks(
-      entrepriseId
-    );
-
-    return NextResponse.json({ paymentLinks });
-  } catch (error) {
-    return handleTenantError(error);
-  }
-}
-
-/**
- * POST /api/payment-links
- * Créer un nouveau lien de paiement
- */
-export async function POST(req: NextRequest) {
-  try {
-    const { entrepriseId } = await requireTenantAuth();
-
-    const body = await req.json();
-    const validation = createPaymentLinkSchema.safeParse(body);
-
-    if (!validation.success) {
-      return NextResponse.json(
-        { error: "Données invalides", details: validation.error.errors },
-        { status: 400 }
-      );
+    const actif = searchParams.get("actif");
+    if (actif !== null) {
+      filters.actif = actif === "true";
     }
 
-    const data = validation.data;
+    const expired = searchParams.get("expired");
+    if (expired === "true") {
+      filters.dateExpiration = { lt: new Date() };
+    } else if (expired === "false") {
+      filters.OR = [
+        { dateExpiration: null },
+        { dateExpiration: { gte: new Date() } },
+      ];
+    }
 
-    const paymentLink = await PaymentLinkService.createPaymentLink({
-      entrepriseId,
-      titre: data.titre,
-      description: data.description,
-      montant: data.montant,
-      quantiteMax: data.quantiteMax,
-      dateExpiration: data.dateExpiration ? new Date(data.dateExpiration) : undefined,
-      imageCouverture: data.imageCouverture,
-      messageSucces: data.messageSucces,
-      metadata: data.metadata,
+    return filters;
+  },
+
+  // Validate unique slug before creating
+  beforeCreate: async (data, _entrepriseId) => {
+    const existingLink = await prisma.paymentLink.findUnique({
+      where: { slug: data.slug },
     });
 
-    return NextResponse.json({ paymentLink }, { status: 201 });
-  } catch (error) {
-    return handleTenantError(error);
-  }
-}
+    if (existingLink) {
+      throw new ConflictError(`Un lien de paiement avec le slug ${data.slug} existe déjà`);
+    }
+
+    // Convert dateExpiration string to Date if provided
+    if (data.dateExpiration) {
+      data.dateExpiration = new Date(data.dateExpiration);
+    }
+
+    // Initialize quantitePaye
+    data.quantitePaye = 0;
+
+    return data;
+  },
+});

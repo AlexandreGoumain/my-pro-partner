@@ -72,25 +72,25 @@ export function useSegmentsPage(): SegmentsPageHandlers {
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [segmentToDelete, setSegmentToDelete] = useState<string | null>(null);
 
-    const segments = segmentsData?.data || [];
+    const segments = segmentsData || [];
 
     const filteredSegments = useMemo(() => {
         if (!searchQuery.trim()) return segments;
         const query = searchQuery.toLowerCase();
         return segments.filter(
-            (s) =>
+            (s: Segment) =>
                 s.nom.toLowerCase().includes(query) ||
                 s.description?.toLowerCase().includes(query)
         );
     }, [segments, searchQuery]);
 
     const predefinedSegments = useMemo(
-        () => filteredSegments.filter((s) => s.type === "PREDEFINED"),
+        () => filteredSegments.filter((s: Segment) => s.type === "PREDEFINED"),
         [filteredSegments]
     );
 
     const customSegments = useMemo(
-        () => filteredSegments.filter((s) => s.type === "CUSTOM"),
+        () => filteredSegments.filter((s: Segment) => s.type === "CUSTOM"),
         [filteredSegments]
     );
 
@@ -98,9 +98,9 @@ export function useSegmentsPage(): SegmentsPageHandlers {
 
     const stats = useMemo(() => {
         const totalSegments = segments.length;
-        const activeSegments = segments.filter((s) => s.actif).length;
+        const activeSegments = segments.filter((s: Segment) => s.actif).length;
         const totalClientsInSegments = segments.reduce(
-            (acc, s) => acc + (s.nombreClients ?? 0),
+            (acc: number, s: Segment) => acc + (s.nombreClients ?? 0),
             0
         );
         const averageClientsPerSegment =

@@ -1,7 +1,7 @@
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useDocument, useDeleteDocument, useConvertQuoteToInvoice } from "@/hooks/use-documents";
 import { formatCurrency } from "@/lib/utils/payment-utils";
 import { Document, DocumentType } from "@/lib/types/document.types";
@@ -55,11 +55,11 @@ export function useDocumentDetail({
         return document.client.prenom
             ? `${document.client.nom} ${document.client.prenom}`
             : document.client.nom;
-    }, [document?.client]);
+    }, [document]);
 
-    const handleStatusChanged = () => {
+    const handleStatusChanged = useCallback(() => {
         queryClient.invalidateQueries({ queryKey: ["document", documentId] });
-    };
+    }, [queryClient, documentId]);
 
     const handleDelete = async () => {
         if (!document) return;
@@ -90,9 +90,10 @@ export function useDocumentDetail({
             const result = await convertToInvoice.mutateAsync(document.id);
             toast.success("Devis converti en facture avec succès");
             router.push(`/dashboard/documents/invoices/${result.invoice.id}`);
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("[Document Detail] Error converting quote:", error);
-            toast.error(error?.message || "Impossible de convertir le devis");
+            const message = error instanceof Error ? error.message : "Impossible de convertir le devis";
+            toast.error(message);
         }
     };
 

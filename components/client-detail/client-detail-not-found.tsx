@@ -22,7 +22,7 @@ export function ClientDetailNotFound({ onBack }: ClientDetailNotFoundProps) {
                             Client introuvable
                         </h3>
                         <p className="text-[14px] text-black/60 max-w-md">
-                            Le client demandé n'existe pas ou a été supprimé.
+                            Le client demandé n&apos;existe pas ou a été supprimé.
                         </p>
                     </div>
                     <Button

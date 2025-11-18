@@ -107,7 +107,7 @@ export function useProfitabilityAnalytics(): UseProfitabilityAnalyticsReturn {
 
     return {
         period,
-        setPeriod,
+        setPeriod: setPeriod as (period: string) => void,
         data,
         isLoading,
         error: error as Error | null,

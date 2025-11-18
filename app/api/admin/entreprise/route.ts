@@ -9,7 +9,7 @@ import { prisma } from "@/lib/prisma";
  * GET /api/admin/entreprise
  * Get current entreprise information
  */
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
     const { entrepriseId } = await requireTenantAuth();
 

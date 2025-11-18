@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { createResourceHooks } from "@/lib/hooks/create-resource-hooks";
 
 const API_BASE = "/api/automations";
 
@@ -64,40 +65,47 @@ export interface CreateAutomationData {
   actif?: boolean;
 }
 
-// ============================================
-// FETCH FUNCTIONS
-// ============================================
+// Create base hooks using factory
+const automationHooks = createResourceHooks<Automation>({
+  resourceName: "automations",
+  endpoint: "/api/automations",
+});
 
-async function fetchAutomations(): Promise<{ data: Automation[]; total: number }> {
-  const response = await fetch(API_BASE);
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch automations");
-  }
-  return response.json();
-}
+// Export query keys
+export const automationKeys = automationHooks.keys;
 
-async function fetchAutomation(id: string): Promise<Automation> {
-  const response = await fetch(`${API_BASE}/${id}`);
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to fetch automation");
-  }
-  return response.json();
-}
+// Export base hooks from factory
+export const useAutomations = automationHooks.useList;
+export const useAutomation = automationHooks.useDetail;
+export const useCreateAutomation = () => automationHooks.useCreate<CreateAutomationData>();
+export const useDeleteAutomation = automationHooks.useDelete;
 
-async function createAutomation(data: CreateAutomationData): Promise<Automation> {
-  const response = await fetch(API_BASE, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
+// Custom update hook using PATCH instead of PUT
+export function useUpdateAutomation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<CreateAutomationData> }) => {
+      const response = await fetch(`${API_BASE}/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to update automation");
+      }
+      return response.json();
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["automations"] });
+      queryClient.invalidateQueries({ queryKey: ["automations", variables.id] });
+    },
   });
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to create automation");
-  }
-  return response.json();
 }
+
+// ============================================
+// CUSTOM HOOKS SPECIFIC TO AUTOMATIONS
+// ============================================
 
 async function updateAutomation(
   id: string,
@@ -115,69 +123,8 @@ async function updateAutomation(
   return response.json();
 }
 
-async function deleteAutomation(id: string): Promise<void> {
-  const response = await fetch(`${API_BASE}/${id}`, {
-    method: "DELETE",
-  });
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to delete automation");
-  }
-}
-
 async function toggleAutomation(id: string, actif: boolean): Promise<Automation> {
   return updateAutomation(id, { actif });
-}
-
-// ============================================
-// HOOKS
-// ============================================
-
-export function useAutomations() {
-  return useQuery({
-    queryKey: ["automations"],
-    queryFn: fetchAutomations,
-  });
-}
-
-export function useAutomation(id: string) {
-  return useQuery({
-    queryKey: ["automations", id],
-    queryFn: () => fetchAutomation(id),
-    enabled: !!id,
-  });
-}
-
-export function useCreateAutomation() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: createAutomation,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["automations"] });
-    },
-  });
-}
-
-export function useUpdateAutomation() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<CreateAutomationData> }) =>
-      updateAutomation(id, data),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["automations"] });
-      queryClient.invalidateQueries({ queryKey: ["automations", variables.id] });
-    },
-  });
-}
-
-export function useDeleteAutomation() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: deleteAutomation,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["automations"] });
-    },
-  });
 }
 
 export function useToggleAutomation() {

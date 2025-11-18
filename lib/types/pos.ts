@@ -60,7 +60,7 @@ export type PaymentStatus =
     | "error";
 
 export interface CheckoutRequest {
-    items: any[];
+    items: CartItem[];
     clientId: string | null;
     remiseGlobale: number;
     paymentMethod: PaymentMethod;

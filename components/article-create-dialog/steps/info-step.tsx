@@ -1,3 +1,4 @@
+import { CategoryTreeSelect } from "@/components/categories/category-tree-select";
 import { Button } from "@/components/ui/button";
 import {
     FormControl,
@@ -9,7 +10,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { CategoryTreeSelect } from "@/components/category-tree-select";
 import { FolderTree, Info } from "lucide-react";
 import { StepProps } from "../types";
 
@@ -55,7 +55,8 @@ export function InfoStep({
                                 Nom commercial du{" "}
                                 {articleType === "SERVICE"
                                     ? "service"
-                                    : "produit"} (la référence sera générée automatiquement)
+                                    : "produit"}{" "}
+                                (la référence sera générée automatiquement)
                             </FormDescription>
                             <FormMessage />
                         </FormItem>
@@ -82,8 +83,8 @@ export function InfoStep({
                                                 Aucune catégorie disponible
                                             </p>
                                             <p className="text-[12px] text-black/60">
-                                                Organisez votre catalogue avec des
-                                                catégories
+                                                Organisez votre catalogue avec
+                                                des catégories
                                             </p>
                                         </div>
                                         <Button
@@ -123,7 +124,8 @@ export function InfoStep({
                             ) : (
                                 <div className="flex items-center justify-between">
                                     <FormDescription className="text-[12px]">
-                                        Utilisez l&apos;arborescence pour naviguer
+                                        Utilisez l&apos;arborescence pour
+                                        naviguer
                                     </FormDescription>
                                     <Button
                                         type="button"
@@ -160,7 +162,9 @@ export function InfoStep({
                             </FormControl>
                             <FormDescription className="text-[12px]">
                                 Décrivez le{" "}
-                                {articleType === "SERVICE" ? "service" : "produit"}{" "}
+                                {articleType === "SERVICE"
+                                    ? "service"
+                                    : "produit"}{" "}
                                 (optionnel)
                             </FormDescription>
                             <FormMessage />

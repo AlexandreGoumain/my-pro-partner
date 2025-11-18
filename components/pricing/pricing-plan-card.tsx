@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { PLAN_FEATURES, PLAN_PRICING, PlanType } from "@/lib/pricing-config";
+import { PLAN_FEATURES, PlanType } from "@/lib/pricing-config";
+import { PLANS_CONFIG } from "@/lib/config/plans.config";
 import { getPlanIcon } from "@/lib/utils/pricing";
 import { ArrowRight, Check } from "lucide-react";
 import { PlanCardBadge } from "./plan-card-badge";
@@ -18,9 +19,10 @@ export function PricingPlanCard({
     isFreePlan,
     onPlanClick,
 }: PricingPlanCardProps) {
-    const planInfo = PLAN_PRICING[plan];
+    const planConfig = PLANS_CONFIG[plan];
     const features = PLAN_FEATURES[plan];
-    const isPopular = "popular" in planInfo && planInfo.popular;
+    const isPopular = planConfig.popular || false;
+    const annualPricePerMonth = Math.round(planConfig.price.yearly / 12);
 
     return (
         <Card
@@ -57,7 +59,7 @@ export function PricingPlanCard({
                         </div>
                         <div>
                             <h3 className="text-[24px] font-bold tracking-[-0.02em] text-black">
-                                {planInfo.name}
+                                {planConfig.name}
                             </h3>
                         </div>
                     </div>
@@ -66,15 +68,15 @@ export function PricingPlanCard({
                     <div className="mb-4">
                         <div className="flex items-baseline gap-1">
                             <span className="text-[52px] font-bold tracking-[-0.04em] text-black leading-none">
-                                {planInfo.price}€
+                                {planConfig.price.monthly}€
                             </span>
                             <span className="text-[16px] text-black/40 mb-2">
                                 /mois
                             </span>
                         </div>
-                        {planInfo.annualPrice && (
+                        {annualPricePerMonth > 0 && (
                             <p className="text-[13px] text-black/50 mt-2">
-                                ou {planInfo.annualPrice}€/mois facture
+                                ou {annualPricePerMonth}€/mois facturé
                                 annuellement
                             </p>
                         )}
@@ -82,7 +84,7 @@ export function PricingPlanCard({
 
                     {/* Description */}
                     <p className="text-[15px] text-black/60 leading-relaxed mb-6">
-                        {planInfo.tagline}
+                        {planConfig.description}
                     </p>
 
                     {/* CTA Button */}
@@ -99,7 +101,7 @@ export function PricingPlanCard({
                             onClick={() => onPlanClick(plan)}
                             className="w-full h-12 text-[15px] font-semibold rounded-lg transition-all duration-300 bg-black hover:bg-black/90 text-white shadow-md hover:shadow-xl"
                         >
-                            Obtenir {planInfo.name}
+                            Obtenir {planConfig.name}
                             <ArrowRight
                                 className="w-4 h-4 ml-2"
                                 strokeWidth={2.5}

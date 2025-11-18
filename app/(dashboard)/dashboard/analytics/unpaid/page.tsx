@@ -47,60 +47,60 @@ export default function UnpaidInvoicesPage() {
                 </div>
             ) : !summary ? null : (
                 <div className="space-y-6">
-            <PageHeader
-                title="Factures impayées"
-                description="Suivi et gestion des factures en attente de paiement"
-            />
+                    <PageHeader
+                        title="Factures impayées"
+                        description="Suivi et gestion des factures en attente de paiement"
+                    />
 
-            {/* KPI Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <AnalyticsKPICard
-                    title="Total impayé"
-                    value={formatAmount(summary.totalUnpaid)}
-                    subtitle={`${summary.totalInvoices} facture${pluralSuffix(summary.totalInvoices)}`}
-                    icon={Euro}
-                />
-                <AnalyticsKPICard
-                    title="Factures en retard"
-                    value={summary.overdueCount}
-                    subtitle={formatAmount(summary.totalOverdue)}
-                    icon={AlertCircle}
-                />
-                <AnalyticsKPICard
-                    title="Retard moyen"
-                    value={`${summary.averageOverdueDays} j`}
-                    subtitle={
-                        summary.overdueCount > 0
-                            ? "Pour les factures en retard"
-                            : "Aucune facture en retard"
-                    }
-                    icon={Clock}
-                />
-                <AnalyticsKPICard
-                    title="En attente"
-                    value={summary.totalInvoices - summary.overdueCount}
-                    subtitle={formatAmount(
-                        summary.totalUnpaid - summary.totalOverdue
-                    )}
-                    icon={FileText}
-                />
-            </div>
+                    {/* KPI Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <AnalyticsKPICard
+                            title="Total impayé"
+                            value={formatAmount(summary.totalUnpaid)}
+                            subtitle={`${summary.totalInvoices} facture${pluralSuffix(summary.totalInvoices)}`}
+                            icon={Euro}
+                        />
+                        <AnalyticsKPICard
+                            title="Factures en retard"
+                            value={summary.overdueCount}
+                            subtitle={formatAmount(summary.totalOverdue)}
+                            icon={AlertCircle}
+                        />
+                        <AnalyticsKPICard
+                            title="Retard moyen"
+                            value={`${summary.averageOverdueDays} j`}
+                            subtitle={
+                                summary.overdueCount > 0
+                                    ? "Pour les factures en retard"
+                                    : "Aucune facture en retard"
+                            }
+                            icon={Clock}
+                        />
+                        <AnalyticsKPICard
+                            title="En attente"
+                            value={summary.totalInvoices - summary.overdueCount}
+                            subtitle={formatAmount(
+                                summary.totalUnpaid - summary.totalOverdue
+                            )}
+                            icon={FileText}
+                        />
+                    </div>
 
-            {/* Filters */}
-            <UnpaidInvoicesFilters
-                sortBy={sortBy}
-                setSortBy={setSortBy}
-                sortOrder={sortOrder}
-                setSortOrder={setSortOrder}
-                overdueOnly={overdueOnly}
-                setOverdueOnly={setOverdueOnly}
-            />
+                    {/* Filters */}
+                    <UnpaidInvoicesFilters
+                        sortBy={sortBy}
+                        setSortBy={setSortBy}
+                        sortOrder={sortOrder}
+                        setSortOrder={setSortOrder}
+                        overdueOnly={overdueOnly}
+                        setOverdueOnly={setOverdueOnly}
+                    />
 
-            {/* Invoice Table */}
-            <UnpaidInvoiceTable
-                invoices={invoices}
-                onSendReminder={handleSendReminder}
-            />
+                    {/* Invoice Table */}
+                    <UnpaidInvoiceTable
+                        invoices={invoices}
+                        onSendReminder={handleSendReminder}
+                    />
                 </div>
             )}
         </ConditionalSkeleton>

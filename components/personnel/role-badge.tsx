@@ -5,7 +5,7 @@
 import { Badge } from "@/components/ui/badge";
 import { UserRole } from "@/hooks/personnel/use-personnel";
 import { ROLE_LABELS } from "@/lib/personnel/roles-config";
-import { Shield, UserCog, Users, User, CreditCard, Calculator } from "lucide-react";
+import { Shield, UserCog, Users, User, CreditCard, Calculator, LucideIcon } from "lucide-react";
 
 interface RoleBadgeProps {
   role: UserRole;
@@ -21,7 +21,7 @@ const ROLE_COLORS: Record<UserRole, string> = {
   ACCOUNTANT: "bg-indigo-100 text-indigo-800 border-indigo-200",
 };
 
-const ROLE_ICONS: Record<UserRole, any> = {
+const ROLE_ICONS: Record<UserRole, LucideIcon> = {
   OWNER: Shield,
   ADMIN: UserCog,
   MANAGER: Users,

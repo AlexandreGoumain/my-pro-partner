@@ -1,8 +1,9 @@
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Article } from "@/app/(dashboard)/dashboard/articles/_components/data-table/columns";
 import { useDeleteArticle, useDuplicateArticle } from "@/hooks/use-articles";
+import { useCrudDialogs } from "@/hooks/use-crud-dialogs";
 
 export interface ArticleHandlers {
     // Handlers
@@ -38,17 +39,13 @@ export function useArticleHandlers(): ArticleHandlers {
     const duplicateArticle = useDuplicateArticle();
     const deleteArticle = useDeleteArticle();
 
-    // Modal states
-    const [createDialogOpen, setCreateDialogOpen] = useState(false);
-    const [viewDialogOpen, setViewDialogOpen] = useState(false);
-    const [editDialogOpen, setEditDialogOpen] = useState(false);
-    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
+    // CRUD Dialogs management (create, edit, delete, view)
+    const { dialogs, selected: selectedArticle, handlers: dialogHandlers, setDialogs, setSelected: setSelectedArticle } = useCrudDialogs<Article>();
 
     // Article handlers
     const handleCreate = useCallback(() => {
-        setCreateDialogOpen(true);
-    }, []);
+        dialogHandlers.openCreate();
+    }, [dialogHandlers]);
 
     const handleCreateSuccess = useCallback(() => {
         toast.success("Article créé", {
@@ -62,9 +59,8 @@ export function useArticleHandlers(): ArticleHandlers {
     }, []);
 
     const handleEdit = useCallback((article: Article) => {
-        setSelectedArticle(article);
-        setEditDialogOpen(true);
-    }, []);
+        dialogHandlers.openEdit(article);
+    }, [dialogHandlers]);
 
     const handleDuplicate = useCallback(
         (article: Article) => {
@@ -88,9 +84,8 @@ export function useArticleHandlers(): ArticleHandlers {
     );
 
     const handleDelete = useCallback((article: Article) => {
-        setSelectedArticle(article);
-        setDeleteDialogOpen(true);
-    }, []);
+        dialogHandlers.openDelete(article);
+    }, [dialogHandlers]);
 
     const confirmDelete = useCallback(() => {
         if (!selectedArticle) return;
@@ -100,8 +95,7 @@ export function useArticleHandlers(): ArticleHandlers {
                 toast.success("Article supprimé", {
                     description: "L'article a été supprimé avec succès",
                 });
-                setDeleteDialogOpen(false);
-                setSelectedArticle(null);
+                dialogHandlers.closeDelete();
             },
             onError: (error) => {
                 toast.error("Erreur", {
@@ -112,7 +106,7 @@ export function useArticleHandlers(): ArticleHandlers {
                 });
             },
         });
-    }, [selectedArticle, deleteArticle]);
+    }, [selectedArticle, deleteArticle, dialogHandlers]);
 
     const handleEditSuccess = useCallback(() => {
         toast.success("Article modifié", {
@@ -129,14 +123,15 @@ export function useArticleHandlers(): ArticleHandlers {
         handleDelete,
         handleEditSuccess,
         confirmDelete,
-        createDialogOpen,
-        setCreateDialogOpen,
-        viewDialogOpen,
-        setViewDialogOpen,
-        editDialogOpen,
-        setEditDialogOpen,
-        deleteDialogOpen,
-        setDeleteDialogOpen,
+        // CRUD dialogs (using useCrudDialogs hook)
+        createDialogOpen: dialogs.create,
+        setCreateDialogOpen: (open: boolean) => setDialogs(prev => ({ ...prev, create: open })),
+        viewDialogOpen: dialogs.view,
+        setViewDialogOpen: (open: boolean) => setDialogs(prev => ({ ...prev, view: open })),
+        editDialogOpen: dialogs.edit,
+        setEditDialogOpen: (open: boolean) => setDialogs(prev => ({ ...prev, edit: open })),
+        deleteDialogOpen: dialogs.delete,
+        setDeleteDialogOpen: (open: boolean) => setDialogs(prev => ({ ...prev, delete: open })),
         selectedArticle,
         setSelectedArticle,
         isDeleting: deleteArticle.isPending,

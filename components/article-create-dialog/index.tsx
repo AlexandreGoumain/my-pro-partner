@@ -79,8 +79,10 @@ export function ArticleCreateDialog({
     // Reset additional state when dialog opens
     useEffect(() => {
         if (open) {
-            setCurrentStep(1);
-            setArticleType(null);
+            setTimeout(() => {
+                setCurrentStep(1);
+                setArticleType(null);
+            }, 0);
         }
     }, [open]);
 

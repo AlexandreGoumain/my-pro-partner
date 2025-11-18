@@ -4,7 +4,7 @@ import {
   requireTenantAuth,
 } from "@/lib/middleware/tenant-isolation";
 import { NextRequest, NextResponse } from "next/server";
-import { applySegmentCriteria } from "@/lib/types/segment";
+import { applySegmentCriteria, type SegmentCriteria } from "@/lib/types/segment";
 
 // ============================================
 // POST /api/segments/compare - Compare multiple segments
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
 
     // Apply criteria for each segment
     const segmentResults = segments.map((segment) => {
-      const clients = applySegmentCriteria(allClients, segment.criteres as unknown);
+      const clients = applySegmentCriteria(allClients, segment.criteres as unknown as SegmentCriteria);
       return {
         id: segment.id,
         nom: segment.nom,
@@ -61,9 +61,6 @@ export async function POST(req: NextRequest) {
         count: clients.length,
       };
     });
-
-    // Calculate overlaps
-    const overlaps: Record<string, number> = {};
 
     // For 2 segments, calculate simple overlap
     if (segmentResults.length === 2) {

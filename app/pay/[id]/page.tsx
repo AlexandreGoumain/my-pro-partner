@@ -31,7 +31,7 @@ export default function PayInvoicePage() {
         <ConditionalSkeleton
             isLoading={isLoading}
             skeletonProps={{
-                layout: "simple",
+                layout: "form",
                 itemCount: 1,
                 itemHeight: "h-[500px]",
             }}

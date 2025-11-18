@@ -1,6 +1,7 @@
 import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { prisma } from "@/lib/prisma";
 import { champPersonnaliseUpdateSchema } from "@/lib/validation";
+import { validateRequest } from "@/lib/utils/validation-helper";
 import { NextRequest, NextResponse } from "next/server";
 
 // PUT: Modifier un champ personnalisé
@@ -26,28 +27,19 @@ export async function PUT(
         }
 
         const body = await req.json();
-        const validation = champPersonnaliseUpdateSchema.safeParse(body);
-
-        if (!validation.success) {
-            return NextResponse.json(
-                {
-                    message: "Données invalides",
-                    errors: validation.error.errors,
-                },
-                { status: 400 }
-            );
-        }
+        const result = validateRequest(champPersonnaliseUpdateSchema, body);
+        if (!result.success) return result.response;
 
         // Si on change le code, vérifier qu'il n'existe pas déjà
         if (
-            validation.data.code &&
-            validation.data.code !== existingChamp.code
+            result.data.code &&
+            result.data.code !== existingChamp.code
         ) {
             const codeExists = await prisma.champPersonnalise.findUnique({
                 where: {
                     categorieId_code: {
                         categorieId: id,
-                        code: validation.data.code,
+                        code: result.data.code,
                     },
                 },
             });
@@ -65,13 +57,13 @@ export async function PUT(
 
         // Validation conditionnelle pour SELECT/MULTISELECT
         if (
-            validation.data.type &&
-            (validation.data.type === "SELECT" ||
-                validation.data.type === "MULTISELECT")
+            result.data.type &&
+            (result.data.type === "SELECT" ||
+                result.data.type === "MULTISELECT")
         ) {
             const options =
-                validation.data.options !== undefined
-                    ? validation.data.options
+                result.data.options !== undefined
+                    ? result.data.options
                     : existingChamp.options;
             if (!options || (Array.isArray(options) && options.length === 0)) {
                 return NextResponse.json(
@@ -86,7 +78,7 @@ export async function PUT(
 
         // Nettoyer les données
         const updateData: Record<string, unknown> = {};
-        Object.entries(validation.data).forEach(([key, value]) => {
+        Object.entries(result.data).forEach(([key, value]) => {
             if (value !== undefined) {
                 updateData[key] =
                     value === "" || value === null ? null : value;

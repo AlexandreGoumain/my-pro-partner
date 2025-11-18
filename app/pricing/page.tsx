@@ -6,7 +6,8 @@ import {
     PublicPricingHeader,
 } from "@/components/pricing";
 import { usePricingPage } from "@/hooks/use-pricing-page";
-import { PLAN_FEATURES, PLAN_PRICING, PlanType } from "@/lib/pricing-config";
+import { PLAN_FEATURES, PlanType } from "@/lib/pricing-config";
+import { PLANS_CONFIG } from "@/lib/config/plans.config";
 import { PlanFeature } from "@/lib/types/pricing";
 
 const PRICING_PLANS_DATA = [
@@ -60,7 +61,7 @@ export default function PricingPage() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {PRICING_PLANS_DATA.map((planData) => {
-                        const planInfo = PLAN_PRICING[planData.id];
+                        const planConfig = PLANS_CONFIG[planData.id];
                         const price = getPrice(
                             planData.priceMonthly,
                             planData.priceYearly
@@ -70,8 +71,7 @@ export default function PricingPage() {
                             planData.priceYearly
                         );
                         const isLoading = loadingPlan === planData.id;
-                        const isPopular =
-                            "popular" in planInfo && planInfo.popular;
+                        const isPopular = planConfig.popular || false;
 
                         const features: PlanFeature[] = PLAN_FEATURES[
                             planData.id
@@ -83,9 +83,9 @@ export default function PricingPage() {
                         return (
                             <PublicPricingCard
                                 key={planData.id}
-                                name={planInfo.name}
+                                name={planConfig.name}
                                 planId={planData.id}
-                                description={planInfo.tagline}
+                                description={planConfig.description}
                                 price={price}
                                 priceLabel={
                                     interval === "month" ? "/mois" : "/an"

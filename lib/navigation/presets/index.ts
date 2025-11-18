@@ -4,7 +4,7 @@
  */
 
 import { BusinessPreset } from "../core/types";
-import { BusinessType } from "@prisma/client";
+import { BusinessType } from "@/lib/services/business-template.service";
 
 // ============================================
 // GENERAL (Default fallback)

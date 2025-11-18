@@ -27,7 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, UserRole, UserStatus } from "@/hooks/personnel/use-personnel";
+import { User, UserRole, UserStatus, CreateUserInput, UpdateUserInput } from "@/hooks/personnel/use-personnel";
 import { ROLE_LABELS, ROLE_DESCRIPTIONS, STATUS_LABELS } from "@/lib/personnel/roles-config";
 import { Spinner } from "@/components/ui/spinner";
 
@@ -57,7 +57,7 @@ type UserFormValues = z.infer<typeof userFormSchema>;
 
 interface UserFormProps {
   user?: User | null;
-  onSubmit: (data: any) => Promise<boolean>;
+  onSubmit: (data: CreateUserInput | UpdateUserInput) => Promise<boolean>;
   onCancel?: () => void;
   loading?: boolean;
 }
@@ -84,7 +84,7 @@ export function UserForm({ user, onSubmit, onCancel, loading = false }: UserForm
   const handleSubmit = async (data: UserFormValues) => {
     setSubmitting(true);
 
-    const payload: any = {
+    const payload: CreateUserInput | UpdateUserInput = {
       ...data,
       salaireHoraire: data.salaireHoraire ? parseFloat(data.salaireHoraire) : undefined,
     };
@@ -150,7 +150,7 @@ export function UserForm({ user, onSubmit, onCancel, loading = false }: UserForm
                     <Input {...field} type="email" placeholder="jean.dupont@example.com" />
                   </FormControl>
                   <FormDescription>
-                    L'utilisateur recevra ses identifiants par email
+                    L&apos;utilisateur recevra ses identifiants par email
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -348,7 +348,7 @@ export function UserForm({ user, onSubmit, onCancel, loading = false }: UserForm
                 name="dateEmbauche"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Date d'embauche</FormLabel>
+                    <FormLabel>Date d&apos;embauche</FormLabel>
                     <FormControl>
                       <Input {...field} type="date" />
                     </FormControl>

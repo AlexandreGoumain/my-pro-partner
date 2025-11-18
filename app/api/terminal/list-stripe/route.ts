@@ -13,7 +13,7 @@ export async function GET() {
     const terminals = await TerminalService.listStripeTerminals();
 
     return NextResponse.json({ terminals });
-  } catch (error: any) {
+  } catch (error) {
     return handleTenantError(error);
   }
 }

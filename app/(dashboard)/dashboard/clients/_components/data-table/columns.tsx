@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Client } from "@/hooks/use-clients";
 import { ColumnDef } from "@tanstack/react-table";
-import { Edit, Eye, Mail, MapPin, MoreHorizontal, Phone, Trash2, User } from "lucide-react";
+import { Edit, Eye, Mail, MapPin, MoreHorizontal, Phone, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
