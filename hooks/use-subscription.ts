@@ -36,8 +36,9 @@ export function useSubscription() {
             } else {
                 throw new Error("URL de checkout manquante");
             }
-        } catch (error: any) {
-            toast.error(error.message || "Erreur lors de la souscription");
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Erreur lors de la souscription";
+            toast.error(message);
             setLoading(false);
         }
     };
@@ -66,8 +67,9 @@ export function useSubscription() {
             // Rafraîchir la session NextAuth pour mettre à jour le plan
             await updateSession();
             router.refresh();
-        } catch (error: any) {
-            toast.error(error.message || "Erreur lors de l'annulation");
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Erreur lors de l'annulation";
+            toast.error(message);
         } finally {
             setLoading(false);
         }
@@ -95,8 +97,9 @@ export function useSubscription() {
             // Rafraîchir la session NextAuth pour mettre à jour le plan
             await updateSession();
             router.refresh();
-        } catch (error: any) {
-            toast.error(error.message || "Erreur lors de la réactivation");
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Erreur lors de la réactivation";
+            toast.error(message);
         } finally {
             setLoading(false);
         }
@@ -130,7 +133,7 @@ export function useSubscription() {
             // Rafraîchir la session NextAuth pour mettre à jour le plan
             await updateSession();
             router.refresh();
-        } catch (error: any) {
+        } catch (error: unknown) {
             toast.error(error.message || "Erreur lors du changement de plan");
         } finally {
             setLoading(false);
@@ -157,7 +160,7 @@ export function useSubscription() {
             } else {
                 throw new Error("URL du portail manquante");
             }
-        } catch (error: any) {
+        } catch (error: unknown) {
             toast.error(error.message || "Erreur lors de l'accès au portail");
             setLoading(false);
         }

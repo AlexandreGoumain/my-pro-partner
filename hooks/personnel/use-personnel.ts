@@ -23,7 +23,7 @@ export interface User {
   dateEmbauche?: Date | null;
   photoUrl?: string | null;
   lastLoginAt?: Date | null;
-  permissions?: any;
+  permissions?: Record<string, boolean>;
   createdAt: Date;
 }
 
@@ -105,11 +105,12 @@ export function usePersonnel() {
 
       const data = await response.json();
       setUsers(data.users || []);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error fetching users:", error);
+      const message = error instanceof Error ? error.message : "Impossible de charger les employés";
       toast({
         title: "Erreur",
-        description: error.message || "Impossible de charger les employés",
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -130,7 +131,7 @@ export function usePersonnel() {
 
       const data = await response.json();
       setStats(data.stats);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error fetching stats:", error);
     }
   }, []);
@@ -172,11 +173,12 @@ export function usePersonnel() {
       await fetchStats();
 
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error creating user:", error);
+      const message = error instanceof Error ? error.message : "Impossible de créer l'employé";
       toast({
         title: "Erreur",
-        description: error.message || "Impossible de créer l'employé",
+        description: message,
         variant: "destructive",
       });
       return false;
@@ -216,11 +218,12 @@ export function usePersonnel() {
       await fetchStats();
 
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error updating user:", error);
+      const message = error instanceof Error ? error.message : "Impossible de mettre à jour l'employé";
       toast({
         title: "Erreur",
-        description: error.message || "Impossible de mettre à jour l'employé",
+        description: message,
         variant: "destructive",
       });
       return false;
@@ -255,11 +258,12 @@ export function usePersonnel() {
       await fetchStats();
 
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error deleting user:", error);
+      const message = error instanceof Error ? error.message : "Impossible de supprimer l'employé";
       toast({
         title: "Erreur",
-        description: error.message || "Impossible de supprimer l'employé",
+        description: message,
         variant: "destructive",
       });
       return false;
@@ -303,11 +307,12 @@ export function usePersonnel() {
       });
 
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error updating permissions:", error);
+      const message = error instanceof Error ? error.message : "Impossible de mettre à jour les permissions";
       toast({
         title: "Erreur",
-        description: error.message || "Impossible de mettre à jour les permissions",
+        description: message,
         variant: "destructive",
       });
       return false;

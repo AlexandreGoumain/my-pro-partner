@@ -19,7 +19,7 @@ interface UsePaymentDialogReturn {
     formData: PaymentFormData;
     isSubmitting: boolean;
     handleSubmit: (e: React.FormEvent) => Promise<void>;
-    updateFormData: (field: keyof PaymentFormData, value: any) => void;
+    updateFormData: (field: keyof PaymentFormData, value: PaymentFormData[keyof PaymentFormData]) => void;
 }
 
 /**
@@ -43,7 +43,7 @@ export function usePaymentDialog({
         notes: "",
     });
 
-    const updateFormData = (field: keyof PaymentFormData, value: any) => {
+    const updateFormData = (field: keyof PaymentFormData, value: PaymentFormData[keyof PaymentFormData]) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
     };
 

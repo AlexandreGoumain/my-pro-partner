@@ -147,7 +147,7 @@ export function useCategoryHandlers(): CategoryHandlers {
                     data: categoryData,
                 });
             } else {
-                savedCategory = await createCategorie.mutateAsync(categoryData);
+                savedCategory = await createCategorie.mutateAsync({ ...categoryData, ordre: 0 });
             }
 
             const categoryId = savedCategory.id;

@@ -56,10 +56,10 @@ export function useSubscriptionStatus(): SubscriptionState {
 
     // Capacités de base
     const canSubscribe = status === "free";
-    const canUpgrade = status === "active" || status === "trialing";
-    const canDowngrade = status === "active" || status === "trialing";
-    const canCancel = status === "active" || status === "trialing";
-    const canResume = status === "canceled";
+    const canUpgrade = status === "active" || false;
+    const canDowngrade = status === "active" || false;
+    const canCancel = status === "active" || false;
+    const canResume = false;
 
     // Helpers de comparaison
     const isUpgrade = (targetPlan: PlanType): boolean => {

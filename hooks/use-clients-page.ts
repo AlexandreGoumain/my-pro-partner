@@ -10,6 +10,7 @@ import {
     useImportClients,
 } from "@/hooks/use-clients";
 import { useSegment, useSegmentClients } from "@/hooks/use-segments";
+import { useCrudDialogs } from "@/hooks/use-crud-dialogs";
 import { createColumns } from "@/app/(dashboard)/dashboard/clients/_components/data-table/columns";
 import { useLimitDialog } from "@/components/providers/limit-dialog-provider";
 import type { PaginationInfo } from "@/components/ui/data-table/pagination";
@@ -100,18 +101,19 @@ export function useClientsPage(): ClientsPageHandlers {
     // Pricing limit check
     const { checkLimit, userPlan } = useLimitDialog();
 
+    // CRUD Dialogs management (create, edit, delete)
+    const { dialogs, selected: selectedClient, handlers: dialogHandlers, setDialogs } = useCrudDialogs<Client>();
+
     // State management
     const [searchTerm, setSearchTerm] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(viewMode === "grid" ? 24 : 20);
-    const [createDialogOpen, setCreateDialogOpen] = useState(false);
-    const [editDialogOpen, setEditDialogOpen] = useState(false);
-    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+    // Additional dialogs specific to clients page
     const [importDialogOpen, setImportDialogOpen] = useState(false);
     const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
-    const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
     // Debounce search term to avoid too many API calls
     useEffect(() => {
@@ -193,8 +195,8 @@ export function useClientsPage(): ClientsPageHandlers {
     }, [router]);
 
     const handleCreate = useCallback(() => {
-        setCreateDialogOpen(true);
-    }, []);
+        dialogHandlers.openCreate();
+    }, [dialogHandlers]);
 
     // Wrapper to check limit before creating
     const handleCreateWithLimitCheck = useCallback(() => {
@@ -226,14 +228,12 @@ export function useClientsPage(): ClientsPageHandlers {
     );
 
     const handleEdit = useCallback((client: Client) => {
-        setSelectedClient(client);
-        setEditDialogOpen(true);
-    }, []);
+        dialogHandlers.openEdit(client);
+    }, [dialogHandlers]);
 
     const handleDelete = useCallback((client: Client) => {
-        setSelectedClient(client);
-        setDeleteDialogOpen(true);
-    }, []);
+        dialogHandlers.openDelete(client);
+    }, [dialogHandlers]);
 
     const confirmDelete = useCallback(() => {
         if (!selectedClient) return;
@@ -243,8 +243,7 @@ export function useClientsPage(): ClientsPageHandlers {
                 toast.success("Client supprimé", {
                     description: "Le client a été supprimé avec succès",
                 });
-                setDeleteDialogOpen(false);
-                setSelectedClient(null);
+                dialogHandlers.closeDelete();
             },
             onError: (error) => {
                 toast.error("Erreur", {
@@ -255,7 +254,7 @@ export function useClientsPage(): ClientsPageHandlers {
                 });
             },
         });
-    }, [selectedClient, deleteClient]);
+    }, [selectedClient, deleteClient, dialogHandlers]);
 
     const handleEditSuccess = useCallback(() => {
         toast.success("Client modifié", {
@@ -324,12 +323,14 @@ export function useClientsPage(): ClientsPageHandlers {
         segmentId,
         segment: segment || null,
         clearSegmentFilter,
-        createDialogOpen,
-        setCreateDialogOpen,
-        editDialogOpen,
-        setEditDialogOpen,
-        deleteDialogOpen,
-        setDeleteDialogOpen,
+        // CRUD dialogs (using useCrudDialogs hook)
+        createDialogOpen: dialogs.create,
+        setCreateDialogOpen: (open: boolean) => setDialogs(prev => ({ ...prev, create: open })),
+        editDialogOpen: dialogs.edit,
+        setEditDialogOpen: (open: boolean) => setDialogs(prev => ({ ...prev, edit: open })),
+        deleteDialogOpen: dialogs.delete,
+        setDeleteDialogOpen: (open: boolean) => setDialogs(prev => ({ ...prev, delete: open })),
+        // Additional dialogs specific to clients
         importDialogOpen,
         setImportDialogOpen,
         inviteDialogOpen,

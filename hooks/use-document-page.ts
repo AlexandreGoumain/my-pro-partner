@@ -1,5 +1,5 @@
 import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 import { toast } from "sonner";
 import { ColumnDef } from "@tanstack/react-table";
 import { useDocuments, useDeleteDocument, type DocumentType } from "./use-documents";
@@ -108,36 +108,36 @@ export function useDocumentPage<T extends { id: string }>({
 
     const label = labels[documentType];
 
-    const handleView = (document: T) => {
+    const handleView = useCallback((document: T) => {
         router.push(`${basePath}/${document.id}`);
-    };
+    }, [router, basePath]);
 
-    const handleEdit = (document: T) => {
+    const handleEdit = useCallback((document: T) => {
         router.push(`${basePath}/${document.id}/edit`);
-    };
+    }, [router, basePath]);
 
-    const handleDelete = async (document: T) => {
+    const handleDelete = useCallback(async (document: T) => {
         if (!confirm(label.deleteConfirm)) return;
 
         try {
             await deleteDocument.mutateAsync(document.id);
             toast.success(label.deleteSuccess);
-        } catch (error) {
-            console.error(`Error deleting ${label.singular}:`, error);
+        } catch (_error) {
+            console.error(`Error deleting ${label.singular}:`, _error);
             toast.error(label.deleteError);
         }
-    };
+    }, [label, deleteDocument]);
 
-    const handleCreate = () => {
+    const handleCreate = useCallback(() => {
         router.push(`${basePath}/new`);
-    };
+    }, [router, basePath]);
 
     const handlers = useMemo<DocumentHandlers<T>>(() => ({
         onView: handleView,
         onEdit: handleEdit,
         onDelete: handleDelete,
         ...additionalHandlers,
-    }), [additionalHandlers]);
+    }), [handleView, handleEdit, handleDelete, additionalHandlers]);
 
     const columns = useMemo(() => createColumns(handlers), [createColumns, handlers]);
 

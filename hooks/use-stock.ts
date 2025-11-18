@@ -12,6 +12,7 @@ import type {
 } from "@/lib/validation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { articleKeys } from "./use-articles";
+import { createResourceHooks } from "@/lib/hooks/create-resource-hooks";
 
 // Types pour les filtres
 export interface StockFilters {
@@ -21,17 +22,24 @@ export interface StockFilters {
     endDate?: string;
 }
 
-// Query Keys
+// Create base hooks using factory
+const stockHooks = createResourceHooks<MouvementStockWithRelations, MouvementStockDisplay>({
+    resourceName: "stock",
+    endpoint: ENDPOINTS.STOCK_MOVEMENTS,
+    mapToDisplay: mapMouvementToDisplay,
+});
+
+// Extend query keys with custom keys
 export const stockKeys = {
+    ...stockHooks.keys,
     all: ["stock", "mouvements"] as const,
     lists: () => ["stock", "mouvements", "list"] as const,
-    list: (filters: StockFilters) =>
-        ["stock", "mouvements", "list", filters] as const,
+    list: (filters: StockFilters) => ["stock", "mouvements", "list", filters] as const,
     detail: (id: string) => ["stock", "mouvements", id] as const,
     alerts: () => ["stock", "alerts"] as const,
 };
 
-// Hook pour récupérer tous les mouvements de stock
+// Custom hook: Fetch with filters
 export function useStockMouvements(filters?: StockFilters) {
     const queryParams = new URLSearchParams();
     if (filters?.articleId) queryParams.set("articleId", filters.articleId);
@@ -42,8 +50,15 @@ export function useStockMouvements(filters?: StockFilters) {
     const queryString = queryParams.toString();
     const url = `${ENDPOINTS.STOCK_MOVEMENTS}${queryString ? `?${queryString}` : ""}`;
 
+    // Create normalized filters for query key (remove undefined values)
+    const normalizedFilters: StockFilters = filters
+        ? Object.fromEntries(
+              Object.entries(filters).filter(([_, v]) => v !== undefined)
+          ) as StockFilters
+        : {};
+
     return useQuery({
-        queryKey: filters ? stockKeys.list(filters) : stockKeys.lists(),
+        queryKey: filters ? stockKeys.list(normalizedFilters) : stockKeys.lists(),
         queryFn: async (): Promise<MouvementStockDisplay[]> => {
             const result = await api.get<
                 | MouvementStockWithRelations[]
@@ -57,49 +72,12 @@ export function useStockMouvements(filters?: StockFilters) {
     });
 }
 
-// Hook pour récupérer un mouvement par ID
-export function useStockMouvement(id: string) {
-    return useQuery({
-        queryKey: stockKeys.detail(id),
-        queryFn: async () =>
-            api.get<MouvementStockWithRelations>(
-                `${ENDPOINTS.STOCK_MOVEMENTS}/${id}`
-            ),
-        enabled: !!id,
-    });
-}
+// Export base hooks from factory
+export const useStockMouvement = stockHooks.useDetail;
+export const useCreateStockMouvement = () => stockHooks.useCreate<MouvementStockCreateInput>();
+export const useDeleteStockMouvement = stockHooks.useDelete;
 
-// Hook pour créer un mouvement de stock
-export function useCreateStockMouvement() {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: async (data: MouvementStockCreateInput) =>
-            api.post<MouvementStockWithRelations>(
-                ENDPOINTS.STOCK_MOVEMENTS,
-                data
-            ),
-        onSuccess: () => {
-            // Invalider les caches des mouvements et des articles
-            queryClient.invalidateQueries({ queryKey: stockKeys.all });
-            queryClient.invalidateQueries({ queryKey: articleKeys.all });
-        },
-    });
-}
-
-// Hook pour annuler un mouvement de stock
-export function useDeleteStockMouvement() {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: async (id: string) =>
-            api.delete(`${ENDPOINTS.STOCK_MOVEMENTS}/${id}`),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: stockKeys.all });
-            queryClient.invalidateQueries({ queryKey: articleKeys.all });
-        },
-    });
-}
+// Custom hooks specific to stock
 
 // Hook pour ajuster rapidement le stock d'un article
 export function useAdjustStock() {
@@ -125,7 +103,6 @@ export function useAdjustStock() {
 }
 
 // Hook pour récupérer les articles avec alertes de stock
-// ✅ Optimized: Uses dedicated ENDPOINTS.ARTICLE_ALERTS endpoint
 export function useStockAlerts() {
     return useQuery({
         queryKey: stockKeys.alerts(),

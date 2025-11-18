@@ -40,12 +40,12 @@ export function useCampaignsPage(): CampaignsPageHandlers {
     const cancelCampaign = useCancelCampaign();
     const sendCampaign = useSendCampaign();
 
-    const campaigns = data?.data || [];
+    const campaigns = data || [];
 
     const filteredCampaigns = useMemo(
         () =>
             statusFilter
-                ? campaigns.filter((c) => c.statut === statusFilter)
+                ? campaigns.filter((c: Campaign) => c.statut === statusFilter)
                 : campaigns,
         [statusFilter, campaigns]
     );
@@ -53,9 +53,9 @@ export function useCampaignsPage(): CampaignsPageHandlers {
     const stats = useMemo(
         () => ({
             total: campaigns.length,
-            draft: campaigns.filter((c) => c.statut === "DRAFT").length,
-            scheduled: campaigns.filter((c) => c.statut === "SCHEDULED").length,
-            sent: campaigns.filter((c) => c.statut === "SENT").length,
+            draft: campaigns.filter((c: Campaign) => c.statut === "DRAFT").length,
+            scheduled: campaigns.filter((c: Campaign) => c.statut === "SCHEDULED").length,
+            sent: campaigns.filter((c: Campaign) => c.statut === "SENT").length,
         }),
         [campaigns]
     );
@@ -77,8 +77,9 @@ export function useCampaignsPage(): CampaignsPageHandlers {
             try {
                 await cancelCampaign.mutateAsync(id);
                 toast.success("Campagne annulée");
-            } catch (error: any) {
-                toast.error(error.message || "Erreur lors de l'annulation");
+            } catch (error: unknown) {
+                const message = error instanceof Error ? error.message : "Erreur lors de l'annulation";
+                toast.error(message);
             }
         },
         [cancelCampaign]

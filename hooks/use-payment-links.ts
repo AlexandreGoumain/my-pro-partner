@@ -43,9 +43,10 @@ export function usePaymentLinks() {
             toast.success("Lien créé avec succès !");
             await loadPaymentLinks();
             return true;
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(error);
-            toast.error(error.message || "Erreur lors de la création");
+            const message = error instanceof Error ? error.message : "Erreur lors de la création";
+            toast.error(message);
             return false;
         }
     };
@@ -67,9 +68,10 @@ export function usePaymentLinks() {
 
             toast.success(data.actif ? "Lien activé" : "Lien désactivé");
             await loadPaymentLinks();
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(error);
-            toast.error(error.message || "Erreur");
+            const message = error instanceof Error ? error.message : "Erreur";
+            toast.error(message);
         }
     };
 
@@ -91,9 +93,10 @@ export function usePaymentLinks() {
 
             toast.success("Lien supprimé");
             await loadPaymentLinks();
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(error);
-            toast.error(error.message || "Erreur");
+            const message = error instanceof Error ? error.message : "Erreur";
+            toast.error(message);
         }
     };
 

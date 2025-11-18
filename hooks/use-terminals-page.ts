@@ -82,9 +82,10 @@ export function useTerminalsPage(): TerminalsPageHandlers {
             setSelectedReader("");
             setTerminalLabel("");
             setTerminalLocation("");
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(error);
-            toast.error(error.message || "Erreur lors de l'enregistrement");
+            const message = error instanceof Error ? error.message : "Erreur lors de l'enregistrement";
+            toast.error(message);
         }
     };
 
@@ -92,9 +93,10 @@ export function useTerminalsPage(): TerminalsPageHandlers {
         try {
             await syncMutation.mutateAsync(terminalId);
             toast.success("Terminal synchronisé");
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(error);
-            toast.error(error.message || "Erreur lors de la synchronisation");
+            const message = error instanceof Error ? error.message : "Erreur lors de la synchronisation";
+            toast.error(message);
         }
     };
 
@@ -106,9 +108,10 @@ export function useTerminalsPage(): TerminalsPageHandlers {
         try {
             await deleteMutation.mutateAsync(terminalId);
             toast.success("Terminal supprimé");
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(error);
-            toast.error(error.message || "Erreur lors de la suppression");
+            const message = error instanceof Error ? error.message : "Erreur lors de la suppression";
+            toast.error(message);
         }
     };
 

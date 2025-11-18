@@ -66,20 +66,24 @@ export function useSettingsForm(): UseSettingsFormReturn {
     // Synchronize local state with React Query data
     useEffect(() => {
         if (companyData) {
-            setSettings(companyData);
+            setTimeout(() => {
+                setSettings(companyData);
+            }, 0);
         }
     }, [companyData]);
 
     useEffect(() => {
         if (notificationData) {
-            // Extract only notification-related fields
-            setNotifications({
-                email_nouveau_client: notificationData.email_nouveau_client,
-                email_document_cree: notificationData.email_document_cree,
-                email_document_paye: notificationData.email_document_paye,
-                email_stock_bas: notificationData.email_stock_bas,
-                email_rapport_hebdomadaire: notificationData.email_rapport_hebdomadaire,
-            });
+            setTimeout(() => {
+                // Extract only notification-related fields
+                setNotifications({
+                    email_nouveau_client: notificationData.email_nouveau_client,
+                    email_document_cree: notificationData.email_document_cree,
+                    email_document_paye: notificationData.email_document_paye,
+                    email_stock_bas: notificationData.email_stock_bas,
+                    email_rapport_hebdomadaire: notificationData.email_rapport_hebdomadaire,
+                });
+            }, 0);
         }
     }, [notificationData]);
 
@@ -102,7 +106,7 @@ export function useSettingsForm(): UseSettingsFormReturn {
             // Save company settings and notifications in parallel
             await Promise.all([
                 updateCompany.mutateAsync(settings),
-                updateNotifications.mutateAsync(notifications as any),
+                updateNotifications.mutateAsync(notifications),
             ]);
 
             toast.success("Paramètres enregistrés avec succès");

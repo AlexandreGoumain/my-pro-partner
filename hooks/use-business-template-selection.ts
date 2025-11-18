@@ -30,10 +30,11 @@ export function useBusinessTemplateSelection() {
 
       const data = await response.json();
       setTemplates(data.templates);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Une erreur est survenue";
       toast({
         title: "Erreur",
-        description: error.message,
+        description: message,
         variant: "destructive",
       });
     } finally {
@@ -70,10 +71,11 @@ export function useBusinessTemplateSelection() {
       });
 
       return { success: true };
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Une erreur est survenue";
       toast({
         title: "Erreur",
-        description: error.message,
+        description: message,
         variant: "destructive",
       });
       return { success: false };

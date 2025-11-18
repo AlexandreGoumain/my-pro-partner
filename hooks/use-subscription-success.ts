@@ -53,7 +53,9 @@ export function useSubscriptionSuccess(): UseSubscriptionSuccessReturn {
         const session_id = searchParams.get("session_id");
 
         if (session_id) {
-            setSessionId(session_id);
+            setTimeout(() => {
+                setSessionId(session_id);
+            }, 0);
         } else {
             // No session_id, redirect to pricing after delay
             const timer = setTimeout(() => {

@@ -36,15 +36,15 @@ export function useAutomationsPage(): AutomationsPageHandlers {
     const deleteAutomation = useDeleteAutomation();
     const toggleAutomation = useToggleAutomation();
 
-    const automations = data?.data || [];
+    const automations = data || [];
 
     const stats = useMemo(
         () => ({
             total: automations.length,
-            active: automations.filter((a) => a.actif).length,
-            inactive: automations.filter((a) => !a.actif).length,
+            active: automations.filter((a: Automation) => a.actif).length,
+            inactive: automations.filter((a: Automation) => !a.actif).length,
             totalExecutions: automations.reduce(
-                (sum, a) => sum + a.nombreExecutions,
+                (sum: number, a: Automation) => sum + a.nombreExecutions,
                 0
             ),
         }),

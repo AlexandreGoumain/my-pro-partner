@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api/fetch-client";
 import type { Document, DocumentType } from "@/lib/types/document.types";
 
-export type { DocumentType };
+export type { Document, DocumentType };
 
 // Query Keys
 export const documentKeys = {

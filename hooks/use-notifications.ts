@@ -7,7 +7,7 @@ interface Notification {
     titre: string;
     message?: string | null;
     lue: boolean;
-    metadata?: any;
+    metadata?: Record<string, unknown>;
     createdAt: string;
     lueAt?: string | null;
 }
