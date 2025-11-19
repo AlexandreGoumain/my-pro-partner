@@ -6,12 +6,14 @@ import { OnboardingNavigation } from "@/components/onboarding/onboarding-navigat
 import { OnboardingStepBusinessType } from "@/components/onboarding/onboarding-step-business-type";
 import { OnboardingStepCompany } from "@/components/onboarding/onboarding-step-company";
 import { OnboardingStepDetails } from "@/components/onboarding/onboarding-step-details";
+import { OnboardingStepPlan } from "@/components/onboarding/onboarding-step-plan";
 import { OnboardingStepper } from "@/components/onboarding/onboarding-stepper";
 import { Card, CardContent } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
 import { Separator } from "@/components/ui/separator";
 import { useBusinessTemplateSelection } from "@/hooks/use-business-template-selection";
 import { useOnboardingPage } from "@/hooks/use-onboarding-page";
+import { BusinessType } from "@/lib/types/business";
 import { ONBOARDING_STEPS } from "@/lib/types/onboarding";
 
 export default function OnboardingPage() {
@@ -24,6 +26,8 @@ export default function OnboardingPage() {
         prevStep,
         canGoNext,
         handleNext,
+        selectedPlan,
+        setSelectedPlan,
     } = useOnboardingPage();
 
     const {
@@ -81,8 +85,24 @@ export default function OnboardingPage() {
                                     />
                                 )}
 
-                                {/* Step 3: Informations complémentaires */}
+                                {/* Step 3: Sélection du plan */}
                                 {step === 3 && (
+                                    <OnboardingStepPlan
+                                        businessType={
+                                            form.watch(
+                                                "businessType"
+                                            ) as BusinessType | null
+                                        }
+                                        selectedPlan={selectedPlan}
+                                        onSelectPlan={setSelectedPlan}
+                                        onNext={handleNext}
+                                        onBack={prevStep}
+                                        canGoNext={canGoNext}
+                                    />
+                                )}
+
+                                {/* Step 4: Informations complémentaires */}
+                                {step === 4 && (
                                     <OnboardingStepDetails
                                         form={form}
                                         selectedTemplate={selectedTemplate}
@@ -90,20 +110,23 @@ export default function OnboardingPage() {
                                     />
                                 )}
 
-                                <Separator />
-
-                                {/* Navigation buttons */}
-                                <OnboardingNavigation
-                                    step={step}
-                                    isLoading={isLoading}
-                                    canGoNext={canGoNext}
-                                    selectedTemplate={selectedTemplate}
-                                    onPrevStep={prevStep}
-                                    onNextStep={() =>
-                                        handleNext(selectedTemplate)
-                                    }
-                                    className="flex items-center justify-between"
-                                />
+                                {/* Navigation buttons - Cachée pour step 3 (gérée dans OnboardingStepPlan) */}
+                                {step !== 3 && (
+                                    <>
+                                        <Separator />
+                                        <OnboardingNavigation
+                                            step={step}
+                                            isLoading={isLoading}
+                                            canGoNext={canGoNext}
+                                            selectedTemplate={selectedTemplate}
+                                            onPrevStep={prevStep}
+                                            onNextStep={() =>
+                                                handleNext(selectedTemplate)
+                                            }
+                                            className="flex items-center justify-between"
+                                        />
+                                    </>
+                                )}
                             </form>
                         </Form>
                     </CardContent>
