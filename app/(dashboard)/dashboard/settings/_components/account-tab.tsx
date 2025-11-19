@@ -1,86 +1,24 @@
 "use client";
 
+import { AccountInfoField } from "@/components/settings/account-info-field";
+import { DeleteAllDataDialog } from "@/components/settings/delete-all-data-dialog";
+import { LoginActivityItem } from "@/components/settings/login-activity-item";
+import { PasswordChangeForm } from "@/components/settings/password-change-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SettingsSection } from "@/components/ui/settings-section";
+import { ROLE_LABELS, UserRole } from "@/lib/personnel/roles-config";
 import { UserSettings } from "@/lib/types/settings";
-import { Activity, Key, Shield, User } from "lucide-react";
+import { Activity, Key, Shield, Trash2, User } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
 
 interface AccountTabProps {
     user?: UserSettings | null;
 }
 
-const getRoleLabel = (role: string) => {
-    const roleLabels: Record<string, string> = {
-        OWNER: "Propriétaire",
-        ADMIN: "Administrateur",
-        MANAGER: "Manager",
-        EMPLOYEE: "Employé",
-        CASHIER: "Caissier",
-        ACCOUNTANT: "Comptable",
-    };
-    return roleLabels[role] || "Utilisateur";
-};
-
 export function AccountTab({ user = null }: AccountTabProps) {
     const [isChangingPassword, setIsChangingPassword] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [passwordData, setPasswordData] = useState({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-    });
-
-    const handlePasswordChange = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        // Validation côté client
-        if (passwordData.newPassword.length < 8) {
-            toast.error("Le nouveau mot de passe doit contenir au moins 8 caractères");
-            return;
-        }
-
-        if (passwordData.newPassword !== passwordData.confirmPassword) {
-            toast.error("Les mots de passe ne correspondent pas");
-            return;
-        }
-
-        setIsSubmitting(true);
-
-        try {
-            const response = await fetch("/api/user/change-password", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(passwordData),
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || "Erreur lors du changement de mot de passe");
-            }
-
-            toast.success("Mot de passe modifié avec succès");
-
-            // Réinitialiser le formulaire
-            setPasswordData({
-                currentPassword: "",
-                newPassword: "",
-                confirmPassword: "",
-            });
-            setIsChangingPassword(false);
-        } catch (error) {
-            toast.error(error instanceof Error ? error.message : "Une erreur est survenue");
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
 
     return (
         <div className="space-y-6">
@@ -89,48 +27,32 @@ export function AccountTab({ user = null }: AccountTabProps) {
                 title="Informations du compte"
                 description="Gérez vos informations personnelles"
             >
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl">
-                    <div className="space-y-2">
-                        <Label
-                            htmlFor="user_name"
-                            className="text-[14px] font-medium"
-                        >
-                            Nom complet
-                        </Label>
-                        <Input
-                            id="user_name"
-                            value={user?.name || ""}
-                            placeholder="Votre nom"
-                            className="h-11 border-black/10"
-                            readOnly
-                        />
-                    </div>
+                <div className="max-w-3xl grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <AccountInfoField
+                        label="Nom complet"
+                        value={user?.name || ""}
+                        id="user_name"
+                    />
 
-                    <div className="space-y-2">
-                        <Label
-                            htmlFor="user_email"
-                            className="text-[14px] font-medium"
-                        >
-                            Email
-                        </Label>
-                        <Input
-                            id="user_email"
-                            type="email"
-                            value={user?.email || ""}
-                            placeholder="votre@email.com"
-                            className="h-11 border-black/10"
-                            readOnly
-                        />
-                    </div>
+                    <AccountInfoField
+                        label="Email"
+                        value={user?.email || ""}
+                        type="email"
+                        id="user_email"
+                    />
 
                     <div className="space-y-2">
                         <Label className="text-[14px] font-medium">Rôle</Label>
                         <div className="flex items-center gap-2">
                             <Badge
                                 variant="outline"
-                                className="h-7 px-3 border-black/10"
+                                className="h-7 border-black/10 px-3"
                             >
-                                {getRoleLabel(user?.role || "")}
+                                {
+                                    ROLE_LABELS[
+                                        (user?.role as UserRole) || "EMPLOYEE"
+                                    ]
+                                }
                             </Badge>
                         </div>
                     </div>
@@ -165,114 +87,14 @@ export function AccountTab({ user = null }: AccountTabProps) {
                         <Button
                             variant="outline"
                             onClick={() => setIsChangingPassword(true)}
-                            className="h-10 px-4 border-black/10 hover:bg-black/5"
+                            className="h-10 border-black/10 px-4 hover:bg-black/5"
                         >
                             Changer le mot de passe
                         </Button>
                     ) : (
-                        <form
-                            onSubmit={handlePasswordChange}
-                            className="space-y-4"
-                        >
-                            <div className="space-y-2">
-                                <Label
-                                    htmlFor="current_password"
-                                    className="text-[14px] font-medium"
-                                >
-                                    Mot de passe actuel
-                                </Label>
-                                <Input
-                                    id="current_password"
-                                    type="password"
-                                    value={passwordData.currentPassword}
-                                    onChange={(e) =>
-                                        setPasswordData({
-                                            ...passwordData,
-                                            currentPassword: e.target.value,
-                                        })
-                                    }
-                                    placeholder="Entrez votre mot de passe actuel"
-                                    className="h-11 border-black/10 max-w-md"
-                                    required
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label
-                                    htmlFor="new_password"
-                                    className="text-[14px] font-medium"
-                                >
-                                    Nouveau mot de passe
-                                </Label>
-                                <Input
-                                    id="new_password"
-                                    type="password"
-                                    value={passwordData.newPassword}
-                                    onChange={(e) =>
-                                        setPasswordData({
-                                            ...passwordData,
-                                            newPassword: e.target.value,
-                                        })
-                                    }
-                                    placeholder="Entrez un nouveau mot de passe"
-                                    className="h-11 border-black/10 max-w-md"
-                                    required
-                                />
-                                <p className="text-[12px] text-black/40">
-                                    Minimum 8 caractères avec lettres et
-                                    chiffres
-                                </p>
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label
-                                    htmlFor="confirm_password"
-                                    className="text-[14px] font-medium"
-                                >
-                                    Confirmer le mot de passe
-                                </Label>
-                                <Input
-                                    id="confirm_password"
-                                    type="password"
-                                    value={passwordData.confirmPassword}
-                                    onChange={(e) =>
-                                        setPasswordData({
-                                            ...passwordData,
-                                            confirmPassword: e.target.value,
-                                        })
-                                    }
-                                    placeholder="Confirmez le nouveau mot de passe"
-                                    className="h-11 border-black/10 max-w-md"
-                                    required
-                                />
-                            </div>
-
-                            <div className="flex gap-3">
-                                <Button
-                                    type="submit"
-                                    disabled={isSubmitting}
-                                    className="h-10 px-4 bg-black hover:bg-black/90 text-white"
-                                >
-                                    {isSubmitting ? "Mise à jour..." : "Mettre à jour le mot de passe"}
-                                </Button>
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    disabled={isSubmitting}
-                                    onClick={() => {
-                                        setIsChangingPassword(false);
-                                        setPasswordData({
-                                            currentPassword: "",
-                                            newPassword: "",
-                                            confirmPassword: "",
-                                        });
-                                    }}
-                                    className="h-10 px-4 border-black/10 hover:bg-black/5"
-                                >
-                                    Annuler
-                                </Button>
-                            </div>
-                        </form>
+                        <PasswordChangeForm
+                            onCancel={() => setIsChangingPassword(false)}
+                        />
                     )}
                 </div>
             </SettingsSection>
@@ -283,13 +105,13 @@ export function AccountTab({ user = null }: AccountTabProps) {
                 description="Renforcez la sécurité de votre compte"
             >
                 <div className="max-w-3xl">
-                    <div className="bg-black/5 border border-black/10 rounded-md p-4">
+                    <div className="rounded-md border border-black/10 bg-black/5 p-4">
                         <div className="flex items-center justify-between">
                             <div>
                                 <div className="text-[14px] font-medium text-black">
                                     Authentification à deux facteurs (2FA)
                                 </div>
-                                <p className="text-[13px] text-black/60 mt-1">
+                                <p className="mt-1 text-[13px] text-black/60">
                                     Disponible prochainement sur le plan Premium
                                 </p>
                             </div>
@@ -310,44 +132,58 @@ export function AccountTab({ user = null }: AccountTabProps) {
                 description="Consultez l'activité de votre compte"
             >
                 <div className="max-w-3xl">
-                    <div className="space-y-3">
-                        <div className="flex items-center justify-between py-3 border-b border-black/8">
-                            <div>
-                                <div className="text-[14px] font-medium text-black">
-                                    Connexion depuis Paris, France
-                                </div>
-                                <p className="text-[13px] text-black/40 mt-0.5">
-                                    Il y a 2 minutes • Chrome sur Windows
-                                </p>
-                            </div>
-                            <Badge
-                                variant="outline"
-                                className="border-green-200 bg-green-50 text-green-700"
-                            >
-                                Actuelle
-                            </Badge>
-                        </div>
+                    <div className="space-y-0">
+                        <LoginActivityItem
+                            location="Paris, France"
+                            timestamp="Il y a 2 minutes"
+                            device="Chrome sur Windows"
+                            isCurrent
+                        />
+                        <LoginActivityItem
+                            location="Lyon, France"
+                            timestamp="Hier à 14:23"
+                            device="Safari sur Mac"
+                        />
+                        <LoginActivityItem
+                            location="Paris, France"
+                            timestamp="Il y a 3 jours"
+                            device="Chrome sur Android"
+                        />
+                    </div>
+                </div>
+            </SettingsSection>
 
-                        <div className="flex items-center justify-between py-3 border-b border-black/8">
+            <SettingsSection
+                icon={Trash2}
+                title="Zone danger"
+                description="Actions irréversibles (développement uniquement)"
+            >
+                <div className="max-w-3xl">
+                    <div className="rounded-lg border border-red-200 bg-red-50/50 p-4">
+                        <div className="space-y-4">
                             <div>
-                                <div className="text-[14px] font-medium text-black">
-                                    Connexion depuis Lyon, France
+                                <div className="text-[14px] font-semibold text-red-900">
+                                    Supprimer toutes mes données
                                 </div>
-                                <p className="text-[13px] text-black/40 mt-0.5">
-                                    Hier à 14:23 • Safari sur Mac
+                                <p className="mt-2 text-[13px] text-red-800/80">
+                                    Cette action supprimera définitivement et
+                                    irrémédiablement:
                                 </p>
+                                <ul className="ml-4 mt-2 list-disc space-y-1 text-[13px] text-red-800/70">
+                                    <li>Tous vos horaires de travail</li>
+                                    <li>Tous vos pointages (TimeEntry)</li>
+                                    <li>Toutes vos activités enregistrées</li>
+                                    <li>Toutes vos conversations IA</li>
+                                    <li>
+                                        Tous les mouvements de stock que vous
+                                        avez créés
+                                    </li>
+                                    <li>Vos permissions et paramètres</li>
+                                    <li>Votre compte utilisateur</li>
+                                </ul>
                             </div>
-                        </div>
 
-                        <div className="flex items-center justify-between py-3">
-                            <div>
-                                <div className="text-[14px] font-medium text-black">
-                                    Connexion depuis Paris, France
-                                </div>
-                                <p className="text-[13px] text-black/40 mt-0.5">
-                                    Il y a 3 jours • Chrome sur Android
-                                </p>
-                            </div>
+                            <DeleteAllDataDialog />
                         </div>
                     </div>
                 </div>
