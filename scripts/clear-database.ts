@@ -7,6 +7,7 @@
  * Utilisez avec précaution !
  */
 
+import "dotenv/config";
 import { PrismaClient } from "@/lib/generated/prisma";
 
 const prisma = new PrismaClient();
