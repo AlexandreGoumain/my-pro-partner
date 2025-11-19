@@ -1,6 +1,3 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { useClientsStats } from "@/hooks/use-clients";
 import {
     useDeleteSegment,
@@ -9,6 +6,9 @@ import {
     useSegments,
 } from "@/hooks/use-segments";
 import type { Segment } from "@/lib/types";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 interface SegmentStats {
     totalSegments: number;
@@ -47,7 +47,10 @@ export interface SegmentsPageHandlers {
     deleteMutation: ReturnType<typeof useDeleteSegment>;
 
     handleSeedSegments: () => Promise<void>;
-    handleExportSegment: (segmentId: string, format: "csv" | "json") => Promise<void>;
+    handleExportSegment: (
+        segmentId: string,
+        format: "csv" | "json"
+    ) => Promise<void>;
     handleDeleteSegment: (segmentId: string) => void;
     confirmDelete: () => Promise<void>;
     handleSendEmail: (segment: Segment) => void;
@@ -66,13 +69,15 @@ export function useSegmentsPage(): SegmentsPageHandlers {
     const [builderDialogOpen, setBuilderDialogOpen] = useState(false);
     const [emailDialogOpen, setEmailDialogOpen] = useState(false);
     const [comparisonDialogOpen, setComparisonDialogOpen] = useState(false);
-    const [selectedSegmentForEmail, setSelectedSegmentForEmail] = useState<Segment | null>(null);
-    const [selectedSegmentForEdit, setSelectedSegmentForEdit] = useState<Segment | null>(null);
+    const [selectedSegmentForEmail, setSelectedSegmentForEmail] =
+        useState<Segment | null>(null);
+    const [selectedSegmentForEdit, setSelectedSegmentForEdit] =
+        useState<Segment | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [segmentToDelete, setSegmentToDelete] = useState<string | null>(null);
 
-    const segments = segmentsData || [];
+    const segments = useMemo(() => segmentsData?.data || [], [segmentsData]);
 
     const filteredSegments = useMemo(() => {
         if (!searchQuery.trim()) return segments;
@@ -116,18 +121,6 @@ export function useSegmentsPage(): SegmentsPageHandlers {
         };
     }, [segments]);
 
-    // Keyboard shortcut: Ctrl+N to create new segment
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === "n") {
-                e.preventDefault();
-                setBuilderDialogOpen(true);
-            }
-        };
-        window.addEventListener("keydown", handleKeyDown);
-        return () => window.removeEventListener("keydown", handleKeyDown);
-    }, []);
-
     const handleSeedSegments = useCallback(async () => {
         try {
             const result = await seedMutation.mutateAsync();
@@ -144,6 +137,27 @@ export function useSegmentsPage(): SegmentsPageHandlers {
             toast.error(message);
         }
     }, [seedMutation]);
+
+    // Keyboard shortcut: Ctrl+N to create new segment
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === "n") {
+                e.preventDefault();
+                setBuilderDialogOpen(true);
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, []);
+
+    // Auto-generate predefined segments if they don't exist
+    useEffect(() => {
+        const hasPredefinedSegments = segments.some((s: Segment) => s.type === "PREDEFINED");
+
+        if (!isLoading && !hasPredefinedSegments && !seedMutation.isPending && segments.length === 0) {
+            handleSeedSegments();
+        }
+    }, [isLoading, segments, seedMutation.isPending, handleSeedSegments]);
 
     const handleExportSegment = useCallback(
         async (segmentId: string, format: "csv" | "json") => {
