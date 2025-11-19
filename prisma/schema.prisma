@@ -56,6 +56,12 @@ model Entreprise {
   dateAbonnement  DateTime       @default(now())
   dateExpiration  DateTime?
 
+  // Gestion de la période d'essai (trial)
+  trialActive    Boolean         @default(false)
+  trialPlan      PlanAbonnement?
+  trialStartDate DateTime?
+  trialExpiresAt DateTime?
+
   // Relations (toutes les données de l'entreprise)
   users            User[]
   stores           Store[] // Magasins/Points de vente
@@ -267,7 +273,8 @@ model StoreStockItem {
   @@unique([storeId, articleId])
   @@index([storeId])
   @@index([articleId])
-  @@index([quantite]) // Pour les alertes de stock bas  @@index([storeId, articleId])
+  @@index([quantite]) // Pour les alertes de stock bas
+  @@index([storeId, articleId])
 
 }
 
@@ -454,6 +461,7 @@ enum UserStatus {
   INACTIVE    // Inactif
   SUSPENDED   // Suspendu
   INVITED     // Invité (pas encore accepté)
+  DELETED     // Supprimé (soft delete)
 }
 
 model User {
@@ -729,7 +737,8 @@ model Client {
   @@index([points_solde])
   @@index([clientPortalEnabled])
   @@index([pendingApproval])
-  @@index([entrepriseId, pendingApproval])  @@index([entrepriseId, niveauFideliteId])
+  @@index([entrepriseId, pendingApproval])
+  @@index([entrepriseId, niveauFideliteId])
   @@index([telephone])
 
 }
@@ -924,7 +933,8 @@ model Article {
   @@index([nom])
   @@index([type])
   @@index([categorieId])
-  @@index([actif])  @@index([entrepriseId, actif])
+  @@index([actif])
+  @@index([entrepriseId, actif])
   @@index([categorieId, actif])
 
 }
@@ -995,7 +1005,8 @@ model Document {
   @@index([statut])
   @@index([dateEmission])
   @@index([dateEcheance])
-  @@index([entrepriseId, statut]) // Index composite pour requêtes par entreprise + statut  @@index([entrepriseId, type])
+  @@index([entrepriseId, statut]) // Index composite pour requêtes par entreprise + statut
+  @@index([entrepriseId, type])
   @@index([clientId, statut])
 
 }
@@ -1038,7 +1049,8 @@ model LigneDocument {
 
   @@index([documentId])
   @@index([articleId])
-  @@index([ordre])  @@index([documentId, articleId])
+  @@index([ordre])
+  @@index([documentId, articleId])
 
 }
 
