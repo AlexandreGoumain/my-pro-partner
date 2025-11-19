@@ -8,16 +8,6 @@ import { TypeSegment } from "@/lib/generated/prisma";
 
 const predefinedSegments = [
   {
-    nom: "Tous les clients",
-    description: "Tous les clients de votre base de données",
-    type: "PREDEFINED" as TypeSegment,
-    icone: "Users",
-    couleur: "#f3f4f6",
-    criteres: {
-      type: "all",
-    },
-  },
-  {
     nom: "Clients avec email",
     description: "Clients ayant une adresse email enregistrée",
     type: "PREDEFINED" as TypeSegment,
