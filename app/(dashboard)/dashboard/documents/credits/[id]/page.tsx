@@ -53,6 +53,11 @@ export default function CreditNoteDetailPage() {
                             "dd MMMM yyyy",
                             { locale: fr }
                         )}`}
+                        breadcrumbs={[
+                            { label: "Documents", href: "/dashboard/documents/credits" },
+                            { label: "Avoirs", href: "/dashboard/documents/credits" },
+                            { label: credit.numero }
+                        ]}
                         actions={
                             <>
                                 <Button
