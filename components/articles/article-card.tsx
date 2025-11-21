@@ -1,8 +1,8 @@
 "use client";
 
-import { memo } from "react";
-import { Article } from "@/app/(dashboard)/dashboard/articles/_components/data-table/columns";
+import { type Article } from "@/lib/types/article";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { memo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";

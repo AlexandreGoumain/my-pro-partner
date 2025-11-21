@@ -1,6 +1,7 @@
 import { DataTable } from "@/components/ui/data-table";
+import { type Article } from "@/lib/types/article";
 import { ColumnDef } from "@tanstack/react-table";
-import { Article } from "@/app/(dashboard)/dashboard/articles/_components/data-table/columns";
+import type { PaginationInfo } from "@/components/ui/data-table/pagination";
 
 const ARTICLE_COLUMN_LABELS: Record<string, string> = {
     nom: "Article",
@@ -17,6 +18,9 @@ export interface ArticleListViewProps {
     columns: ColumnDef<Article>[];
     isLoading: boolean;
     emptyMessage: string;
+    pagination?: PaginationInfo;
+    onPageChange?: (page: number) => void;
+    onPageSizeChange?: (size: number) => void;
     className?: string;
 }
 
@@ -25,8 +29,12 @@ export function ArticleListView({
     columns,
     isLoading,
     emptyMessage,
+    pagination,
+    onPageChange,
+    onPageSizeChange,
 }: ArticleListViewProps) {
     if (isLoading) {
+        // Loading state is handled by DataTable
     }
 
     return (
@@ -36,6 +44,9 @@ export function ArticleListView({
             emptyMessage={emptyMessage}
             itemLabel="article(s)"
             columnLabels={ARTICLE_COLUMN_LABELS}
+            pagination={pagination}
+            onPageChange={onPageChange}
+            onPageSizeChange={onPageSizeChange}
         />
     );
 }

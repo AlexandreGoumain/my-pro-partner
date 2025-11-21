@@ -1,8 +1,12 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Briefcase, Package } from "lucide-react";
+import { Briefcase, Package, RotateCcw } from "lucide-react";
 import { StepProps } from "../types";
 
-export function TypeSelectionStep({ articleType, onTypeSelect }: StepProps) {
+interface TypeSelectionStepProps extends StepProps {
+  isComputerShop?: boolean;
+}
+
+export function TypeSelectionStep({ articleType, onTypeSelect, isComputerShop = false }: TypeSelectionStepProps) {
   return (
     <div className="space-y-3 py-4">
       <div className="text-center space-y-1.5">
@@ -14,7 +18,7 @@ export function TypeSelectionStep({ articleType, onTypeSelect }: StepProps) {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className={`grid gap-4 ${isComputerShop ? 'grid-cols-3' : 'grid-cols-2'}`}>
         <Card
           className={`cursor-pointer transition-all duration-200 hover:shadow-lg border ${
             articleType === "PRODUIT"
@@ -92,6 +96,47 @@ export function TypeSelectionStep({ articleType, onTypeSelect }: StepProps) {
             </div>
           </CardContent>
         </Card>
+
+        {isComputerShop && (
+          <Card
+            className={`cursor-pointer transition-all duration-200 hover:shadow-lg border ${
+              articleType === "OCCASION"
+                ? "border-black bg-black/2 shadow-sm"
+                : "border-black/10 hover:border-black/20"
+            }`}
+            onClick={() => onTypeSelect?.("OCCASION")}
+          >
+            <CardContent className="p-8 space-y-5">
+              <div className="flex justify-center">
+                <div className="w-16 h-16 rounded-full bg-black flex items-center justify-center">
+                  <RotateCcw className="h-8 w-8 text-white" strokeWidth={2} />
+                </div>
+              </div>
+              <div className="text-center space-y-2">
+                <h4 className="text-[20px] font-semibold text-black tracking-[-0.01em]">
+                  Article d'occasion
+                </h4>
+                <p className="text-[14px] text-black/60 leading-relaxed">
+                  Produit racheté ou marketplace
+                </p>
+              </div>
+              <div className="space-y-2.5 pt-1">
+                <div className="flex items-center gap-2 text-[13px] text-black/70">
+                  <div className="w-1 h-1 rounded-full bg-black/40" />
+                  <span>Traçabilité du rachat</span>
+                </div>
+                <div className="flex items-center gap-2 text-[13px] text-black/70">
+                  <div className="w-1 h-1 rounded-full bg-black/40" />
+                  <span>Gestion de garantie</span>
+                </div>
+                <div className="flex items-center gap-2 text-[13px] text-black/70">
+                  <div className="w-1 h-1 rounded-full bg-black/40" />
+                  <span>Démontage pour pièces</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

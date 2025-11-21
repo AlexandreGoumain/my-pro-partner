@@ -15,17 +15,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar } from "@/components/ui/calendar";
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { CalendarIcon, Info } from "lucide-react";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
-import { cn } from "@/lib/utils";
+import { Info } from "lucide-react";
 import { StepProps } from "../types";
 
 export function OccasionDetailsStep({ form }: StepProps) {
@@ -105,14 +95,17 @@ export function OccasionDetailsStep({ form }: StepProps) {
                                     <SelectItem value="RACHAT_CLIENT">
                                         Rachat client
                                     </SelectItem>
-                                    <SelectItem value="MARKETPLACE_LEBONCOIN">
-                                        Leboncoin
+                                    <SelectItem value="MARKETPLACE_OCCASION">
+                                        Marketplace (occasion)
                                     </SelectItem>
-                                    <SelectItem value="MARKETPLACE_EBAY">
-                                        eBay
+                                    <SelectItem value="REPRISE">
+                                        Reprise
                                     </SelectItem>
-                                    <SelectItem value="MARKETPLACE_AUTRE">
-                                        Autre marketplace
+                                    <SelectItem value="DON">
+                                        Don
+                                    </SelectItem>
+                                    <SelectItem value="RETOUR_SAV">
+                                        Retour SAV
                                     </SelectItem>
                                     <SelectItem value="AUTRE">Autre</SelectItem>
                                 </SelectContent>
@@ -159,118 +152,24 @@ export function OccasionDetailsStep({ form }: StepProps) {
                 />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-                {/* Garantie */}
-                <FormField
-                    control={form.control}
-                    name="dureeGarantie"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel className="text-[14px]">
-                                Garantie
-                            </FormLabel>
-                            <Select
-                                onValueChange={(value) =>
-                                    field.onChange(
-                                        value === "0" ? undefined : parseInt(value)
-                                    )
-                                }
-                                defaultValue={field.value?.toString() || "0"}
-                            >
-                                <FormControl>
-                                    <SelectTrigger className="h-11">
-                                        <SelectValue placeholder="Sans garantie" />
-                                    </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    <SelectItem value="0">
-                                        Sans garantie
-                                    </SelectItem>
-                                    <SelectItem value="3">3 mois</SelectItem>
-                                    <SelectItem value="6">6 mois</SelectItem>
-                                    <SelectItem value="12">12 mois</SelectItem>
-                                    <SelectItem value="24">24 mois</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <FormDescription className="text-[12px]">
-                                Durée de garantie offerte
-                            </FormDescription>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                {/* Numéro de série / IMEI */}
-                <FormField
-                    control={form.control}
-                    name="numeroSerie"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel className="text-[14px]">
-                                Numéro de série / IMEI
-                            </FormLabel>
-                            <FormControl>
-                                <Input
-                                    placeholder="Ex: 354123456789012"
-                                    className="h-11"
-                                    {...field}
-                                />
-                            </FormControl>
-                            <FormDescription className="text-[12px]">
-                                Pour traçabilité et garantie
-                            </FormDescription>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-            </div>
-
-            {/* Date de rachat */}
+            {/* Numéro de série / IMEI */}
             <FormField
                 control={form.control}
-                name="dateRachat"
+                name="numeroSerie"
                 render={({ field }) => (
-                    <FormItem className="flex flex-col">
+                    <FormItem>
                         <FormLabel className="text-[14px]">
-                            Date de rachat
+                            Numéro de série / IMEI
                         </FormLabel>
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <FormControl>
-                                    <Button
-                                        variant="outline"
-                                        className={cn(
-                                            "h-11 pl-3 text-left font-normal border-black/10",
-                                            !field.value && "text-black/40"
-                                        )}
-                                    >
-                                        {field.value ? (
-                                            format(field.value, "PPP", {
-                                                locale: fr,
-                                            })
-                                        ) : (
-                                            <span>Sélectionner une date</span>
-                                        )}
-                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                    </Button>
-                                </FormControl>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                    mode="single"
-                                    selected={field.value}
-                                    onSelect={field.onChange}
-                                    disabled={(date) =>
-                                        date > new Date() ||
-                                        date < new Date("1900-01-01")
-                                    }
-                                    initialFocus
-                                    locale={fr}
-                                />
-                            </PopoverContent>
-                        </Popover>
+                        <FormControl>
+                            <Input
+                                placeholder="Ex: 354123456789012"
+                                className="h-11"
+                                {...field}
+                            />
+                        </FormControl>
                         <FormDescription className="text-[12px]">
-                            Date d'acquisition de l'article
+                            Pour traçabilité
                         </FormDescription>
                         <FormMessage />
                     </FormItem>
@@ -311,8 +210,7 @@ export function OccasionDetailsStep({ form }: StepProps) {
                         </p>
                         <p className="text-[13px] text-black/60 leading-relaxed">
                             Ces informations permettront de tracer l'historique
-                            complet de l'article, de calculer la marge réalisée et
-                            de gérer la garantie client.
+                            complet de l'article et de calculer la marge réalisée.
                         </p>
                     </div>
                 </div>
