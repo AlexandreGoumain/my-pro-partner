@@ -1,9 +1,21 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api/fetch-client";
-import { mapArticleToDisplay, type ArticleWithRelations } from "@/lib/types/article";
-import type { Article } from "@/app/(dashboard)/dashboard/articles/_components/data-table/columns";
-import type { ArticleCreateInput, ArticleUpdateInput } from "@/lib/validation";
 import { createResourceHooks } from "@/lib/hooks/create-resource-hooks";
+import {
+    mapArticleToDisplay,
+    type Article,
+    type ArticleWithRelations,
+} from "@/lib/types/article";
+import type { ArticleCreateInput, ArticleUpdateInput } from "@/lib/validation";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+// Article statistics type definition
+export interface ArticlesStats {
+    total: number;
+    produits: number;
+    services: number;
+    actifs: number;
+    stockFaible: number;
+}
 
 // Create base hooks using factory
 const articleHooks = createResourceHooks<ArticleWithRelations, Article>({
@@ -15,14 +27,19 @@ const articleHooks = createResourceHooks<ArticleWithRelations, Article>({
 // Extend query keys with custom keys
 export const articleKeys = {
     ...articleHooks.keys,
-    nextReference: (type: "PRODUIT" | "SERVICE") => ["articles", "next-reference", type] as const,
+    nextReference: (type: "PRODUIT" | "SERVICE") =>
+        ["articles", "next-reference", type] as const,
 };
 
 // Export base hooks from factory
 export const useArticles = articleHooks.useList;
+export const useArticlesPaginated = articleHooks.useListPaginated;
 export const useArticle = articleHooks.useDetail;
-export const useCreateArticle = () => articleHooks.useCreate<ArticleCreateInput>();
-export const useUpdateArticle = () => articleHooks.useUpdate<ArticleUpdateInput>();
+export const useArticlesStats = () => articleHooks.useStats<ArticlesStats>();
+export const useCreateArticle = () =>
+    articleHooks.useCreate<ArticleCreateInput>();
+export const useUpdateArticle = () =>
+    articleHooks.useUpdate<ArticleUpdateInput>();
 export const useDeleteArticle = articleHooks.useDelete;
 
 // Custom hooks specific to articles
@@ -54,7 +71,10 @@ export function useDuplicateArticle() {
 export function useNextArticleReference(type: "PRODUIT" | "SERVICE" | null) {
     return useQuery({
         queryKey: articleKeys.nextReference(type || "PRODUIT"),
-        queryFn: async () => api.get<{ reference: string; type: string }>(`/api/articles/next-reference?type=${type}`),
+        queryFn: async () =>
+            api.get<{ reference: string; type: string }>(
+                `/api/articles/next-reference?type=${type}`
+            ),
         enabled: !!type, // Ne lance la requête que si le type existe
     });
 }

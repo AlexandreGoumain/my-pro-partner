@@ -10,14 +10,34 @@ export const { GET, PUT, DELETE } = createResourceByIdRoutes({
     updateSchema: articleUpdateSchema,
     include: {
         categorie: true,
+        rachat: true,
     },
 
-    // Transform data before update to handle null categorieId
-    beforeUpdate: async (data) => {
-        return {
+    // Transform data before update to handle null categorieId and service stock management
+    beforeUpdate: async (data: any) => {
+        // Si on change le type en SERVICE, désactiver la gestion de stock
+        const updates: Record<string, unknown> = {
             ...data,
             categorieId: data.categorieId || null,
         };
+
+        if (data.type === "SERVICE") {
+            updates.gestion_stock = false;
+            updates.stock_actuel = 0;
+            updates.stock_min = 0;
+        }
+
+        // Remove occasion-specific fields from update data
+        // These fields are on the RachatArticle relation, not Article
+        delete updates.etat;
+        delete updates.provenance;
+        delete updates.prixRachat;
+        delete updates.dureeGarantie;
+        delete updates.numeroSerie;
+        delete updates.dateRachat;
+        delete updates.notesRachat;
+
+        return updates;
     },
 
     // Check if article is used in documents before deletion

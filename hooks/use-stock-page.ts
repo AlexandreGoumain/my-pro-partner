@@ -1,10 +1,10 @@
-import type { Article } from "@/app/(dashboard)/dashboard/articles/_components/data-table/columns";
 import { useArticles } from "@/hooks/use-articles";
 import {
     useStockAlerts,
     useStockMouvements,
     type StockFilters,
 } from "@/hooks/use-stock";
+import type { Article } from "@/lib/types/article";
 import type {
     ArticleAvecAlerte,
     MouvementStockDisplay,

@@ -17,26 +17,26 @@ datasource db {
 // ============================================
 
 enum BusinessType {
-  GENERAL           // Entreprise générique
-  PLOMBERIE         // Plombier
-  ELECTRICITE       // Électricien
-  CHAUFFAGE         // Chauffagiste
-  MENUISERIE        // Menuisier
-  PEINTURE          // Peintre
-  MACONNERIE        // Maçon
-  RESTAURATION      // Restaurant, café, bar
-  BOULANGERIE       // Boulangerie, pâtisserie
-  COIFFURE          // Salon de coiffure
-  ESTHETIQUE        // Institut de beauté, spa
-  FITNESS           // Salle de sport, coaching
-  GARAGE            // Garage automobile
-  INFORMATIQUE      // Services informatiques
-  CONSULTING        // Conseil, formation
-  COMMERCE_DETAIL   // Commerce de détail
-  IMMOBILIER        // Agence immobilière
-  SANTE             // Professions médicales/paramédicales
-  JURIDIQUE         // Avocat, notaire
-  COMPTABILITE      // Expert-comptable
+  GENERAL // Entreprise générique
+  PLOMBERIE // Plombier
+  ELECTRICITE // Électricien
+  CHAUFFAGE // Chauffagiste
+  MENUISERIE // Menuisier
+  PEINTURE // Peintre
+  MACONNERIE // Maçon
+  RESTAURATION // Restaurant, café, bar
+  BOULANGERIE // Boulangerie, pâtisserie
+  COIFFURE // Salon de coiffure
+  ESTHETIQUE // Institut de beauté, spa
+  FITNESS // Salle de sport, coaching
+  GARAGE // Garage automobile
+  INFORMATIQUE // Services informatiques
+  CONSULTING // Conseil, formation
+  COMMERCE_DETAIL // Commerce de détail
+  IMMOBILIER // Agence immobilière
+  SANTE // Professions médicales/paramédicales
+  JURIDIQUE // Avocat, notaire
+  COMPTABILITE // Expert-comptable
 }
 
 model Entreprise {
@@ -48,7 +48,7 @@ model Entreprise {
 
   // Type de business pour personnalisation
   businessType BusinessType @default(GENERAL)
-  secteur      String?      // Secteur d'activité détaillé
+  secteur      String? // Secteur d'activité détaillé
 
   // Gestion d'abonnement
   plan            PlanAbonnement @default(FREE)
@@ -85,6 +85,12 @@ model Entreprise {
   bankTransactions BankTransaction[] // Transactions bancaires pour rapprochement
   stockTransfers   StockTransfer[] // Transferts de stock inter-magasins
 
+  // Relations pour système d'occasion (boutiques informatique)
+  rachats           RachatArticle[] // Rachats d'articles d'occasion
+  demontages        DemontageArticle[] // Démontages effectués
+  ressourcesAtelier RessourceAtelier[] // Ressources d'atelier (pièces)
+  reparations       Reparation[] // Réparations d'appareils
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -107,23 +113,23 @@ enum PlanAbonnement {
 // ============================================
 
 enum StoreStatus {
-  ACTIVE    // Magasin actif
-  INACTIVE  // Magasin temporairement fermé
-  CLOSED    // Magasin fermé définitivement
+  ACTIVE // Magasin actif
+  INACTIVE // Magasin temporairement fermé
+  CLOSED // Magasin fermé définitivement
 }
 
 enum RegisterStatus {
-  ONLINE    // Caisse en ligne
-  OFFLINE   // Caisse hors ligne
-  BUSY      // Caisse occupée (transaction en cours)
-  CLOSED    // Caisse fermée
+  ONLINE // Caisse en ligne
+  OFFLINE // Caisse hors ligne
+  BUSY // Caisse occupée (transaction en cours)
+  CLOSED // Caisse fermée
 }
 
 enum TransferStatus {
-  PENDING   // En attente de validation
-  APPROVED  // Approuvé, en transit
-  RECEIVED  // Reçu au magasin destination
-  REJECTED  // Rejeté
+  PENDING // En attente de validation
+  APPROVED // Approuvé, en transit
+  RECEIVED // Reçu au magasin destination
+  REJECTED // Rejeté
   CANCELLED // Annulé
 }
 
@@ -145,9 +151,9 @@ model Store {
   email     String?
 
   // Configuration
-  isMainStore Boolean      @default(false) // Magasin principal
-  status      StoreStatus  @default(ACTIVE)
-  timezone    String       @default("Europe/Paris")
+  isMainStore Boolean     @default(false) // Magasin principal
+  status      StoreStatus @default(ACTIVE)
+  timezone    String      @default("Europe/Paris")
 
   // Horaires d'ouverture (JSON)
   // Format: { "1": { "open": "09:00", "close": "19:00" }, ... }
@@ -164,6 +170,7 @@ model Store {
   stockItems      StoreStockItem[] // Stock par magasin
   transfersFrom   StockTransfer[]  @relation("TransferFrom")
   transfersTo     StockTransfer[]  @relation("TransferTo")
+  reparations     Reparation[] // Réparations reçues dans ce magasin
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -180,11 +187,11 @@ model Register {
   code String // Code court (ex: "C01", "C02")
 
   // Configuration
-  status       RegisterStatus @default(OFFLINE)
-  isActive     Boolean        @default(true)
-  deviceId     String?        @unique // ID unique de l'appareil
-  ipAddress    String?
-  terminalId   String?        @unique // ID du terminal Stripe/physique associé
+  status     RegisterStatus @default(OFFLINE)
+  isActive   Boolean        @default(true)
+  deviceId   String?        @unique // ID unique de l'appareil
+  ipAddress  String?
+  terminalId String?        @unique // ID du terminal Stripe/physique associé
 
   // Options
   canProcessCash    Boolean @default(true)
@@ -197,8 +204,9 @@ model Register {
   storeId String
 
   // Relations
-  documents Document[] // Documents créés depuis cette caisse
-  sessions  RegisterSession[] // Sessions d'ouverture/fermeture de caisse
+  documents   Document[] // Documents créés depuis cette caisse
+  sessions    RegisterSession[] // Sessions d'ouverture/fermeture de caisse
+  reparations Reparation[] // Réparations créées depuis cette caisse
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -218,10 +226,10 @@ model RegisterSession {
   registerId String
 
   // Session info
-  openedBy   String // User ID
-  closedBy   String? // User ID
-  openedAt   DateTime @default(now())
-  closedAt   DateTime?
+  openedBy String // User ID
+  closedBy String? // User ID
+  openedAt DateTime  @default(now())
+  closedAt DateTime?
 
   // Montants
   startingCash Decimal  @default(0) @db.Decimal(10, 2) // Fond de caisse
@@ -230,11 +238,11 @@ model RegisterSession {
   difference   Decimal? @db.Decimal(10, 2) // Écart
 
   // Statistiques de la session
-  totalSales       Decimal @default(0) @db.Decimal(10, 2)
-  totalTransactions Int    @default(0)
-  cashSales        Decimal @default(0) @db.Decimal(10, 2)
-  cardSales        Decimal @default(0) @db.Decimal(10, 2)
-  checkSales       Decimal @default(0) @db.Decimal(10, 2)
+  totalSales        Decimal @default(0) @db.Decimal(10, 2)
+  totalTransactions Int     @default(0)
+  cashSales         Decimal @default(0) @db.Decimal(10, 2)
+  cardSales         Decimal @default(0) @db.Decimal(10, 2)
+  checkSales        Decimal @default(0) @db.Decimal(10, 2)
 
   // Notes
   openingNotes String?
@@ -259,12 +267,12 @@ model StoreStockItem {
   articleId String
 
   // Quantités
-  quantite    Int @default(0)
-  stockMin    Int @default(0) // Seuil d'alerte spécifique au magasin
-  stockMax    Int @default(0) // Stock maximum recommandé
+  quantite Int @default(0)
+  stockMin Int @default(0) // Seuil d'alerte spécifique au magasin
+  stockMax Int @default(0) // Stock maximum recommandé
 
   // Emplacement dans le magasin
-  emplacement String? // Ex: "Rayon A - Étagère 3"
+  emplacement  String? // Ex: "Rayon A - Étagère 3"
   zoneStockage String? // Ex: "Réserve", "Vitrine"
 
   createdAt DateTime @default(now())
@@ -275,13 +283,12 @@ model StoreStockItem {
   @@index([articleId])
   @@index([quantite]) // Pour les alertes de stock bas
   @@index([storeId, articleId])
-
 }
 
 // Transferts de stock entre magasins
 model StockTransfer {
-  id        String   @id @default(cuid())
-  numero    String   @unique // Numéro de transfert (auto-généré)
+  id        String  @id @default(cuid())
+  numero    String  @unique // Numéro de transfert (auto-généré)
   reference String? // Référence externe
 
   // Magasins
@@ -295,25 +302,25 @@ model StockTransfer {
   status TransferStatus @default(PENDING)
 
   // Dates
-  requestedAt  DateTime  @default(now())
-  approvedAt   DateTime?
-  shippedAt    DateTime?
-  receivedAt   DateTime?
-  rejectedAt   DateTime?
-  cancelledAt  DateTime?
+  requestedAt DateTime  @default(now())
+  approvedAt  DateTime?
+  shippedAt   DateTime?
+  receivedAt  DateTime?
+  rejectedAt  DateTime?
+  cancelledAt DateTime?
 
   // Utilisateurs
-  requestedBy String  // User ID
+  requestedBy String // User ID
   approvedBy  String? // User ID
   receivedBy  String? // User ID
 
   // Informations de transport
-  trackingNumber String?
-  carrier        String? // Transporteur
+  trackingNumber    String?
+  carrier           String? // Transporteur
   estimatedDelivery DateTime?
 
   // Notes
-  notes          String?
+  notes           String?
   rejectionReason String?
 
   // Multi-tenant
@@ -448,20 +455,20 @@ model UsageCounter {
 // ============================================
 
 enum UserRole {
-  OWNER       // Propriétaire (créateur de l'entreprise)
-  ADMIN       // Administrateur (accès complet)
-  MANAGER     // Manager (gestion équipe + clients)
-  EMPLOYEE    // Employé standard
-  CASHIER     // Caissier (ventes uniquement)
-  ACCOUNTANT  // Comptable (finances uniquement)
+  OWNER // Propriétaire (créateur de l'entreprise)
+  ADMIN // Administrateur (accès complet)
+  MANAGER // Manager (gestion équipe + clients)
+  EMPLOYEE // Employé standard
+  CASHIER // Caissier (ventes uniquement)
+  ACCOUNTANT // Comptable (finances uniquement)
 }
 
 enum UserStatus {
-  ACTIVE      // Actif
-  INACTIVE    // Inactif
-  SUSPENDED   // Suspendu
-  INVITED     // Invité (pas encore accepté)
-  DELETED     // Supprimé (soft delete)
+  ACTIVE // Actif
+  INACTIVE // Inactif
+  SUSPENDED // Suspendu
+  INVITED // Invité (pas encore accepté)
+  DELETED // Supprimé (soft delete)
 }
 
 model User {
@@ -479,13 +486,13 @@ model User {
   entrepriseId String
 
   // Informations personnelles
-  prenom       String?
-  telephone    String?
+  prenom        String?
+  telephone     String?
   dateNaissance DateTime? @db.Date
-  adresse      String?
-  codePostal   String?
-  ville        String?
-  photoUrl     String?
+  adresse       String?
+  codePostal    String?
+  ville         String?
+  photoUrl      String?
 
   // Informations professionnelles
   poste          String? // Titre du poste (ex: "Chef de caisse", "Vendeur")
@@ -513,9 +520,11 @@ model User {
   onboardingComplete Boolean @default(false)
 
   // Relations
-  conversations     Conversation[]
-  mouvementsStock   MouvementStock[]  @relation("UserStockMovements")
-  activitiesCreated UserActivity[]    @relation("CreatedActivities")
+  conversations        Conversation[]
+  mouvementsStock      MouvementStock[]         @relation("UserStockMovements")
+  activitiesCreated    UserActivity[]           @relation("CreatedActivities")
+  reparationsAssignees Reparation[]             @relation("ReparationTechnicien")
+  interventions        ReparationIntervention[] @relation("InterventionTechnicien")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -541,42 +550,42 @@ model UserPermissions {
   canDeleteClients Boolean @default(false)
 
   // Permissions Documents (Devis, Factures)
-  canViewDocuments   Boolean @default(false)
-  canCreateDocuments Boolean @default(false)
-  canEditDocuments   Boolean @default(false)
-  canDeleteDocuments Boolean @default(false)
+  canViewDocuments     Boolean @default(false)
+  canCreateDocuments   Boolean @default(false)
+  canEditDocuments     Boolean @default(false)
+  canDeleteDocuments   Boolean @default(false)
   canValidateDocuments Boolean @default(false) // Valider/Accepter devis
 
   // Permissions Stock
-  canViewStock       Boolean @default(false)
-  canEditStock       Boolean @default(false)
-  canManageStock     Boolean @default(false) // Mouvements stock
+  canViewStock   Boolean @default(false)
+  canEditStock   Boolean @default(false)
+  canManageStock Boolean @default(false) // Mouvements stock
 
   // Permissions Produits/Services
-  canViewProducts    Boolean @default(false)
-  canCreateProducts  Boolean @default(false)
-  canEditProducts    Boolean @default(false)
-  canDeleteProducts  Boolean @default(false)
+  canViewProducts   Boolean @default(false)
+  canCreateProducts Boolean @default(false)
+  canEditProducts   Boolean @default(false)
+  canDeleteProducts Boolean @default(false)
 
   // Permissions Finances
-  canViewFinances    Boolean @default(false)
-  canManagePayments  Boolean @default(false)
-  canViewReports     Boolean @default(false)
-  canExportData      Boolean @default(false)
+  canViewFinances   Boolean @default(false)
+  canManagePayments Boolean @default(false)
+  canViewReports    Boolean @default(false)
+  canExportData     Boolean @default(false)
 
   // Permissions Personnel
-  canViewUsers       Boolean @default(false)
-  canManageUsers     Boolean @default(false) // Créer/Modifier users
+  canViewUsers        Boolean @default(false)
+  canManageUsers      Boolean @default(false) // Créer/Modifier users
   canViewTimeTracking Boolean @default(false)
 
   // Permissions Paramètres
-  canViewSettings    Boolean @default(false)
-  canEditSettings    Boolean @default(false)
+  canViewSettings Boolean @default(false)
+  canEditSettings Boolean @default(false)
 
   // Permissions Avancées
-  canAccessAPI       Boolean @default(false)
-  canManageBilling   Boolean @default(false) // Gérer abonnement
-  canViewAuditLog    Boolean @default(false)
+  canAccessAPI     Boolean @default(false)
+  canManageBilling Boolean @default(false) // Gérer abonnement
+  canViewAuditLog  Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -619,9 +628,9 @@ model TimeEntry {
   userId String
 
   // Date et heures
-  date      DateTime @db.Date
-  clockIn   DateTime // Heure d'arrivée
-  clockOut  DateTime? // Heure de départ (null si en cours)
+  date     DateTime  @db.Date
+  clockIn  DateTime // Heure d'arrivée
+  clockOut DateTime? // Heure de départ (null si en cours)
 
   // Pause
   breakDuration Int @default(0) // Durée de pause en minutes
@@ -650,24 +659,24 @@ model TimeEntry {
 }
 
 enum TimeEntryType {
-  REGULAR     // Journée normale
-  OVERTIME    // Heures supplémentaires
-  SICK_LEAVE  // Arrêt maladie
-  VACATION    // Congés
-  REMOTE      // Télétravail
+  REGULAR // Journée normale
+  OVERTIME // Heures supplémentaires
+  SICK_LEAVE // Arrêt maladie
+  VACATION // Congés
+  REMOTE // Télétravail
 }
 
 // Log d'activité utilisateur
 model UserActivity {
-  id        String       @id @default(cuid())
-  user      User         @relation("CreatedActivities", fields: [userId], references: [id], onDelete: Cascade)
-  userId    String
-  action    ActivityType
-  resource  String? // Type de ressource (ex: "Client", "Document", "Article")
+  id         String       @id @default(cuid())
+  user       User         @relation("CreatedActivities", fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  action     ActivityType
+  resource   String? // Type de ressource (ex: "Client", "Document", "Article")
   resourceId String? // ID de la ressource
-  details   Json? // Détails additionnels
-  ipAddress String?
-  userAgent String?
+  details    Json? // Détails additionnels
+  ipAddress  String?
+  userAgent  String?
 
   createdAt DateTime @default(now())
 
@@ -708,10 +717,10 @@ model Client {
   notes      String?
 
   // Authentification portail client
-  password        String? // Hashed password for client portal access
-  clientPortalEnabled Boolean @default(false) // Enable/disable portal access
-  pendingApproval Boolean @default(false) // Client waiting for admin approval after self-registration
-  lastLoginAt     DateTime? // Track last portal login
+  password            String? // Hashed password for client portal access
+  clientPortalEnabled Boolean   @default(false) // Enable/disable portal access
+  pendingApproval     Boolean   @default(false) // Client waiting for admin approval after self-registration
+  lastLoginAt         DateTime? // Track last portal login
 
   // Programme de fidélité
   points_solde     Int             @default(0)
@@ -725,6 +734,10 @@ model Client {
   documents        Document[]
   mouvementsPoints MouvementPoints[]
   notifications    ClientNotification[]
+
+  // Relation pour système d'occasion (boutiques informatique)
+  rachats     RachatArticle[] // Articles rachetés à ce client
+  reparations Reparation[] // Réparations pour ce client
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -740,17 +753,16 @@ model Client {
   @@index([entrepriseId, pendingApproval])
   @@index([entrepriseId, niveauFideliteId])
   @@index([telephone])
-
 }
 
 // Tokens de réinitialisation de mot de passe pour le portail client
 model PasswordResetToken {
-  id        String   @id @default(cuid())
-  token     String   @unique
+  id        String    @id @default(cuid())
+  token     String    @unique
   clientId  String
   email     String
   expiresAt DateTime
-  used      Boolean  @default(false)
+  used      Boolean   @default(false)
   usedAt    DateTime?
 
   createdAt DateTime @default(now())
@@ -763,15 +775,15 @@ model PasswordResetToken {
 
 // Tokens d'invitation pour créer un compte portail client
 model InvitationToken {
-  id           String   @id @default(cuid())
-  token        String   @unique
+  id           String    @id @default(cuid())
+  token        String    @unique
   email        String
   nom          String?
   prenom       String?
   telephone    String?
   entrepriseId String
   expiresAt    DateTime
-  used         Boolean  @default(false)
+  used         Boolean   @default(false)
   usedAt       DateTime?
 
   createdAt DateTime @default(now())
@@ -784,16 +796,16 @@ model InvitationToken {
 
 // Tokens d'invitation pour les collaborateurs (équipe)
 model UserInvitationToken {
-  id           String   @id @default(cuid())
-  token        String   @unique
+  id           String    @id @default(cuid())
+  token        String    @unique
   email        String
   name         String?
   prenom       String?
-  role         String   // UserRole as string
+  role         String // UserRole as string
   entrepriseId String
-  invitedBy    String   // User ID qui a envoyé l'invitation
+  invitedBy    String // User ID qui a envoyé l'invitation
   expiresAt    DateTime
-  used         Boolean  @default(false)
+  used         Boolean   @default(false)
   usedAt       DateTime?
 
   createdAt DateTime @default(now())
@@ -807,17 +819,17 @@ model UserInvitationToken {
 
 // Notifications pour le portail client
 model ClientNotification {
-  id       String               @id @default(cuid())
+  id       String           @id @default(cuid())
   type     NotificationType
   titre    String
   message  String?
-  lue      Boolean              @default(false)
-  metadata Json?                // Données additionnelles (documentId, points, etc.)
+  lue      Boolean          @default(false)
+  metadata Json? // Données additionnelles (documentId, points, etc.)
 
-  client   Client               @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
   clientId String
 
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
   lueAt     DateTime?
 
   @@index([clientId])
@@ -832,6 +844,11 @@ enum NotificationType {
   NIVEAU_FIDELITE
   PAIEMENT_RECU
   GENERAL
+  REPARATION_DEPOSEE
+  REPARATION_DIAGNOSTIC
+  REPARATION_PRETE
+  REPARATION_RETARD
+  REPARATION_LIVREE
 }
 
 // ============================================
@@ -913,16 +930,34 @@ model Article {
   actif         Boolean     @default(true)
   champsCustom  Json?
 
+  // Champs spécifiques pour type PIECE (pièces détachées)
+  typePiece        TypeRessource? // Type de pièce (ECRAN, BATTERIE, etc.)
+  etatPiece        EtatOccasion?  // État de la pièce (COMME_NEUF, BON, etc.)
+  marque           String?        // Compatibilité marque
+  modele           String?        // Compatibilité modèle
+  articleOrigineId String?        // Article source si issu d'un démontage
+  valeurEstimee    Decimal?       @db.Decimal(10, 2) // Valeur estimée pour calcul marge
+
   // Multi-tenant
   entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
   entrepriseId String
 
-  categorie   Categorie?       @relation(fields: [categorieId], references: [id])
-  categorieId String?
-  lignes      LigneDocument[]
-  mouvements  MouvementStock[]
+  categorie       Categorie?          @relation(fields: [categorieId], references: [id])
+  categorieId     String?
+  lignes          LigneDocument[]
+  mouvements      MouvementStock[]
   storeStockItems StoreStockItem[] // Stock par magasin
   transferItems   StockTransferItem[] // Items dans les transferts
+
+  // Relations pour les articles d'occasion
+  rachat           RachatArticle? // Si type=OCCASION, lien vers les infos de rachat
+  demontage        DemontageArticle?  @relation("ArticleDemonte") // Si démonté
+  piecesRecuperees RessourceAtelier[] @relation("PieceOrigine") // Pièces récupérées de cet article
+
+  // Relations pour les pièces détachées (type PIECE)
+  articleOrigine   Article?  @relation("PiecesDetachees", fields: [articleOrigineId], references: [id], onDelete: SetNull)
+  piecesDetachees  Article[] @relation("PiecesDetachees") // Pièces issues du démontage de cet article
+  lignesReparation ReparationLignePiece[] // Utilisations dans des réparations
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -936,12 +971,158 @@ model Article {
   @@index([actif])
   @@index([entrepriseId, actif])
   @@index([categorieId, actif])
-
+  @@index([typePiece])
+  @@index([marque])
+  @@index([modele])
+  @@index([articleOrigineId])
 }
 
 enum ArticleType {
   PRODUIT
   SERVICE
+  OCCASION
+  PIECE
+}
+
+// ============================================
+// SYSTÈME D'OCCASION (BOUTIQUES INFORMATIQUE)
+// ============================================
+
+enum EtatOccasion {
+  COMME_NEUF
+  TRES_BON
+  BON
+  CORRECT
+  POUR_PIECES
+}
+
+enum ProvenanceOccasion {
+  RACHAT_CLIENT
+  MARKETPLACE_OCCASION
+  REPRISE
+  DON
+  RETOUR_SAV
+  AUTRE
+}
+
+enum TypeRessource {
+  ECRAN
+  BATTERIE
+  CARTE_MERE
+  CAMERA
+  HAUT_PARLEUR
+  CONNECTEUR_CHARGE
+  VITRE
+  CHASSIS
+  MEMOIRE_RAM
+  DISQUE_DUR
+  ALIMENTATION
+  VENTILATEUR
+  CLAVIER
+  TRACKPAD
+  AUTRE
+}
+
+// Model pour tracer les rachats d'articles d'occasion
+model RachatArticle {
+  id            String             @id @default(cuid())
+  articleId     String             @unique
+  clientId      String?
+  prixRachat    Decimal            @db.Decimal(10, 2)
+  etat          EtatOccasion
+  provenance    ProvenanceOccasion
+  numeroSerie   String?
+  dureeGarantie Int? // Durée en mois (3, 6, 12, 24)
+  notes         String?
+  dateRachat    DateTime           @default(now())
+
+  // Relations
+  article      Article    @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  client       Client?    @relation(fields: [clientId], references: [id])
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  createdBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([clientId])
+  @@index([dateRachat])
+}
+
+// Model pour tracer les démontages d'articles d'occasion
+model DemontageArticle {
+  id              String   @id @default(cuid())
+  articleSourceId String   @unique
+  dateDemontage   DateTime @default(now())
+  motif           String?
+  notes           String?
+
+  // Relations
+  articleSource Article            @relation("ArticleDemonte", fields: [articleSourceId], references: [id], onDelete: Cascade)
+  ressources    RessourceAtelier[]
+
+  entrepriseId String
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  createdBy    String?
+  createdAt    DateTime   @default(now())
+
+  @@index([entrepriseId])
+  @@index([articleSourceId])
+}
+
+// Model pour les ressources d'atelier (pièces récupérées)
+model RessourceAtelier {
+  id String @id @default(cuid())
+
+  // Type et description
+  typeRessource TypeRessource
+  nom           String
+  description   String?
+  etat          EtatOccasion
+
+  // Stock
+  quantite Int    @default(1)
+  unite    String @default("unité")
+
+  // Provenance
+  demontageId      String?
+  demontage        DemontageArticle? @relation(fields: [demontageId], references: [id])
+  articleOrigineId String?
+  articleOrigine   Article?          @relation("PieceOrigine", fields: [articleOrigineId], references: [id])
+
+  // Compatibilité (pour recherche)
+  marque    String?
+  modele    String?
+  reference String?
+
+  // Utilisation
+  utiliseDansReparation Boolean   @default(false)
+  dateUtilisation       DateTime?
+  reparationId          String?
+
+  // Valeur (pour calcul marge)
+  valeurEstimee Decimal? @db.Decimal(10, 2)
+
+  // Multi-tenant
+  entrepriseId String
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+
+  // Relations
+  lignesReparation ReparationLignePiece[] // Utilisations dans des réparations
+
+  createdBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([typeRessource])
+  @@index([nom])
+  @@index([marque])
+  @@index([modele])
+  @@index([demontageId])
+  @@index([utiliseDansReparation])
 }
 
 // ============================================
@@ -968,7 +1149,7 @@ model Document {
   serieId String?
 
   // Multi-magasins
-  store   Store?    @relation(fields: [storeId], references: [id])
+  store   Store?  @relation(fields: [storeId], references: [id])
   storeId String? // Magasin où le document a été créé
 
   register   Register? @relation(fields: [registerId], references: [id])
@@ -989,9 +1170,10 @@ model Document {
   devis    Document?  @relation("DevisToFacture", fields: [devisId], references: [id])
   factures Document[] @relation("DevisToFacture")
 
-  lignes    LigneDocument[]
-  paiements Paiement[]
+  lignes           LigneDocument[]
+  paiements        Paiement[]
   bankTransactions BankTransaction[] // Transactions bancaires rapprochées
+  reparations      Reparation[] // Réparations liées à ce document
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1008,7 +1190,6 @@ model Document {
   @@index([entrepriseId, statut]) // Index composite pour requêtes par entreprise + statut
   @@index([entrepriseId, type])
   @@index([clientId, statut])
-
 }
 
 enum DocumentType {
@@ -1051,7 +1232,6 @@ model LigneDocument {
   @@index([articleId])
   @@index([ordre])
   @@index([documentId, articleId])
-
 }
 
 model Paiement {
@@ -1069,7 +1249,6 @@ model Paiement {
   @@index([documentId])
   @@index([date_paiement])
   @@index([moyen_paiement])
-
 }
 
 enum MoyenPaiement {
@@ -1119,7 +1298,6 @@ model MouvementStock {
   @@index([createdBy])
   @@index([articleId, createdAt])
   @@index([entrepriseId, createdAt])
-
 }
 
 enum TypeMouvement {
@@ -1155,20 +1333,28 @@ model ParametresEntreprise {
   // Configuration références articles/services
   prefixe_produit         String @default("PRD")
   prefixe_service         String @default("SRV")
+  prefixe_occasion        String @default("OCC")
+  prefixe_piece           String @default("PCE")
   prochain_numero_produit Int    @default(1)
   prochain_numero_service Int    @default(1)
+  prochain_numero_occasion Int   @default(1)
+  prochain_numero_piece   Int    @default(1)
+
+  // Configuration références réparations (boutiques informatique)
+  prefixe_reparation         String @default("REP")
+  prochain_numero_reparation Int    @default(1)
 
   conditions_paiement_defaut String?
   mentions_legales           String?
 
   // Préférences de notification
-  notif_client_approved       Boolean @default(true)  // Envoyer email quand client approuvé
-  notif_client_rejected       Boolean @default(true)  // Envoyer email quand client rejeté
-  notif_client_invitation     Boolean @default(true)  // Envoyer email d'invitation
-  notif_client_welcome        Boolean @default(true)  // Envoyer email de bienvenue
-  notif_document_sent         Boolean @default(true)  // Envoyer email quand document envoyé
-  notif_payment_received      Boolean @default(true)  // Envoyer email quand paiement reçu
-  notif_low_stock             Boolean @default(true)  // Envoyer email si stock faible
+  notif_client_approved   Boolean @default(true) // Envoyer email quand client approuvé
+  notif_client_rejected   Boolean @default(true) // Envoyer email quand client rejeté
+  notif_client_invitation Boolean @default(true) // Envoyer email d'invitation
+  notif_client_welcome    Boolean @default(true) // Envoyer email de bienvenue
+  notif_document_sent     Boolean @default(true) // Envoyer email quand document envoyé
+  notif_payment_received  Boolean @default(true) // Envoyer email quand paiement reçu
+  notif_low_stock         Boolean @default(true) // Envoyer email si stock faible
 
   // Multi-tenant: relation one-to-one
   entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
@@ -1524,14 +1710,14 @@ model PaymentLink {
   titre       String // Titre du lien (ex: "Facture Mars 2025")
   description String? // Description optionnelle
 
-  montant     Decimal @db.Decimal(10, 2)
-  devise      String  @default("EUR")
+  montant Decimal @db.Decimal(10, 2)
+  devise  String  @default("EUR")
 
   // Options
-  quantiteMax     Int?      @default(1) // Nombre de paiements max (null = illimité)
-  quantitePaye    Int       @default(0) // Nombre de paiements effectués
-  dateExpiration  DateTime? // Date d'expiration du lien
-  actif           Boolean   @default(true)
+  quantiteMax    Int?      @default(1) // Nombre de paiements max (null = illimité)
+  quantitePaye   Int       @default(0) // Nombre de paiements effectués
+  dateExpiration DateTime? // Date d'expiration du lien
+  actif          Boolean   @default(true)
 
   // Personnalisation
   imageCouverture String? // URL de l'image de couverture
@@ -1545,8 +1731,8 @@ model PaymentLink {
   entrepriseId String
 
   // Statistiques
-  nombreVues      Int @default(0) // Nombre de fois que le lien a été consulté
-  nombrePaiements Int @default(0) // Nombre de paiements réussis
+  nombreVues      Int     @default(0) // Nombre de fois que le lien a été consulté
+  nombrePaiements Int     @default(0) // Nombre de paiements réussis
   totalCollecte   Decimal @default(0) @db.Decimal(10, 2) // Montant total collecté
 
   createdAt DateTime @default(now())
@@ -1570,24 +1756,24 @@ enum PaymentLinkStatus {
 // ============================================
 
 model Terminal {
-  id              String         @id @default(cuid())
-  stripeTerminalId String        @unique // ID du terminal dans Stripe
-  label           String // Nom du terminal (ex: "Caisse 1")
-  location        String? // Emplacement physique
-  status          TerminalStatus @default(OFFLINE)
+  id               String         @id @default(cuid())
+  stripeTerminalId String         @unique // ID du terminal dans Stripe
+  label            String // Nom du terminal (ex: "Caisse 1")
+  location         String? // Emplacement physique
+  status           TerminalStatus @default(OFFLINE)
 
   // Informations matériel
-  device_type     String? // Type de terminal (bbpos_wisepad3, verifone_p400, etc.)
-  serial_number   String?
-  ip_address      String?
+  device_type   String? // Type de terminal (bbpos_wisepad3, verifone_p400, etc.)
+  serial_number String?
+  ip_address    String?
 
   // Multi-tenant
   entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
   entrepriseId String
 
   // Dernière activité
-  lastUsedAt   DateTime?
-  lastSyncAt   DateTime?
+  lastUsedAt DateTime?
+  lastSyncAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1609,22 +1795,22 @@ enum TerminalStatus {
 // ============================================
 
 model BankTransaction {
-  id             String    @id @default(cuid())
+  id String @id @default(cuid())
 
   // Informations transaction bancaire
-  date           DateTime  @db.Date
-  libelle        String // Libellé de la transaction
-  montant        Decimal   @db.Decimal(10, 2)
-  reference      String? // Référence bancaire
+  date      DateTime @db.Date
+  libelle   String // Libellé de la transaction
+  montant   Decimal  @db.Decimal(10, 2)
+  reference String? // Référence bancaire
 
   // Rapprochement
-  statut         ReconciliationStatus @default(PENDING)
-  documentId     String? // Document associé (si trouvé)
-  document       Document? @relation(fields: [documentId], references: [id])
+  statut     ReconciliationStatus @default(PENDING)
+  documentId String? // Document associé (si trouvé)
+  document   Document?            @relation(fields: [documentId], references: [id])
 
   // Notes et métadonnées
-  notes          String?
-  metadata       Json? // Infos additionnelles du relevé bancaire
+  notes    String?
+  metadata Json? // Infos additionnelles du relevé bancaire
 
   // Multi-tenant
   entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
@@ -1645,4 +1831,223 @@ enum ReconciliationStatus {
   MANUAL // Rapproché manuellement
   IGNORED // Ignoré
   ANOMALY // Anomalie détectée
+}
+
+// ============================================
+// SYSTÈME DE RÉPARATION (BOUTIQUES INFORMATIQUE)
+// ============================================
+
+enum StatutReparation {
+  DEPOSE          // Appareil déposé, en attente de diagnostic
+  DIAGNOSTIC      // En cours de diagnostic
+  DEVIS_ENVOYE    // Devis envoyé au client
+  ATTENTE_PIECES  // En attente de pièces
+  EN_COURS        // Réparation en cours
+  PRETE           // Prête à être récupérée
+  LIVREE          // Livrée au client
+  ANNULEE         // Annulée
+  ABANDONNEE      // Abandonnée (client n'est pas venu)
+}
+
+enum PrioriteReparation {
+  NORMALE
+  URGENTE
+  CRITIQUE
+}
+
+enum TypeAppareil {
+  PC_PORTABLE
+  PC_BUREAU
+  MAC
+  SMARTPHONE
+  TABLETTE
+  CONSOLE_JEU
+  SERVEUR
+  PERIPHERIQUE
+  AUTRE
+}
+
+model Reparation {
+  id        String   @id @default(cuid())
+  numero    String   @unique // REP-001, REP-002, etc.
+  reference String?  // Référence client optionnelle
+
+  // Client information
+  client   Client @relation(fields: [clientId], references: [id])
+  clientId String
+
+  // Device information
+  typeAppareil         TypeAppareil
+  marque               String?      // Brand (Apple, Dell, HP, etc.)
+  modele               String?      // Model
+  numeroSerie          String?      // Serial number
+  motAuthentification  String?      @db.Text // Device password/PIN if needed
+
+  // Reported issue
+  panne       String  @db.Text // Customer complaint/issue description
+  etatVisuel  String? @db.Text // Visual condition notes
+  accessoires String? @db.Text // Included accessories (charger, case, etc.)
+
+  // Diagnostic
+  diagnosticEffectue Boolean   @default(false)
+  diagnosticDetail   String?   @db.Text
+  diagnosticDate     DateTime?
+  diagnosticParId    String?   // User ID who performed diagnostic
+
+  // Priority and deadlines
+  priorite          PrioriteReparation @default(NORMALE)
+  dateDepot         DateTime           @default(now())
+  dateEstimeeRetour DateTime?
+  dateRetourReel    DateTime?
+  delaiReparation   Int?               // Estimated repair time in hours
+
+  // Status and workflow
+  statut           StatutReparation @default(DEPOSE)
+  statutChangeLogs Json?            // History of status changes [{statut, date, userId}]
+
+  // Technician assignment
+  technicien   User?   @relation("ReparationTechnicien", fields: [technicienId], references: [id])
+  technicienId String?
+
+  // Store/Register
+  store   Store?  @relation(fields: [storeId], references: [id])
+  storeId String? // Store where repair was received
+
+  register   Register? @relation(fields: [registerId], references: [id])
+  registerId String?   // Register where repair was created
+
+  // Costs and billing
+  devisEstime  Decimal @default(0) @db.Decimal(10, 2) // Estimated cost
+  coutMain     Decimal @default(0) @db.Decimal(10, 2) // Labor cost
+  coutPieces   Decimal @default(0) @db.Decimal(10, 2) // Parts cost (auto-calculated)
+  coutTotal    Decimal @default(0) @db.Decimal(10, 2) // Total cost
+
+  // Linked document (quote or invoice)
+  document   Document? @relation(fields: [documentId], references: [id])
+  documentId String?
+
+  // Internal notes
+  notesInternes   String? @db.Text
+  notesTechnicien String? @db.Text
+
+  // Warranty
+  sousGarantie    Boolean   @default(false)
+  dateFinGarantie DateTime? // Warranty end date after repair
+
+  // Notifications sent
+  notificationsEnvoyees Json? // Track which notifications were sent
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Relations
+  lignesPieces  ReparationLignePiece[]  // Parts used
+  interventions ReparationIntervention[] // Intervention logs
+  photos        ReparationPhoto[]        // Photos (optional)
+  historique    ReparationHistorique[]   // Complete history log
+
+  createdBy String? // User ID who created the repair ticket
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([entrepriseId, numero])
+  @@index([entrepriseId])
+  @@index([clientId])
+  @@index([statut])
+  @@index([technicienId])
+  @@index([storeId])
+  @@index([dateDepot])
+  @@index([dateEstimeeRetour])
+  @@index([entrepriseId, statut])
+  @@index([entrepriseId, dateDepot])
+  @@index([priorite])
+}
+
+// Parts/pieces used in repair
+model ReparationLignePiece {
+  id String @id @default(cuid())
+
+  reparation   Reparation @relation(fields: [reparationId], references: [id], onDelete: Cascade)
+  reparationId String
+
+  // Link to article (could be Article or RessourceAtelier)
+  article   Article? @relation(fields: [articleId], references: [id])
+  articleId String?
+
+  ressourceAtelier   RessourceAtelier? @relation(fields: [ressourceAtelierId], references: [id])
+  ressourceAtelierId String?
+
+  designation  String
+  quantite     Int
+  prixUnitaire Decimal @db.Decimal(10, 2)
+  montant      Decimal @db.Decimal(10, 2)
+
+  createdAt DateTime @default(now())
+
+  @@index([reparationId])
+  @@index([articleId])
+  @@index([ressourceAtelierId])
+}
+
+// Intervention logs (time tracking for technicians)
+model ReparationIntervention {
+  id String @id @default(cuid())
+
+  reparation   Reparation @relation(fields: [reparationId], references: [id], onDelete: Cascade)
+  reparationId String
+
+  technicien   User   @relation("InterventionTechnicien", fields: [technicienId], references: [id])
+  technicienId String
+
+  dateDebut    DateTime
+  dateFin      DateTime?
+  dureeMinutes Int? // Auto-calculated duration
+
+  description String @db.Text
+  type        String @default("REPARATION") // DIAGNOSTIC, REPARATION, TEST, NETTOYAGE
+
+  createdAt DateTime @default(now())
+
+  @@index([reparationId])
+  @@index([technicienId])
+  @@index([dateDebut])
+}
+
+// Photos attached to repair (optional feature)
+model ReparationPhoto {
+  id String @id @default(cuid())
+
+  reparation   Reparation @relation(fields: [reparationId], references: [id], onDelete: Cascade)
+  reparationId String
+
+  url     String
+  legende String?
+  type    String  @default("AVANT") // AVANT, APRES, DIAGNOSTIC, PIECE_DEFECTUEUSE
+  ordre   Int     @default(0)
+
+  uploadedBy String? // User ID
+  createdAt  DateTime @default(now())
+
+  @@index([reparationId])
+  @@index([type])
+}
+
+// Complete history log for auditing
+model ReparationHistorique {
+  id String @id @default(cuid())
+
+  reparation   Reparation @relation(fields: [reparationId], references: [id], onDelete: Cascade)
+  reparationId String
+
+  action      String // "STATUS_CHANGE", "PIECE_ADDED", "NOTE_ADDED", "ASSIGNED", etc.
+  description String @db.Text
+  metadata    Json?  // Additional data (old/new values)
+
+  createdBy String? // User ID
+  createdAt DateTime @default(now())
+
+  @@index([reparationId])
+  @@index([createdAt])
+  @@index([action])
 }

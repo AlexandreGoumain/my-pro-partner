@@ -1,5 +1,5 @@
+import { type Article } from "@/lib/types/article";
 import { useMemo } from "react";
-import { type Article } from "@/app/(dashboard)/dashboard/articles/_components/data-table/columns";
 
 export interface ArticleStatsData {
     total: number;
@@ -11,14 +11,8 @@ export interface ArticleStatsData {
 
 export function useArticleStats(articles: Article[]): ArticleStatsData {
     return useMemo(() => {
-        const produits = articles.filter(
-            (a) =>
-                !(a as Article & { type?: string }).type ||
-                (a as Article & { type?: string }).type === "PRODUIT"
-        );
-        const services = articles.filter(
-            (a) => (a as Article & { type?: string }).type === "SERVICE"
-        );
+        const produits = articles.filter((a) => a.type === "PRODUIT");
+        const services = articles.filter((a) => a.type === "SERVICE");
 
         return {
             total: articles.length,
@@ -26,11 +20,7 @@ export function useArticleStats(articles: Article[]): ArticleStatsData {
             services: services.length,
             actifs: articles.filter((a) => a.statut === "ACTIF").length,
             stockFaible: articles.filter(
-                (a) =>
-                    a.stock <=
-                        (a as Article & { seuilAlerte?: number }).seuilAlerte &&
-                    (!(a as Article & { type?: string }).type ||
-                        (a as Article & { type?: string }).type === "PRODUIT")
+                (a) => a.stock <= a.seuilAlerte && a.type === "PRODUIT"
             ).length,
         };
     }, [articles]);

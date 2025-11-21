@@ -31,7 +31,7 @@ export class ArticleRepository extends BaseRepository<Article> {
     search?: string,
     pagination?: Record<string, unknown>,
     filters?: {
-      type?: "PRODUIT" | "SERVICE";
+      type?: "PRODUIT" | "SERVICE" | "OCCASION" | "PIECE";
       categorieId?: string;
       actif?: boolean;
       enStock?: boolean;
@@ -65,9 +65,9 @@ export class ArticleRepository extends BaseRepository<Article> {
       where.actif = filters.actif;
     }
 
-    // Add stock filter (only for products)
-    if (filters?.enStock !== undefined && filters.type === "PRODUIT") {
-      where.stock = filters.enStock ? { gt: 0 } : { lte: 0 };
+    // Add stock filter (for items with stock: PRODUIT, OCCASION, PIECE)
+    if (filters?.enStock !== undefined && filters.type !== "SERVICE") {
+      where.stock_actuel = filters.enStock ? { gt: 0 } : { lte: 0 };
     }
 
     return this.findAll(
@@ -115,8 +115,8 @@ export class ArticleRepository extends BaseRepository<Article> {
   ): Promise<Article[]> {
     const result = await this.findAll({
       entrepriseId,
-      type: "PRODUIT",
-      stock: { lte: threshold, gt: 0 },
+      type: { not: "SERVICE" },
+      stock_actuel: { lte: threshold, gt: 0 },
     });
 
     return result.items;
@@ -128,8 +128,8 @@ export class ArticleRepository extends BaseRepository<Article> {
   async findOutOfStock(entrepriseId: string): Promise<Article[]> {
     const result = await this.findAll({
       entrepriseId,
-      type: "PRODUIT",
-      stock: { lte: 0 },
+      type: { not: "SERVICE" },
+      stock_actuel: { lte: 0 },
     });
 
     return result.items;
@@ -142,7 +142,7 @@ export class ArticleRepository extends BaseRepository<Article> {
     articleId: string,
     newStock: number
   ): Promise<Article> {
-    return this.update(articleId, { stock: newStock });
+    return this.update(articleId, { stock_actuel: newStock });
   }
 
   /**
@@ -153,8 +153,8 @@ export class ArticleRepository extends BaseRepository<Article> {
     quantity: number
   ): Promise<Article> {
     const article = await this.findByIdOrFail(articleId);
-    const newStock = (article.stock || 0) + quantity;
-    return this.update(articleId, { stock: newStock });
+    const newStock = (article.stock_actuel || 0) + quantity;
+    return this.update(articleId, { stock_actuel: newStock });
   }
 
   /**
@@ -165,8 +165,8 @@ export class ArticleRepository extends BaseRepository<Article> {
     quantity: number
   ): Promise<Article> {
     const article = await this.findByIdOrFail(articleId);
-    const newStock = Math.max(0, (article.stock || 0) - quantity);
-    return this.update(articleId, { stock: newStock });
+    const newStock = Math.max(0, (article.stock_actuel || 0) - quantity);
+    return this.update(articleId, { stock_actuel: newStock });
   }
 
   /**
@@ -174,7 +174,7 @@ export class ArticleRepository extends BaseRepository<Article> {
    */
   async countByType(
     entrepriseId: string,
-    type: "PRODUIT" | "SERVICE"
+    type: "PRODUIT" | "SERVICE" | "OCCASION" | "PIECE"
   ): Promise<number> {
     return this.count({
       entrepriseId,
@@ -211,7 +211,7 @@ export class ArticleRepository extends BaseRepository<Article> {
     percentageIncrease: number,
     filters?: {
       categorieId?: string;
-      type?: "PRODUIT" | "SERVICE";
+      type?: "PRODUIT" | "SERVICE" | "OCCASION" | "PIECE";
     }
   ): Promise<{ count: number }> {
     const where: Record<string, unknown> = { entrepriseId };
@@ -229,8 +229,9 @@ export class ArticleRepository extends BaseRepository<Article> {
 
     // Update each article's price
     const updatePromises = articles.map((article) => {
-      const newPrice = article.prix * (1 + percentageIncrease / 100);
-      return this.update(article.id, { prix: newPrice });
+      const currentPrice = parseFloat(article.prix_ht.toString());
+      const newPrice = currentPrice * (1 + percentageIncrease / 100);
+      return this.update(article.id, { prix_ht: newPrice });
     });
 
     await Promise.all(updatePromises);

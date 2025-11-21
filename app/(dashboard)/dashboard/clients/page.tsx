@@ -26,7 +26,7 @@ function ClientsPageContent() {
     return (
         <div className="space-y-6">
             <PageHeader
-                title="Dashboard Clients"
+                title="Liste des clients"
                 description="Vue d'ensemble et gestion de votre portefeuille clients"
                 actions={
                     <ClientPageActions

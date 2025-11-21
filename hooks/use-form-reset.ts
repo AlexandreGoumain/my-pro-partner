@@ -28,5 +28,8 @@ export function useFormReset<T extends Record<string, unknown>>(
     if (open) {
       form.reset(defaultValues);
     }
-  }, [open, form, defaultValues]);
+    // defaultValues is intentionally omitted from dependencies to prevent infinite loops
+    // when defaultValues is an object literal created in the parent component
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, form]);
 }

@@ -2,10 +2,11 @@ import { ArticleCard } from "@/components/articles/article-card";
 import { ArticleCardSkeleton } from "@/components/skeletons";
 import { EmptyState } from "@/components/ui/empty-state";
 import { GridSkeleton } from "@/components/ui/grid-skeleton";
+import { GridPagination } from "@/components/ui/grid-pagination";
+import { type Article, type ArticleTypeFilter } from "@/lib/types/article";
 import { cn } from "@/lib/utils";
-import { Article } from "@/app/(dashboard)/dashboard/articles/_components/data-table/columns";
-import { type ArticleTypeFilter } from "@/lib/types/article";
 import { LucideIcon, Plus } from "lucide-react";
+import type { PaginationInfo } from "@/components/ui/data-table/pagination";
 
 export interface ArticleGridViewProps {
     articles: Article[];
@@ -18,11 +19,15 @@ export interface ArticleGridViewProps {
     };
     typeFilter: ArticleTypeFilter;
     hasNoDataAtAll: boolean;
+    pagination?: PaginationInfo;
+    showPagination?: boolean;
     onView: (article: Article) => void;
     onEdit: (article: Article) => void;
     onDuplicate: (article: Article) => void;
     onDelete: (article: Article) => void;
     onCreateClick: () => void;
+    onPageChange?: (page: number) => void;
+    onPageSizeChange?: (size: number) => void;
     className?: string;
 }
 
@@ -30,11 +35,15 @@ export function ArticleGridView({
     articles,
     isLoading,
     emptyState,
+    pagination,
+    showPagination = false,
     onView,
     onEdit,
     onDuplicate,
     onDelete,
     onCreateClick,
+    onPageChange,
+    onPageSizeChange,
     className,
 }: ArticleGridViewProps) {
     if (isLoading) {
@@ -66,22 +75,32 @@ export function ArticleGridView({
     }
 
     return (
-        <div
-            className={cn(
-                "grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
-                className
-            )}
-        >
-            {articles.map((article) => (
-                <ArticleCard
-                    key={article.id}
-                    article={article}
-                    onView={onView}
-                    onEdit={onEdit}
-                    onDuplicate={onDuplicate}
-                    onDelete={onDelete}
+        <>
+            <div
+                className={cn(
+                    "grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
+                    className
+                )}
+            >
+                {articles.map((article) => (
+                    <ArticleCard
+                        key={article.id}
+                        article={article}
+                        onView={onView}
+                        onEdit={onEdit}
+                        onDuplicate={onDuplicate}
+                        onDelete={onDelete}
+                    />
+                ))}
+            </div>
+            {showPagination && pagination && onPageChange && onPageSizeChange && (
+                <GridPagination
+                    pagination={pagination}
+                    onPageChange={onPageChange}
+                    onPageSizeChange={onPageSizeChange}
+                    itemLabel="article(s)"
                 />
-            ))}
-        </div>
+            )}
+        </>
     );
 }

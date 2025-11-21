@@ -7,9 +7,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import type { Article } from "@/app/(dashboard)/dashboard/articles/_components/data-table/columns";
 import type { StockFilters } from "@/hooks/use-stock";
 import { STOCK_MOVEMENT_TYPES } from "@/lib/constants/stock-movements";
+import type { Article } from "@/lib/types/article";
 
 export interface StockFiltersProps {
     filters: StockFilters;
@@ -51,15 +51,17 @@ export function StockFiltersCard({
                             <SelectItem value="all" className="text-[14px]">
                                 Tous les articles
                             </SelectItem>
-                            {articlesWithStock.map((article) => (
-                                <SelectItem
-                                    key={article.id}
-                                    value={article.id}
-                                    className="text-[14px]"
-                                >
-                                    {article.reference} - {article.nom}
-                                </SelectItem>
-                            ))}
+                            {articlesWithStock
+                                .filter((article) => article.id && article.id.trim() !== "")
+                                .map((article) => (
+                                    <SelectItem
+                                        key={article.id}
+                                        value={article.id}
+                                        className="text-[14px]"
+                                    >
+                                        {article.reference} - {article.nom}
+                                    </SelectItem>
+                                ))}
                         </SelectContent>
                     </Select>
                 </div>

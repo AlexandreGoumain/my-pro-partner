@@ -53,6 +53,9 @@ export function ArticleEditDialog({
     const { data: categories = [], isLoading: loadingCategories } =
         useCategories();
 
+    // Check if article is a service
+    const isService = article?.type === "SERVICE";
+
     // Calculate form values from article using useMemo
     const formValues = useMemo<ArticleUpdateInput>(() => {
         if (!article) {
@@ -82,7 +85,7 @@ export function ArticleEditDialog({
             categorieId: category?.id || "",
             stock_actuel: article.stock,
             stock_min: article.seuilAlerte,
-            gestion_stock: true,
+            gestion_stock: article.gestionStock,
             actif: article.statut !== "INACTIF",
         };
     }, [article, categories]);
@@ -174,14 +177,16 @@ export function ArticleEditDialog({
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                {categories.map((category) => (
-                                                    <SelectItem
-                                                        key={category.id}
-                                                        value={category.id}
-                                                    >
-                                                        {category.nom}
-                                                    </SelectItem>
-                                                ))}
+                                                {categories
+                                                    .filter((category) => category.id && category.id.trim() !== "")
+                                                    .map((category) => (
+                                                        <SelectItem
+                                                            key={category.id}
+                                                            value={category.id}
+                                                        >
+                                                            {category.nom}
+                                                        </SelectItem>
+                                                    ))}
                                             </SelectContent>
                                         </Select>
                                         <FormMessage />
@@ -247,85 +252,87 @@ export function ArticleEditDialog({
                             </div>
                         </div>
 
-                        {/* Gestion du stock */}
-                        <div className="space-y-4">
-                            <h3 className="font-semibold">Stock</h3>
+                        {/* Gestion du stock - masqué pour les services */}
+                        {!isService && (
+                            <div className="space-y-4">
+                                <h3 className="font-semibold">Stock</h3>
 
-                            <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <FormField
+                                        control={form.control}
+                                        name="stock_actuel"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Stock actuel</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        type="number"
+                                                        {...field}
+                                                        onChange={(e) =>
+                                                            field.onChange(
+                                                                parseInt(
+                                                                    e.target.value,
+                                                                    10
+                                                                )
+                                                            )
+                                                        }
+                                                    />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <FormField
+                                        control={form.control}
+                                        name="stock_min"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Stock minimum</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        type="number"
+                                                        {...field}
+                                                        onChange={(e) =>
+                                                            field.onChange(
+                                                                parseInt(
+                                                                    e.target.value,
+                                                                    10
+                                                                )
+                                                            )
+                                                        }
+                                                    />
+                                                </FormControl>
+                                                <FormDescription>
+                                                    Seuil d&apos;alerte
+                                                </FormDescription>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </div>
+
                                 <FormField
                                     control={form.control}
-                                    name="stock_actuel"
+                                    name="gestion_stock"
                                     render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Stock actuel</FormLabel>
+                                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                                             <FormControl>
-                                                <Input
-                                                    type="number"
-                                                    {...field}
-                                                    onChange={(e) =>
-                                                        field.onChange(
-                                                            parseInt(
-                                                                e.target.value,
-                                                                10
-                                                            )
-                                                        )
-                                                    }
+                                                <Checkbox
+                                                    checked={field.value}
+                                                    onCheckedChange={field.onChange}
                                                 />
                                             </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-
-                                <FormField
-                                    control={form.control}
-                                    name="stock_min"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Stock minimum</FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    type="number"
-                                                    {...field}
-                                                    onChange={(e) =>
-                                                        field.onChange(
-                                                            parseInt(
-                                                                e.target.value,
-                                                                10
-                                                            )
-                                                        )
-                                                    }
-                                                />
-                                            </FormControl>
-                                            <FormDescription>
-                                                Seuil d&apos;alerte
-                                            </FormDescription>
-                                            <FormMessage />
+                                            <div className="space-y-1 leading-none">
+                                                <FormLabel>
+                                                    Activer la gestion du stock
+                                                </FormLabel>
+                                            </div>
                                         </FormItem>
                                     )}
                                 />
                             </div>
-
-                            <FormField
-                                control={form.control}
-                                name="gestion_stock"
-                                render={({ field }) => (
-                                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                                        <FormControl>
-                                            <Checkbox
-                                                checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                            />
-                                        </FormControl>
-                                        <div className="space-y-1 leading-none">
-                                            <FormLabel>
-                                                Activer la gestion du stock
-                                            </FormLabel>
-                                        </div>
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
+                        )}
 
                         {/* Statut */}
                         <FormField

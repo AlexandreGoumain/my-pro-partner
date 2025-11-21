@@ -49,6 +49,7 @@ export const { GET, POST } = createCrudRoutes({
       description: data.description || null,
       parentId: data.parentId || null,
       ordre: data.ordre,
+      entrepriseId, // IMPORTANT: Must return entrepriseId for Prisma
     };
   },
 });

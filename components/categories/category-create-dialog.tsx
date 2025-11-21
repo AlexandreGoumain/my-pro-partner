@@ -142,7 +142,7 @@ export function CategoryCreateDialog({
                                                 Aucune (catégorie racine)
                                             </SelectItem>
                                             {categories
-                                                .filter((cat) => !cat.parentId) // Seulement les catégories racines
+                                                .filter((cat) => !cat.parentId && cat.id && cat.id.trim() !== "") // Seulement les catégories racines avec ID valide
                                                 .map((categorie) => (
                                                     <SelectItem
                                                         key={categorie.id}

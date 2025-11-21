@@ -7,6 +7,7 @@ import {
     DocumentLie,
 } from "@/lib/types/article-detail";
 import { useArticle } from "./use-articles";
+import { useStockMouvements } from "./use-stock";
 
 export interface ArticleDetailData {
     article: ArticleDisplay | null;
@@ -17,7 +18,7 @@ export interface ArticleDetailData {
 }
 
 export function useArticleDetail(articleId: string | null): ArticleDetailData {
-    const { data: articleData, isLoading } = useArticle(articleId || "");
+    const { data: articleData, isLoading: isLoadingArticle } = useArticle(articleId || "");
 
     // Transform article data using useMemo for performance
     const article = useMemo(() => {
@@ -25,28 +26,38 @@ export function useArticleDetail(articleId: string | null): ArticleDetailData {
         return mapArticleToDisplay(articleData);
     }, [articleData]);
 
-    // Mock data pour mouvements et stats (à implémenter plus tard avec des vraies queries)
-    const mouvements: MouvementStock[] = useMemo(() => [], []);
+    // Récupérer les mouvements de stock réels depuis la DB uniquement si ce n'est pas un service
+    const isService = article?.type === "SERVICE";
+    const { data: mouvementsData, isLoading: isLoadingMouvements } = useStockMouvements(
+        articleId && !isService ? { articleId } : undefined
+    );
 
-    const stats: ArticleStats | null = useMemo(() => ({
-        ventesTotal: 145,
-        ventesMois: 12,
-        ventesEvolution: 8.5,
-        ca_total: 24580,
-        ca_mois: 2040,
-        ca_evolution: 12.3,
-        marge_moyenne: 35.5,
-        rotationStock: 2.3,
-        derniereMaj: new Date().toISOString(),
-    }), []);
+    // Transformer les mouvements de stock pour le format attendu
+    const mouvements: MouvementStock[] = useMemo(() => {
+        if (!mouvementsData || isService) return [];
+        return mouvementsData.map((m) => ({
+            id: m.id,
+            type: m.type,
+            quantite: m.quantite,
+            stock_avant: m.stock_avant,
+            stock_apres: m.stock_apres,
+            motif: m.motif || undefined,
+            reference: m.reference || undefined,
+            createdAt: m.createdAt.toISOString(),
+        }));
+    }, [mouvementsData, isService]);
 
-    const documents: DocumentLie[] = useMemo(() => [], []);
+    // Stats non disponibles pour le moment - affiche l'état vide
+    const stats: ArticleStats | null = null;
+
+    // Documents non disponibles pour le moment - affiche l'état vide
+    const documents: DocumentLie[] = [];
 
     return {
         article,
         mouvements,
         stats,
         documents,
-        isLoading,
+        isLoading: isLoadingArticle || isLoadingMouvements,
     };
 }

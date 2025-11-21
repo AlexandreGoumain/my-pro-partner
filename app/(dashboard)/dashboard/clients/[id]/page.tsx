@@ -13,6 +13,7 @@ import { ClientDocumentsTab } from "@/components/client-detail/client-documents-
 import { ClientEditDialog } from "@/components/clients/client-edit-dialog";
 import { ClientEmailDialog } from "@/components/clients/client-email-dialog";
 import { DeleteConfirmDialog } from "@/components/shared/delete-confirm-dialog";
+import { BackButton } from "@/components/ui/back-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -20,7 +21,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useClientDetailPage } from "@/hooks/use-client-detail-page";
 import { useClientDocuments } from "@/hooks/use-documents";
-import { Activity, ArrowLeft, MessageSquare } from "lucide-react";
+import { Activity, MessageSquare } from "lucide-react";
 import { useParams } from "next/navigation";
 
 export default function ClientDetailPage() {
@@ -50,20 +51,10 @@ export default function ClientDetailPage() {
     return (
         <div className="space-y-6">
             {/* Header avec retour */}
-            <div className="flex items-center gap-3">
-                <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-10 w-10 border-black/10 hover:bg-black/5"
-                    onClick={handlers.handleBack}
-                >
-                    <ArrowLeft
-                        className="h-4 w-4 text-black/60"
-                        strokeWidth={2}
-                    />
-                </Button>
-                <p className="text-[14px] text-black/60">Retour à la liste</p>
-            </div>
+            <BackButton
+                label="Retour à la liste"
+                onClick={handlers.handleBack}
+            />
 
             {/* En-tête client */}
             <ClientHeader

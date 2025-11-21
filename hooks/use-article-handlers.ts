@@ -1,9 +1,9 @@
-import { useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-import { Article } from "@/app/(dashboard)/dashboard/articles/_components/data-table/columns";
 import { useDeleteArticle, useDuplicateArticle } from "@/hooks/use-articles";
 import { useCrudDialogs } from "@/hooks/use-crud-dialogs";
+import { type Article } from "@/lib/types/article";
+import { useRouter } from "next/navigation";
+import { useCallback } from "react";
+import { toast } from "sonner";
 
 export interface ArticleHandlers {
     // Handlers
@@ -40,7 +40,13 @@ export function useArticleHandlers(): ArticleHandlers {
     const deleteArticle = useDeleteArticle();
 
     // CRUD Dialogs management (create, edit, delete, view)
-    const { dialogs, selected: selectedArticle, handlers: dialogHandlers, setDialogs, setSelected: setSelectedArticle } = useCrudDialogs<Article>();
+    const {
+        dialogs,
+        selected: selectedArticle,
+        handlers: dialogHandlers,
+        setDialogs,
+        setSelected: setSelectedArticle,
+    } = useCrudDialogs<Article>();
 
     // Article handlers
     const handleCreate = useCallback(() => {
@@ -54,13 +60,16 @@ export function useArticleHandlers(): ArticleHandlers {
     }, []);
 
     const handleView = useCallback((article: Article) => {
-        router.push(`/dashboard/articles/${article.id}`);
+        router.push(`/dashboard/catalogue/${article.id}`);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const handleEdit = useCallback((article: Article) => {
-        dialogHandlers.openEdit(article);
-    }, [dialogHandlers]);
+    const handleEdit = useCallback(
+        (article: Article) => {
+            dialogHandlers.openEdit(article);
+        },
+        [dialogHandlers]
+    );
 
     const handleDuplicate = useCallback(
         (article: Article) => {
@@ -83,9 +92,12 @@ export function useArticleHandlers(): ArticleHandlers {
         [duplicateArticle]
     );
 
-    const handleDelete = useCallback((article: Article) => {
-        dialogHandlers.openDelete(article);
-    }, [dialogHandlers]);
+    const handleDelete = useCallback(
+        (article: Article) => {
+            dialogHandlers.openDelete(article);
+        },
+        [dialogHandlers]
+    );
 
     const confirmDelete = useCallback(() => {
         if (!selectedArticle) return;
@@ -114,6 +126,35 @@ export function useArticleHandlers(): ArticleHandlers {
         });
     }, []);
 
+    // Dialog state setters with stable references
+    const setCreateDialogOpen = useCallback(
+        (open: boolean) => {
+            setDialogs((prev) => ({ ...prev, create: open }));
+        },
+        [setDialogs]
+    );
+
+    const setViewDialogOpen = useCallback(
+        (open: boolean) => {
+            setDialogs((prev) => ({ ...prev, view: open }));
+        },
+        [setDialogs]
+    );
+
+    const setEditDialogOpen = useCallback(
+        (open: boolean) => {
+            setDialogs((prev) => ({ ...prev, edit: open }));
+        },
+        [setDialogs]
+    );
+
+    const setDeleteDialogOpen = useCallback(
+        (open: boolean) => {
+            setDialogs((prev) => ({ ...prev, delete: open }));
+        },
+        [setDialogs]
+    );
+
     return {
         handleCreate,
         handleCreateSuccess,
@@ -125,13 +166,13 @@ export function useArticleHandlers(): ArticleHandlers {
         confirmDelete,
         // CRUD dialogs (using useCrudDialogs hook)
         createDialogOpen: dialogs.create,
-        setCreateDialogOpen: (open: boolean) => setDialogs(prev => ({ ...prev, create: open })),
+        setCreateDialogOpen,
         viewDialogOpen: dialogs.view,
-        setViewDialogOpen: (open: boolean) => setDialogs(prev => ({ ...prev, view: open })),
+        setViewDialogOpen,
         editDialogOpen: dialogs.edit,
-        setEditDialogOpen: (open: boolean) => setDialogs(prev => ({ ...prev, edit: open })),
+        setEditDialogOpen,
         deleteDialogOpen: dialogs.delete,
-        setDeleteDialogOpen: (open: boolean) => setDialogs(prev => ({ ...prev, delete: open })),
+        setDeleteDialogOpen,
         selectedArticle,
         setSelectedArticle,
         isDeleting: deleteArticle.isPending,

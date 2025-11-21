@@ -7,6 +7,7 @@ import {
 } from "@/components/segment-analytics";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/ui/page-header";
 import { useSegmentAnalyticsPage } from "@/hooks/use-segment-analytics-page";
 import { CHART_CONFIG } from "@/lib/constants/chart-colors";
 import {
@@ -86,26 +87,10 @@ export default function SegmentAnalyticsPage({
 
     return (
         <div className="space-y-6">
-            {/* Header */}
-            <div>
-                <Button
-                    onClick={handlers.handleBack}
-                    variant="ghost"
-                    className="mb-4 h-9 px-3 text-[13px] hover:bg-black/5"
-                >
-                    <ArrowLeft className="w-4 h-4 mr-2" strokeWidth={2} />
-                    Retour
-                </Button>
-                <div>
-                    <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-black">
-                        Analytics : {analytics.segment.nom}
-                    </h1>
-                    <p className="text-[14px] text-black/40 mt-1">
-                        {analytics.segment.description ||
-                            "Analyse détaillée du segment"}
-                    </p>
-                </div>
-            </div>
+            <PageHeader
+                title={`Analytics : ${analytics.segment.nom}`}
+                description={analytics.segment.description || "Analyse détaillée du segment"}
+            />
 
             {/* Summary Cards */}
             <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">

@@ -1,4 +1,4 @@
-import { LucideIcon, Package, Briefcase, ShoppingBag, Search } from "lucide-react";
+import { LucideIcon, Package, Briefcase, ShoppingBag, Search, RotateCcw, Wrench } from "lucide-react";
 import { type ArticleTypeFilter } from "@/lib/types/article";
 
 export interface ArticleEmptyStateMessage {
@@ -29,6 +29,26 @@ export function getArticleEmptyStateMessage(
                 "Aucun service ne correspond à vos critères. Essayez de modifier vos filtres ou ajoutez un nouveau service.",
             buttonText: "Ajouter un service",
             icon: Briefcase,
+        };
+    }
+
+    if (typeFilter === "OCCASION") {
+        return {
+            title: "Aucun article d'occasion trouvé",
+            description:
+                "Aucun article d'occasion ne correspond à vos critères. Essayez de modifier vos filtres ou ajoutez un nouveau produit d'occasion.",
+            buttonText: "Ajouter un article d'occasion",
+            icon: RotateCcw,
+        };
+    }
+
+    if (typeFilter === "PIECE") {
+        return {
+            title: "Aucune pièce détachée trouvée",
+            description:
+                "Aucune pièce détachée ne correspond à vos critères. Essayez de modifier vos filtres ou ajoutez une nouvelle pièce.",
+            buttonText: "Ajouter une pièce détachée",
+            icon: Wrench,
         };
     }
 

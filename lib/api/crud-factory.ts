@@ -1,139 +1,73 @@
+import { CRUD_OPERATIONS, DEFAULT_ORDER_BY } from "@/lib/constants/crud";
 import { withErrorHandling } from "@/lib/errors";
 import { validateLimit } from "@/lib/middleware/feature-validation";
-import {
-    requirePermission,
-    type PermissionName,
-} from "@/lib/middleware/permissions";
+import { requirePermission } from "@/lib/middleware/permissions";
 import {
     requireTenantAuth,
     verifyResourceAccess,
 } from "@/lib/middleware/tenant-isolation";
 import { prisma } from "@/lib/prisma";
+import type {
+    CrudConfig,
+    CrudRouteHandlers,
+    PrismaModelDelegate,
+    ResourceByIdRouteHandlers,
+    TenantResource,
+} from "@/lib/types/crud";
 import {
     createPaginatedResponse,
     getPaginationParams,
 } from "@/lib/utils/pagination";
 import { validateRequest } from "@/lib/utils/validation-helper";
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-
-/**
- * Configuration for CRUD routes
- */
-export interface CrudConfig {
-    /**
-     * Prisma model name (e.g., 'client', 'article')
-     */
-    modelName: string;
-
-    /**
-     * Human-readable resource name for error messages (e.g., 'Client', 'Article')
-     */
-    resourceName: string;
-
-    /**
-     * Zod schema for create validation
-     */
-    createSchema: z.ZodSchema;
-
-    /**
-     * Zod schema for update validation
-     */
-    updateSchema: z.ZodSchema;
-
-    /**
-     * Fields to search across (for search query parameter)
-     */
-    searchFields?: string[];
-
-    /**
-     * Prisma include clause for relationships
-     */
-    include?: Record<string, unknown>;
-
-    /**
-     * Default order by clause
-     */
-    orderBy?: Record<string, unknown>;
-
-    /**
-     * Plan limit key (e.g., 'maxClients', 'maxProducts')
-     * If provided, will check feature limits before creation
-     */
-    limitKey?: string;
-
-    /**
-     * Permissions configuration
-     * If provided, will check permissions before allowing operations
-     */
-    permissions?: {
-        /** Permission required to list resources (GET) */
-        list?: PermissionName;
-        /** Permission required to create resources (POST) */
-        create?: PermissionName;
-        /** Permission required to read a single resource (GET /[id]) */
-        read?: PermissionName;
-        /** Permission required to update resources (PUT) */
-        update?: PermissionName;
-        /** Permission required to delete resources (DELETE) */
-        delete?: PermissionName;
-    };
-
-    /**
-     * Custom where clause builder
-     * Allows adding custom filters beyond standard search
-     */
-    customWhere?: (
-        searchParams: URLSearchParams,
-        entrepriseId: string
-    ) => Record<string, unknown>;
-
-    /**
-     * Transform data before creation
-     */
-    beforeCreate?: (data: unknown, entrepriseId: string) => Promise<unknown> | unknown;
-
-    /**
-     * Transform data before update
-     */
-    beforeUpdate?: (
-        data: unknown,
-        resourceId: string,
-        entrepriseId: string
-    ) => Promise<unknown> | unknown;
-
-    /**
-     * Hook after creation
-     */
-    afterCreate?: (resource: unknown, entrepriseId: string) => Promise<void> | void;
-
-    /**
-     * Hook after update
-     */
-    afterUpdate?: (resource: unknown, entrepriseId: string) => Promise<void> | void;
-
-    /**
-     * Hook before deletion (can throw error to prevent deletion)
-     */
-    beforeDelete?: (
-        resourceId: string,
-        entrepriseId: string
-    ) => Promise<void> | void;
-
-    /**
-     * Hook after deletion
-     */
-    afterDelete?: (
-        resourceId: string,
-        entrepriseId: string
-    ) => Promise<void> | void;
-}
 
 /**
  * Get Prisma model delegate from model name
+ * @param modelName - Name of the Prisma model (e.g., 'client', 'article')
+ * @returns Prisma model delegate for database operations
  */
-function getModel(modelName: string): Record<string, unknown> {
-    return (prisma as Record<string, unknown>)[modelName] as Record<string, unknown>;
+function getPrismaModel(modelName: string): PrismaModelDelegate {
+    const model = (prisma as unknown as Record<string, unknown>)[modelName];
+
+    if (!model) {
+        throw new Error(`Prisma model "${modelName}" not found`);
+    }
+
+    return model as PrismaModelDelegate;
+}
+
+/**
+ * Build where clause for list queries
+ * @param config - CRUD configuration
+ * @param searchParams - URL search parameters
+ * @param entrepriseId - Company ID for tenant isolation
+ * @returns Prisma where clause object
+ */
+function buildWhereClause(
+    config: CrudConfig,
+    searchParams: URLSearchParams,
+    entrepriseId: string
+): Record<string, unknown> {
+    let where: Record<string, unknown> = { entrepriseId };
+
+    // Add search filter
+    const search = searchParams.get("search");
+    if (search && config.searchFields && config.searchFields.length > 0) {
+        where.OR = config.searchFields.map((field) => ({
+            [field]: {
+                contains: search,
+                mode: "insensitive" as const,
+            },
+        }));
+    }
+
+    // Add custom filters
+    if (config.customWhere) {
+        const customFilters = config.customWhere(searchParams, entrepriseId);
+        where = { ...where, ...customFilters };
+    }
+
+    return where;
 }
 
 /**
@@ -158,8 +92,8 @@ function getModel(modelName: string): Record<string, unknown> {
  * });
  * ```
  */
-export function createCrudRoutes(config: CrudConfig) {
-    const model = getModel(config.modelName);
+export function createCrudRoutes(config: CrudConfig): CrudRouteHandlers {
+    const model = getPrismaModel(config.modelName);
 
     /**
      * GET /api/resource
@@ -181,37 +115,17 @@ export function createCrudRoutes(config: CrudConfig) {
                 const pagination = getPaginationParams(searchParams);
 
                 // Build where clause
-                const search = searchParams.get("search");
-                let where: Record<string, unknown> = { entrepriseId };
-
-                // Add search filter
-                if (
-                    search &&
-                    config.searchFields &&
-                    config.searchFields.length > 0
-                ) {
-                    where.OR = config.searchFields.map((field) => ({
-                        [field]: {
-                            contains: search,
-                            mode: "insensitive" as const,
-                        },
-                    }));
-                }
-
-                // Add custom filters
-                if (config.customWhere) {
-                    const customFilters = config.customWhere(
-                        searchParams,
-                        entrepriseId
-                    );
-                    where = { ...where, ...customFilters };
-                }
+                const where = buildWhereClause(
+                    config,
+                    searchParams,
+                    entrepriseId
+                );
 
                 // Fetch resources with pagination
                 const [items, total] = await Promise.all([
                     model.findMany({
                         where,
-                        orderBy: config.orderBy || { createdAt: "desc" },
+                        orderBy: config.orderBy || DEFAULT_ORDER_BY,
                         skip: pagination.skip,
                         take: pagination.limit,
                         ...(config.include && { include: config.include }),
@@ -223,7 +137,10 @@ export function createCrudRoutes(config: CrudConfig) {
                     createPaginatedResponse(items, total, pagination)
                 );
             },
-            { resourceName: config.resourceName, operation: "list" }
+            {
+                resourceName: config.resourceName,
+                operation: CRUD_OPERATIONS.LIST,
+            }
         );
     };
 
@@ -246,7 +163,7 @@ export function createCrudRoutes(config: CrudConfig) {
                     const limitCheck = await validateLimit(
                         entreprise.plan,
                         entrepriseId,
-                        config.limitKey as string
+                        config.limitKey
                     );
                     if (limitCheck) return limitCheck;
                 }
@@ -278,7 +195,10 @@ export function createCrudRoutes(config: CrudConfig) {
 
                 return NextResponse.json(resource, { status: 201 });
             },
-            { resourceName: config.resourceName, operation: "create" }
+            {
+                resourceName: config.resourceName,
+                operation: CRUD_OPERATIONS.CREATE,
+            }
         );
     };
 
@@ -296,12 +216,27 @@ export function createCrudRoutes(config: CrudConfig) {
  * export const { GET, PUT, DELETE } = createResourceByIdRoutes({
  *   modelName: 'client',
  *   resourceName: 'Client',
+ *   createSchema: clientCreateSchema, // Required by type but not used
  *   updateSchema: clientUpdateSchema,
+ *   include: {
+ *     documents: true,
+ *   },
+ *   beforeDelete: async (id, entrepriseId) => {
+ *     // Check if resource can be deleted
+ *     const hasDocuments = await prisma.document.count({
+ *       where: { clientId: id }
+ *     });
+ *     if (hasDocuments > 0) {
+ *       throw new BusinessError('Cannot delete client with documents');
+ *     }
+ *   },
  * });
  * ```
  */
-export function createResourceByIdRoutes(config: CrudConfig) {
-    const model = getModel(config.modelName);
+export function createResourceByIdRoutes(
+    config: CrudConfig
+): ResourceByIdRouteHandlers {
+    const model = getPrismaModel(config.modelName);
 
     /**
      * GET /api/resource/[id]
@@ -320,7 +255,7 @@ export function createResourceByIdRoutes(config: CrudConfig) {
                     await requirePermission(req, config.permissions.read);
                 }
 
-                const { resource } = await verifyResourceAccess(
+                const { resource } = await verifyResourceAccess<TenantResource>(
                     id,
                     (id) =>
                         model.findUnique({
@@ -332,7 +267,10 @@ export function createResourceByIdRoutes(config: CrudConfig) {
 
                 return NextResponse.json(resource);
             },
-            { resourceName: config.resourceName, operation: "get" }
+            {
+                resourceName: config.resourceName,
+                operation: CRUD_OPERATIONS.GET,
+            }
         );
     };
 
@@ -353,7 +291,7 @@ export function createResourceByIdRoutes(config: CrudConfig) {
                     await requirePermission(req, config.permissions.update);
                 }
 
-                const { entrepriseId } = await verifyResourceAccess(
+                const { context } = await verifyResourceAccess<TenantResource>(
                     id,
                     (id) =>
                         model.findUnique({
@@ -374,7 +312,7 @@ export function createResourceByIdRoutes(config: CrudConfig) {
                     dataToUpdate = await config.beforeUpdate(
                         dataToUpdate,
                         id,
-                        entrepriseId.entrepriseId
+                        context.entrepriseId
                     );
                 }
 
@@ -387,15 +325,15 @@ export function createResourceByIdRoutes(config: CrudConfig) {
 
                 // Apply after update hook
                 if (config.afterUpdate) {
-                    await config.afterUpdate(
-                        updated,
-                        entrepriseId.entrepriseId
-                    );
+                    await config.afterUpdate(updated, context.entrepriseId);
                 }
 
                 return NextResponse.json(updated);
             },
-            { resourceName: config.resourceName, operation: "update" }
+            {
+                resourceName: config.resourceName,
+                operation: CRUD_OPERATIONS.UPDATE,
+            }
         );
     };
 
@@ -416,7 +354,7 @@ export function createResourceByIdRoutes(config: CrudConfig) {
                     await requirePermission(req, config.permissions.delete);
                 }
 
-                const { entrepriseId } = await verifyResourceAccess(
+                const { context } = await verifyResourceAccess<TenantResource>(
                     id,
                     (id) =>
                         model.findUnique({
@@ -428,7 +366,7 @@ export function createResourceByIdRoutes(config: CrudConfig) {
 
                 // Apply before delete hook
                 if (config.beforeDelete) {
-                    await config.beforeDelete(id, entrepriseId.entrepriseId);
+                    await config.beforeDelete(id, context.entrepriseId);
                 }
 
                 // Delete resource
@@ -436,12 +374,15 @@ export function createResourceByIdRoutes(config: CrudConfig) {
 
                 // Apply after delete hook
                 if (config.afterDelete) {
-                    await config.afterDelete(id, entrepriseId.entrepriseId);
+                    await config.afterDelete(id, context.entrepriseId);
                 }
 
                 return NextResponse.json({ success: true });
             },
-            { resourceName: config.resourceName, operation: "delete" }
+            {
+                resourceName: config.resourceName,
+                operation: CRUD_OPERATIONS.DELETE,
+            }
         );
     };
 

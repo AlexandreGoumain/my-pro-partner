@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import {
     Dialog,
     DialogContent,
@@ -10,8 +9,10 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { Separator } from "@/components/ui/separator";
 import { useCreateArticle } from "@/hooks/use-articles";
+import { useBusinessNavigation } from "@/hooks/use-business-navigation";
 import { useCategories } from "@/hooks/use-categories";
 import { useFormReset } from "@/hooks/use-form-reset";
 import { articleCreateSchema } from "@/lib/validation";
@@ -23,12 +24,14 @@ import {
     ChevronRight,
     DollarSign,
     FileText,
+    RotateCcw,
     Tag,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { InfoStep } from "./steps/info-step";
+import { OccasionDetailsStep } from "./steps/occasion-details-step";
 import { PricingStep } from "./steps/pricing-step";
 import { StockStep } from "./steps/stock-step";
 import { SummaryStep } from "./steps/summary-step";
@@ -50,10 +53,13 @@ export function ArticleCreateDialog({
     const createArticle = useCreateArticle();
     const { data: categories = [], isLoading: loadingCategories } =
         useCategories();
+    const { businessType } = useBusinessNavigation();
 
     const [currentStep, setCurrentStep] = useState<Step>(1);
     const [direction, setDirection] = useState<Direction>("right");
     const [articleType, setArticleType] = useState<ArticleType | null>(null);
+
+    const isComputerShop = businessType === "INFORMATIQUE";
 
     const defaultValues: ArticleFormValues = {
         nom: "",
@@ -66,6 +72,12 @@ export function ArticleCreateDialog({
         stock_min: 0,
         gestion_stock: true,
         actif: true,
+        // Occasion-specific fields
+        etat: undefined,
+        provenance: undefined,
+        prixRachat: undefined,
+        numeroSerie: undefined,
+        notesRachat: undefined,
     };
 
     const form = useForm<ArticleFormValues>({
@@ -88,36 +100,74 @@ export function ArticleCreateDialog({
 
     const steps = [
         { id: 1, name: "Type", icon: Tag },
-        { id: 2, name: "Informations", icon: FileText },
-        { id: 3, name: "Tarification", icon: DollarSign },
+        // Informations combinées pour OCCASION, séparées pour PRODUIT et SERVICE
+        ...(articleType === "OCCASION"
+            ? [{ id: 2, name: "Détails occasion", icon: RotateCcw }]
+            : [{ id: 2, name: "Informations", icon: FileText }]),
+        {
+            id: 3,
+            name: "Tarification",
+            icon: DollarSign,
+        },
+        // Stock uniquement pour PRODUIT (pas pour OCCASION ni SERVICE)
         ...(articleType === "PRODUIT"
-            ? [{ id: 4, name: "Stock", icon: Archive }]
+            ? [
+                  {
+                      id: 4,
+                      name: "Stock",
+                      icon: Archive,
+                  },
+              ]
             : []),
         {
-            id: articleType === "PRODUIT" ? 5 : 4,
+            id:
+                articleType === "OCCASION"
+                    ? 4 // OCCASION: Type -> Détails -> Tarif -> Résumé (4 steps)
+                    : articleType === "PRODUIT"
+                      ? 5 // PRODUIT: Type -> Info -> Tarif -> Stock -> Résumé (5 steps)
+                      : 4, // SERVICE: Type -> Info -> Tarif -> Résumé (4 steps)
             name: "Résumé",
             icon: CheckCircle2,
         },
     ];
 
-    const totalSteps = articleType === "PRODUIT" ? 5 : 4;
+    const totalSteps =
+        articleType === "OCCASION" ? 4 : articleType === "PRODUIT" ? 5 : 4;
 
     const handleNext = async () => {
         let isValid = true;
 
         if (currentStep === 1 && !articleType) return;
 
+        // Step 2: Détails occasion (OCCASION) or Info (PRODUIT/SERVICE)
         if (currentStep === 2) {
-            const fields = ["nom", "categorieId"] as const;
-            isValid = await form.trigger(fields);
+            if (articleType === "OCCASION") {
+                // Validate all occasion fields including nom and categorieId
+                isValid = await form.trigger([
+                    "nom",
+                    "categorieId",
+                    "etat",
+                    "provenance",
+                    "prixRachat",
+                ]);
+            } else {
+                // Info step for PRODUIT and SERVICE
+                const fields = ["nom", "categorieId"] as const;
+                isValid = await form.trigger(fields);
+            }
         }
 
+        // Step 3: Pricing (all types)
         if (currentStep === 3) {
             isValid = await form.trigger(["prix_ht", "tva_taux"]);
         }
 
-        if (currentStep === 4 && articleType === "PRODUIT") {
-            isValid = await form.trigger(["stock_actuel", "stock_min"]);
+        // Step 4: Stock (PRODUIT only), Résumé for others
+        if (currentStep === 4) {
+            if (articleType === "PRODUIT") {
+                isValid = await form.trigger(["stock_actuel", "stock_min"]);
+            }
+            // Pour OCCASION et SERVICE, le step 4 est le résumé, pas de validation
         }
 
         if (isValid && currentStep < totalSteps) {
@@ -140,12 +190,17 @@ export function ArticleCreateDialog({
             form.setValue("stock_actuel", 0);
             form.setValue("stock_min", 0);
             form.setValue("gestion_stock", false);
+        } else if (type === "OCCASION") {
+            // Pour OCCASION: stock fixe à 1 (pièce unique), pas d'alerte
+            form.setValue("stock_actuel", 1);
+            form.setValue("stock_min", 0);
+            form.setValue("gestion_stock", true);
         }
     };
 
     const handleNavigateToCategories = () => {
         onOpenChange(false);
-        router.push("/dashboard/articles/categories");
+        router.push("/dashboard/catalogue/categories");
     };
 
     function onSubmit(values: ArticleFormValues) {
@@ -176,7 +231,11 @@ export function ArticleCreateDialog({
                 <DialogHeader>
                     <DialogTitle>
                         Créer un nouveau{" "}
-                        {articleType === "SERVICE" ? "service" : "produit"}
+                        {articleType === "SERVICE"
+                            ? "service"
+                            : articleType === "OCCASION"
+                              ? "produit d'occasion"
+                              : "produit"}
                     </DialogTitle>
                 </DialogHeader>
 
@@ -272,6 +331,7 @@ export function ArticleCreateDialog({
                                         onTypeSelect={handleTypeSelect}
                                         categories={categories}
                                         loadingCategories={loadingCategories}
+                                        isComputerShop={isComputerShop}
                                     />
                                 </div>
                             )}
@@ -285,15 +345,28 @@ export function ArticleCreateDialog({
                                             : "slide-in-from-left"
                                     } duration-300`}
                                 >
-                                    <InfoStep
-                                        form={form}
-                                        articleType={articleType}
-                                        categories={categories}
-                                        loadingCategories={loadingCategories}
-                                        onNavigateToCategories={
-                                            handleNavigateToCategories
-                                        }
-                                    />
+                                    {articleType === "OCCASION" ? (
+                                        <OccasionDetailsStep
+                                            form={form}
+                                            articleType={articleType}
+                                            categories={categories}
+                                            loadingCategories={
+                                                loadingCategories
+                                            }
+                                        />
+                                    ) : (
+                                        <InfoStep
+                                            form={form}
+                                            articleType={articleType}
+                                            categories={categories}
+                                            loadingCategories={
+                                                loadingCategories
+                                            }
+                                            onNavigateToCategories={
+                                                handleNavigateToCategories
+                                            }
+                                        />
+                                    )}
                                 </div>
                             )}
 
@@ -315,7 +388,7 @@ export function ArticleCreateDialog({
                                 </div>
                             )}
 
-                            {currentStep === 4 && articleType === "PRODUIT" && (
+                            {currentStep === 4 && (
                                 <div
                                     key="step-4"
                                     className={`animate-in ${
@@ -324,21 +397,33 @@ export function ArticleCreateDialog({
                                             : "slide-in-from-left"
                                     } duration-300`}
                                 >
-                                    <StockStep
-                                        form={form}
-                                        articleType={articleType}
-                                        categories={categories}
-                                        loadingCategories={loadingCategories}
-                                    />
+                                    {articleType === "PRODUIT" ? (
+                                        <StockStep
+                                            form={form}
+                                            articleType={articleType}
+                                            categories={categories}
+                                            loadingCategories={
+                                                loadingCategories
+                                            }
+                                        />
+                                    ) : (
+                                        // Résumé pour OCCASION et SERVICE
+                                        <SummaryStep
+                                            form={form}
+                                            articleType={articleType}
+                                            categories={categories}
+                                            loadingCategories={
+                                                loadingCategories
+                                            }
+                                        />
+                                    )}
                                 </div>
                             )}
 
-                            {((currentStep === 5 &&
-                                articleType === "PRODUIT") ||
-                                (currentStep === 4 &&
-                                    articleType === "SERVICE")) && (
+                            {/* Résumé final pour PRODUIT uniquement */}
+                            {currentStep === 5 && articleType === "PRODUIT" && (
                                 <div
-                                    key="step-5"
+                                    key="step-summary"
                                     className={`animate-in ${
                                         direction === "right"
                                             ? "slide-in-from-right"
