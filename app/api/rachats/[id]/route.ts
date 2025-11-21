@@ -4,75 +4,62 @@ import { requireTenantAuth, verifyResourceAccess } from "@/lib/middleware/tenant
 import { requireBusinessType } from "@/lib/middleware/business-type-check";
 import { prisma } from "@/lib/prisma";
 
-interface RouteParams {
-  params: {
-    id: string;
-  };
-}
-
 // GET: Get a specific rachat by ID
-export const GET = withErrorHandling(
-  async (_req: NextRequest, { params }: RouteParams) => {
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  return withErrorHandling(async () => {
     // Check business type
     const businessTypeCheck = await requireBusinessType("INFORMATIQUE");
     if (businessTypeCheck) return businessTypeCheck;
 
-    const { entrepriseId } = await requireTenantAuth();
-    const { id } = params;
+    const { id } = await params;
 
-    const rachat = await prisma.rachatArticle.findUnique({
-      where: { id },
-      include: {
-        article: {
-          include: {
-            categorie: true,
+    // Use verifyResourceAccess to check auth and ownership in one call
+    const { resource: rachat } = await verifyResourceAccess(
+      id,
+      (id) => prisma.rachatArticle.findUnique({
+        where: { id },
+        include: {
+          article: {
+            include: {
+              categorie: true,
+            },
           },
+          client: true,
         },
-        client: true,
-      },
-    });
-
-    if (!rachat) {
-      return NextResponse.json(
-        { message: "Rachat non trouvé" },
-        { status: 404 }
-      );
-    }
-
-    // Verify access
-    await verifyResourceAccess(rachat.entrepriseId, entrepriseId, "Rachat");
+      }),
+      "Rachat"
+    );
 
     return NextResponse.json(rachat);
-  },
-  { resourceName: "Rachat", operation: "read" }
-);
+  }, { resourceName: "Rachat", operation: "read" });
+}
 
 // DELETE: Delete a rachat (and optionally its article)
-export const DELETE = withErrorHandling(
-  async (_req: NextRequest, { params }: RouteParams) => {
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  return withErrorHandling(async () => {
     // Check business type
     const businessTypeCheck = await requireBusinessType("INFORMATIQUE");
     if (businessTypeCheck) return businessTypeCheck;
 
-    const { entrepriseId } = await requireTenantAuth();
-    const { id } = params;
+    const { id } = await params;
 
-    const rachat = await prisma.rachatArticle.findUnique({
-      where: { id },
-      include: {
-        article: true,
-      },
-    });
-
-    if (!rachat) {
-      return NextResponse.json(
-        { message: "Rachat non trouvé" },
-        { status: 404 }
-      );
-    }
-
-    // Verify access
-    await verifyResourceAccess(rachat.entrepriseId, entrepriseId, "Rachat");
+    // Use verifyResourceAccess to check auth and ownership in one call
+    await verifyResourceAccess(
+      id,
+      (id) => prisma.rachatArticle.findUnique({
+        where: { id },
+        include: {
+          article: true,
+        },
+      }),
+      "Rachat"
+    );
 
     // Delete rachat (cascade will handle related records)
     await prisma.rachatArticle.delete({
@@ -83,6 +70,5 @@ export const DELETE = withErrorHandling(
       { message: "Rachat supprimé avec succès" },
       { status: 200 }
     );
-  },
-  { resourceName: "Rachat", operation: "delete" }
-);
+  }, { resourceName: "Rachat", operation: "delete" });
+}

@@ -8,8 +8,8 @@ import { prisma } from "@/lib/prisma";
 import { ArticleService } from "@/lib/services/article.service";
 
 // GET: List all rachats
-export const GET = withErrorHandling(
-  async (req: NextRequest) => {
+export async function GET(req: NextRequest) {
+  return withErrorHandling(async () => {
     // Check business type
     const businessTypeCheck = await requireBusinessType("INFORMATIQUE");
     if (businessTypeCheck) return businessTypeCheck;
@@ -84,13 +84,12 @@ export const GET = withErrorHandling(
         totalPages: Math.ceil(total / limit),
       },
     });
-  },
-  { resourceName: "Rachat", operation: "list" }
-);
+  }, { resourceName: "Rachat", operation: "list" });
+}
 
 // POST: Create a new rachat with article
-export const POST = withErrorHandling(
-  async (req: NextRequest) => {
+export async function POST(req: NextRequest) {
+  return withErrorHandling(async () => {
     // Check business type
     const businessTypeCheck = await requireBusinessType("INFORMATIQUE");
     if (businessTypeCheck) return businessTypeCheck;
@@ -112,7 +111,7 @@ export const POST = withErrorHandling(
 
     const { articleData, ...rachatData } = result.data;
 
-    // Generate reference for the article
+    // Generate reference for the article (OCCASION articles use OCC prefix)
     const reference = await ArticleService.generateReference("OCCASION", entrepriseId);
 
     // Create article with rachat in a transaction
@@ -137,6 +136,5 @@ export const POST = withErrorHandling(
     });
 
     return NextResponse.json(article, { status: 201 });
-  },
-  { resourceName: "Rachat", operation: "create" }
-);
+  }, { resourceName: "Rachat", operation: "create" });
+}
