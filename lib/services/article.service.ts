@@ -9,7 +9,7 @@ import type { Article } from "@/lib/generated/prisma/client";
 export interface CreateArticleOptions {
   entrepriseId: string;
   nom: string;
-  type: "PRODUIT" | "SERVICE";
+  type: "PRODUIT" | "SERVICE" | "OCCASION" | "PIECE";
   prix: number;
   description?: string;
   categorieId?: string;
@@ -53,10 +53,10 @@ export class ArticleService {
 
   /**
    * Generate a unique reference for an article
-   * Format: PREFIX-XXX (e.g., PROD-001, SERV-001)
+   * Format: PREFIX-XXX (e.g., PRD-001, SRV-001, OCC-001, PCE-001)
    */
   static async generateReference(
-    type: "PRODUIT" | "SERVICE",
+    type: "PRODUIT" | "SERVICE" | "OCCASION" | "PIECE",
     entrepriseId: string
   ): Promise<string> {
     const parametres = await prisma.parametresEntreprise.findUnique({
@@ -67,17 +67,39 @@ export class ArticleService {
       throw new NotFoundError("Paramètres de l'entreprise", entrepriseId);
     }
 
-    const isProduit = type === "PRODUIT";
-    const prefix = isProduit ? parametres.prefixe_produit : parametres.prefixe_service;
-    const currentNumber = isProduit
-      ? parametres.prochain_numero_produit
-      : parametres.prochain_numero_service;
+    // Get prefix and counter based on type
+    let prefix: string;
+    let currentNumber: number;
+    let counterField: string;
+
+    switch (type) {
+      case "PRODUIT":
+        prefix = parametres.prefixe_produit;
+        currentNumber = parametres.prochain_numero_produit;
+        counterField = "prochain_numero_produit";
+        break;
+      case "SERVICE":
+        prefix = parametres.prefixe_service;
+        currentNumber = parametres.prochain_numero_service;
+        counterField = "prochain_numero_service";
+        break;
+      case "OCCASION":
+        prefix = parametres.prefixe_occasion;
+        currentNumber = parametres.prochain_numero_occasion;
+        counterField = "prochain_numero_occasion";
+        break;
+      case "PIECE":
+        prefix = parametres.prefixe_piece;
+        currentNumber = parametres.prochain_numero_piece;
+        counterField = "prochain_numero_piece";
+        break;
+    }
 
     // Increment the counter
     await prisma.parametresEntreprise.update({
       where: { entrepriseId },
       data: {
-        [isProduit ? "prochain_numero_produit" : "prochain_numero_service"]: {
+        [counterField]: {
           increment: 1,
         },
       },
@@ -96,9 +118,10 @@ export class ArticleService {
     // Generate unique reference
     const reference = await this.generateReference(type, entrepriseId);
 
-    // Validate stock for products
-    if (type === "PRODUIT" && stock === undefined) {
-      throw new BusinessError("Le stock est obligatoire pour les produits");
+    // Validate stock for types that require it (all except SERVICE)
+    const requiresStock = type !== "SERVICE";
+    if (requiresStock && stock === undefined) {
+      throw new BusinessError(`Le stock est obligatoire pour les ${type === "PRODUIT" ? "produits" : type === "OCCASION" ? "articles d'occasion" : "pièces détachées"}`);
     }
 
     // Services don't have stock
@@ -109,13 +132,13 @@ export class ArticleService {
       ...data,
       reference,
       type,
-      stock: finalStock,
+      stock_actuel: finalStock,
       entrepriseId,
       actif: options.actif !== undefined ? options.actif : true,
     });
 
-    // Create initial stock movement if product with stock
-    if (type === "PRODUIT" && finalStock && finalStock > 0) {
+    // Create initial stock movement for items with stock
+    if (requiresStock && finalStock && finalStock > 0) {
       await this.recordStockMovement({
         articleId: article.id,
         entrepriseId,
@@ -193,17 +216,17 @@ export class ArticleService {
     motif: StockMovementReason,
     description?: string
   ): Promise<Article> {
-    // Verify article exists and is a product
+    // Verify article exists and has stock management
     const article = await articleRepository.findByIdOrFail(articleId);
     if (article.entrepriseId !== entrepriseId) {
       throw new NotFoundError("Article", articleId);
     }
 
-    if (article.type !== "PRODUIT") {
+    if (article.type === "SERVICE") {
       throw new BusinessError("Les services n'ont pas de stock à gérer");
     }
 
-    const currentStock = article.stock || 0;
+    const currentStock = article.stock_actuel || 0;
     const newStock = currentStock + quantity;
 
     if (newStock < 0) {
@@ -304,7 +327,7 @@ export class ArticleService {
     percentageIncrease: number,
     filters?: {
       categorieId?: string;
-      type?: "PRODUIT" | "SERVICE";
+      type?: "PRODUIT" | "SERVICE" | "OCCASION" | "PIECE";
     }
   ): Promise<{ count: number }> {
     if (percentageIncrease <= -100) {
@@ -348,10 +371,12 @@ export class ArticleService {
    * Get article statistics
    */
   static async getArticleStatistics(entrepriseId: string) {
-    const [totalProducts, totalServices, lowStockCount, outOfStockCount] =
+    const [totalProducts, totalServices, totalOccasion, totalPieces, lowStockCount, outOfStockCount] =
       await Promise.all([
         articleRepository.countByType(entrepriseId, "PRODUIT"),
         articleRepository.countByType(entrepriseId, "SERVICE"),
+        articleRepository.countByType(entrepriseId, "OCCASION"),
+        articleRepository.countByType(entrepriseId, "PIECE"),
         articleRepository.findLowStock(entrepriseId, this.LOW_STOCK_THRESHOLD).then((items) => items.length),
         articleRepository.findOutOfStock(entrepriseId).then((items) => items.length),
       ]);
@@ -359,7 +384,9 @@ export class ArticleService {
     return {
       products: totalProducts,
       services: totalServices,
-      total: totalProducts + totalServices,
+      occasion: totalOccasion,
+      pieces: totalPieces,
+      total: totalProducts + totalServices + totalOccasion + totalPieces,
       lowStock: lowStockCount,
       outOfStock: outOfStockCount,
     };
@@ -379,7 +406,7 @@ export class ArticleService {
       throw new NotFoundError("Article", articleId);
     }
 
-    if (article.type !== "PRODUIT") {
+    if (article.type === "SERVICE") {
       return [];
     }
 
