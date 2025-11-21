@@ -71,21 +71,21 @@ export const ProductsFeature: FeatureModule = {
     main: {
       icon: "Package",
       label: "Articles",
-      href: "/dashboard/articles",
+      href: "/dashboard/catalogue",
       order: 20,
     },
     subItems: [
-      { label: "Catalogue", href: "/dashboard/articles", order: 1 },
-      { label: "Stock", href: "/dashboard/articles/stock", order: 2 },
-      { label: "Catégories", href: "/dashboard/articles/categories", order: 3 },
+      { label: "Catalogue", href: "/dashboard/catalogue", order: 1 },
+      { label: "Stock", href: "/dashboard/catalogue/stock", order: 2 },
+      { label: "Catégories", href: "/dashboard/catalogue/categories", order: 3 },
     ],
   },
   routes: [
-    "/dashboard/articles",
-    "/dashboard/articles/new",
-    "/dashboard/articles/[id]",
-    "/dashboard/articles/stock",
-    "/dashboard/articles/categories",
+    "/dashboard/catalogue",
+    "/dashboard/catalogue/new",
+    "/dashboard/catalogue/[id]",
+    "/dashboard/catalogue/stock",
+    "/dashboard/catalogue/categories",
   ],
   i18n: {
     singular: "Article",
@@ -98,7 +98,7 @@ export const InventoryFeature: FeatureModule = {
   id: "inventory",
   name: "Gestion de stock",
   dependencies: ["products"],
-  routes: ["/dashboard/articles/stock"],
+  routes: ["/dashboard/catalogue/stock"],
   permissions: ["canManageStock"],
 };
 
@@ -218,7 +218,7 @@ export const MenuFeature: FeatureModule = {
   id: "menu",
   name: "Menu & Carte",
   dependencies: ["products"],
-  routes: ["/dashboard/articles"],
+  routes: ["/dashboard/catalogue"],
   i18n: {
     singular: "Plat",
     plural: "Menu & Carte",
@@ -436,6 +436,89 @@ export const BankReconciliationFeature: FeatureModule = {
 };
 
 // ============================================
+// OCCASION (Computer shops only)
+// ============================================
+
+export const RachatsFeature: FeatureModule = {
+  id: "rachats",
+  name: "Rachats",
+  navigation: {
+    main: {
+      icon: "RotateCcw",
+      label: "Rachats",
+      href: "/dashboard/rachats",
+      order: 22,
+    },
+    quickActions: [
+      {
+        label: "Nouveau rachat",
+        icon: "Plus",
+        href: "/dashboard/rachats/new",
+        order: 10,
+      },
+    ],
+  },
+  routes: [
+    "/dashboard/rachats",
+    "/dashboard/rachats/[id]",
+  ],
+  dependencies: ["products"],
+  permissions: ["canViewProducts"],
+};
+
+export const AtelierFeature: FeatureModule = {
+  id: "atelier",
+  name: "Atelier",
+  navigation: {
+    main: {
+      icon: "Wrench",
+      label: "Atelier",
+      href: "/dashboard/atelier",
+      order: 23,
+    },
+  },
+  routes: ["/dashboard/atelier"],
+  dependencies: ["rachats"],
+  permissions: ["canViewProducts"],
+};
+
+export const CatalogueFeature: FeatureModule = {
+  id: "catalogue",
+  name: "Catalogue",
+  navigation: {
+    main: {
+      icon: "Package",
+      label: "Catalogue",
+      href: "/dashboard/catalogue",
+      order: 20,
+    },
+    subItems: [
+      { label: "Tous les articles", href: "/dashboard/catalogue", order: 1 },
+      { label: "Catégories", href: "/dashboard/catalogue/categories", order: 2 },
+    ],
+    quickActions: [
+      {
+        label: "Nouvel article",
+        icon: "Plus",
+        href: "/dashboard/catalogue/new",
+        order: 1,
+      },
+    ],
+  },
+  routes: [
+    "/dashboard/catalogue",
+    "/dashboard/catalogue/new",
+    "/dashboard/catalogue/[id]",
+    "/dashboard/catalogue/categories",
+  ],
+  i18n: {
+    singular: "Article",
+    plural: "Catalogue",
+  },
+  permissions: ["canViewProducts"],
+};
+
+// ============================================
 // INTEGRATIONS
 // ============================================
 
@@ -514,6 +597,11 @@ export const FEATURE_CATALOG: Record<string, FeatureModule> = {
   // Multi-store
   stores: StoresFeature,
   // terminals: TerminalsFeature, // Désactivé - Voir lib/config/features.config.ts
+
+  // Occasion (Computer shops)
+  rachats: RachatsFeature,
+  atelier: AtelierFeature,
+  catalogue: CatalogueFeature,
 
   // Finance
   payments: PaymentsFeature,

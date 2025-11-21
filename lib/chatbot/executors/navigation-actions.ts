@@ -12,7 +12,7 @@ export async function navigateTo(params: unknown): Promise<ActionResult> {
   const pageMap: Record<string, string> = {
     DASHBOARD: '/dashboard',
     CLIENTS: '/dashboard/clients',
-    ARTICLES: '/dashboard/articles',
+    ARTICLES: '/dashboard/catalogue',
     DOCUMENTS: '/dashboard/documents',
     STOCK: '/dashboard/stock',
     SEGMENTS: '/dashboard/segments',

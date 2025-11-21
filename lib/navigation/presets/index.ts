@@ -364,7 +364,9 @@ const InformatiquePreset: BusinessPreset = {
     features: [
         "dashboard",
         "clients",
-        "products", // Services
+        "catalogue", // Catalogue unifié (produits, services, occasion, pièces)
+        "rachats", // Rachats d'occasion
+        "atelier", // Démontage & ressources
         "quotes",
         "invoices",
         "analytics",
@@ -373,9 +375,9 @@ const InformatiquePreset: BusinessPreset = {
     ],
 
     i18n: {
-        products: {
-            singular: "Prestation",
-            plural: "Prestations & Matériel",
+        catalogue: {
+            singular: "Article",
+            plural: "Catalogue",
         },
     },
 };
