@@ -131,7 +131,7 @@ export const articleBaseSchema = z.object({
         .max(1000, "La description ne peut pas dépasser 1000 caractères")
         .optional()
         .or(z.literal("")),
-    type: z.enum(["PRODUIT", "SERVICE"]).default("PRODUIT"),
+    type: z.enum(["PRODUIT", "SERVICE", "OCCASION", "PIECE"]).default("PRODUIT"),
     prix_ht: z
         .number({
             required_error: "Le prix HT est requis",
@@ -171,8 +171,51 @@ export const articleCreateSchema = articleBaseSchema.omit({ reference: true });
 // Schema pour la mise à jour (tous les champs optionnels sauf validation)
 export const articleUpdateSchema = articleBaseSchema.partial();
 
+// Schema pour la création de pièces détachées (avec champs spécifiques)
+export const pieceCreateSchema = articleCreateSchema.extend({
+    type: z.literal("PIECE"),
+    typePiece: z.enum([
+        "ECRAN",
+        "BATTERIE",
+        "CARTE_MERE",
+        "CAMERA",
+        "HAUT_PARLEUR",
+        "CONNECTEUR_CHARGE",
+        "VITRE",
+        "CHASSIS",
+        "MEMOIRE_RAM",
+        "DISQUE_DUR",
+        "ALIMENTATION",
+        "VENTILATEUR",
+        "CLAVIER",
+        "TRACKPAD",
+        "AUTRE",
+    ], {
+        required_error: "Le type de pièce est requis",
+    }),
+    marque: z
+        .string()
+        .max(100, "La marque ne peut pas dépasser 100 caractères")
+        .optional()
+        .or(z.literal("")),
+    modele: z
+        .string()
+        .max(100, "Le modèle ne peut pas dépasser 100 caractères")
+        .optional()
+        .or(z.literal("")),
+    articleOrigineId: z
+        .string()
+        .optional(),
+    valeurEstimee: z
+        .number()
+        .positive("La valeur estimée doit être positive")
+        .max(999999.99, "La valeur est trop élevée")
+        .optional(),
+});
+
 export type ArticleCreateInput = z.infer<typeof articleCreateSchema>;
 export type ArticleUpdateInput = z.infer<typeof articleUpdateSchema>;
+export type PieceCreateInput = z.infer<typeof pieceCreateSchema>;
 
 // Stock movement validation schemas
 export const mouvementStockBaseSchema = z.object({
@@ -806,3 +849,201 @@ export const automationUpdateSchema = automationBaseSchema.partial();
 
 export type AutomationCreateInput = z.infer<typeof automationCreateSchema>;
 export type AutomationUpdateInput = z.infer<typeof automationUpdateSchema>;
+
+// ============================================
+// SYSTÈME D'OCCASION (BOUTIQUES INFORMATIQUE)
+// ============================================
+
+// Rachat d'articles d'occasion
+export const rachatCreateSchema = z.object({
+    // Données de l'article d'occasion à créer
+    articleData: articleCreateSchema.extend({
+        type: z.literal("OCCASION"),
+    }),
+    // Informations de rachat
+    clientId: z.string().optional(),
+    prixRachat: z
+        .number({
+            required_error: "Le prix de rachat est requis",
+            invalid_type_error: "Le prix doit être un nombre",
+        })
+        .positive("Le prix de rachat doit être positif")
+        .max(999999.99, "Le prix est trop élevé"),
+    etat: z.enum(["COMME_NEUF", "TRES_BON", "BON", "CORRECT", "POUR_PIECES"], {
+        required_error: "L'état est requis",
+        invalid_type_error: "État invalide",
+    }),
+    provenance: z.enum([
+        "RACHAT_CLIENT",
+        "MARKETPLACE_OCCASION",
+        "REPRISE",
+        "DON",
+        "RETOUR_SAV",
+        "AUTRE",
+    ], {
+        required_error: "La provenance est requise",
+    }),
+    numeroSerie: z
+        .string()
+        .max(100, "Le numéro de série ne peut pas dépasser 100 caractères")
+        .optional()
+        .or(z.literal("")),
+    notes: z
+        .string()
+        .max(1000, "Les notes ne peuvent pas dépasser 1000 caractères")
+        .optional()
+        .or(z.literal("")),
+});
+
+export type RachatCreateInput = z.infer<typeof rachatCreateSchema>;
+
+// Démontage d'articles d'occasion
+export const demontageCreateSchema = z.object({
+    articleSourceId: z.string().min(1, "L'article source est requis"),
+    motif: z
+        .string()
+        .max(200, "Le motif ne peut pas dépasser 200 caractères")
+        .optional()
+        .or(z.literal("")),
+    notes: z
+        .string()
+        .max(1000, "Les notes ne peuvent pas dépasser 1000 caractères")
+        .optional()
+        .or(z.literal("")),
+    ressources: z
+        .array(
+            z.object({
+                typeRessource: z.enum([
+                    "ECRAN",
+                    "BATTERIE",
+                    "CARTE_MERE",
+                    "CAMERA",
+                    "HAUT_PARLEUR",
+                    "CONNECTEUR_CHARGE",
+                    "VITRE",
+                    "CHASSIS",
+                    "MEMOIRE_RAM",
+                    "DISQUE_DUR",
+                    "ALIMENTATION",
+                    "VENTILATEUR",
+                    "CLAVIER",
+                    "TRACKPAD",
+                    "AUTRE",
+                ], {
+                    required_error: "Le type de ressource est requis",
+                }),
+                nom: z
+                    .string()
+                    .min(1, "Le nom est requis")
+                    .max(200, "Le nom ne peut pas dépasser 200 caractères"),
+                description: z
+                    .string()
+                    .max(500, "La description ne peut pas dépasser 500 caractères")
+                    .optional()
+                    .or(z.literal("")),
+                etat: z.enum(["COMME_NEUF", "TRES_BON", "BON", "CORRECT", "POUR_PIECES"], {
+                    required_error: "L'état est requis",
+                }),
+                quantite: z
+                    .number()
+                    .int("La quantité doit être un nombre entier")
+                    .positive("La quantité doit être positive")
+                    .default(1),
+                marque: z
+                    .string()
+                    .max(100, "La marque ne peut pas dépasser 100 caractères")
+                    .optional()
+                    .or(z.literal("")),
+                modele: z
+                    .string()
+                    .max(100, "Le modèle ne peut pas dépasser 100 caractères")
+                    .optional()
+                    .or(z.literal("")),
+                reference: z
+                    .string()
+                    .max(100, "La référence ne peut pas dépasser 100 caractères")
+                    .optional()
+                    .or(z.literal("")),
+                valeurEstimee: z
+                    .number()
+                    .positive("La valeur doit être positive")
+                    .max(999999.99, "La valeur est trop élevée")
+                    .optional(),
+                notes: z
+                    .string()
+                    .max(500, "Les notes ne peuvent pas dépasser 500 caractères")
+                    .optional()
+                    .or(z.literal("")),
+            })
+        )
+        .min(1, "Au moins une pièce doit être récupérée"),
+});
+
+export type DemontageCreateInput = z.infer<typeof demontageCreateSchema>;
+
+// Utilisation d'une ressource d'atelier
+export const ressourceUtiliserSchema = z.object({
+    quantiteUtilisee: z
+        .number({
+            required_error: "La quantité utilisée est requise",
+        })
+        .int("La quantité doit être un nombre entier")
+        .positive("La quantité doit être positive"),
+    reparationId: z
+        .string()
+        .optional(),
+    notes: z
+        .string()
+        .max(500, "Les notes ne peuvent pas dépasser 500 caractères")
+        .optional()
+        .or(z.literal("")),
+});
+
+export type RessourceUtiliserInput = z.infer<typeof ressourceUtiliserSchema>;
+
+// Mise à jour d'une ressource d'atelier
+export const ressourceUpdateSchema = z.object({
+    nom: z
+        .string()
+        .min(1, "Le nom est requis")
+        .max(200, "Le nom ne peut pas dépasser 200 caractères")
+        .optional(),
+    description: z
+        .string()
+        .max(500, "La description ne peut pas dépasser 500 caractères")
+        .optional()
+        .or(z.literal("")),
+    etat: z.enum(["COMME_NEUF", "TRES_BON", "BON", "CORRECT", "POUR_PIECES"]).optional(),
+    quantite: z
+        .number()
+        .int("La quantité doit être un nombre entier")
+        .min(0, "La quantité ne peut pas être négative")
+        .optional(),
+    marque: z
+        .string()
+        .max(100, "La marque ne peut pas dépasser 100 caractères")
+        .optional()
+        .or(z.literal("")),
+    modele: z
+        .string()
+        .max(100, "Le modèle ne peut pas dépasser 100 caractères")
+        .optional()
+        .or(z.literal("")),
+    reference: z
+        .string()
+        .max(100, "La référence ne peut pas dépasser 100 caractères")
+        .optional()
+        .or(z.literal("")),
+    valeurEstimee: z
+        .number()
+        .positive("La valeur doit être positive")
+        .max(999999.99, "La valeur est trop élevée")
+        .optional(),
+    notes: z
+        .string()
+        .max(500, "Les notes ne peuvent pas dépasser 500 caractères")
+        .optional()
+        .or(z.literal("")),
+});
+
+export type RessourceUpdateInput = z.infer<typeof ressourceUpdateSchema>;
