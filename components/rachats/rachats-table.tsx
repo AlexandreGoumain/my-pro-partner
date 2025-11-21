@@ -18,6 +18,7 @@ interface Rachat {
         prix_ht: number;
     };
     client?: {
+        id: string;
         nom: string;
     } | null;
 }

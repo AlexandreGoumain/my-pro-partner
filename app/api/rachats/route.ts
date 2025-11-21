@@ -21,11 +21,22 @@ export async function GET(req: NextRequest) {
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "20");
     const search = searchParams.get("search") || "";
+    const disponible = searchParams.get("disponible") === "true";
 
     // Build where clause
     const where: any = {
       entrepriseId,
     };
+
+    // Filter for "disponible" rachats (not yet sold/used in documents)
+    if (disponible) {
+      where.article = {
+        actif: true, // Article is active
+        lignes: {
+          none: {}, // No invoice/quote lines yet (not sold)
+        },
+      };
+    }
 
     if (search) {
       where.OR = [
@@ -74,6 +85,31 @@ export async function GET(req: NextRequest) {
       skip: (page - 1) * limit,
       take: limit,
     });
+
+    // If disponible=true, flatten the response for dropdown usage
+    if (disponible) {
+      const flattenedRachats = rachats.map((rachat) => ({
+        id: rachat.id,
+        designation: rachat.article.nom,
+        description: rachat.article.description,
+        categorieId: rachat.article.categorieId,
+        prixRachat: Number(rachat.prixRachat),
+        etat: rachat.etat,
+        provenance: rachat.provenance,
+        numeroSerie: rachat.numeroSerie,
+        notes: rachat.notes,
+      }));
+
+      return NextResponse.json({
+        items: flattenedRachats,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      });
+    }
 
     return NextResponse.json({
       items: rachats,

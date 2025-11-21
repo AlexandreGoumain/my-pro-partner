@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useRachats, useDeleteRachat } from "./use-rachats";
+import { useDeleteRachat, useRachats } from "./use-rachats";
 
 /**
  * Custom hook to manage all the logic for the Rachats page
@@ -9,6 +9,7 @@ export function useRachatsPage() {
     const [search, setSearch] = useState("");
     const [page, setPage] = useState(1);
     const [deleteId, setDeleteId] = useState<string | null>(null);
+    const [viewId, setViewId] = useState<string | null>(null);
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
     const { data, isLoading } = useRachats({ page, limit: 20, search });
@@ -38,8 +39,11 @@ export function useRachatsPage() {
     };
 
     const handleView = (id: string) => {
-        // TODO: Implement view logic when needed
-        console.log("View rachat:", id);
+        setViewId(id);
+    };
+
+    const handleViewClose = () => {
+        setViewId(null);
     };
 
     return {
@@ -69,7 +73,9 @@ export function useRachatsPage() {
         handleCreateClick,
         handleCreateSuccess,
 
-        // View
+        // View dialog
+        viewId,
         handleView,
+        handleViewClose,
     };
 }

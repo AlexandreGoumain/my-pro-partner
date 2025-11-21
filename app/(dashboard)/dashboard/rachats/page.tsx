@@ -1,6 +1,7 @@
 "use client";
 
 import { RachatCreateDialog } from "@/components/rachats/rachat-create-dialog";
+import { RachatDetailDialog } from "@/components/rachats/rachat-detail-dialog";
 import { RachatsDeleteDialog } from "@/components/rachats/rachats-delete-dialog";
 import { RachatsEmptyState } from "@/components/rachats/rachats-empty-state";
 import { RachatsLoadingState } from "@/components/rachats/rachats-loading-state";
@@ -66,6 +67,14 @@ export default function RachatsPage() {
                     )}
                 </CardContent>
             </Card>
+
+            <RachatDetailDialog
+                rachatId={handlers.viewId}
+                open={!!handlers.viewId}
+                onOpenChange={(open) => {
+                    if (!open) handlers.handleViewClose();
+                }}
+            />
 
             <RachatsDeleteDialog
                 open={!!handlers.deleteId}

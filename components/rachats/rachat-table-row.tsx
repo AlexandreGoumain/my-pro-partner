@@ -1,10 +1,10 @@
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { ETAT_COLORS, ETAT_LABELS } from "@/lib/constants/rachats";
-import { Eye, Trash2 } from "lucide-react";
+import { RachatActions } from "./rachat-actions";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import Link from "next/link";
 
 interface Rachat {
     id: string;
@@ -17,6 +17,7 @@ interface Rachat {
         prix_ht: number;
     };
     client?: {
+        id: string;
         nom: string;
     } | null;
 }
@@ -53,7 +54,16 @@ export function RachatTableRow({ rachat, onView, onDelete }: RachatTableRowProps
                 {Number(rachat.article.prix_ht).toFixed(2)} €
             </TableCell>
             <TableCell className="text-black/70">
-                {rachat.client?.nom || "-"}
+                {rachat.client ? (
+                    <Link
+                        href={`/dashboard/clients/${rachat.client.id}`}
+                        className="hover:text-black hover:underline transition-colors duration-200"
+                    >
+                        {rachat.client.nom}
+                    </Link>
+                ) : (
+                    "-"
+                )}
             </TableCell>
             <TableCell className="text-black/70">
                 {format(new Date(rachat.dateRachat), "dd MMM yyyy", {
@@ -61,26 +71,11 @@ export function RachatTableRow({ rachat, onView, onDelete }: RachatTableRowProps
                 })}
             </TableCell>
             <TableCell className="text-right">
-                <div className="flex items-center justify-end gap-2">
-                    {onView && (
-                        <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-9 w-9 border-black/10 hover:bg-black/5"
-                            onClick={() => onView(rachat.id)}
-                        >
-                            <Eye className="h-4 w-4" strokeWidth={2} />
-                        </Button>
-                    )}
-                    <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-9 w-9 border-red-200 hover:bg-red-50 text-red-600"
-                        onClick={() => onDelete(rachat.id)}
-                    >
-                        <Trash2 className="h-4 w-4" strokeWidth={2} />
-                    </Button>
-                </div>
+                <RachatActions
+                    rachatId={rachat.id}
+                    onView={onView}
+                    onDelete={onDelete}
+                />
             </TableCell>
         </TableRow>
     );
