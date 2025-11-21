@@ -5,82 +5,96 @@
 
 // Re-export Prisma generated types
 export type {
-  Article,
-  Categorie,
-  Client,
-  Document,
-  LigneDocument,
-  Paiement,
-  User,
-  ParametresEntreprise,
-  Segment,
+    Article,
+    Categorie,
+    Client,
+    Document,
+    LigneDocument,
+    Paiement,
+    ParametresEntreprise,
+    Segment,
+    User,
 } from "@/lib/generated/prisma";
 
 // Re-export enums
-export { DocumentType, DocumentStatut, MoyenPaiement } from "@/lib/generated/prisma";
+export {
+    DocumentStatut,
+    DocumentType,
+    MoyenPaiement,
+} from "@/lib/generated/prisma";
 
 // Re-export client-safe segment types (for use in client components)
 export type {
-  SegmentOperator,
-  SegmentField,
-  SegmentCriterion,
-  CustomSegmentCriteria,
-  PredefinedSegmentType,
-  PredefinedSegmentCriteria,
-  SegmentCriteria,
-  CreateSegmentForm,
-  UpdateSegmentForm,
+    CreateSegmentForm,
+    CustomSegmentCriteria,
+    PredefinedSegmentCriteria,
+    PredefinedSegmentType,
+    SegmentCriteria,
+    SegmentCriterion,
+    SegmentField,
+    SegmentOperator,
+    UpdateSegmentForm,
 } from "./segment-client";
 
 // Re-export server-side segment types and functions
 export type {
-  SegmentDisplay,
-  SegmentWithClients,
-  SegmentStats,
-  BulkEmailPayload,
-  ExportSegmentPayload,
-  SegmentComparison,
-  SegmentWithRelations,
+    BulkEmailPayload,
+    ExportSegmentPayload,
+    SegmentComparison,
+    SegmentDisplay,
+    SegmentStats,
+    SegmentWithClients,
+    SegmentWithRelations,
 } from "./segment";
 
 export {
-  applySegmentCriteria,
-  mapSegmentToDisplay,
-  getSegmentIcon,
-  getSegmentColor,
-  TypeSegment,
+    applySegmentCriteria,
+    getSegmentColor,
+    getSegmentIcon,
+    mapSegmentToDisplay,
+    TypeSegment,
 } from "./segment";
 
 // Re-export import-export types
 export type {
-  ImportExportStats,
-  ExportOptions,
-  ImportOptions,
-  ImportResult,
-  ExportData,
-  CSVMapping,
-  ValidationError,
-  ParsedCSVRow,
+    CSVMapping,
+    ExportData,
+    ExportOptions,
+    ImportExportStats,
+    ImportOptions,
+    ImportResult,
+    ParsedCSVRow,
+    ValidationError,
 } from "./import-export";
 
 // Re-export reservation types
 export type {
-  Reservation,
-  ReservationStats,
-  CreateReservationData,
+    CreateReservationData,
+    Reservation,
+    ReservationStats,
 } from "./reservation";
 
 export { ReservationStatut } from "./reservation";
 
 // Re-export subscription types
 export type {
-  TimelineStepProps,
-  BenefitItemProps,
-  ConfettiConfig,
+    BenefitItemProps,
+    ConfettiConfig,
+    TimelineStepProps,
 } from "./subscription";
 
 // Re-export error types
+export type { ErrorPageProps, NextJsError } from "./error";
+
+// Re-export CRUD factory types
 export type {
-  NextJsError,
-  ErrorPageProps,
-} from "./error";
+    CrudConfig,
+    CrudHooks,
+    CrudPermissions,
+    CrudRouteHandlers,
+    ErrorContext,
+    PaginationParams,
+    PrismaModelDelegate,
+    ResourceByIdRouteHandlers,
+    TenantResource,
+} from "./crud";
