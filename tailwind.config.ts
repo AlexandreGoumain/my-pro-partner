@@ -9,6 +9,30 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      keyframes: {
+        "fade-in": {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
+        },
+        "fade-out": {
+          from: { opacity: "1" },
+          to: { opacity: "0" },
+        },
+        "dialog-in": {
+          from: { transform: "translate(-50%, -48%) scale(0.96)", opacity: "0" },
+          to: { transform: "translate(-50%, -50%) scale(1)", opacity: "1" },
+        },
+        "dialog-out": {
+          from: { transform: "translate(-50%, -50%) scale(1)", opacity: "1" },
+          to: { transform: "translate(-50%, -48%) scale(0.96)", opacity: "0" },
+        },
+      },
+      animation: {
+        "fade-in": "fade-in 200ms ease-out",
+        "fade-out": "fade-out 200ms ease-out",
+        "dialog-in": "dialog-in 200ms cubic-bezier(0.16, 1, 0.3, 1)",
+        "dialog-out": "dialog-out 150ms cubic-bezier(0.16, 1, 0.3, 1)",
+      },
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",

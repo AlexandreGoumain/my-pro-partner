@@ -49,6 +49,7 @@ CLAUDE.md
 # Personal Documentation (commented out - we want to version docs)
 doc/
 docs/
+lib/api/cache/docs/
 
 # Docker & Nginx
 nginx/ssl/*.pem
