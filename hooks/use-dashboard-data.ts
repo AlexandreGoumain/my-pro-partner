@@ -94,7 +94,7 @@ export function useDashboardData(): UseDashboardDataReturn {
                 id: "out-of-stock",
                 priority: "urgent",
                 title: `${stats.articles.rupture} articles en rupture de stock`,
-                onClick: () => router.push("/dashboard/articles/stock"),
+                onClick: () => router.push("/dashboard/catalogue/stock"),
             });
         }
 
@@ -103,7 +103,7 @@ export function useDashboardData(): UseDashboardDataReturn {
                 id: "low-stock",
                 priority: "medium",
                 title: `${stats.articles.stockFaible} articles à réapprovisionner`,
-                onClick: () => router.push("/dashboard/articles/stock"),
+                onClick: () => router.push("/dashboard/catalogue/stock"),
             });
         }
 
@@ -169,7 +169,7 @@ export function useDashboardData(): UseDashboardDataReturn {
             },
             {
                 label: "Nouvel article",
-                onClick: () => router.push("/dashboard/articles"),
+                onClick: () => router.push("/dashboard/catalogue"),
             },
             {
                 label: "Nouveau devis",
@@ -181,11 +181,11 @@ export function useDashboardData(): UseDashboardDataReturn {
 
     // Navigation helpers
     const navigateToClients = () => router.push("/dashboard/clients");
-    const navigateToArticles = () => router.push("/dashboard/articles");
+    const navigateToArticles = () => router.push("/dashboard/catalogue");
     const navigateToClientsSegments = () =>
         router.push("/dashboard/clients/segments");
     const navigateToArticlesStock = () =>
-        router.push("/dashboard/articles/stock");
+        router.push("/dashboard/catalogue/stock");
     const navigateToClientsStatistics = () =>
         router.push("/dashboard/clients/statistiques");
 
