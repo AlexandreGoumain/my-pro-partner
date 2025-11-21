@@ -131,13 +131,15 @@ export const articleBaseSchema = z.object({
         .max(1000, "La description ne peut pas dépasser 1000 caractères")
         .optional()
         .or(z.literal("")),
-    type: z.enum(["PRODUIT", "SERVICE", "OCCASION", "PIECE"]).default("PRODUIT"),
+    type: z
+        .enum(["PRODUIT", "SERVICE", "OCCASION", "PIECE"])
+        .default("PRODUIT"),
     prix_ht: z
         .number({
             required_error: "Le prix HT est requis",
             invalid_type_error: "Le prix doit être un nombre",
         })
-        .positive("Le prix doit être positif")
+        .min(0, "Le prix ne peut pas être négatif")
         .max(9999999.99, "Le prix est trop élevé"),
     tva_taux: z
         .number({
@@ -166,7 +168,28 @@ export const articleBaseSchema = z.object({
 });
 
 // Schema pour la création (référence optionnelle car générée côté backend)
-export const articleCreateSchema = articleBaseSchema.omit({ reference: true });
+export const articleCreateSchema = articleBaseSchema
+    .omit({ reference: true })
+    .extend({
+        // Champs optionnels pour les produits d'occasion
+        rachatId: z.string().optional(),
+        etat: z
+            .enum(["COMME_NEUF", "TRES_BON", "BON", "CORRECT", "POUR_PIECES"])
+            .optional(),
+        provenance: z
+            .enum([
+                "RACHAT_CLIENT",
+                "MARKETPLACE_OCCASION",
+                "REPRISE",
+                "DON",
+                "RETOUR_SAV",
+                "AUTRE",
+            ])
+            .optional(),
+        prixRachat: z.number().positive().optional(),
+        numeroSerie: z.string().max(100).optional().or(z.literal("")),
+        notesRachat: z.string().max(1000).optional().or(z.literal("")),
+    });
 
 // Schema pour la mise à jour (tous les champs optionnels sauf validation)
 export const articleUpdateSchema = articleBaseSchema.partial();
@@ -174,25 +197,28 @@ export const articleUpdateSchema = articleBaseSchema.partial();
 // Schema pour la création de pièces détachées (avec champs spécifiques)
 export const pieceCreateSchema = articleCreateSchema.extend({
     type: z.literal("PIECE"),
-    typePiece: z.enum([
-        "ECRAN",
-        "BATTERIE",
-        "CARTE_MERE",
-        "CAMERA",
-        "HAUT_PARLEUR",
-        "CONNECTEUR_CHARGE",
-        "VITRE",
-        "CHASSIS",
-        "MEMOIRE_RAM",
-        "DISQUE_DUR",
-        "ALIMENTATION",
-        "VENTILATEUR",
-        "CLAVIER",
-        "TRACKPAD",
-        "AUTRE",
-    ], {
-        required_error: "Le type de pièce est requis",
-    }),
+    typePiece: z.enum(
+        [
+            "ECRAN",
+            "BATTERIE",
+            "CARTE_MERE",
+            "CAMERA",
+            "HAUT_PARLEUR",
+            "CONNECTEUR_CHARGE",
+            "VITRE",
+            "CHASSIS",
+            "MEMOIRE_RAM",
+            "DISQUE_DUR",
+            "ALIMENTATION",
+            "VENTILATEUR",
+            "CLAVIER",
+            "TRACKPAD",
+            "AUTRE",
+        ],
+        {
+            required_error: "Le type de pièce est requis",
+        }
+    ),
     marque: z
         .string()
         .max(100, "La marque ne peut pas dépasser 100 caractères")
@@ -203,9 +229,7 @@ export const pieceCreateSchema = articleCreateSchema.extend({
         .max(100, "Le modèle ne peut pas dépasser 100 caractères")
         .optional()
         .or(z.literal("")),
-    articleOrigineId: z
-        .string()
-        .optional(),
+    articleOrigineId: z.string().optional(),
     valeurEstimee: z
         .number()
         .positive("La valeur estimée doit être positive")
@@ -468,7 +492,10 @@ export const niveauFideliteBaseSchema = z.object({
         .default(0),
     couleur: z
         .string()
-        .regex(/^#[0-9A-Fa-f]{6}$/, "La couleur doit être au format hexadécimal (#RRGGBB)")
+        .regex(
+            /^#[0-9A-Fa-f]{6}$/,
+            "La couleur doit être au format hexadécimal (#RRGGBB)"
+        )
         .default("#000000"),
     icone: z
         .string()
@@ -489,8 +516,12 @@ export const niveauFideliteCreateSchema = niveauFideliteBaseSchema;
 // Schema pour la mise à jour de niveau de fidélité
 export const niveauFideliteUpdateSchema = niveauFideliteBaseSchema.partial();
 
-export type NiveauFideliteCreateInput = z.infer<typeof niveauFideliteCreateSchema>;
-export type NiveauFideliteUpdateInput = z.infer<typeof niveauFideliteUpdateSchema>;
+export type NiveauFideliteCreateInput = z.infer<
+    typeof niveauFideliteCreateSchema
+>;
+export type NiveauFideliteUpdateInput = z.infer<
+    typeof niveauFideliteUpdateSchema
+>;
 
 // Loyalty points movement validation schemas
 export const mouvementPointsBaseSchema = z.object({
@@ -518,16 +549,15 @@ export const mouvementPointsBaseSchema = z.object({
         .max(100, "La référence ne peut pas dépasser 100 caractères")
         .optional()
         .or(z.literal("")),
-    dateExpiration: z
-        .string()
-        .optional()
-        .or(z.literal("")),
+    dateExpiration: z.string().optional().or(z.literal("")),
 });
 
 // Schema pour la création de mouvement de points
 export const mouvementPointsCreateSchema = mouvementPointsBaseSchema;
 
-export type MouvementPointsCreateInput = z.infer<typeof mouvementPointsCreateSchema>;
+export type MouvementPointsCreateInput = z.infer<
+    typeof mouvementPointsCreateSchema
+>;
 
 // ==========================================
 // STORES - Magasins Multi-stores
@@ -542,7 +572,10 @@ export const storeBaseSchema = z.object({
         .string()
         .min(1, "Le code du magasin est requis")
         .max(20, "Le code ne peut pas dépasser 20 caractères")
-        .regex(/^[A-Z0-9]+$/, "Le code doit contenir uniquement des lettres majuscules et des chiffres"),
+        .regex(
+            /^[A-Z0-9]+$/,
+            "Le code doit contenir uniquement des lettres majuscules et des chiffres"
+        ),
 
     // Localisation
     adresse: z
@@ -581,11 +614,7 @@ export const storeBaseSchema = z.object({
         .max(20, "Le téléphone ne peut pas dépasser 20 caractères")
         .optional()
         .or(z.literal("")),
-    email: z
-        .string()
-        .email("Email invalide")
-        .optional()
-        .or(z.literal("")),
+    email: z.string().email("Email invalide").optional().or(z.literal("")),
 
     // Configuration
     isMainStore: z.boolean().default(false),
@@ -610,9 +639,7 @@ export type StoreUpdateInput = z.infer<typeof storeUpdateSchema>;
 // ==========================================
 
 export const terminalBaseSchema = z.object({
-    stripeTerminalId: z
-        .string()
-        .min(1, "L'ID Stripe Terminal est requis"),
+    stripeTerminalId: z.string().min(1, "L'ID Stripe Terminal est requis"),
     label: z
         .string()
         .min(1, "Le nom du terminal est requis")
@@ -655,7 +682,10 @@ export const paymentLinkBaseSchema = z.object({
         .string()
         .min(1, "Le slug est requis")
         .max(100, "Le slug ne peut pas dépasser 100 caractères")
-        .regex(/^[a-z0-9-]+$/, "Le slug doit contenir uniquement des lettres minuscules, chiffres et tirets"),
+        .regex(
+            /^[a-z0-9-]+$/,
+            "Le slug doit contenir uniquement des lettres minuscules, chiffres et tirets"
+        ),
     titre: z
         .string()
         .min(1, "Le titre est requis")
@@ -678,10 +708,7 @@ export const paymentLinkBaseSchema = z.object({
         .int("La quantité maximum doit être un nombre entier")
         .positive("La quantité maximum doit être positive")
         .optional(),
-    dateExpiration: z
-        .string()
-        .optional()
-        .or(z.literal("")),
+    dateExpiration: z.string().optional().or(z.literal("")),
     actif: z.boolean().default(true),
     imageCouverture: z
         .string()
@@ -707,10 +734,7 @@ export type PaymentLinkUpdateInput = z.infer<typeof paymentLinkUpdateSchema>;
 // ==========================================
 
 export const userBaseSchema = z.object({
-    email: z
-        .string()
-        .email("Email invalide")
-        .min(1, "L'email est requis"),
+    email: z.string().email("Email invalide").min(1, "L'email est requis"),
     name: z
         .string()
         .max(100, "Le nom ne peut pas dépasser 100 caractères")
@@ -733,10 +757,7 @@ export const userBaseSchema = z.object({
         .max(20, "Le téléphone ne peut pas dépasser 20 caractères")
         .optional()
         .or(z.literal("")),
-    dateNaissance: z
-        .string()
-        .optional()
-        .or(z.literal("")),
+    dateNaissance: z.string().optional().or(z.literal("")),
     adresse: z
         .string()
         .max(200, "L'adresse ne peut pas dépasser 200 caractères")
@@ -767,14 +788,8 @@ export const userBaseSchema = z.object({
         .max(100, "Le département ne peut pas dépasser 100 caractères")
         .optional()
         .or(z.literal("")),
-    dateEmbauche: z
-        .string()
-        .optional()
-        .or(z.literal("")),
-    dateFinContrat: z
-        .string()
-        .optional()
-        .or(z.literal("")),
+    dateEmbauche: z.string().optional().or(z.literal("")),
+    dateFinContrat: z.string().optional().or(z.literal("")),
     salaireHoraire: z
         .number()
         .positive("Le salaire horaire doit être positif")
@@ -782,7 +797,10 @@ export const userBaseSchema = z.object({
         .optional(),
     numeroSecu: z
         .string()
-        .max(50, "Le numéro de sécurité sociale ne peut pas dépasser 50 caractères")
+        .max(
+            50,
+            "Le numéro de sécurité sociale ne peut pas dépasser 50 caractères"
+        )
         .optional()
         .or(z.literal("")),
     iban: z
@@ -820,26 +838,32 @@ export const automationBaseSchema = z.object({
         .max(1000, "La description ne peut pas dépasser 1000 caractères")
         .optional()
         .or(z.literal("")),
-    triggerType: z.enum([
-        "NEW_CLIENT_IN_SEGMENT",
-        "CLIENT_MILESTONE",
-        "SEGMENT_CHANGE",
-        "INACTIVITY",
-        "SCHEDULED",
-    ], {
-        required_error: "Le type de déclencheur est requis",
-    }),
+    triggerType: z.enum(
+        [
+            "NEW_CLIENT_IN_SEGMENT",
+            "CLIENT_MILESTONE",
+            "SEGMENT_CHANGE",
+            "INACTIVITY",
+            "SCHEDULED",
+        ],
+        {
+            required_error: "Le type de déclencheur est requis",
+        }
+    ),
     triggerConfig: z.record(z.unknown()).default({}),
-    actionType: z.enum([
-        "SEND_EMAIL",
-        "ADD_TO_SEGMENT",
-        "REMOVE_FROM_SEGMENT",
-        "ADD_POINTS",
-        "SEND_SMS",
-        "CREATE_TASK",
-    ], {
-        required_error: "Le type d'action est requis",
-    }),
+    actionType: z.enum(
+        [
+            "SEND_EMAIL",
+            "ADD_TO_SEGMENT",
+            "REMOVE_FROM_SEGMENT",
+            "ADD_POINTS",
+            "SEND_SMS",
+            "CREATE_TASK",
+        ],
+        {
+            required_error: "Le type d'action est requis",
+        }
+    ),
     actionConfig: z.record(z.unknown()).default({}),
     actif: z.boolean().default(true),
 });
@@ -873,16 +897,19 @@ export const rachatCreateSchema = z.object({
         required_error: "L'état est requis",
         invalid_type_error: "État invalide",
     }),
-    provenance: z.enum([
-        "RACHAT_CLIENT",
-        "MARKETPLACE_OCCASION",
-        "REPRISE",
-        "DON",
-        "RETOUR_SAV",
-        "AUTRE",
-    ], {
-        required_error: "La provenance est requise",
-    }),
+    provenance: z.enum(
+        [
+            "RACHAT_CLIENT",
+            "MARKETPLACE_OCCASION",
+            "REPRISE",
+            "DON",
+            "RETOUR_SAV",
+            "AUTRE",
+        ],
+        {
+            required_error: "La provenance est requise",
+        }
+    ),
     numeroSerie: z
         .string()
         .max(100, "Le numéro de série ne peut pas dépasser 100 caractères")
@@ -913,37 +940,46 @@ export const demontageCreateSchema = z.object({
     ressources: z
         .array(
             z.object({
-                typeRessource: z.enum([
-                    "ECRAN",
-                    "BATTERIE",
-                    "CARTE_MERE",
-                    "CAMERA",
-                    "HAUT_PARLEUR",
-                    "CONNECTEUR_CHARGE",
-                    "VITRE",
-                    "CHASSIS",
-                    "MEMOIRE_RAM",
-                    "DISQUE_DUR",
-                    "ALIMENTATION",
-                    "VENTILATEUR",
-                    "CLAVIER",
-                    "TRACKPAD",
-                    "AUTRE",
-                ], {
-                    required_error: "Le type de ressource est requis",
-                }),
+                typeRessource: z.enum(
+                    [
+                        "ECRAN",
+                        "BATTERIE",
+                        "CARTE_MERE",
+                        "CAMERA",
+                        "HAUT_PARLEUR",
+                        "CONNECTEUR_CHARGE",
+                        "VITRE",
+                        "CHASSIS",
+                        "MEMOIRE_RAM",
+                        "DISQUE_DUR",
+                        "ALIMENTATION",
+                        "VENTILATEUR",
+                        "CLAVIER",
+                        "TRACKPAD",
+                        "AUTRE",
+                    ],
+                    {
+                        required_error: "Le type de ressource est requis",
+                    }
+                ),
                 nom: z
                     .string()
                     .min(1, "Le nom est requis")
                     .max(200, "Le nom ne peut pas dépasser 200 caractères"),
                 description: z
                     .string()
-                    .max(500, "La description ne peut pas dépasser 500 caractères")
+                    .max(
+                        500,
+                        "La description ne peut pas dépasser 500 caractères"
+                    )
                     .optional()
                     .or(z.literal("")),
-                etat: z.enum(["COMME_NEUF", "TRES_BON", "BON", "CORRECT", "POUR_PIECES"], {
-                    required_error: "L'état est requis",
-                }),
+                etat: z.enum(
+                    ["COMME_NEUF", "TRES_BON", "BON", "CORRECT", "POUR_PIECES"],
+                    {
+                        required_error: "L'état est requis",
+                    }
+                ),
                 quantite: z
                     .number()
                     .int("La quantité doit être un nombre entier")
@@ -961,17 +997,18 @@ export const demontageCreateSchema = z.object({
                     .or(z.literal("")),
                 reference: z
                     .string()
-                    .max(100, "La référence ne peut pas dépasser 100 caractères")
+                    .max(
+                        100,
+                        "La référence ne peut pas dépasser 100 caractères"
+                    )
                     .optional()
                     .or(z.literal("")),
-                valeurEstimee: z
-                    .number()
-                    .positive("La valeur doit être positive")
-                    .max(999999.99, "La valeur est trop élevée")
-                    .optional(),
                 notes: z
                     .string()
-                    .max(500, "Les notes ne peuvent pas dépasser 500 caractères")
+                    .max(
+                        500,
+                        "Les notes ne peuvent pas dépasser 500 caractères"
+                    )
                     .optional()
                     .or(z.literal("")),
             })
@@ -989,9 +1026,7 @@ export const ressourceUtiliserSchema = z.object({
         })
         .int("La quantité doit être un nombre entier")
         .positive("La quantité doit être positive"),
-    reparationId: z
-        .string()
-        .optional(),
+    reparationId: z.string().optional(),
     notes: z
         .string()
         .max(500, "Les notes ne peuvent pas dépasser 500 caractères")
@@ -1013,7 +1048,9 @@ export const ressourceUpdateSchema = z.object({
         .max(500, "La description ne peut pas dépasser 500 caractères")
         .optional()
         .or(z.literal("")),
-    etat: z.enum(["COMME_NEUF", "TRES_BON", "BON", "CORRECT", "POUR_PIECES"]).optional(),
+    etat: z
+        .enum(["COMME_NEUF", "TRES_BON", "BON", "CORRECT", "POUR_PIECES"])
+        .optional(),
     quantite: z
         .number()
         .int("La quantité doit être un nombre entier")
@@ -1047,3 +1084,243 @@ export const ressourceUpdateSchema = z.object({
 });
 
 export type RessourceUpdateInput = z.infer<typeof ressourceUpdateSchema>;
+
+// ============================================
+// RÉPARATIONS (BOUTIQUES INFORMATIQUE)
+// ============================================
+
+// Création d'une réparation
+export const reparationCreateSchema = z.object({
+    clientId: z.string().min(1, "Le client est requis"),
+    typeAppareil: z.enum(
+        [
+            "PC_PORTABLE",
+            "PC_BUREAU",
+            "MAC",
+            "SMARTPHONE",
+            "TABLETTE",
+            "CONSOLE_JEU",
+            "SERVEUR",
+            "PERIPHERIQUE",
+            "AUTRE",
+        ],
+        {
+            required_error: "Le type d'appareil est requis",
+        }
+    ),
+    marque: z
+        .string()
+        .max(100, "La marque ne peut pas dépasser 100 caractères")
+        .optional()
+        .or(z.literal("")),
+    modele: z
+        .string()
+        .max(100, "Le modèle ne peut pas dépasser 100 caractères")
+        .optional()
+        .or(z.literal("")),
+    numeroSerie: z
+        .string()
+        .max(100, "Le numéro de série ne peut pas dépasser 100 caractères")
+        .optional()
+        .or(z.literal("")),
+    motAuthentification: z
+        .string()
+        .max(500, "Le mot de passe ne peut pas dépasser 500 caractères")
+        .optional()
+        .or(z.literal("")),
+    panne: z
+        .string()
+        .min(1, "La description de la panne est requise")
+        .max(2000, "La description ne peut pas dépasser 2000 caractères"),
+    etatVisuel: z
+        .string()
+        .max(1000, "L'état visuel ne peut pas dépasser 1000 caractères")
+        .optional()
+        .or(z.literal("")),
+    accessoires: z
+        .string()
+        .max(500, "Les accessoires ne peuvent pas dépasser 500 caractères")
+        .optional()
+        .or(z.literal("")),
+    priorite: z.enum(["NORMALE", "URGENTE", "CRITIQUE"]).default("NORMALE"),
+    reference: z
+        .string()
+        .max(100, "La référence ne peut pas dépasser 100 caractères")
+        .optional()
+        .or(z.literal("")),
+    storeId: z.string().optional(),
+    registerId: z.string().optional(),
+    notesInternes: z
+        .string()
+        .max(2000, "Les notes ne peuvent pas dépasser 2000 caractères")
+        .optional()
+        .or(z.literal("")),
+});
+
+export type ReparationCreateInput = z.infer<typeof reparationCreateSchema>;
+
+// Mise à jour d'une réparation
+export const reparationUpdateSchema = z.object({
+    typeAppareil: z
+        .enum([
+            "PC_PORTABLE",
+            "PC_BUREAU",
+            "MAC",
+            "SMARTPHONE",
+            "TABLETTE",
+            "CONSOLE_JEU",
+            "SERVEUR",
+            "PERIPHERIQUE",
+            "AUTRE",
+        ])
+        .optional(),
+    marque: z
+        .string()
+        .max(100, "La marque ne peut pas dépasser 100 caractères")
+        .optional()
+        .or(z.literal("")),
+    modele: z
+        .string()
+        .max(100, "Le modèle ne peut pas dépasser 100 caractères")
+        .optional()
+        .or(z.literal("")),
+    numeroSerie: z
+        .string()
+        .max(100, "Le numéro de série ne peut pas dépasser 100 caractères")
+        .optional()
+        .or(z.literal("")),
+    motAuthentification: z
+        .string()
+        .max(500, "Le mot de passe ne peut pas dépasser 500 caractères")
+        .optional()
+        .or(z.literal("")),
+    panne: z
+        .string()
+        .max(2000, "La description ne peut pas dépasser 2000 caractères")
+        .optional(),
+    etatVisuel: z
+        .string()
+        .max(1000, "L'état visuel ne peut pas dépasser 1000 caractères")
+        .optional()
+        .or(z.literal("")),
+    accessoires: z
+        .string()
+        .max(500, "Les accessoires ne peuvent pas dépasser 500 caractères")
+        .optional()
+        .or(z.literal("")),
+    priorite: z.enum(["NORMALE", "URGENTE", "CRITIQUE"]).optional(),
+    dateEstimeeRetour: z.date().optional(),
+    notesInternes: z
+        .string()
+        .max(2000, "Les notes ne peuvent pas dépasser 2000 caractères")
+        .optional()
+        .or(z.literal("")),
+    notesTechnicien: z
+        .string()
+        .max(2000, "Les notes ne peuvent pas dépasser 2000 caractères")
+        .optional()
+        .or(z.literal("")),
+});
+
+export type ReparationUpdateInput = z.infer<typeof reparationUpdateSchema>;
+
+// Changement de statut
+export const reparationStatusSchema = z.object({
+    statut: z.enum(
+        [
+            "DEPOSE",
+            "DIAGNOSTIC",
+            "DEVIS_ENVOYE",
+            "ATTENTE_PIECES",
+            "EN_COURS",
+            "PRETE",
+            "LIVREE",
+            "ANNULEE",
+            "ABANDONNEE",
+        ],
+        {
+            required_error: "Le statut est requis",
+        }
+    ),
+    notes: z
+        .string()
+        .max(500, "Les notes ne peuvent pas dépasser 500 caractères")
+        .optional()
+        .or(z.literal("")),
+});
+
+export type ReparationStatusInput = z.infer<typeof reparationStatusSchema>;
+
+// Assignation technicien
+export const reparationAssignSchema = z.object({
+    technicienId: z.string().min(1, "Le technicien est requis"),
+});
+
+export type ReparationAssignInput = z.infer<typeof reparationAssignSchema>;
+
+// Diagnostic
+export const reparationDiagnosticSchema = z.object({
+    diagnosticDetail: z
+        .string()
+        .min(1, "Le diagnostic est requis")
+        .max(2000, "Le diagnostic ne peut pas dépasser 2000 caractères"),
+    devisEstime: z
+        .number()
+        .nonnegative("Le montant doit être positif ou nul")
+        .max(999999.99, "Le montant est trop élevé"),
+    delaiReparation: z
+        .number()
+        .int("Le délai doit être un nombre entier")
+        .positive("Le délai doit être positif")
+        .optional(),
+});
+
+export type ReparationDiagnosticInput = z.infer<
+    typeof reparationDiagnosticSchema
+>;
+
+// Ajout de pièce
+export const reparationAddPieceSchema = z
+    .object({
+        articleId: z.string().optional(),
+        ressourceAtelierId: z.string().optional(),
+        designation: z
+            .string()
+            .min(1, "La désignation est requise")
+            .max(200, "La désignation ne peut pas dépasser 200 caractères"),
+        quantite: z
+            .number()
+            .int("La quantité doit être un nombre entier")
+            .positive("La quantité doit être positive"),
+        prixUnitaire: z
+            .number()
+            .nonnegative("Le prix doit être positif ou nul")
+            .max(999999.99, "Le prix est trop élevé"),
+    })
+    .refine((data) => data.articleId || data.ressourceAtelierId, {
+        message:
+            "Vous devez spécifier soit un article, soit une ressource d'atelier",
+    });
+
+export type ReparationAddPieceInput = z.infer<typeof reparationAddPieceSchema>;
+
+// Intervention
+export const reparationInterventionSchema = z.object({
+    technicienId: z.string().min(1, "Le technicien est requis"),
+    dateDebut: z.date({
+        required_error: "La date de début est requise",
+    }),
+    dateFin: z.date().optional(),
+    description: z
+        .string()
+        .min(1, "La description est requise")
+        .max(1000, "La description ne peut pas dépasser 1000 caractères"),
+    type: z
+        .string()
+        .max(50, "Le type ne peut pas dépasser 50 caractères")
+        .default("REPARATION"),
+});
+
+export type ReparationInterventionInput = z.infer<
+    typeof reparationInterventionSchema
+>;

@@ -65,7 +65,6 @@ const demontageSchema = z.object({
         etat: z.enum(["COMME_NEUF", "TRES_BON", "BON", "CORRECT", "POUR_PIECES"]),
         marque: z.string().optional(),
         modele: z.string().optional(),
-        valeurEstimee: z.number().positive().optional(),
       })
     )
     .min(1, "Ajoutez au moins une pièce"),

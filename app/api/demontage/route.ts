@@ -69,26 +69,28 @@ export async function POST(req: NextRequest) {
         },
       });
 
+      // Generate references for all pieces FIRST (in sequence to avoid duplicates)
+      const references: string[] = [];
+      for (let i = 0; i < ressources.length; i++) {
+        const reference = await ArticleService.generateReference(
+          "PIECE",
+          entrepriseId
+        );
+        references.push(reference);
+      }
+
       // Create each piece as a new article
       const pieces = await Promise.all(
-        ressources.map(async (ressource) => {
-          // Generate reference for piece
-          const reference = await ArticleService.generateReference(
-            "PIECE",
-            entrepriseId
-          );
-
+        ressources.map(async (ressource, index) => {
           // Calculate estimated value based on source article
-          const valeurEstimee =
-            ressource.valeurEstimee ||
-            (sourceArticle.rachat
-              ? Number(sourceArticle.rachat.prixRachat) * 0.15
-              : Number(sourceArticle.prix_ht) * 0.1);
+          const valeurEstimee = sourceArticle.rachat
+            ? Number(sourceArticle.rachat.prixRachat) * 0.15
+            : Number(sourceArticle.prix_ht) * 0.1;
 
-          // Create piece article
+          // Create piece article with pre-generated reference
           return tx.article.create({
             data: {
-              reference,
+              reference: references[index],
               nom: ressource.nom,
               description: ressource.description || "",
               type: "PIECE",
@@ -102,6 +104,7 @@ export async function POST(req: NextRequest) {
               categorieId: sourceArticle.categorieId,
               // Piece-specific fields
               typePiece: ressource.typeRessource,
+              etatPiece: ressource.etat,
               marque: ressource.marque || sourceArticle.rachat?.notes?.split(" ")[0],
               modele: ressource.modele || sourceArticle.nom.split(" ")[0],
               articleOrigineId: articleSourceId,
