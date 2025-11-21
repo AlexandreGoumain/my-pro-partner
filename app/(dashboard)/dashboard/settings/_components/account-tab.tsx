@@ -15,20 +15,29 @@ import { ROLE_LABELS, UserRole } from "@/lib/personnel/roles-config";
 import { UserSettings } from "@/lib/types/settings";
 import {
     Activity,
+    ArrowRightLeft,
     Building2,
     Clock,
+    Cog,
+    CreditCard,
     FileText,
     Filter,
+    FolderTree,
     Key,
+    Link,
     MessageSquare,
     Package,
+    Repeat,
     Shield,
     ShieldAlert,
+    ShoppingBag,
     ShoppingCart,
+    Store,
     Trash2,
     TruckIcon,
     User,
     Users,
+    Wrench,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -282,6 +291,96 @@ export function AccountTab({ user = null }: AccountTabProps) {
                                         confirmMessage="Je comprends que toutes les conversations IA seront supprimées"
                                         icon={MessageSquare}
                                         apiEndpoint="/api/admin/delete-conversations"
+                                        color="yellow"
+                                    />
+                                    <DeleteDataTypeDialog
+                                        type="categories"
+                                        title="Supprimer toutes les catégories ?"
+                                        description="Cette action supprimera toutes les catégories de votre entreprise de manière irréversible."
+                                        buttonLabel="Catégories"
+                                        confirmMessage="Je comprends que toutes les catégories seront supprimées"
+                                        icon={FolderTree}
+                                        apiEndpoint="/api/admin/delete-categories"
+                                        color="yellow"
+                                    />
+                                    <DeleteDataTypeDialog
+                                        type="commandes"
+                                        title="Supprimer toutes les commandes ?"
+                                        description="Cette action supprimera toutes les commandes fournisseurs de votre entreprise de manière irréversible."
+                                        buttonLabel="Commandes"
+                                        confirmMessage="Je comprends que toutes les commandes seront supprimées"
+                                        icon={ShoppingBag}
+                                        apiEndpoint="/api/admin/delete-commandes"
+                                        color="yellow"
+                                    />
+                                    <DeleteDataTypeDialog
+                                        type="paiements"
+                                        title="Supprimer tous les paiements ?"
+                                        description="Cette action supprimera tous les paiements de votre entreprise de manière irréversible."
+                                        buttonLabel="Paiements"
+                                        confirmMessage="Je comprends que tous les paiements seront supprimés"
+                                        icon={CreditCard}
+                                        apiEndpoint="/api/admin/delete-paiements"
+                                        color="yellow"
+                                    />
+                                    <DeleteDataTypeDialog
+                                        type="payment-links"
+                                        title="Supprimer tous les liens de paiement ?"
+                                        description="Cette action supprimera tous les liens de paiement de votre entreprise de manière irréversible."
+                                        buttonLabel="Liens paiement"
+                                        confirmMessage="Je comprends que tous les liens de paiement seront supprimés"
+                                        icon={Link}
+                                        apiEndpoint="/api/admin/delete-payment-links"
+                                        color="yellow"
+                                    />
+                                    <DeleteDataTypeDialog
+                                        type="transferts"
+                                        title="Supprimer tous les transferts de stock ?"
+                                        description="Cette action supprimera tous les transferts de stock entre magasins de manière irréversible."
+                                        buttonLabel="Transferts"
+                                        confirmMessage="Je comprends que tous les transferts seront supprimés"
+                                        icon={ArrowRightLeft}
+                                        apiEndpoint="/api/admin/delete-transferts"
+                                        color="yellow"
+                                    />
+                                    <DeleteDataTypeDialog
+                                        type="magasins"
+                                        title="Supprimer tous les magasins ?"
+                                        description="Cette action supprimera tous les magasins et leurs stocks de manière irréversible."
+                                        buttonLabel="Magasins"
+                                        confirmMessage="Je comprends que tous les magasins seront supprimés"
+                                        icon={Store}
+                                        apiEndpoint="/api/admin/delete-magasins"
+                                        color="yellow"
+                                    />
+                                    <DeleteDataTypeDialog
+                                        type="reparations"
+                                        title="Supprimer toutes les réparations ?"
+                                        description="Cette action supprimera toutes les réparations (SAV informatique) de votre entreprise de manière irréversible."
+                                        buttonLabel="Réparations"
+                                        confirmMessage="Je comprends que toutes les réparations seront supprimées"
+                                        icon={Wrench}
+                                        apiEndpoint="/api/admin/delete-reparations"
+                                        color="yellow"
+                                    />
+                                    <DeleteDataTypeDialog
+                                        type="rachats"
+                                        title="Supprimer tous les rachats ?"
+                                        description="Cette action supprimera tous les rachats d'articles d'occasion de votre entreprise de manière irréversible."
+                                        buttonLabel="Rachats"
+                                        confirmMessage="Je comprends que tous les rachats seront supprimés"
+                                        icon={Repeat}
+                                        apiEndpoint="/api/admin/delete-rachats"
+                                        color="yellow"
+                                    />
+                                    <DeleteDataTypeDialog
+                                        type="demontages"
+                                        title="Supprimer tous les démontages ?"
+                                        description="Cette action supprimera tous les démontages d'articles d'occasion de votre entreprise de manière irréversible."
+                                        buttonLabel="Démontages"
+                                        confirmMessage="Je comprends que tous les démontages seront supprimés"
+                                        icon={Cog}
+                                        apiEndpoint="/api/admin/delete-demontages"
                                         color="yellow"
                                     />
                                     <DeleteDataTypeDialog
