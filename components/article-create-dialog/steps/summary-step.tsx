@@ -17,6 +17,11 @@ export function SummaryStep({ form, articleType, categories }: StepProps) {
     const tvaTaux = form.watch("tva_taux");
     const prixTTC = prixHT * (1 + tvaTaux / 100);
 
+    // Pour les occasions, calculer la marge
+    const prixRachat = articleType === "OCCASION" ? form.watch("prixRachat") || 0 : 0;
+    const marge = prixRachat > 0 ? prixHT - prixRachat : 0;
+    const margePourcentage = prixRachat > 0 ? ((marge / prixRachat) * 100) : 0;
+
     // Fonction pour construire le chemin complet de la catégorie (avec parents)
     const getCategoryPath = (categoryId: string): string => {
         const category = categories.find((c) => c.id === categoryId);
@@ -232,18 +237,58 @@ export function SummaryStep({ form, articleType, categories }: StepProps) {
                                 strokeWidth={2}
                             />
                             <h4 className="font-semibold text-[15px] text-black">
-                                Tarification
+                                Tarification {articleType === "OCCASION" && "et rentabilité"}
                             </h4>
                         </div>
                         <div className="space-y-3">
-                            <div className="flex justify-between items-center">
-                                <span className="text-[14px] text-black/60 font-medium">
-                                    Prix HT
-                                </span>
-                                <span className="font-semibold text-[17px] text-black">
-                                    {prixHT.toFixed(2)} €
-                                </span>
-                            </div>
+                            {/* Marge pour OCCASION */}
+                            {articleType === "OCCASION" && prixRachat > 0 && (
+                                <>
+                                    <div className="flex justify-between items-center py-2 bg-black/5 px-3 rounded-lg">
+                                        <span className="text-[13px] text-black/50 font-medium">
+                                            Coût de rachat
+                                        </span>
+                                        <span className="font-semibold text-[15px] text-black">
+                                            {prixRachat.toFixed(2)} € HT
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-[14px] text-black/60 font-medium">
+                                            Prix de vente HT
+                                        </span>
+                                        <span className="font-semibold text-[17px] text-black">
+                                            {prixHT.toFixed(2)} €
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between items-center py-2 bg-green-50 px-3 rounded-lg border border-green-200">
+                                        <span className="text-[14px] font-semibold text-green-800">
+                                            Marge brute
+                                        </span>
+                                        <div className="text-right">
+                                            <span className="font-semibold text-[17px] text-green-800">
+                                                {marge.toFixed(2)} €
+                                            </span>
+                                            <span className="text-[13px] text-green-700 ml-2">
+                                                (+{margePourcentage.toFixed(1)}%)
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <Separator className="bg-black/8" />
+                                </>
+                            )}
+
+                            {/* Standard pricing */}
+                            {articleType !== "OCCASION" && (
+                                <div className="flex justify-between items-center">
+                                    <span className="text-[14px] text-black/60 font-medium">
+                                        Prix HT
+                                    </span>
+                                    <span className="font-semibold text-[17px] text-black">
+                                        {prixHT.toFixed(2)} €
+                                    </span>
+                                </div>
+                            )}
+
                             <div className="flex justify-between items-center">
                                 <span className="text-[14px] text-black/60 font-medium">
                                     TVA ({tvaTaux}%)
@@ -255,7 +300,7 @@ export function SummaryStep({ form, articleType, categories }: StepProps) {
                             <Separator className="bg-black/8" />
                             <div className="flex justify-between items-center pt-2">
                                 <span className="font-semibold text-[15px] text-black">
-                                    Prix TTC
+                                    Prix TTC final
                                 </span>
                                 <span className="text-[28px] font-semibold text-black tracking-[-0.02em]">
                                     {prixTTC.toFixed(2)} €
@@ -265,7 +310,8 @@ export function SummaryStep({ form, articleType, categories }: StepProps) {
                     </CardContent>
                 </Card>
 
-                {(articleType === "PRODUIT" || articleType === "OCCASION") && (
+                {/* Section Stock uniquement pour PRODUIT (pas pour OCCASION) */}
+                {articleType === "PRODUIT" && (
                     <Card className="bg-black/2 border-black/10 shadow-sm">
                         <CardContent className="p-6 space-y-4">
                             <div className="flex items-center gap-2 pb-3 border-b border-black/8">
@@ -302,6 +348,23 @@ export function SummaryStep({ form, articleType, categories }: StepProps) {
                                         </p>
                                     </div>
                                 </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {/* Info pour OCCASION */}
+                {articleType === "OCCASION" && (
+                    <Card className="bg-black/2 border-black/10 shadow-sm">
+                        <CardContent className="p-4">
+                            <div className="flex items-center gap-2">
+                                <Archive
+                                    className="h-4 w-4 text-black/40"
+                                    strokeWidth={2}
+                                />
+                                <p className="text-[13px] text-black/60">
+                                    <span className="font-semibold text-black">Pièce unique :</span> Le stock sera automatiquement défini à 1 unité
+                                </p>
                             </div>
                         </CardContent>
                     </Card>

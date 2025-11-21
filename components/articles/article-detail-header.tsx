@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { BackButton } from "@/components/ui/back-button";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -9,7 +10,6 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-    ArrowLeft,
     Copy,
     Download,
     Edit,
@@ -55,17 +55,11 @@ export function ArticleDetailHeader({
     const isService = type === "SERVICE";
 
     return (
-        <div className="flex items-start justify-between">
-            <div className="space-y-1">
-                <Button
-                    variant="ghost"
-                    onClick={onBack}
-                    className="gap-2 -ml-2 mb-2"
-                >
-                    <ArrowLeft className="h-4 w-4" />
-                    Retour au catalogue
-                </Button>
-                <div className="flex items-center gap-3 flex-wrap">
+        <div className="space-y-4">
+            <BackButton label="Retour au catalogue" onClick={onBack} />
+            <div className="flex items-start justify-between">
+                <div className="space-y-1">
+                    <div className="flex items-center gap-3 flex-wrap">
                     <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-black">
                         {nom}
                     </h1>
@@ -93,9 +87,9 @@ export function ArticleDetailHeader({
                 <p className="text-[14px] text-black/60">
                     Réf. {reference} • {categorie}
                 </p>
-            </div>
+                </div>
 
-            <div className="flex gap-2">
+                <div className="flex gap-2">
                 {onDuplicate && (
                     <Button
                         variant="outline"
@@ -168,6 +162,7 @@ export function ArticleDetailHeader({
                         )}
                     </DropdownMenuContent>
                 </DropdownMenu>
+                </div>
             </div>
         </div>
     );
