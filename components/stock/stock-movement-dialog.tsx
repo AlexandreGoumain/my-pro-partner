@@ -1,7 +1,7 @@
 "use client";
 
-import type { Article } from "@/app/(dashboard)/dashboard/articles/_components/data-table/columns";
 import { Button } from "@/components/ui/button";
+import type { Article } from "@/lib/types/article";
 import { ButtonWithSpinner } from "@/components/ui/button-with-spinner";
 import {
     Dialog,
@@ -151,18 +151,20 @@ export function StockMovementDialog({
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            {stockEnabledArticles.map(
-                                                (article) => (
-                                                    <SelectItem
-                                                        key={article.id}
-                                                        value={article.id}
-                                                    >
-                                                        {article.reference} -{" "}
-                                                        {article.nom} (Stock:{" "}
-                                                        {article.stock})
-                                                    </SelectItem>
-                                                )
-                                            )}
+                                            {stockEnabledArticles
+                                                .filter((article) => article.id && article.id.trim() !== "")
+                                                .map(
+                                                    (article) => (
+                                                        <SelectItem
+                                                            key={article.id}
+                                                            value={article.id}
+                                                        >
+                                                            {article.reference} -{" "}
+                                                            {article.nom} (Stock:{" "}
+                                                            {article.stock})
+                                                        </SelectItem>
+                                                    )
+                                                )}
                                         </SelectContent>
                                     </Select>
                                     {selectedArticle && (
