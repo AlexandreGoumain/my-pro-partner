@@ -111,6 +111,8 @@ export function CategoryEditDialog({
     // Filtrer les catégories disponibles comme parent
     // (exclure la catégorie elle-même et ses enfants)
     const availableParents = categories.filter((cat) => {
+        // Filtrer les IDs vides
+        if (!cat.id || cat.id.trim() === "") return false;
         if (!categorie) return true;
         // Exclure la catégorie elle-même
         if (cat.id === categorie.id) return false;

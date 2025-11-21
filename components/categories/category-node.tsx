@@ -9,10 +9,8 @@ import {
     FolderOpen,
     GripVertical,
     Plus,
-    Sparkles,
     Trash2,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 
 type Category = CategorieWithCount;
 
@@ -35,7 +33,6 @@ export function CategoryNode({
     onDelete,
     onCreateSubCategory,
 }: CategoryNodeProps) {
-    const router = useRouter();
     const hasChildren = category.enfants && category.enfants.length > 0;
     const articleCount = category._count?.articles || 0;
 
@@ -124,20 +121,6 @@ export function CategoryNode({
                     >
                         <Edit className="h-4 w-4" />
                     </Button>
-                    {level > 0 && (
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() =>
-                                router.push(
-                                    `/dashboard/articles/categories/${category.id}/template`
-                                )
-                            }
-                            title="Gérer le template"
-                        >
-                            <Sparkles className="h-4 w-4 text-primary" />
-                        </Button>
-                    )}
                     <Button
                         variant="ghost"
                         size="sm"
