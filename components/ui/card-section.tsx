@@ -136,46 +136,49 @@ export function CardSection({
     };
 
     return (
-        <Card className={cn("border-black/10", className)}>
-            {hasHeader && (
-                <CardHeader className={headerClassName}>
-                    {hasAction ? (
-                        // Layout avec action : flex justify-between
-                        <div className="flex items-center justify-between">
-                            <div>
+        <Card className={cn("group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500", className)}>
+            <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="relative">
+                {hasHeader && (
+                    <CardHeader className={headerClassName}>
+                        {hasAction ? (
+                            // Layout avec action : flex justify-between
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    {renderTitle()}
+                                    {description && (
+                                        <CardDescription
+                                            className={cn(
+                                                "text-[13px] text-black/40",
+                                                descriptionClassName
+                                            )}
+                                        >
+                                            {description}
+                                        </CardDescription>
+                                    )}
+                                </div>
+                                {action}
+                            </div>
+                        ) : (
+                            // Layout standard : titre + description
+                            <>
                                 {renderTitle()}
                                 {description && (
                                     <CardDescription
                                         className={cn(
-                                            "text-[14px] text-black/60",
+                                            "text-[13px] text-black/40",
                                             descriptionClassName
                                         )}
                                     >
                                         {description}
                                     </CardDescription>
                                 )}
-                            </div>
-                            {action}
-                        </div>
-                    ) : (
-                        // Layout standard : titre + description
-                        <>
-                            {renderTitle()}
-                            {description && (
-                                <CardDescription
-                                    className={cn(
-                                        "text-[14px] text-black/60",
-                                        descriptionClassName
-                                    )}
-                                >
-                                    {description}
-                                </CardDescription>
-                            )}
-                        </>
-                    )}
-                </CardHeader>
-            )}
-            <CardContent className={contentClassName}>{children}</CardContent>
+                            </>
+                        )}
+                    </CardHeader>
+                )}
+                <CardContent className={contentClassName}>{children}</CardContent>
+            </div>
         </Card>
     );
 }

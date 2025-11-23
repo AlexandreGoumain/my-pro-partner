@@ -83,8 +83,8 @@ export function StockHistoryTable({
 
     if (mouvements.length === 0) {
         return (
-            <div className="flex items-center justify-center py-10 border rounded-md">
-                <p className="text-muted-foreground">
+            <div className="flex items-center justify-center py-10 border border-black/[0.08] rounded-md bg-white">
+                <p className="text-black/60 text-[13px]">
                     Aucun mouvement de stock enregistré
                 </p>
             </div>
@@ -93,24 +93,24 @@ export function StockHistoryTable({
 
     return (
         <>
-            <div className="rounded-md border">
+            <div className="rounded-md border border-black/[0.08] bg-white shadow-sm overflow-hidden">
                 <Table>
                     <TableHeader>
-                        <TableRow>
-                            <TableHead>Date</TableHead>
-                            {showArticle && <TableHead>Article</TableHead>}
-                            <TableHead>Type</TableHead>
-                            <TableHead className="text-right">
+                        <TableRow className="bg-black/[0.02] hover:bg-black/[0.02]">
+                            <TableHead className="text-[13px] font-medium text-black/70">Date</TableHead>
+                            {showArticle && <TableHead className="text-[13px] font-medium text-black/70">Article</TableHead>}
+                            <TableHead className="text-[13px] font-medium text-black/70">Type</TableHead>
+                            <TableHead className="text-right text-[13px] font-medium text-black/70">
                                 Quantité
                             </TableHead>
-                            <TableHead className="text-right">
+                            <TableHead className="text-right text-[13px] font-medium text-black/70">
                                 Stock avant
                             </TableHead>
-                            <TableHead className="text-right">
+                            <TableHead className="text-right text-[13px] font-medium text-black/70">
                                 Stock après
                             </TableHead>
-                            <TableHead>Motif</TableHead>
-                            <TableHead>Référence</TableHead>
+                            <TableHead className="text-[13px] font-medium text-black/70">Motif</TableHead>
+                            <TableHead className="text-[13px] font-medium text-black/70">Référence</TableHead>
                             <TableHead className="w-[50px]"></TableHead>
                         </TableRow>
                     </TableHeader>
@@ -118,8 +118,8 @@ export function StockHistoryTable({
                         {mouvements.map((mouvement) => {
                             const config = getMovementConfig(mouvement.type);
                             return (
-                                <TableRow key={mouvement.id}>
-                                    <TableCell className="font-medium">
+                                <TableRow key={mouvement.id} className="hover:bg-black/[0.02] transition-colors">
+                                    <TableCell className="text-[13px] font-medium text-black">
                                         {format(
                                             new Date(mouvement.createdAt),
                                             "dd/MM/yyyy HH:mm",
@@ -131,10 +131,10 @@ export function StockHistoryTable({
                                     {showArticle && (
                                         <TableCell>
                                             <div>
-                                                <p className="font-medium">
+                                                <p className="text-[13px] font-medium text-black">
                                                     {mouvement.articleNom}
                                                 </p>
-                                                <p className="text-sm text-muted-foreground">
+                                                <p className="text-[12px] text-black/60">
                                                     {mouvement.articleReference}
                                                 </p>
                                             </div>
@@ -143,31 +143,25 @@ export function StockHistoryTable({
                                     <TableCell>
                                         <Badge
                                             variant="outline"
-                                            className={`${config.color} ${config.bgColor} ${config.borderColor}`}
+                                            className="bg-black/5 text-black/70 border-black/10 text-[12px] h-6 px-3 font-medium"
                                         >
                                             {config.icon} {config.label}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell
-                                        className={`text-right font-medium ${
-                                            mouvement.quantite > 0
-                                                ? "text-green-600"
-                                                : "text-red-600"
-                                        }`}
-                                    >
+                                    <TableCell className="text-right text-[13px] font-medium text-black">
                                         {mouvement.quantite > 0 ? "+" : ""}
                                         {mouvement.quantite}
                                     </TableCell>
-                                    <TableCell className="text-right">
+                                    <TableCell className="text-right text-[13px] text-black/70">
                                         {mouvement.stock_avant}
                                     </TableCell>
-                                    <TableCell className="text-right font-medium">
+                                    <TableCell className="text-right text-[13px] font-medium text-black">
                                         {mouvement.stock_apres}
                                     </TableCell>
-                                    <TableCell className="max-w-[200px] truncate">
+                                    <TableCell className="max-w-[200px] truncate text-[13px] text-black/70">
                                         {mouvement.motif || "-"}
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell className="text-[13px] text-black/70">
                                         {mouvement.reference || "-"}
                                     </TableCell>
                                     <TableCell>
@@ -175,16 +169,16 @@ export function StockHistoryTable({
                                             <DropdownMenuTrigger asChild>
                                                 <Button
                                                     variant="ghost"
-                                                    className="h-8 w-8 p-0"
+                                                    className="h-8 w-8 p-0 hover:bg-black/5"
                                                 >
                                                     <span className="sr-only">
                                                         Ouvrir le menu
                                                     </span>
-                                                    <MoreHorizontal className="h-4 w-4" />
+                                                    <MoreHorizontal className="h-4 w-4" strokeWidth={2} />
                                                 </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
-                                                <DropdownMenuLabel>
+                                                <DropdownMenuLabel className="text-[13px]">
                                                     Actions
                                                 </DropdownMenuLabel>
                                                 <DropdownMenuSeparator />
@@ -194,9 +188,9 @@ export function StockHistoryTable({
                                                             mouvement.id
                                                         )
                                                     }
-                                                    className="text-destructive"
+                                                    className="text-destructive text-[13px]"
                                                 >
-                                                    <Trash2 className="mr-2 h-4 w-4" />
+                                                    <Trash2 className="mr-2 h-4 w-4" strokeWidth={2} />
                                                     Annuler le mouvement
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>
@@ -213,22 +207,24 @@ export function StockHistoryTable({
                 open={!!deleteId}
                 onOpenChange={() => setDeleteId(null)}
             >
-                <AlertDialogContent>
+                <AlertDialogContent className="border-black/[0.08]">
                     <AlertDialogHeader>
-                        <AlertDialogTitle>
+                        <AlertDialogTitle className="text-[18px] font-semibold tracking-[-0.02em] text-black">
                             Annuler ce mouvement ?
                         </AlertDialogTitle>
-                        <AlertDialogDescription>
+                        <AlertDialogDescription className="text-[13px] text-black/70">
                             Cette action va créer un mouvement compensatoire
                             pour annuler cet enregistrement. Le stock de
                             l&apos;article sera ajusté en conséquence.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Annuler</AlertDialogCancel>
+                        <AlertDialogCancel className="border-black/10 hover:bg-black/5 text-[14px] font-medium">
+                            Annuler
+                        </AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleDelete}
-                            className="bg-destructive hover:bg-destructive/90"
+                            className="bg-black hover:bg-black/90 text-white text-[14px] font-medium"
                         >
                             Confirmer
                         </AlertDialogAction>

@@ -49,52 +49,40 @@ export const ArticleCard = memo(function ArticleCard({
     const isService = articleType === "SERVICE";
 
     return (
-        <Card
-            className={`group overflow-hidden hover:shadow-lg transition-all ${
-                isService ? "border-purple-200" : "border-blue-200"
-            }`}
-        >
+        <Card className="group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500">
+            <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
             {/* Image */}
-            <div className="relative aspect-video bg-muted overflow-hidden">
+            <div className="relative aspect-video bg-black/5 overflow-hidden">
                 <Avatar className="w-full h-full rounded-none">
                     <AvatarImage
                         src={article.image}
                         alt={article.nom}
                         className="object-cover transition-transform duration-500 group-hover:scale-110"
                     />
-                    <AvatarFallback
-                        className={`rounded-none ${
-                            isService ? "bg-purple-50" : "bg-blue-50"
-                        }`}
-                    >
+                    <AvatarFallback className="rounded-none bg-black/5">
                         {isService ? (
-                            <Briefcase className="h-12 w-12 text-purple-400" />
+                            <Briefcase className="h-12 w-12 text-black/40" strokeWidth={2} />
                         ) : (
-                            <Package className="h-12 w-12 text-blue-400" />
+                            <Package className="h-12 w-12 text-black/40" strokeWidth={2} />
                         )}
                     </AvatarFallback>
                 </Avatar>
 
                 {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
                 {/* Type badge */}
                 <div className="absolute top-3 left-3">
-                    <Badge
-                        className={`backdrop-blur-sm ${
-                            isService
-                                ? "bg-purple-500/90 text-white border-purple-400"
-                                : "bg-blue-500/90 text-white border-blue-400"
-                        }`}
-                    >
+                    <Badge className="backdrop-blur-sm bg-black/90 text-white border-black/40 text-[12px] h-6 px-3 font-medium">
                         {isService ? (
                             <>
-                                <Briefcase className="h-3 w-3 mr-1" />
+                                <Briefcase className="h-3 w-3 mr-1" strokeWidth={2} />
                                 Service
                             </>
                         ) : (
                             <>
-                                <Package className="h-3 w-3 mr-1" />
+                                <Package className="h-3 w-3 mr-1" strokeWidth={2} />
                                 Produit
                             </>
                         )}
@@ -103,9 +91,7 @@ export const ArticleCard = memo(function ArticleCard({
 
                 {/* Status badge */}
                 <div className="absolute top-3 right-3">
-                    <Badge
-                        className={`${statusConfig.className} backdrop-blur-sm`}
-                    >
+                    <Badge className={`${statusConfig.className} backdrop-blur-sm text-[12px] h-6 px-3 font-medium`}>
                         {statusConfig.label}
                     </Badge>
                 </div>
@@ -113,46 +99,46 @@ export const ArticleCard = memo(function ArticleCard({
                 {/* Stock warning */}
                 {isLowStock && !isOutOfStock && !isService && (
                     <div className="absolute bottom-14 left-3">
-                        <Badge className="bg-orange-500/10 text-orange-700 border-orange-500/20 backdrop-blur-sm">
-                            <AlertTriangle className="h-3 w-3 mr-1" />
+                        <Badge className="backdrop-blur-sm bg-black/80 text-white border-black/40 text-[12px] h-6 px-3 font-medium">
+                            <AlertTriangle className="h-3 w-3 mr-1" strokeWidth={2} />
                             Stock faible
                         </Badge>
                     </div>
                 )}
 
                 {/* Quick actions */}
-                <div className="absolute bottom-3 inset-x-3 flex gap-2 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all">
+                <div className="absolute bottom-3 inset-x-3 flex gap-2 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
                     <Button
                         size="sm"
                         variant="secondary"
-                        className="flex-1 backdrop-blur-md bg-background/80 cursor-pointer"
+                        className="flex-1 backdrop-blur-md bg-white/90 hover:bg-white cursor-pointer border-black/10 text-[13px] font-medium h-9"
                         onClick={() => onView?.(article)}
                     >
-                        <Eye className="h-4 w-4 mr-2" />
+                        <Eye className="h-4 w-4 mr-2" strokeWidth={2} />
                         Voir
                     </Button>
                     <Button
                         size="sm"
                         variant="secondary"
-                        className="flex-1 backdrop-blur-md bg-background/80 cursor-pointer"
+                        className="flex-1 backdrop-blur-md bg-white/90 hover:bg-white cursor-pointer border-black/10 text-[13px] font-medium h-9"
                         onClick={() => onEdit?.(article)}
                     >
-                        <Edit className="h-4 w-4 mr-2" />
+                        <Edit className="h-4 w-4 mr-2" strokeWidth={2} />
                         Modifier
                     </Button>
                 </div>
             </div>
 
             {/* Content */}
-            <div className="p-4 space-y-3">
+            <div className="relative p-4 space-y-3">
                 {/* Header */}
                 <div className="flex gap-2">
                     <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold line-clamp-1 mb-1 group-hover:text-primary transition-colors">
+                        <h3 className="text-[15px] font-semibold tracking-[-0.02em] text-black line-clamp-1 mb-1">
                             {article.nom}
                         </h3>
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                            <Tag className="h-3 w-3" />
+                        <div className="flex items-center gap-1.5 text-[12px] text-black/60">
+                            <Tag className="h-3 w-3" strokeWidth={2} />
                             {article.reference}
                         </div>
                     </div>
@@ -161,24 +147,22 @@ export const ArticleCard = memo(function ArticleCard({
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8 cursor-pointer"
+                                className="h-8 w-8 cursor-pointer hover:bg-black/5"
                             >
-                                <MoreHorizontal className="h-4 w-4" />
+                                <MoreHorizontal className="h-4 w-4" strokeWidth={2} />
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={() => onView?.(article)}>
-                                <Eye className="mr-2 h-4 w-4" />
+                                <Eye className="mr-2 h-4 w-4" strokeWidth={2} />
                                 Voir détails
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => onEdit?.(article)}>
-                                <Edit className="mr-2 h-4 w-4" />
+                                <Edit className="mr-2 h-4 w-4" strokeWidth={2} />
                                 Modifier
                             </DropdownMenuItem>
-                            <DropdownMenuItem
-                                onClick={() => onDuplicate?.(article)}
-                            >
-                                <Copy className="mr-2 h-4 w-4" />
+                            <DropdownMenuItem onClick={() => onDuplicate?.(article)}>
+                                <Copy className="mr-2 h-4 w-4" strokeWidth={2} />
                                 Dupliquer
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
@@ -186,7 +170,7 @@ export const ArticleCard = memo(function ArticleCard({
                                 onClick={() => onDelete?.(article)}
                                 className="text-destructive"
                             >
-                                <Trash2 className="mr-2 h-4 w-4" />
+                                <Trash2 className="mr-2 h-4 w-4" strokeWidth={2} />
                                 Supprimer
                             </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -194,7 +178,7 @@ export const ArticleCard = memo(function ArticleCard({
                 </div>
 
                 {/* Description */}
-                <p className="text-sm text-muted-foreground line-clamp-2">
+                <p className="text-[13px] text-black/70 line-clamp-2">
                     {article.description}
                 </p>
 
@@ -202,35 +186,22 @@ export const ArticleCard = memo(function ArticleCard({
                 <div className="flex items-center justify-between">
                     <Badge
                         variant="outline"
-                        className={
-                            isService
-                                ? "bg-purple-50 text-purple-700 border-purple-200"
-                                : "bg-blue-50 text-blue-700 border-blue-200"
-                        }
+                        className="bg-black/5 text-black/70 border-black/10 text-[12px] h-6 px-3 font-medium"
                     >
                         {article.categorie}
                     </Badge>
                     {!isService && (
-                        <div className="flex items-center gap-1.5 text-sm">
-                            <Package className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-xs text-muted-foreground">
-                                Stock:
-                            </span>
-                            <span
-                                className={`font-semibold ${
-                                    isLowStock ? "text-orange-600" : ""
-                                }`}
-                            >
+                        <div className="flex items-center gap-1.5">
+                            <Package className="h-4 w-4 text-black/40" strokeWidth={2} />
+                            <span className="text-[12px] text-black/60">Stock:</span>
+                            <span className="text-[13px] font-semibold text-black">
                                 {article.stock}
                             </span>
                         </div>
                     )}
                     {isService && (
-                        <Badge
-                            variant="secondary"
-                            className="bg-purple-100 text-purple-700"
-                        >
-                            <Briefcase className="h-3 w-3 mr-1" />
+                        <Badge className="bg-black/5 text-black/70 border-black/10 text-[12px] h-6 px-3 font-medium">
+                            <Briefcase className="h-3 w-3 mr-1" strokeWidth={2} />
                             Prestation
                         </Badge>
                     )}
@@ -238,11 +209,11 @@ export const ArticleCard = memo(function ArticleCard({
             </div>
 
             {/* Footer */}
-            <div className="px-4 py-3 border-t">
-                <div className="font-bold text-2xl">
+            <div className="relative px-4 py-3 border-t border-black/[0.08]">
+                <div className="text-[22px] font-bold tracking-[-0.02em] text-black">
                     {article.prix.toFixed(2)}€
                 </div>
-                <div className="text-xs text-muted-foreground">
+                <div className="text-[12px] text-black/60">
                     TVA {article.tva}% incluse
                 </div>
             </div>

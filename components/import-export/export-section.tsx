@@ -22,34 +22,33 @@ export function ExportSection({
     onExportJSON,
 }: ExportSectionProps) {
     return (
-        <Card className="border-black/10">
-            <div className="p-5">
-                <div className="flex items-center gap-3 mb-5">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-black/5">
-                        <Download
-                            className="h-5 w-5 text-black/60"
-                            strokeWidth={2}
-                        />
-                    </div>
-                    <div>
-                        <h3 className="text-[18px] font-semibold tracking-[-0.01em] text-black">
+        <Card className="group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500">
+            <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="relative p-6">
+                <div className="mb-6">
+                    <div className="flex items-center gap-2 mb-1">
+                        <div className="w-1 h-4 bg-gradient-to-b from-black to-black/40 rounded-full" />
+                        <h3 className="text-[15px] font-semibold tracking-[-0.02em] text-black">
                             Exporter les clients
                         </h3>
-                        <p className="text-[14px] text-black/60">
-                            Téléchargez vos données clients
-                        </p>
                     </div>
+                    <p className="text-[13px] text-black/40 ml-3">
+                        Téléchargez vos données clients
+                    </p>
                 </div>
 
                 <div className="space-y-4">
-                    <div className="p-4 bg-black/2 rounded-lg border border-black/8">
-                        <div className="flex items-start gap-3">
-                            <CheckCircle2
-                                className="h-5 w-5 text-black/60 mt-0.5"
-                                strokeWidth={2}
-                            />
+                    <div className="group/info relative overflow-hidden p-4 bg-white rounded-lg border border-black/[0.08] hover:shadow-md hover:shadow-black/5 transition-all duration-300">
+                        <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.005] opacity-0 group-hover/info:opacity-100 transition-opacity duration-300" />
+                        <div className="relative flex items-start gap-3">
+                            <div className="flex items-center justify-center h-8 w-8 rounded-md bg-black/5 flex-shrink-0">
+                                <CheckCircle2
+                                    className="h-4 w-4 text-black/60"
+                                    strokeWidth={2}
+                                />
+                            </div>
                             <div className="flex-1">
-                                <p className="text-[14px] font-medium text-black mb-1">
+                                <p className="text-[14px] font-semibold text-black mb-1">
                                     Tous les clients seront exportés
                                 </p>
                                 <p className="text-[13px] text-black/60">
@@ -64,7 +63,7 @@ export function ExportSection({
                         <PrimaryActionButton
                             onClick={onExportCSV}
                             disabled={isLoading || clientsCount === 0}
-                            className="w-full cursor-pointer"
+                            className="w-full"
                         >
                             <FileText
                                 className="w-4 h-4 mr-2"
@@ -77,7 +76,7 @@ export function ExportSection({
                             onClick={onExportJSON}
                             disabled={isLoading || clientsCount === 0}
                             variant="outline"
-                            className="w-full h-11 text-[14px] font-medium border-black/10 hover:bg-black/5"
+                            className="w-full h-11 text-[14px] font-medium border-black/10 hover:bg-black/5 hover:border-black/15 transition-all duration-200"
                         >
                             <FileSpreadsheet
                                 className="w-4 h-4 mr-2"

@@ -36,31 +36,58 @@ const getIconColor = (priority: "urgent" | "high" | "medium" | "low") => {
  * Uses Design System constants for consistent styling.
  */
 export function TaskItem({ title, time, priority, onClick, className }: TaskItemProps) {
-    const iconClassName = cn(DS.size.icon.small, getIconColor(priority));
-    const iconStrokeWidth = DS.size.icon.strokeWidth;
+    const getPriorityConfig = () => {
+        if (priority === "urgent") {
+            return {
+                border: "border-black/15",
+                bg: "bg-black/[0.03]",
+                hover: "hover:bg-black/[0.06]",
+                iconBg: "bg-black/[0.08]",
+                iconColor: "text-black/70",
+            };
+        }
+        if (priority === "high") {
+            return {
+                border: "border-black/10",
+                bg: "bg-black/[0.02]",
+                hover: "hover:bg-black/[0.04]",
+                iconBg: "bg-black/[0.06]",
+                iconColor: "text-black/60",
+            };
+        }
+        return {
+            border: "border-black/8",
+            bg: "bg-white",
+            hover: "hover:bg-black/[0.02]",
+            iconBg: "bg-black/[0.04]",
+            iconColor: "text-black/50",
+        };
+    };
+
+    const config = getPriorityConfig();
 
     return (
         <div
             className={cn(
-                "p-3.5 border cursor-pointer",
-                DS.size.radius.large,
-                DS.animation.transition.fast,
-                getPriorityStyle(priority),
+                "group/task p-3.5 border rounded-lg cursor-pointer transition-all duration-200",
+                config.border,
+                config.bg,
+                config.hover,
                 className
             )}
             onClick={onClick}
         >
             <div className="flex items-start gap-3">
-                <div className="mt-0.5">
-                    {priority === "urgent" && <AlertCircle className={iconClassName} strokeWidth={iconStrokeWidth} />}
-                    {priority === "high" && <Bell className={iconClassName} strokeWidth={iconStrokeWidth} />}
-                    {(priority === "medium" || priority === "low") && <Clock className={iconClassName} strokeWidth={iconStrokeWidth} />}
+                <div className={`flex items-center justify-center w-7 h-7 rounded-md ${config.iconBg} group-hover/task:scale-105 transition-transform duration-200`}>
+                    {priority === "urgent" && <AlertCircle className={`w-4 h-4 ${config.iconColor}`} strokeWidth={2} />}
+                    {priority === "high" && <Bell className={`w-4 h-4 ${config.iconColor}`} strokeWidth={2} />}
+                    {(priority === "medium" || priority === "low") && <Clock className={`w-4 h-4 ${config.iconColor}`} strokeWidth={2} />}
                 </div>
                 <div className="flex-1 min-w-0">
                     {time && (
-                        <p className={cn(DS.text.body.xs, DS.color.text.tertiary, "mb-1")}>{time}</p>
+                        <p className="text-[11px] text-black/40 mb-1">{time}</p>
                     )}
-                    <p className={cn(DS.text.body.base, "font-medium", DS.text.tracking.normal, DS.color.text.primary)}>
+                    <p className="text-[14px] font-medium tracking-[-0.01em] text-black group-hover/task:text-black/90">
                         {title}
                     </p>
                 </div>

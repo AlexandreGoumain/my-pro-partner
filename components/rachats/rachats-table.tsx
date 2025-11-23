@@ -33,18 +33,18 @@ export function RachatsTable({ rachats, onView, onDelete }: RachatsTableProps) {
     return (
         <Table>
             <TableHeader>
-                <TableRow className="border-black/8 hover:bg-transparent">
-                    <TableHead className="text-black/60 font-medium">Article</TableHead>
-                    <TableHead className="text-black/60 font-medium">État</TableHead>
-                    <TableHead className="text-black/60 font-medium">
+                <TableRow className="bg-black/[0.02] border-black/[0.08] hover:bg-black/[0.02]">
+                    <TableHead className="text-[13px] text-black/70 font-medium">Article</TableHead>
+                    <TableHead className="text-[13px] text-black/70 font-medium">État</TableHead>
+                    <TableHead className="text-[13px] text-black/70 font-medium">
                         Prix rachat
                     </TableHead>
-                    <TableHead className="text-black/60 font-medium">
+                    <TableHead className="text-[13px] text-black/70 font-medium">
                         Prix vente
                     </TableHead>
-                    <TableHead className="text-black/60 font-medium">Client</TableHead>
-                    <TableHead className="text-black/60 font-medium">Date</TableHead>
-                    <TableHead className="text-right text-black/60 font-medium">
+                    <TableHead className="text-[13px] text-black/70 font-medium">Client</TableHead>
+                    <TableHead className="text-[13px] text-black/70 font-medium">Date</TableHead>
+                    <TableHead className="text-right text-[13px] text-black/70 font-medium">
                         Actions
                     </TableHead>
                 </TableRow>

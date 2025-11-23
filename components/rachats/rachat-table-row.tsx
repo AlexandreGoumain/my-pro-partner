@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { ETAT_COLORS, ETAT_LABELS } from "@/lib/constants/rachats";
+import { ETAT_LABELS } from "@/lib/constants/rachats";
 import { RachatActions } from "./rachat-actions";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -30,11 +30,11 @@ export interface RachatTableRowProps {
 
 export function RachatTableRow({ rachat, onView, onDelete }: RachatTableRowProps) {
     return (
-        <TableRow className="border-black/8 hover:bg-black/2">
+        <TableRow className="border-black/[0.08] hover:bg-black/[0.02] transition-colors">
             <TableCell>
                 <div>
-                    <div className="font-semibold text-black">{rachat.article.nom}</div>
-                    <div className="text-[13px] text-black/50 font-mono">
+                    <div className="text-[13px] font-semibold text-black">{rachat.article.nom}</div>
+                    <div className="text-[12px] text-black/60 font-mono">
                         {rachat.article.reference}
                     </div>
                 </div>
@@ -42,18 +42,18 @@ export function RachatTableRow({ rachat, onView, onDelete }: RachatTableRowProps
             <TableCell>
                 <Badge
                     variant="outline"
-                    className={`${ETAT_COLORS[rachat.etat]} font-medium`}
+                    className="bg-black/5 text-black/70 border-black/10 text-[12px] h-6 px-3 font-medium"
                 >
                     {ETAT_LABELS[rachat.etat]}
                 </Badge>
             </TableCell>
-            <TableCell className="font-semibold text-black">
+            <TableCell className="text-[13px] font-semibold text-black">
                 {Number(rachat.prixRachat).toFixed(2)} €
             </TableCell>
-            <TableCell className="font-semibold text-black">
+            <TableCell className="text-[13px] font-semibold text-black">
                 {Number(rachat.article.prix_ht).toFixed(2)} €
             </TableCell>
-            <TableCell className="text-black/70">
+            <TableCell className="text-[13px] text-black/70">
                 {rachat.client ? (
                     <Link
                         href={`/dashboard/clients/${rachat.client.id}`}
@@ -65,7 +65,7 @@ export function RachatTableRow({ rachat, onView, onDelete }: RachatTableRowProps
                     "-"
                 )}
             </TableCell>
-            <TableCell className="text-black/70">
+            <TableCell className="text-[13px] text-black/70">
                 {format(new Date(rachat.dateRachat), "dd MMM yyyy", {
                     locale: fr,
                 })}

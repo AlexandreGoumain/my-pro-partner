@@ -66,37 +66,50 @@ export function StatCard({
     return (
         <Card
             className={cn(
-                DS.component.card.default,
-                isClickable && cn(
-                    "cursor-pointer hover:border-black/20",
-                    DS.animation.transition.fast
-                ),
+                "group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500",
+                isClickable && "cursor-pointer",
                 className
             )}
             onClick={onClick}
         >
-            <div className="p-4">
-                <div className="flex items-center justify-between mb-3">
-                    <div
-                        className={cn(
-                            DS.size.radius.large,
-                            DS.color.bg.hover,
-                            "flex items-center justify-center",
-                            styles.iconContainer
-                        )}
-                    >
-                        <Icon
-                            className={cn(DS.color.text.secondary, styles.icon)}
-                            strokeWidth={DS.size.icon.strokeWidth}
-                        />
+            <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="relative p-6">
+                <div className="mb-5">
+                    <div className="flex items-center gap-2 mb-1">
+                        <div className="w-1 h-4 bg-gradient-to-b from-black to-black/40 rounded-full" />
+                        <p className={cn("font-medium tracking-[-0.01em] text-black/60", styles.label)}>
+                            {label}
+                        </p>
+                    </div>
+                </div>
+
+                <div className="flex items-end justify-between">
+                    <div className="flex items-center gap-3">
+                        <div
+                            className={cn(
+                                "flex items-center justify-center rounded-lg bg-black/5",
+                                styles.iconContainer
+                            )}
+                        >
+                            <Icon
+                                className={cn("text-black/60", styles.icon)}
+                                strokeWidth={2}
+                            />
+                        </div>
+                        <p
+                            className={cn(
+                                "font-bold tracking-[-0.03em] text-black",
+                                styles.value
+                            )}
+                        >
+                            {value}
+                        </p>
                     </div>
                     {badge && (
                         <Badge
                             variant={badge.variant || "secondary"}
                             className={cn(
-                                DS.color.bg.hover,
-                                DS.color.text.secondary,
-                                "border-0",
+                                "bg-black/5 text-black/60 border-0 font-medium",
                                 styles.badge,
                                 badge.className
                             )}
@@ -105,26 +118,11 @@ export function StatCard({
                         </Badge>
                     )}
                 </div>
-                <div className="space-y-0.5">
-                    <p
-                        className={cn(
-                            "font-semibold",
-                            DS.text.tracking.tight,
-                            DS.color.text.primary,
-                            styles.value
-                        )}
-                    >
-                        {value}
+                {description && (
+                    <p className={cn("text-[12px] text-black/40 mt-3")}>
+                        {description}
                     </p>
-                    <p className={cn(DS.color.text.secondary, styles.label)}>
-                        {label}
-                    </p>
-                    {description && (
-                        <p className={cn(DS.text.body.xs, DS.color.text.tertiary, "mt-0.5")}>
-                            {description}
-                        </p>
-                    )}
-                </div>
+                )}
             </div>
         </Card>
     );

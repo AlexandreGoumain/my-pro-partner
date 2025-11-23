@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ArticleCombobox } from "./article-combobox";
 import { Plus, Trash2 } from "lucide-react";
@@ -101,38 +102,43 @@ export function LineItemsEditor({
     };
 
     return (
-        <div className="space-y-4">
-            <div className="flex items-center justify-between">
-                <h3 className="text-[16px] font-semibold tracking-[-0.01em] text-black">
-                    Lignes du document
-                </h3>
-                <Button
-                    type="button"
-                    onClick={handleAddLine}
-                    variant="outline"
-                    size="sm"
-                    disabled={articles.length === 0}
-                    className="h-9 px-4 text-[13px] border-black/10 hover:bg-black/5"
-                >
-                    <Plus className="w-4 h-4 mr-2" strokeWidth={2} />
-                    Ajouter une ligne
-                </Button>
-            </div>
-
-            {articles.length === 0 ? (
-                <div className="border border-black/8 rounded-lg p-8 text-center">
-                    <p className="text-[14px] text-black/60 mb-2">
-                        Aucun produit ou service disponible
-                    </p>
-                    <p className="text-[13px] text-black/40">
-                        Vous devez d&apos;abord créer des articles (produits ou services) avant de pouvoir ajouter des lignes au document.
-                    </p>
+        <Card className="group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500">
+            <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="relative p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <div className="w-1 h-4 bg-gradient-to-b from-black to-black/40 rounded-full" />
+                        <h3 className="text-[15px] font-semibold tracking-[-0.02em] text-black">
+                            Lignes du document
+                        </h3>
+                    </div>
+                    <Button
+                        type="button"
+                        onClick={handleAddLine}
+                        variant="outline"
+                        size="sm"
+                        disabled={articles.length === 0}
+                        className="h-9 px-4 text-[13px] border-black/10 hover:bg-black/5"
+                    >
+                        <Plus className="w-4 h-4 mr-2" strokeWidth={2} />
+                        Ajouter une ligne
+                    </Button>
                 </div>
-            ) : (
-                <div className="border border-black/8 rounded-lg overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-[13px]">
-                            <thead className="bg-black/2 border-b border-black/8">
+
+                {articles.length === 0 ? (
+                    <div className="border border-black/[0.08] rounded-lg p-8 text-center bg-white">
+                        <p className="text-[14px] text-black/60 mb-2">
+                            Aucun produit ou service disponible
+                        </p>
+                        <p className="text-[13px] text-black/40">
+                            Vous devez d&apos;abord créer des articles (produits ou services) avant de pouvoir ajouter des lignes au document.
+                        </p>
+                    </div>
+                ) : (
+                    <div className="border border-black/[0.08] rounded-lg overflow-hidden shadow-sm bg-white">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-[13px]">
+                                <thead className="bg-black/[0.02] border-b border-black/[0.08]">
                                 <tr>
                                     <th className="text-left p-3 font-medium text-black/60">Désignation</th>
                                     <th className="text-right p-3 font-medium text-black/60 w-24">Quantité</th>
@@ -152,7 +158,7 @@ export function LineItemsEditor({
                                     </tr>
                                 ) : (
                                     lines.map((line, index) => (
-                                        <tr key={index} className="border-b border-black/5 last:border-0">
+                                        <tr key={index} className="border-b border-black/[0.05] last:border-0 hover:bg-black/[0.02] transition-colors">
                                             <td className="p-2">
                                                 <ArticleCombobox
                                                     articles={articles}
@@ -236,7 +242,7 @@ export function LineItemsEditor({
                                                 onClick={() => handleRemoveLine(index)}
                                                 variant="ghost"
                                                 size="sm"
-                                                className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
+                                                className="h-8 w-8 p-0 hover:bg-black/5 text-black/60 hover:text-black"
                                             >
                                                 <Trash2 className="w-4 h-4" strokeWidth={2} />
                                             </Button>
@@ -244,11 +250,12 @@ export function LineItemsEditor({
                                     </tr>
                                 ))
                             )}
-                        </tbody>
-                    </table>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
+                )}
             </div>
-            )}
-        </div>
+        </Card>
     );
 }

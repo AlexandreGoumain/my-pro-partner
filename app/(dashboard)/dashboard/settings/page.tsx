@@ -9,7 +9,8 @@ import { SuspensePage } from "@/components/ui/suspense-page";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { useSettingsForm } from "@/hooks/use-settings-form";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { AccountTab } from "./_components/account-tab";
 import { ExportTab } from "./_components/export-tab";
 import { GeneralTab } from "./_components/general-tab";
@@ -20,7 +21,16 @@ import { SubscriptionTab } from "./_components/subscription-tab";
 
 function SettingsPageContent() {
     const { data: session } = useSession();
-    const [activeTab, setActiveTab] = useState("general");
+    const searchParams = useSearchParams();
+    const tabParam = searchParams.get("tab");
+    const [activeTab, setActiveTab] = useState(tabParam || "general");
+
+    // Mettre à jour l'onglet actif si le paramètre URL change
+    useEffect(() => {
+        if (tabParam) {
+            setActiveTab(tabParam);
+        }
+    }, [tabParam]);
 
     const {
         settings,

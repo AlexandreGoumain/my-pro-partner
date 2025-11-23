@@ -187,14 +187,14 @@ export function AccountTab({ user = null }: AccountTabProps) {
                 description="Actions irréversibles (développement uniquement)"
             >
                 <div className="max-w-4xl">
-                    <div className="rounded-lg border border-red-200 bg-red-50/50 p-6">
+                    <div className="rounded-lg border border-black/[0.08] bg-white p-6 shadow-sm">
                         <div className="space-y-6">
                             {/* Mes données personnelles */}
                             <div>
-                                <div className="text-[14px] font-semibold text-red-900">
+                                <div className="text-[14px] font-semibold text-black">
                                     Supprimer toutes mes données
                                 </div>
-                                <p className="mt-2 text-[13px] text-red-800/80">
+                                <p className="mt-2 text-[13px] text-black/70">
                                     Supprime toutes vos données personnelles de manière
                                     irréversible.
                                 </p>
@@ -204,11 +204,11 @@ export function AccountTab({ user = null }: AccountTabProps) {
                             </div>
 
                             {/* Suppression par type de données */}
-                            <div className="pt-4 border-t border-orange-200">
-                                <div className="text-[15px] font-semibold text-orange-900 mb-3">
+                            <div className="pt-4 border-t border-black/[0.08]">
+                                <div className="text-[15px] font-semibold text-black mb-3">
                                     Supprimer des types de données
                                 </div>
-                                <p className="text-[13px] text-orange-800/80 mb-4">
+                                <p className="text-[13px] text-black/70 mb-4">
                                     Supprimez sélectivement des types de données de
                                     votre entreprise.
                                 </p>
@@ -397,11 +397,11 @@ export function AccountTab({ user = null }: AccountTabProps) {
                             </div>
 
                             {/* Actions globales dangereuses */}
-                            <div className="pt-4 border-t border-red-300">
-                                <div className="text-[15px] font-bold text-red-950 mb-3">
+                            <div className="pt-4 border-t border-black/[0.08]">
+                                <div className="text-[15px] font-bold text-black mb-3">
                                     💣 Actions globales extrêmement dangereuses
                                 </div>
-                                <p className="text-[13px] text-red-900/90 mb-4">
+                                <p className="text-[13px] text-black/70 mb-4">
                                     ⚠️ Ces actions affectent TOUTES les entreprises,
                                     pas seulement la vôtre.
                                 </p>
@@ -417,7 +417,7 @@ export function AccountTab({ user = null }: AccountTabProps) {
                                         color="red"
                                     />
                                     <div>
-                                        <div className="text-[13px] text-red-900/80 mb-2">
+                                        <div className="text-[13px] text-black/70 mb-2">
                                             Réinitialisation complète de
                                             l'application
                                         </div>

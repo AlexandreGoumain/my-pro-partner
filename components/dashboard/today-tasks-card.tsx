@@ -18,41 +18,34 @@ export interface TodayTasksCardProps {
  */
 export function TodayTasksCard({ tasks, className }: TodayTasksCardProps) {
     return (
-        <Card className={cn(DS.component.card.default, className)}>
-            <div className="p-5">
-                <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2.5">
-                        <div
-                            className={cn(
-                                "h-8 w-8 flex items-center justify-center",
-                                DS.size.radius.large,
-                                DS.color.bg.hover
-                            )}
-                        >
-                            <Calendar
-                                className={cn(
-                                    DS.size.icon.small,
-                                    DS.color.text.secondary
-                                )}
-                                strokeWidth={DS.size.icon.strokeWidth}
-                            />
+        <Card className={`group relative p-6 overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500 ${className || ""}`}>
+            {/* Subtle hover effect */}
+            <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+            {/* Content */}
+            <div className="relative">
+                {/* Header */}
+                <div className="mb-6">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <div className="flex items-center gap-2 mb-1">
+                                <div className="w-1 h-4 bg-gradient-to-b from-black to-black/40 rounded-full" />
+                                <h3 className="text-[15px] font-semibold tracking-[-0.02em] text-black">
+                                    Aujourd&apos;hui
+                                </h3>
+                            </div>
+                            <p className="text-[13px] text-black/40 ml-3">
+                                Tâches à traiter
+                            </p>
                         </div>
-                        <h3 className={DS.text.heading.h4}>Aujourd&apos;hui</h3>
+                        {tasks.length > 0 && (
+                            <div className="flex items-center justify-center h-7 min-w-7 px-2 bg-black/5 rounded-md">
+                                <span className="text-[12px] font-semibold text-black/70">
+                                    {tasks.length}
+                                </span>
+                            </div>
+                        )}
                     </div>
-                    {tasks.length > 0 && (
-                        <Badge
-                            variant="secondary"
-                            className={cn(
-                                DS.color.bg.hover,
-                                DS.color.text.secondary,
-                                "border-0",
-                                DS.text.body.xs,
-                                "h-5 px-2"
-                            )}
-                        >
-                            {tasks.length}
-                        </Badge>
-                    )}
                 </div>
 
                 {tasks.length > 0 ? (
@@ -63,37 +56,13 @@ export function TodayTasksCard({ tasks, className }: TodayTasksCardProps) {
                     </div>
                 ) : (
                     <div className="text-center py-10">
-                        <div
-                            className={cn(
-                                "h-12 w-12 flex items-center justify-center mx-auto mb-3",
-                                DS.size.radius.full,
-                                DS.color.bg.hover
-                            )}
-                        >
-                            <CheckCircle2
-                                className={cn(
-                                    DS.size.icon.large,
-                                    DS.color.text.tertiary
-                                )}
-                                strokeWidth={DS.size.icon.strokeWidth}
-                            />
+                        <div className="h-12 w-12 flex items-center justify-center mx-auto mb-3 rounded-full bg-black/5">
+                            <CheckCircle2 className="w-6 h-6 text-black/30" strokeWidth={2} />
                         </div>
-                        <p
-                            className={cn(
-                                DS.text.body.base,
-                                "font-medium",
-                                DS.color.text.secondary
-                            )}
-                        >
+                        <p className="text-[14px] font-medium text-black/60">
                             Aucune action requise
                         </p>
-                        <p
-                            className={cn(
-                                DS.text.body.small,
-                                DS.color.text.tertiary,
-                                "mt-1"
-                            )}
-                        >
+                        <p className="text-[13px] text-black/40 mt-1">
                             Tout est à jour
                         </p>
                     </div>

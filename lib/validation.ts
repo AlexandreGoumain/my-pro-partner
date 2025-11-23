@@ -1324,3 +1324,117 @@ export const reparationInterventionSchema = z.object({
 export type ReparationInterventionInput = z.infer<
     typeof reparationInterventionSchema
 >;
+
+// ============================================
+// GESTION DU PERSONNEL
+// ============================================
+
+// Base schema pour Employee
+export const employeeBaseSchema = z.object({
+    prenom: z
+        .string()
+        .min(1, "Le prénom est requis")
+        .max(100, "Le prénom ne peut pas dépasser 100 caractères"),
+    nom: z
+        .string()
+        .min(1, "Le nom est requis")
+        .max(100, "Le nom ne peut pas dépasser 100 caractères"),
+    email: z.string().email("Email invalide"),
+    telephone: z
+        .string()
+        .max(20, "Le téléphone ne peut pas dépasser 20 caractères")
+        .optional()
+        .or(z.literal("")),
+    dateNaissance: z.date().optional().nullable(),
+    adresse: z
+        .string()
+        .max(200, "L'adresse ne peut pas dépasser 200 caractères")
+        .optional()
+        .or(z.literal("")),
+    ville: z
+        .string()
+        .max(100, "La ville ne peut pas dépasser 100 caractères")
+        .optional()
+        .or(z.literal("")),
+    codePostal: z
+        .string()
+        .max(10, "Le code postal ne peut pas dépasser 10 caractères")
+        .optional()
+        .or(z.literal("")),
+    pays: z
+        .string()
+        .max(100, "Le pays ne peut pas dépasser 100 caractères")
+        .default("France"),
+    photoUrl: z
+        .string()
+        .url("URL invalide")
+        .optional()
+        .or(z.literal("")),
+    poste: z
+        .string()
+        .min(1, "Le poste est requis")
+        .max(100, "Le poste ne peut pas dépasser 100 caractères"),
+    departement: z
+        .string()
+        .max(100, "Le département ne peut pas dépasser 100 caractères")
+        .optional()
+        .or(z.literal("")),
+    statut: z.enum(["ACTIF", "CONGE", "MALADIE", "ABSENT", "INACTIF"]).default("ACTIF"),
+    typeContrat: z.enum(["CDI", "CDD", "INTERIM", "APPRENTI", "STAGE", "FREELANCE"]).default("CDI"),
+    dateEmbauche: z.date({
+        required_error: "La date d'embauche est requise",
+    }),
+    dateFin: z.date().optional().nullable(),
+    salaireBrut: z
+        .number({
+            required_error: "Le salaire brut est requis",
+        })
+        .positive("Le salaire doit être positif")
+        .max(999999.99, "Le salaire est trop élevé"),
+    devise: z.string().max(10, "La devise ne peut pas dépasser 10 caractères").default("EUR"),
+    heuresHebdo: z
+        .number()
+        .int("Les heures doivent être un nombre entier")
+        .min(1, "Les heures doivent être au moins 1")
+        .max(70, "Les heures ne peuvent pas dépasser 70")
+        .default(35)
+        .optional(),
+    joursTravail: z
+        .string()
+        .max(100, "Les jours de travail ne peuvent pas dépasser 100 caractères")
+        .optional()
+        .or(z.literal("")),
+    notes: z
+        .string()
+        .max(2000, "Les notes ne peuvent pas dépasser 2000 caractères")
+        .optional()
+        .or(z.literal("")),
+    competences: z
+        .string()
+        .max(2000, "Les compétences ne peuvent pas dépasser 2000 caractères")
+        .optional()
+        .or(z.literal("")),
+    congesRestants: z
+        .number()
+        .int("Les congés doivent être un nombre entier")
+        .min(0, "Les congés ne peuvent pas être négatifs")
+        .max(365, "Les congés ne peuvent pas dépasser 365 jours")
+        .default(25)
+        .optional(),
+    congesPris: z
+        .number()
+        .int("Les congés pris doivent être un nombre entier")
+        .min(0, "Les congés pris ne peuvent pas être négatifs")
+        .max(365, "Les congés pris ne peuvent pas dépasser 365 jours")
+        .default(0)
+        .optional(),
+});
+
+// Schema pour la création d'employé
+export const employeeCreateSchema = employeeBaseSchema;
+
+// Schema pour la mise à jour d'employé
+export const employeeUpdateSchema = employeeBaseSchema.partial();
+
+export type EmployeeCreateInput = z.infer<typeof employeeCreateSchema>;
+export type EmployeeUpdateInput = z.infer<typeof employeeUpdateSchema>;

@@ -65,19 +65,20 @@ export const ClientCard = memo(function ClientCard({
 
     return (
         <Card
-            className="group cursor-pointer border-black/8 shadow-sm hover:border-black/20 transition-all duration-200"
+            className="group relative cursor-pointer overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500"
             onClick={handleView}
         >
-            <div className="p-5">
-                <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-start gap-3">
-                        <Avatar className="h-12 w-12 border border-black/10">
-                            <AvatarFallback className="bg-black text-white text-[14px] font-medium">
+            <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="relative p-6">
+                <div className="flex items-start justify-between mb-5">
+                    <div className="flex items-start gap-3.5">
+                        <Avatar className="h-12 w-12 border border-black/10 ring-2 ring-transparent group-hover:ring-black/5 transition-all duration-300">
+                            <AvatarFallback className="bg-black text-white text-[14px] font-semibold">
                                 {initiales.toUpperCase()}
                             </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
-                            <h3 className="text-[15px] font-medium tracking-[-0.01em] text-black line-clamp-1 mb-1">
+                            <h3 className="text-[15px] font-semibold tracking-[-0.01em] text-black line-clamp-1 mb-1.5">
                                 {nomComplet}
                             </h3>
                             {client.createdAt && (
@@ -93,23 +94,23 @@ export const ClientCard = memo(function ClientCard({
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8 hover:bg-black/5"
+                                className="h-8 w-8 hover:bg-black/5 transition-all duration-200"
                                 onClick={(e) => e.stopPropagation()}
                             >
                                 <MoreHorizontal className="h-4 w-4 text-black/60" strokeWidth={2} />
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48">
-                            <DropdownMenuItem onClick={handleView}>
+                        <DropdownMenuContent align="end" className="w-48 bg-white border-black/10">
+                            <DropdownMenuItem onClick={handleView} className="cursor-pointer">
                                 <Eye className="mr-2 h-4 w-4" strokeWidth={2} />
                                 Voir détails
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={handleEdit}>
+                            <DropdownMenuItem onClick={handleEdit} className="cursor-pointer">
                                 <Edit className="mr-2 h-4 w-4" strokeWidth={2} />
                                 Modifier
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={handleDelete} className="text-black/80">
+                            <DropdownMenuItem onClick={handleDelete} className="text-black/80 cursor-pointer">
                                 <Trash2 className="mr-2 h-4 w-4" strokeWidth={2} />
                                 Supprimer
                             </DropdownMenuItem>
@@ -117,34 +118,42 @@ export const ClientCard = memo(function ClientCard({
                     </DropdownMenu>
                 </div>
 
-                <div className="space-y-2.5">
-                    {client.email && (
-                        <div className="flex items-center gap-2.5">
-                            <Mail className="h-4 w-4 text-black/40" strokeWidth={2} />
-                            <p className="text-[13px] text-black/60 truncate">{client.email}</p>
-                        </div>
-                    )}
+                {(client.email || client.telephone || localisation) ? (
+                    <div className="space-y-3">
+                        {client.email && (
+                            <div className="flex items-center gap-3">
+                                <div className="flex items-center justify-center h-7 w-7 rounded-md bg-black/5">
+                                    <Mail className="h-3.5 w-3.5 text-black/60" strokeWidth={2} />
+                                </div>
+                                <p className="text-[13px] text-black/70 truncate flex-1">{client.email}</p>
+                            </div>
+                        )}
 
-                    {client.telephone && (
-                        <div className="flex items-center gap-2.5">
-                            <Phone className="h-4 w-4 text-black/40" strokeWidth={2} />
-                            <p className="text-[13px] text-black/60">{client.telephone}</p>
-                        </div>
-                    )}
+                        {client.telephone && (
+                            <div className="flex items-center gap-3">
+                                <div className="flex items-center justify-center h-7 w-7 rounded-md bg-black/5">
+                                    <Phone className="h-3.5 w-3.5 text-black/60" strokeWidth={2} />
+                                </div>
+                                <p className="text-[13px] text-black/70">{client.telephone}</p>
+                            </div>
+                        )}
 
-                    {localisation && (
-                        <div className="flex items-center gap-2.5">
-                            <MapPin className="h-4 w-4 text-black/40" strokeWidth={2} />
-                            <p className="text-[13px] text-black/60">{localisation}</p>
-                        </div>
-                    )}
-
-                    {!hasContact && !localisation && (
-                        <p className="text-[13px] text-black/40 text-center py-4">
+                        {localisation && (
+                            <div className="flex items-center gap-3">
+                                <div className="flex items-center justify-center h-7 w-7 rounded-md bg-black/5">
+                                    <MapPin className="h-3.5 w-3.5 text-black/60" strokeWidth={2} />
+                                </div>
+                                <p className="text-[13px] text-black/70 truncate flex-1">{localisation}</p>
+                            </div>
+                        )}
+                    </div>
+                ) : (
+                    <div className="flex items-center justify-center py-6">
+                        <p className="text-[13px] text-black/40">
                             Aucune information de contact
                         </p>
-                    )}
-                </div>
+                    </div>
+                )}
             </div>
         </Card>
     );

@@ -22,14 +22,22 @@ export function ClientInsightsSection({
     return (
         <div className="grid gap-5 md:grid-cols-2">
             {/* Qualité des données */}
-            <Card className="border-black/8 shadow-sm">
-                <div className="p-5">
-                    <SectionHeader
-                        title="Qualité des données"
-                        description="Taux de complétion des fiches clients"
-                    />
+            <Card className="group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500">
+                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="relative p-6">
+                    <div className="mb-6">
+                        <div className="flex items-center gap-2 mb-1">
+                            <div className="w-1 h-4 bg-gradient-to-b from-black to-black/40 rounded-full" />
+                            <h3 className="text-[15px] font-semibold tracking-[-0.02em] text-black">
+                                Qualité des données
+                            </h3>
+                        </div>
+                        <p className="text-[13px] text-black/40 ml-3">
+                            Taux de complétion des fiches clients
+                        </p>
+                    </div>
                     <div className="mb-4">
-                        <p className="text-[32px] font-semibold tracking-[-0.02em] text-black">
+                        <p className="text-[40px] font-bold tracking-[-0.03em] text-black">
                             {completionRate.toFixed(0)}%
                         </p>
                     </div>
@@ -49,15 +57,21 @@ export function ClientInsightsSection({
             </Card>
 
             {/* Actions rapides */}
-            <Card className="border-black/8 shadow-sm">
-                <div className="p-5">
-                    <h3 className="text-[15px] font-medium tracking-[-0.01em] text-black mb-4">
-                        Actions rapides
-                    </h3>
+            <Card className="group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500">
+                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="relative p-6">
+                    <div className="mb-6">
+                        <div className="flex items-center gap-2 mb-1">
+                            <div className="w-1 h-4 bg-gradient-to-b from-black to-black/40 rounded-full" />
+                            <h3 className="text-[15px] font-semibold tracking-[-0.02em] text-black">
+                                Actions rapides
+                            </h3>
+                        </div>
+                    </div>
                     <div className="space-y-2">
                         <Button
                             variant="outline"
-                            className="w-full justify-between h-12 px-4 text-[14px] font-medium border-black/10 hover:bg-black/5 cursor-pointer"
+                            className="w-full justify-between h-11 px-4 text-[14px] font-medium border-black/10 hover:bg-black/5 hover:border-black/15 cursor-pointer transition-all duration-200"
                             onClick={onSegmentsClick}
                         >
                             <div className="flex items-center gap-2.5">
@@ -76,7 +90,7 @@ export function ClientInsightsSection({
                         </Button>
                         <Button
                             variant="outline"
-                            className="w-full justify-between h-12 px-4 text-[14px] font-medium border-black/10 hover:bg-black/5 cursor-pointer"
+                            className="w-full justify-between h-11 px-4 text-[14px] font-medium border-black/10 hover:bg-black/5 hover:border-black/15 cursor-pointer transition-all duration-200"
                             onClick={onStatisticsClick}
                         >
                             <div className="flex items-center gap-2.5">
@@ -95,7 +109,7 @@ export function ClientInsightsSection({
                         </Button>
                         <Button
                             variant="outline"
-                            className="w-full justify-between h-12 px-4 text-[14px] font-medium border-black/10 hover:bg-black/5 cursor-pointer"
+                            className="w-full justify-between h-11 px-4 text-[14px] font-medium border-black/10 hover:bg-black/5 hover:border-black/15 cursor-pointer transition-all duration-200"
                             onClick={onImportExportClick}
                         >
                             <div className="flex items-center gap-2.5">

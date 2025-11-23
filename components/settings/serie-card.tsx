@@ -161,7 +161,7 @@ export function SerieCard({ serie, onEdit, onDelete, onToggleActive }: SerieCard
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
                                     onClick={() => onDelete(serie)}
-                                    className="text-red-600"
+                                    className="text-black/70"
                                 >
                                     <Trash2 className="h-4 w-4 mr-2" strokeWidth={2} />
                                     Supprimer

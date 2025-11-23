@@ -19,19 +19,25 @@ export function AnalyticsKPICard({
     className = "",
 }: AnalyticsKPICardProps) {
     return (
-        <Card className={`p-6 border-black/8 shadow-sm ${className}`}>
-            <div className="flex items-center justify-between mb-2">
-                <span className="text-[14px] text-black/60">{title}</span>
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black/5">
-                    <Icon className="h-5 w-5 text-black/60" strokeWidth={2} />
+        <Card className={`group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500 ${className}`}>
+            <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="relative p-6">
+                <div className="mb-5">
+                    <div className="flex items-center gap-2 mb-1">
+                        <div className="w-1 h-4 bg-gradient-to-b from-black to-black/40 rounded-full" />
+                        <span className="text-[13px] font-medium tracking-[-0.01em] text-black/60 flex items-center gap-1.5">
+                            <Icon className="h-4 w-4 text-black/60" strokeWidth={2} />
+                            {title}
+                        </span>
+                    </div>
                 </div>
+                <div className="text-[28px] font-bold tracking-[-0.02em] text-black mb-1">
+                    {value}
+                </div>
+                {subtitle && (
+                    <div className="text-[13px] text-black/60">{subtitle}</div>
+                )}
             </div>
-            <div className="text-[28px] font-bold tracking-[-0.02em] text-black mb-1">
-                {value}
-            </div>
-            {subtitle && (
-                <div className="text-[13px] text-black/60">{subtitle}</div>
-            )}
         </Card>
     );
 }
