@@ -12,11 +12,11 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSkeleton,
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
-import { Spinner } from "@/components/ui/spinner";
 import { getIcon } from "@/lib/navigation/utils/icon-map";
 import type { ResolvedNavigation } from "@/lib/navigation/core/types";
 import { ChevronRight } from "lucide-react";
@@ -33,9 +33,18 @@ export function NavigationMenu({ navigation, isLoading }: NavigationMenuProps) {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <Spinner className="h-6 w-6" />
-      </div>
+      <SidebarGroup>
+        <SidebarGroupLabel>Application</SidebarGroupLabel>
+        <SidebarGroupContent>
+          <SidebarMenu>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <SidebarMenuItem key={i}>
+                <SidebarMenuSkeleton showIcon />
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
     );
   }
 
