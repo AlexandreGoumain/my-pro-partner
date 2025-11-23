@@ -16,7 +16,6 @@ import { ExportTab } from "./_components/export-tab";
 import { GeneralTab } from "./_components/general-tab";
 import { NotificationsTab } from "./_components/notifications-tab";
 import { PreferencesTab } from "./_components/preferences-tab";
-import { SeriesTab } from "./_components/series-tab";
 import { SubscriptionTab } from "./_components/subscription-tab";
 
 function SettingsPageContent() {
@@ -76,12 +75,6 @@ function SettingsPageContent() {
                             />
                         </SettingsContentWrapper>
                         <SettingsSaveButton isSaving={isSaving} />
-                    </TabsContent>
-
-                    <TabsContent value="series" className="mt-0">
-                        <SettingsContentWrapper>
-                            <SeriesTab />
-                        </SettingsContentWrapper>
                     </TabsContent>
 
                     <TabsContent value="notifications" className="mt-0">

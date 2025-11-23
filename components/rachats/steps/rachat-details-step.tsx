@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { UseFormReturn } from "react-hook-form";
 import {
   FormControl,
@@ -25,6 +26,16 @@ interface RachatDetailsStepProps {
 }
 
 export function RachatDetailsStep({ form }: RachatDetailsStepProps) {
+  const clientId = form.watch("clientId");
+  const hasClientSelected = clientId && clientId !== "no-client";
+
+  // Forcer la provenance à RACHAT_CLIENT si un client est sélectionné
+  useEffect(() => {
+    if (hasClientSelected) {
+      form.setValue("provenance", "RACHAT_CLIENT");
+    }
+  }, [hasClientSelected, form]);
+
   return (
     <div className="space-y-6 py-4">
       <div className="space-y-2">
@@ -76,7 +87,11 @@ export function RachatDetailsStep({ form }: RachatDetailsStepProps) {
               <FormLabel className="text-[14px] font-medium text-black">
                 Provenance <span className="text-red-500">*</span>
               </FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select
+                onValueChange={field.onChange}
+                value={field.value}
+                disabled={hasClientSelected}
+              >
                 <FormControl>
                   <SelectTrigger className="h-11 border-black/10 focus:border-black/20">
                     <SelectValue placeholder="Sélectionner la provenance" />
@@ -93,6 +108,11 @@ export function RachatDetailsStep({ form }: RachatDetailsStepProps) {
                   <SelectItem value="AUTRE">Autre</SelectItem>
                 </SelectContent>
               </Select>
+              {hasClientSelected && (
+                <FormDescription className="text-[13px] text-black/50">
+                  Automatiquement défini car un client est sélectionné
+                </FormDescription>
+              )}
               <FormMessage />
             </FormItem>
           )}

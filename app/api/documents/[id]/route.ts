@@ -36,7 +36,6 @@ const ligneSchema = z.object({
 const documentCompleteUpdateSchema = z.object({
     type: z.enum(["DEVIS", "FACTURE", "AVOIR"]),
     clientId: z.string(),
-    serieId: z.string().optional().nullable(),
     dateEmission: z.string(),
     dateEcheance: z.string(),
     validite_jours: z.number(),
@@ -153,7 +152,6 @@ export async function PATCH(
                 data: {
                     type: data.type,
                     clientId: data.clientId,
-                    serieId: data.serieId || null,
                     dateEmission: new Date(data.dateEmission),
                     dateEcheance: data.dateEcheance ? new Date(data.dateEcheance) : null,
                     validite_jours: data.validite_jours,

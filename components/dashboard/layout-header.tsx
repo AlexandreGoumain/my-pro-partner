@@ -5,8 +5,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useBreadcrumbs } from "@/hooks/use-breadcrumbs";
 import { GlobalSearch } from "./global-search";
 import { UserDropdownMenu } from "./user-dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { Bell } from "lucide-react";
+import { NotificationsDropdown } from "./notifications-dropdown";
 
 export interface LayoutHeaderProps {
     pageTitle: string;
@@ -52,17 +51,7 @@ export function LayoutHeader({
 
             {/* Right: Notifications & User Menu */}
             <div className="flex items-center justify-end gap-2 flex-1">
-                <Button
-                    variant="outline"
-                    size="icon"
-                    className="relative h-9 w-9 border-black/10 hover:bg-black/5 hover:border-black/15 transition-all duration-200"
-                >
-                    <Bell className="w-4 h-4 text-black/60" strokeWidth={2} />
-                    {/* Badge pour le nombre de notifications */}
-                    <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-black text-white text-[10px] font-semibold flex items-center justify-center shadow-sm">
-                        3
-                    </span>
-                </Button>
+                <NotificationsDropdown />
 
                 <UserDropdownMenu
                     userName={userName}

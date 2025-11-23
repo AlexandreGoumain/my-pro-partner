@@ -28,7 +28,6 @@ export interface Article {
 
 export interface DocumentFormData {
     clientId: string;
-    serieId?: string;
     dateEmission: string;
     dateEcheance: string;
     validite_jours: number;
@@ -65,7 +64,6 @@ export interface Document {
     dateEcheance: Date | string | null;
     statut: DocumentStatus;
     clientId?: string;
-    serieId?: string | null;
     client: DocumentClient;
     total_ht: number;
     total_tva: number;

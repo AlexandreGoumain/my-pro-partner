@@ -444,8 +444,45 @@ export const BankReconciliationFeature: FeatureModule = {
 };
 
 // ============================================
-// OCCASION (Computer shops only)
+// COMPUTER SHOPS SPECIFIC
 // ============================================
+
+export const RepairsFeature: FeatureModule = {
+  id: "repairs",
+  name: "Réparations",
+  navigation: {
+    main: {
+      icon: "Wrench",
+      label: "Réparations",
+      href: "/dashboard/reparations",
+      order: 21,
+    },
+    subItems: [
+      { label: "Toutes les réparations", href: "/dashboard/reparations", order: 0 },
+      { label: "En cours", href: "/dashboard/reparations?filter=en-cours", order: 1 },
+      { label: "Prêtes", href: "/dashboard/reparations?filter=prete", order: 2 },
+    ],
+    quickActions: [
+      {
+        label: "Nouvelle réparation",
+        icon: "Plus",
+        href: "/dashboard/reparations/new",
+        order: 5,
+      },
+    ],
+  },
+  routes: [
+    "/dashboard/reparations",
+    "/dashboard/reparations/new",
+    "/dashboard/reparations/[id]",
+  ],
+  dependencies: ["clients"],
+  i18n: {
+    singular: "Réparation",
+    plural: "Réparations",
+  },
+  permissions: ["canViewProducts"],
+};
 
 export const RachatsFeature: FeatureModule = {
   id: "rachats",
@@ -470,7 +507,7 @@ export const RachatsFeature: FeatureModule = {
     "/dashboard/rachats",
     "/dashboard/rachats/[id]",
   ],
-  dependencies: ["products"],
+  dependencies: ["catalogue"],
   permissions: ["canViewProducts"],
 };
 
@@ -525,7 +562,6 @@ export const CatalogueFeature: FeatureModule = {
     "/dashboard/catalogue/stock",
     "/dashboard/catalogue/categories",
   ],
-  dependencies: ["products"],
   i18n: {
     singular: "Article",
     plural: "Catalogue",
@@ -613,7 +649,8 @@ export const FEATURE_CATALOG: Record<string, FeatureModule> = {
   stores: StoresFeature,
   // terminals: TerminalsFeature, // Désactivé - Voir lib/config/features.config.ts
 
-  // Occasion (Computer shops)
+  // Computer shops specific
+  repairs: RepairsFeature,
   rachats: RachatsFeature,
   atelier: AtelierFeature,
   catalogue: CatalogueFeature,

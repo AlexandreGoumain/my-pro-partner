@@ -11,7 +11,6 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { LineItemsEditor } from "./line-items-editor";
 import { DocumentTotals } from "./document-totals";
 import { ClientCombobox } from "./client-combobox";
-import { SerieCombobox } from "./serie-combobox";
 import { ArrowLeft, Save, Send } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useDocumentForm } from "@/hooks/use-document-form";
@@ -40,7 +39,6 @@ export function DocumentFormPage({
         formData,
         setFormData,
         clients,
-        series,
         articles,
         lines,
         setLines,
@@ -98,23 +96,6 @@ export function DocumentFormPage({
                                     }
                                     triggerClassName="h-11 text-[14px] border-black/10"
                                 />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="serie" className="text-[14px] font-medium">
-                                    Série de numérotation
-                                </Label>
-                                <SerieCombobox
-                                    series={series}
-                                    value={formData.serieId || ""}
-                                    onValueChange={(value) =>
-                                        setFormData((prev) => ({ ...prev, serieId: value }))
-                                    }
-                                    triggerClassName="h-11 text-[14px] border-black/10"
-                                />
-                                <p className="text-[12px] text-black/40">
-                                    Laissez vide pour utiliser la série par défaut
-                                </p>
                             </div>
 
                             <div className="space-y-2">

@@ -8,7 +8,7 @@ import { RepairDeviceInfo } from "@/components/reparations/repair-device-info";
 import { RepairClientInfo } from "@/components/reparations/repair-client-info";
 import { RepairCostBreakdown } from "@/components/reparations/repair-cost-breakdown";
 import { RepairPartsList } from "@/components/reparations/repair-parts-list";
-import { RepairHistoryTimeline } from "@/components/reparations/repair-history-timeline";
+import { RepairStatusTimeline } from "@/components/reparations/repair-status-timeline";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -75,7 +75,10 @@ export default function ReparationDetailPage({ params }: PageProps) {
       {/* Parts & History */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <RepairPartsList pieces={reparation.lignesPieces || []} />
-        <RepairHistoryTimeline historique={reparation.historique || []} />
+        <RepairStatusTimeline
+          statusChangeLogs={reparation.statutChangeLogs || []}
+          historique={reparation.historique || []}
+        />
       </div>
     </div>
   );

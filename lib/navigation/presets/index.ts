@@ -364,6 +364,7 @@ const InformatiquePreset: BusinessPreset = {
     features: [
         "dashboard",
         "clients",
+        "repairs", // Réparations
         "catalogue", // Catalogue unifié (produits, services, occasion, pièces)
         "rachats", // Rachats d'occasion
         "atelier", // Démontage & ressources
@@ -378,6 +379,10 @@ const InformatiquePreset: BusinessPreset = {
         catalogue: {
             singular: "Article",
             plural: "Catalogue",
+        },
+        repairs: {
+            singular: "Réparation",
+            plural: "Réparations",
         },
     },
 };
