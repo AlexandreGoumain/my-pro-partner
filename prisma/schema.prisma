@@ -91,6 +91,9 @@ model Entreprise {
   ressourcesAtelier RessourceAtelier[] // Ressources d'atelier (pièces)
   reparations       Reparation[] // Réparations d'appareils
 
+  // Gestion du personnel
+  employees         Employee[] // Employés de l'entreprise
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -525,6 +528,7 @@ model User {
   activitiesCreated    UserActivity[]           @relation("CreatedActivities")
   reparationsAssignees Reparation[]             @relation("ReparationTechnicien")
   interventions        ReparationIntervention[] @relation("InterventionTechnicien")
+  employee             Employee? // Lien optionnel avec le profil employé
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2050,4 +2054,89 @@ model ReparationHistorique {
   @@index([reparationId])
   @@index([createdAt])
   @@index([action])
+}
+
+// ============================================
+// GESTION DU PERSONNEL
+// ============================================
+
+enum StatutEmploye {
+  ACTIF
+  CONGE
+  MALADIE
+  ABSENT
+  INACTIF
+}
+
+enum TypeContrat {
+  CDI
+  CDD
+  INTERIM
+  APPRENTI
+  STAGE
+  FREELANCE
+}
+
+model Employee {
+  id String @id @default(cuid())
+
+  // Relation avec l'entreprise
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Informations personnelles
+  prenom       String
+  nom          String
+  email        String
+  telephone    String?
+  dateNaissance DateTime?
+  adresse      String?
+  ville        String?
+  codePostal   String?
+  pays         String?  @default("France")
+
+  // Photo de profil
+  photoUrl     String?
+
+  // Informations professionnelles
+  poste        String // Titre du poste (ex: Technicien, Vendeur, Manager)
+  departement  String? // Département ou service
+  statut       StatutEmploye @default(ACTIF)
+  typeContrat  TypeContrat   @default(CDI)
+
+  // Dates importantes
+  dateEmbauche DateTime
+  dateFin      DateTime? // Date de fin si contrat CDD ou départ
+
+  // Salaire et compensation
+  salaireBrut  Decimal @db.Decimal(10, 2)
+  devise       String  @default("EUR")
+
+  // Horaires et planning
+  heuresHebdo  Int?    @default(35) // Heures de travail par semaine
+  joursTravail String? // Jours de travail (ex: "Lun-Ven")
+
+  // Documents et notes
+  notes        String? @db.Text
+
+  // Compétences et qualifications
+  competences  String? @db.Text // JSON array de compétences
+
+  // Congés
+  congesRestants Int @default(25) // Jours de congés restants
+  congesPris     Int @default(0)  // Jours de congés pris cette année
+
+  // Relation avec User (optionnel - si l'employé a un compte utilisateur)
+  user         User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId       String? @unique
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([email])
+  @@index([statut])
+  @@index([dateEmbauche])
+  @@unique([entrepriseId, email])
 }
