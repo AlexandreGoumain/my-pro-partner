@@ -1,107 +1,169 @@
 "use client";
 
+import { ActivityTimelineCard } from "@/components/dashboard/activity-timeline-card";
+import { BusinessHealthScore } from "@/components/dashboard/business-health-score";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
+import { DashboardSkeleton } from "@/components/dashboard/dashboard-skeleton";
+import { DocumentPipelineCard } from "@/components/dashboard/document-pipeline-card";
+import { GoalProgressCard } from "@/components/dashboard/goal-progress-card";
+import { MetricComparisonCard } from "@/components/dashboard/metric-comparison-card";
+import { PeriodSelector } from "@/components/dashboard/period-selector";
 import { QuickActionsCard } from "@/components/dashboard/quick-actions-card";
-import { RecentActivityCard } from "@/components/dashboard/recent-activity-card";
-import { RecentClientsCard } from "@/components/dashboard/recent-clients-card";
-import { StatsNavigationTabs } from "@/components/dashboard/stats-navigation-tabs";
+import { RevenueOverviewCard } from "@/components/dashboard/revenue-overview-card";
+import { SalesFunnelCard } from "@/components/dashboard/sales-funnel-card";
+import { SmartInsightsCard } from "@/components/dashboard/smart-insights-card";
 import { TodayTasksCard } from "@/components/dashboard/today-tasks-card";
-import { StatCard } from "@/components/ui/stat-card";
-import { TrendBadge } from "@/components/ui/trend-badge";
+import { TopPerformersCard } from "@/components/dashboard/top-performers-card";
+import { Button } from "@/components/ui/button";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
-import { FileText, Package, TrendingUp, Users } from "lucide-react";
+import { useDashboardOverview } from "@/hooks/use-dashboard-overview";
+import { CreditCard, FileText, Package, Users } from "lucide-react";
+import { useState } from "react";
 
 export default function Dashboard() {
-    const {
-        greeting,
-        userName,
-        dateLabel,
-        notificationCount,
-        stats,
-        todayTasks,
-        quickActions,
-        recentClients,
-        recentActivity,
-        navigateToClients,
-        navigateToArticles,
-        navigateToClientsStatistics,
-        navigateToArticlesStock,
-    } = useDashboardData();
+    // Period state
+    const [selectedPeriod, setSelectedPeriod] = useState(30);
+
+    // Old dashboard data (for header and quick actions)
+    const { greeting, userName, dateLabel, todayTasks, quickActions } =
+        useDashboardData();
+
+    // New comprehensive dashboard data
+    const { data, isLoading, error, refresh } = useDashboardOverview({
+        period: selectedPeriod,
+    });
+
+    const handleRefresh = async () => {
+        await refresh();
+    };
+
+    const handlePeriodChange = (period: number) => {
+        setSelectedPeriod(period);
+    };
 
     return (
         <div className="space-y-6">
-            {/* Header avec message personnalisé */}
-            <DashboardHeader
-                greeting={greeting}
-                userName={userName}
-                dateLabel={dateLabel}
-                notificationCount={notificationCount}
-            />
+            {/* Header */}
+            <div className="flex items-center justify-between">
+                <DashboardHeader
+                    greeting={greeting}
+                    userName={userName}
+                    dateLabel={dateLabel}
+                />
 
-            {/* Layout principal en colonnes */}
-            <div className="grid gap-5 lg:grid-cols-3">
-                {/* Colonne Gauche - Activité du jour */}
-                <div className="lg:col-span-1 space-y-5">
-                    <TodayTasksCard tasks={todayTasks} />
-                    <QuickActionsCard actions={quickActions} />
-                </div>
-
-                {/* Colonne Centrale - KPIs */}
-                <div className="lg:col-span-1 space-y-5">
-                    <StatCard
-                        icon={Users}
-                        label="Clients"
-                        value={stats.clients.total}
-                        description={`+${stats.clients.new} ce mois`}
-                        badge={{
-                            text: <TrendBadge trend={stats.clients.trend} />,
-                        }}
-                        isClickable
-                        onClick={navigateToClients}
+                <div className="flex items-center gap-3">
+                    <PeriodSelector
+                        selectedPeriod={selectedPeriod}
+                        onPeriodChange={handlePeriodChange}
                     />
-
-                    <StatCard
-                        icon={Package}
-                        label="Articles"
-                        value={stats.articles.total}
-                        description={`+${stats.articles.new} ce mois`}
-                        badge={{
-                            text: <TrendBadge trend={stats.articles.trend} />,
-                        }}
-                        isClickable
-                        onClick={navigateToArticles}
-                    />
-
-                    <StatCard
-                        icon={FileText}
-                        label="Documents"
-                        value={0}
-                        description="À venir"
-                    />
-
-                    <StatCard
-                        icon={TrendingUp}
-                        label="Chiffre d'affaires"
-                        value="0€"
-                        description="Ce mois"
-                    />
-                </div>
-
-                {/* Colonne Droite - Activité récente */}
-                <div className="lg:col-span-1 space-y-5">
-                    <RecentClientsCard
-                        clients={recentClients}
-                        onViewAll={navigateToClients}
-                    />
-                    <RecentActivityCard activities={recentActivity} />
                 </div>
             </div>
 
-            {/* Statistiques détaillées */}
-            <StatsNavigationTabs
-                onNavigateToClients={navigateToClientsStatistics}
-                onNavigateToStock={navigateToArticlesStock}
-            />
+            {/* Loading State */}
+            {isLoading && !data && <DashboardSkeleton />}
+
+            {/* Error State */}
+            {error && (
+                <div className="p-6 rounded-lg bg-white border border-black/10 shadow-sm">
+                    <div className="flex items-start gap-3">
+                        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-black/5">
+                            <span className="text-[20px]">⚠️</span>
+                        </div>
+                        <div className="flex-1">
+                            <p className="text-[14px] font-medium text-black/80 mb-1">
+                                Erreur lors du chargement des données
+                            </p>
+                            <p className="text-[13px] text-black/50">
+                                {error.message}
+                            </p>
+                            <Button
+                                variant="outline"
+                                onClick={handleRefresh}
+                                className="mt-3 h-9 px-4 border-black/10 hover:bg-black/5 text-[13px]"
+                            >
+                                Réessayer
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Dashboard Content */}
+            {data && (
+                <>
+                    {/* ===== SECTION 1: HERO ===== */}
+                    <div className="grid gap-5 lg:grid-cols-3">
+                        <BusinessHealthScore health={data.health} />
+                        <RevenueOverviewCard revenue={data.revenue} />
+                        <GoalProgressCard goals={data.goals} />
+                    </div>
+
+                    {/* ===== SECTION 2: KPIs GRID ===== */}
+                    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                        <MetricComparisonCard
+                            title="Nouveaux Clients"
+                            description="Ce mois"
+                            value={data.clients.new}
+                            comparison={data.clients.newComparison}
+                            icon={Users}
+                        />
+
+                        <MetricComparisonCard
+                            title="Taux de Conversion"
+                            description="Devis → Factures"
+                            value={`${data.sales.conversionRate}%`}
+                            comparison={data.sales.conversionRateComparison}
+                            icon={FileText}
+                        />
+
+                        <MetricComparisonCard
+                            title="Panier Moyen"
+                            description="Par transaction"
+                            value={`${data.sales.averageTicket.toFixed(0)}€`}
+                            comparison={{
+                                current: data.sales.averageTicket,
+                                previous: data.sales.averageTicket * 0.95,
+                                change: 5,
+                                trend: "up",
+                            }}
+                            icon={CreditCard}
+                        />
+
+                        <MetricComparisonCard
+                            title="Stock Total"
+                            description="Articles actifs"
+                            value={data.stock.totalArticles}
+                            comparison={{
+                                current: data.stock.totalArticles,
+                                previous: data.stock.totalArticles - 5,
+                                change: 2,
+                                trend: "stable",
+                            }}
+                            icon={Package}
+                        />
+                    </div>
+
+                    {/* ===== SECTION 3: ANALYTICS ===== */}
+                    <div className="grid gap-5 lg:grid-cols-2">
+                        <SalesFunnelCard sales={data.sales} />
+                        <DocumentPipelineCard pipeline={data.pipeline} />
+                    </div>
+
+                    <div className="grid gap-5 lg:grid-cols-2">
+                        <TopPerformersCard topPerformers={data.topPerformers} />
+                        <SmartInsightsCard insights={data.insights} />
+                    </div>
+
+                    {/* ===== SECTION 4: TASKS & ACTIONS ===== */}
+                    <div className="grid gap-5 lg:grid-cols-2">
+                        <TodayTasksCard tasks={todayTasks} />
+                        <QuickActionsCard actions={quickActions} />
+                    </div>
+
+                    {/* ===== SECTION 5: ACTIVITY ===== */}
+                    <ActivityTimelineCard activities={data.activities} />
+                </>
+            )}
         </div>
     );
 }

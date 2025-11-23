@@ -99,3 +99,236 @@ export interface DashboardActivity {
     description: string;
     timeLabel: string;
 }
+
+// ============================================================================
+// Advanced Admin Dashboard Types (Top 1% Dashboard)
+// ============================================================================
+
+/**
+ * Period comparison data
+ * Compares current vs previous period with trend analysis
+ */
+export interface PeriodComparison {
+    current: number;
+    previous: number;
+    change: number; // Percentage change
+    trend: 'up' | 'down' | 'stable';
+}
+
+/**
+ * Revenue metrics with trend analysis
+ */
+export interface RevenueMetrics {
+    total: number;
+    thisMonth: number;
+    lastMonth: number;
+    comparison: PeriodComparison;
+    trend: Array<{ month: string; amount: number }>;
+    averageTransaction: number;
+    projectedEndOfMonth: number;
+}
+
+/**
+ * Payment and cash flow metrics
+ */
+export interface PaymentMetrics {
+    outstanding: number; // Total unpaid
+    overdue: number; // Overdue amount
+    averagePaymentDelay: number; // Days
+    dso: number; // Days Sales Outstanding
+}
+
+/**
+ * Client metrics with growth analysis
+ */
+export interface ClientMetrics {
+    total: number;
+    new: number;
+    newComparison: PeriodComparison;
+    active: number; // Clients with activity in last 30 days
+    inactive: number; // No activity > 30 days
+    churnRisk: number; // Number at risk
+    averageLifetimeValue: number;
+}
+
+/**
+ * Sales and conversion metrics
+ */
+export interface SalesMetrics {
+    quotesCreated: number;
+    quotesConverted: number;
+    conversionRate: number;
+    conversionRateComparison: PeriodComparison;
+    invoicesPaid: number;
+    invoicesPending: number;
+    averageTicket: number;
+}
+
+/**
+ * Stock and inventory metrics
+ */
+export interface StockMetrics {
+    totalArticles: number;
+    outOfStock: number;
+    lowStock: number;
+    stockValue: number;
+    turnoverRate: number; // How fast stock moves
+}
+
+/**
+ * Top client performer data
+ */
+export interface TopClient {
+    id: string;
+    nom: string;
+    revenue: number;
+    invoiceCount: number;
+    lastPurchase: Date;
+}
+
+/**
+ * Top product performer data
+ */
+export interface TopProduct {
+    id: string;
+    reference: string;
+    nom: string;
+    revenue: number;
+    quantitySold: number;
+    margin?: number;
+}
+
+/**
+ * Top performers aggregation
+ */
+export interface TopPerformers {
+    clients: TopClient[];
+    products: TopProduct[];
+}
+
+/**
+ * Document pipeline status
+ * Overview of quotes and invoices at different stages
+ */
+export interface DocumentPipeline {
+    quotes: {
+        draft: number;
+        sent: number;
+        accepted: number;
+        rejected: number;
+        total: number;
+        totalAmount: number;
+    };
+    invoices: {
+        draft: number;
+        sent: number;
+        paid: number;
+        overdue: number;
+        total: number;
+        totalAmount: number;
+    };
+}
+
+/**
+ * Business health score
+ * Calculated score based on multiple business factors
+ */
+export interface BusinessHealth {
+    score: number; // 0-100
+    level: 'critical' | 'poor' | 'good' | 'excellent';
+    factors: {
+        revenue: number; // 0-100
+        cashflow: number; // 0-100
+        clientGrowth: number; // 0-100
+        conversion: number; // 0-100
+        stock: number; // 0-100
+    };
+}
+
+/**
+ * Smart insight with actionable recommendations
+ */
+export interface Insight {
+    id: string;
+    type: 'alert' | 'opportunity' | 'warning' | 'info';
+    priority: 'high' | 'medium' | 'low';
+    title: string;
+    description: string;
+    action?: {
+        label: string;
+        href: string;
+    };
+    metric?: {
+        value: string;
+        change?: string;
+    };
+}
+
+/**
+ * Activity timeline event
+ * Represents any business activity (documents, payments, clients, etc.)
+ */
+export interface ActivityEvent {
+    id: string;
+    type: 'client' | 'document' | 'payment' | 'stock' | 'campaign';
+    action: string;
+    description: string;
+    timestamp: Date;
+    metadata?: {
+        clientName?: string;
+        amount?: number;
+        documentNumber?: string;
+        productName?: string;
+    };
+}
+
+/**
+ * Goal tracking for objectives
+ */
+export interface Goal {
+    id: string;
+    label: string;
+    target: number;
+    current: number;
+    unit: 'currency' | 'number' | 'percentage';
+    period: 'day' | 'week' | 'month' | 'year';
+    progress: number; // 0-100
+    onTrack: boolean;
+}
+
+/**
+ * Complete dashboard overview
+ * Aggregates all dashboard data in one comprehensive structure
+ */
+export interface DashboardOverview {
+    // Core metrics
+    revenue: RevenueMetrics;
+    payments: PaymentMetrics;
+    clients: ClientMetrics;
+    sales: SalesMetrics;
+    stock: StockMetrics;
+
+    // Advanced data
+    topPerformers: TopPerformers;
+    pipeline: DocumentPipeline;
+    health: BusinessHealth;
+    insights: Insight[];
+    activities: ActivityEvent[];
+    goals: Goal[];
+
+    // Metadata
+    lastUpdated: Date;
+    period: {
+        start: Date;
+        end: Date;
+    };
+}
+
+/**
+ * API response type for dashboard endpoint
+ */
+export interface DashboardApiResponse {
+    success: boolean;
+    data?: DashboardOverview;
+    error?: string;
+}
