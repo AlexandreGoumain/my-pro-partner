@@ -10,12 +10,14 @@ export interface ClientQuickActionsProps {
     client: Client;
     onSendEmail: () => void;
     onCall: () => void;
+    onCreateDocument: () => void;
 }
 
 export function ClientQuickActions({
     client,
     onSendEmail,
     onCall,
+    onCreateDocument,
 }: ClientQuickActionsProps) {
     return (
         <Card className="border-black/8 shadow-sm">
@@ -42,6 +44,7 @@ export function ClientQuickActions({
                         <span className="text-black/80">Appeler</span>
                     </Button>
                     <Button
+                        onClick={onCreateDocument}
                         variant="outline"
                         className="h-11 px-6 text-[14px] font-medium border-black/10 hover:bg-black/5"
                     >
@@ -49,7 +52,7 @@ export function ClientQuickActions({
                             className="h-4 w-4 mr-2 text-black/60"
                             strokeWidth={2}
                         />
-                        <span className="text-black/80">Créer un devis</span>
+                        <span className="text-black/80">Créer un document</span>
                     </Button>
                 </div>
             </div>

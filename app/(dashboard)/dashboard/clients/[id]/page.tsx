@@ -10,6 +10,7 @@ import {
     ClientQuickActions,
 } from "@/components/client-detail";
 import { ClientDocumentsTab } from "@/components/client-detail/client-documents-tab";
+import { DocumentTypeSelectionDialog } from "@/components/client-detail/document-type-selection-dialog";
 import { ClientEditDialog } from "@/components/clients/client-edit-dialog";
 import { ClientEmailDialog } from "@/components/clients/client-email-dialog";
 import { DeleteConfirmDialog } from "@/components/shared/delete-confirm-dialog";
@@ -81,6 +82,7 @@ export default function ClientDetailPage() {
                 client={client}
                 onSendEmail={handlers.handleSendEmail}
                 onCall={handlers.handleCall}
+                onCreateDocument={handlers.handleCreateDocument}
             />
 
             {/* Tabs */}
@@ -196,6 +198,13 @@ export default function ClientDetailPage() {
                 open={handlers.emailDialogOpen}
                 onOpenChange={handlers.setEmailDialogOpen}
                 client={client}
+            />
+
+            <DocumentTypeSelectionDialog
+                open={handlers.documentTypeDialogOpen}
+                onOpenChange={handlers.setDocumentTypeDialogOpen}
+                clientId={clientId}
+                clientName={nomComplet}
             />
         </div>
     );
