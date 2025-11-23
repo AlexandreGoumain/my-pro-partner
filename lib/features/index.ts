@@ -75,9 +75,17 @@ export const ProductsFeature: FeatureModule = {
       order: 20,
     },
     subItems: [
-      { label: "Catalogue", href: "/dashboard/catalogue", order: 1 },
-      { label: "Stock", href: "/dashboard/catalogue/stock", order: 2 },
-      { label: "Catégories", href: "/dashboard/catalogue/categories", order: 3 },
+      { label: "Catalogue", href: "/dashboard/catalogue", order: 0 },
+      { label: "Stock", href: "/dashboard/catalogue/stock", order: 1 },
+      { label: "Catégories", href: "/dashboard/catalogue/categories", order: 2 },
+    ],
+    quickActions: [
+      {
+        label: "Nouvel article",
+        icon: "Plus",
+        href: "/dashboard/catalogue/new",
+        order: 1,
+      },
     ],
   },
   routes: [
@@ -482,6 +490,10 @@ export const AtelierFeature: FeatureModule = {
   permissions: ["canViewProducts"],
 };
 
+// ============================================
+// CATALOGUE (Unified view)
+// ============================================
+
 export const CatalogueFeature: FeatureModule = {
   id: "catalogue",
   name: "Catalogue",
@@ -493,7 +505,8 @@ export const CatalogueFeature: FeatureModule = {
       order: 20,
     },
     subItems: [
-      { label: "Tous les articles", href: "/dashboard/catalogue", order: 1 },
+      { label: "Tous les articles", href: "/dashboard/catalogue", order: 0 },
+      { label: "Stock", href: "/dashboard/catalogue/stock", order: 1 },
       { label: "Catégories", href: "/dashboard/catalogue/categories", order: 2 },
     ],
     quickActions: [
@@ -509,8 +522,10 @@ export const CatalogueFeature: FeatureModule = {
     "/dashboard/catalogue",
     "/dashboard/catalogue/new",
     "/dashboard/catalogue/[id]",
+    "/dashboard/catalogue/stock",
     "/dashboard/catalogue/categories",
   ],
+  dependencies: ["products"],
   i18n: {
     singular: "Article",
     plural: "Catalogue",
