@@ -522,6 +522,10 @@ model User {
   // Onboarding: tracking si l'utilisateur a complété son profil
   onboardingComplete Boolean @default(false)
 
+  // Préférences de notifications
+  emailNotifications Boolean @default(true) // Notifications importantes par email
+  newsUpdates        Boolean @default(false) // Actualités et mises à jour
+
   // Relations
   conversations        Conversation[]
   mouvementsStock      MouvementStock[]         @relation("UserStockMovements")
@@ -2139,4 +2143,42 @@ model Employee {
   @@index([statut])
   @@index([dateEmbauche])
   @@unique([entrepriseId, email])
+}
+
+// ============================================
+// WAITLIST (Liste d'attente pré-lancement)
+// ============================================
+
+model Waitlist {
+  id           String  @id @default(cuid())
+  email        String  @unique
+  company      String?
+  phone        String?
+  templateType String? // Type de template qui intéresse l'utilisateur
+
+  // Timestamps
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([createdAt])
+  @@index([templateType])
+}
+
+// ============================================
+// CONTACT MESSAGES (Messages de contact)
+// ============================================
+
+model ContactMessage {
+  id      String  @id @default(cuid())
+  name    String
+  email   String
+  company String?
+  phone   String?
+  message String  @db.Text
+
+  // Timestamps
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([createdAt])
 }

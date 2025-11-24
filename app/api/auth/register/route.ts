@@ -3,8 +3,13 @@ import { registerBackendSchema } from "@/lib/validation";
 import bcrypt from "bcryptjs";
 import { NextRequest, NextResponse } from "next/server";
 import { validateRequest } from "@/lib/utils/validation-helper";
+import { checkDashboardEnabled } from "@/lib/dashboard-enabled";
 
 export async function POST(req: NextRequest) {
+    // Vérifier si le dashboard est activé
+    const dashboardCheck = checkDashboardEnabled();
+    if (dashboardCheck) return dashboardCheck;
+
     try {
         const body = await req.json();
 

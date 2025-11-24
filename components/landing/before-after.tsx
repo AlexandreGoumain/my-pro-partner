@@ -123,7 +123,7 @@ export function BeforeAfter() {
                             </p>
                         </div>
                         <a
-                            href="/auth/register"
+                            href="/waitlist"
                             className="px-8 py-3 rounded-lg bg-white text-black text-[14px] font-medium hover:bg-white/90 transition-colors whitespace-nowrap"
                         >
                             Démarrer maintenant

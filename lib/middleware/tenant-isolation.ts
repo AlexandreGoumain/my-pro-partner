@@ -3,6 +3,7 @@ import { UserRole } from "@/lib/personnel/roles-config";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
+import { isDashboardEnabled } from "@/lib/dashboard-enabled";
 
 // Constantes
 const HTTP_STATUS = {
@@ -30,6 +31,8 @@ const ERROR_MESSAGES = {
         "Accès refusé - Cette ressource n'appartient pas à votre entreprise",
     INTERNAL_ERROR: "Erreur interne du serveur",
     DEVELOPMENT_ONLY: "Cette fonctionnalité n'est pas disponible en production",
+    DASHBOARD_DISABLED:
+        "Le dashboard n'est pas encore disponible. Rejoignez notre liste d'attente !",
 } as const;
 
 // Helper pour vérifier si un rôle est admin
@@ -68,6 +71,14 @@ export class TenantError extends Error {
 }
 
 export async function requireTenantAuth(): Promise<TenantContext> {
+    // Vérifier si le dashboard est activé
+    if (!isDashboardEnabled()) {
+        throw new TenantError(
+            ERROR_MESSAGES.DASHBOARD_DISABLED,
+            HTTP_STATUS.FORBIDDEN
+        );
+    }
+
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.email) {

@@ -20,7 +20,7 @@ export function CTASection() {
 
                 {/* CTA Buttons */}
                 <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
-                    <Link href="/auth/register">
+                    <Link href="/waitlist">
                         <Button
                             size="lg"
                             className="bg-black hover:bg-black/90 text-white rounded-full h-14 px-10 text-[15px] font-medium shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-[1.02] group"

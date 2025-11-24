@@ -3,10 +3,10 @@
 // ============================================
 
 import { useEffect, useRef } from "react";
-import { EmptyState } from "@/components/ui/empty-state";
 import { ChatbotMessageBubble } from "./chatbot-message-bubble";
 import { ChatbotTypingIndicator } from "./chatbot-typing-indicator";
-import { MessageSquare } from "lucide-react";
+import { ChatWelcomeScreen } from "./chat-welcome-screen";
+import { ChatErrorMessage } from "./chat-error-message";
 
 export interface Message {
     id: string;
@@ -18,17 +18,27 @@ export interface Message {
 export interface ChatMessagesListProps {
     messages: Message[];
     isLoading: boolean;
+    error?: Error | null;
+    userName?: string;
+    currentPage?: string;
     onFeedback: (
         messageId: string,
         feedback: "positive" | "negative",
         comment?: string
     ) => Promise<void>;
+    onSendMessage: (message: string) => void;
+    onRetry?: () => void;
 }
 
 export function ChatMessagesList({
     messages,
     isLoading,
+    error,
+    userName,
+    currentPage,
     onFeedback,
+    onSendMessage,
+    onRetry,
 }: ChatMessagesListProps) {
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -38,18 +48,15 @@ export function ChatMessagesList({
     }, [messages]);
 
     return (
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+        <div className="flex-1 overflow-y-auto">
             {messages.length === 0 ? (
-                <EmptyState
-                    icon={MessageSquare}
-                    title="Comment puis-je vous aider ?"
-                    description="Posez-moi des questions sur vos clients, articles, stocks, statistiques et bien plus encore."
-                    variant="centered"
-                    textSize="sm"
-                    iconSize="sm"
+                <ChatWelcomeScreen
+                    onSuggestionClick={onSendMessage}
+                    userName={userName}
+                    currentPage={currentPage}
                 />
             ) : (
-                <>
+                <div className="px-4 py-4 space-y-4">
                     {messages.map((message, index) => (
                         <ChatbotMessageBubble
                             key={message.id || index}
@@ -63,8 +70,10 @@ export function ChatMessagesList({
 
                     {isLoading && <ChatbotTypingIndicator />}
 
+                    {error && <ChatErrorMessage error={error} onRetry={onRetry} />}
+
                     <div ref={messagesEndRef} />
-                </>
+                </div>
             )}
         </div>
     );

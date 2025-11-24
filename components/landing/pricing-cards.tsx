@@ -292,7 +292,7 @@ export function PricingCards() {
                                             href={
                                                 planConfig.id === "ENTERPRISE"
                                                     ? "/contact"
-                                                    : "/auth/register"
+                                                    : "/waitlist"
                                             }
                                             className="block"
                                         >

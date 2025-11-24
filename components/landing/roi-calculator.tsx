@@ -206,7 +206,7 @@ export function ROICalculator() {
 
                             <div className="pt-4">
                                 <a
-                                    href="/auth/register"
+                                    href="/waitlist"
                                     className="flex items-center justify-center w-full h-12 px-6 rounded-lg bg-black text-white text-[14px] font-medium hover:bg-black/90 transition-colors"
                                 >
                                     Commencer mon essai gratuit
