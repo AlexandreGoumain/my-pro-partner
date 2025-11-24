@@ -32,13 +32,14 @@ export function UnpaidInvoicesFilters({
     setOverdueOnly,
 }: UnpaidInvoicesFiltersProps) {
     return (
-        <div className="flex flex-wrap items-center gap-4 p-4 border border-black/8 rounded-lg bg-white">
-            <div className="flex items-center gap-2">
+        <div className="group relative overflow-hidden flex flex-wrap items-center gap-4 p-4 border border-black/[0.08] rounded-lg bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-300">
+            <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="relative flex items-center gap-2">
                 <span className="text-[14px] text-black/60 font-medium">
                     Trier par:
                 </span>
                 <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="w-[180px] h-9 border-black/10">
+                    <SelectTrigger className="w-[180px] h-9 border-black/10 bg-white">
                         <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -58,12 +59,12 @@ export function UnpaidInvoicesFilters({
                 </Select>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="relative flex items-center gap-2">
                 <span className="text-[14px] text-black/60 font-medium">
                     Ordre:
                 </span>
                 <Select value={sortOrder} onValueChange={setSortOrder}>
-                    <SelectTrigger className="w-[140px] h-9 border-black/10">
+                    <SelectTrigger className="w-[140px] h-9 border-black/10 bg-white">
                         <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -73,7 +74,7 @@ export function UnpaidInvoicesFilters({
                 </Select>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="relative flex items-center gap-3">
                 <Button
                     variant={overdueOnly ? "default" : "outline"}
                     size="sm"

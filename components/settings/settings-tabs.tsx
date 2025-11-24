@@ -6,7 +6,6 @@ import {
     Building2,
     CreditCard,
     Download,
-    Hash,
     Settings2,
     User,
 } from "lucide-react";
@@ -21,13 +20,6 @@ export function SettingsTabs() {
                 >
                     <Building2 className="h-4 w-4" strokeWidth={2} />
                     <span className="hidden sm:inline">Général</span>
-                </TabsTrigger>
-                <TabsTrigger
-                    value="series"
-                    className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md px-4 py-2 text-[14px] font-medium transition-all duration-200 data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-sm"
-                >
-                    <Hash className="h-4 w-4" strokeWidth={2} />
-                    <span className="hidden sm:inline">Séries</span>
                 </TabsTrigger>
                 <TabsTrigger
                     value="notifications"

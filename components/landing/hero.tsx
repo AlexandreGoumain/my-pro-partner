@@ -39,7 +39,7 @@ export function Hero() {
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-black/[0.03] border border-black/[0.08] mb-4 animate-in fade-in duration-700">
                         <Sparkles className="w-4 h-4 text-black/60" strokeWidth={2} />
                         <span className="text-[13px] text-black/60 font-medium">
-                            500+ entreprises nous font confiance • Essai gratuit 14 jours
+                            Lancement imminent • Rejoignez notre liste d'attente
                         </span>
                     </div>
 
@@ -59,12 +59,12 @@ export function Hero() {
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-3 justify-center items-center pt-6 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
-                        <Link href="/auth/register">
+                        <Link href="/waitlist">
                             <Button
                                 size="lg"
                                 className="bg-black hover:bg-black/90 text-white rounded-full h-12 px-8 text-[15px] font-medium shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
                             >
-                                Essayer gratuitement
+                                Rejoindre la liste d'attente
                                 <ArrowRight className="ml-2 h-4 w-4" />
                             </Button>
                         </Link>
@@ -80,11 +80,11 @@ export function Hero() {
                     </div>
 
                     <div className="flex flex-wrap gap-5 justify-center items-center pt-4 text-[13px] text-black/50 font-medium animate-in fade-in duration-700 delay-300">
-                        <span>✓ 14 jours gratuits</span>
+                        <span>✓ Accès anticipé offert</span>
                         <span className="w-1 h-1 rounded-full bg-black/20" />
-                        <span>✓ Sans carte bancaire</span>
+                        <span>✓ Sans engagement</span>
                         <span className="w-1 h-1 rounded-full bg-black/20" />
-                        <span>✓ Installation en 2 min</span>
+                        <span>✓ Notification au lancement</span>
                     </div>
                 </div>
 

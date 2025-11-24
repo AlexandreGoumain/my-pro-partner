@@ -17,7 +17,6 @@ import { toast } from "sonner";
 import { useArticles } from "./use-articles";
 import { useClients } from "./use-clients";
 import { documentKeys, useDocument } from "./use-documents";
-import { useSeries } from "./use-series";
 
 interface UseDocumentFormOptions {
     documentType: DocumentType;
@@ -44,12 +43,10 @@ export function useDocumentForm({
         DOCUMENT_DEFAULTS.FETCH_LIMIT
     );
     const { data: articlesData = [] } = useArticles();
-    const { data: seriesData = [] } = useSeries();
 
     // Convertir les données pour le formulaire
     const clients = clientsData as unknown as Client[];
     const articles = articlesData as unknown as Article[];
-    const series = seriesData as unknown[];
 
     // Calculate default expiry date for initial state (only once)
     const getDefaultExpiryDate = () => {
@@ -62,7 +59,6 @@ export function useDocumentForm({
 
     const [formData, setFormData] = useState<DocumentFormData>(() => ({
         clientId: "",
-        serieId: "", // Optional serie selection
         dateEmission: new Date().toISOString().split("T")[0],
         dateEcheance: getDefaultExpiryDate(),
         validite_jours: DOCUMENT_DEFAULTS.VALIDITY_DAYS,
@@ -76,7 +72,6 @@ export function useDocumentForm({
             // Préremplir le formulaire avec les données existantes
             setFormData({
                 clientId: existingDocument.client.id || "",
-                serieId: existingDocument.serieId || "",
                 dateEmission: existingDocument.dateEmission
                     ? new Date(existingDocument.dateEmission)
                           .toISOString()
@@ -180,7 +175,6 @@ export function useDocumentForm({
             const payload = {
                 type: documentType,
                 clientId: formData.clientId,
-                ...(formData.serieId && { serieId: formData.serieId }), // Optional serie
                 dateEmission: formData.dateEmission,
                 dateEcheance: formData.dateEcheance,
                 validite_jours: formData.validite_jours,
@@ -255,7 +249,6 @@ export function useDocumentForm({
         formData,
         setFormData,
         clients,
-        series,
         articles,
         lines,
         setLines,

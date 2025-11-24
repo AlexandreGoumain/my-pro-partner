@@ -44,7 +44,10 @@ export function useConversations(): ConversationsState {
       const data = await response.json();
       setConversations(data.conversations);
     } catch (error) {
-      console.error('Error loading conversations:', error);
+      // ✅ SÉCURITÉ : Logger uniquement en développement
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error loading conversations');
+      }
     } finally {
       setIsLoadingConversations(false);
     }
@@ -68,7 +71,10 @@ export function useConversations(): ConversationsState {
         };
       });
     } catch (error) {
-      console.error('Error loading conversation:', error);
+      // ✅ SÉCURITÉ : Logger uniquement en développement
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error loading conversation');
+      }
       return [];
     }
   }, []);
@@ -87,7 +93,10 @@ export function useConversations(): ConversationsState {
           setCurrentConversationId(null);
         }
       } catch (error) {
-        console.error('Error deleting conversation:', error);
+        // ✅ SÉCURITÉ : Logger uniquement en développement
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Error deleting conversation');
+        }
       }
     },
     [loadConversations, currentConversationId]
@@ -105,7 +114,10 @@ export function useConversations(): ConversationsState {
 
         await loadConversations();
       } catch (error) {
-        console.error('Error pinning conversation:', error);
+        // ✅ SÉCURITÉ : Logger uniquement en développement
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Error pinning conversation');
+        }
       }
     },
     [loadConversations]

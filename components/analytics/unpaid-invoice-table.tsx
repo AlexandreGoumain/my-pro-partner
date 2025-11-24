@@ -36,7 +36,7 @@ export function UnpaidInvoiceTable({
 
     if (invoices.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-12 px-4 border border-black/8 rounded-lg bg-black/2">
+            <div className="flex flex-col items-center justify-center py-12 px-4 border border-black/[0.08] rounded-lg bg-white">
                 <div className="text-center">
                     <div className="text-[16px] font-medium text-black/70 mb-2">
                         ✓ Aucune facture impayée
@@ -50,29 +50,29 @@ export function UnpaidInvoiceTable({
     }
 
     return (
-        <div className="border border-black/8 rounded-lg overflow-hidden">
+        <div className="border border-black/[0.08] rounded-lg overflow-hidden bg-white shadow-sm">
             <Table>
                 <TableHeader>
-                    <TableRow className="bg-black/2 hover:bg-black/2">
-                        <TableHead className="text-[13px] font-medium text-black/60">
+                    <TableRow className="bg-black/[0.02] hover:bg-black/[0.02]">
+                        <TableHead className="text-[13px] font-medium text-black/70">
                             N° Facture
                         </TableHead>
-                        <TableHead className="text-[13px] font-medium text-black/60">
+                        <TableHead className="text-[13px] font-medium text-black/70">
                             Client
                         </TableHead>
-                        <TableHead className="text-[13px] font-medium text-black/60">
+                        <TableHead className="text-[13px] font-medium text-black/70">
                             Date émission
                         </TableHead>
-                        <TableHead className="text-[13px] font-medium text-black/60">
+                        <TableHead className="text-[13px] font-medium text-black/70">
                             Date échéance
                         </TableHead>
-                        <TableHead className="text-[13px] font-medium text-black/60">
+                        <TableHead className="text-[13px] font-medium text-black/70">
                             Jours de retard
                         </TableHead>
-                        <TableHead className="text-[13px] font-medium text-black/60 text-right">
+                        <TableHead className="text-[13px] font-medium text-black/70 text-right">
                             Reste à payer
                         </TableHead>
-                        <TableHead className="text-[13px] font-medium text-black/60 text-right">
+                        <TableHead className="text-[13px] font-medium text-black/70 text-right">
                             Actions
                         </TableHead>
                     </TableRow>
@@ -81,7 +81,7 @@ export function UnpaidInvoiceTable({
                     {invoices.map((invoice) => (
                         <TableRow
                             key={invoice.id}
-                            className="hover:bg-black/2 transition-colors"
+                            className="hover:bg-black/[0.02] transition-colors"
                         >
                             <TableCell className="text-[14px] font-medium text-black">
                                 <Link

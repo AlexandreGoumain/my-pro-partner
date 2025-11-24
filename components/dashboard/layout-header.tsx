@@ -5,6 +5,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useBreadcrumbs } from "@/hooks/use-breadcrumbs";
 import { GlobalSearch } from "./global-search";
 import { UserDropdownMenu } from "./user-dropdown-menu";
+import { NotificationsDropdown } from "./notifications-dropdown";
 
 export interface LayoutHeaderProps {
     pageTitle: string;
@@ -48,8 +49,10 @@ export function LayoutHeader({
                 <GlobalSearch />
             </div>
 
-            {/* Right: User Menu */}
-            <div className="flex items-center justify-end flex-1">
+            {/* Right: Notifications & User Menu */}
+            <div className="flex items-center justify-end gap-2 flex-1">
+                <NotificationsDropdown />
+
                 <UserDropdownMenu
                     userName={userName}
                     userEmail={userEmail}

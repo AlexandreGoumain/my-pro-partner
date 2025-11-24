@@ -12,7 +12,15 @@
         "reset:subscriptions": "tsx prisma/scripts/reset-subscriptions.ts",
         "audit:db": "tsx prisma/scripts/audit-database.ts",
         "audit:schema": "tsx prisma/scripts/audit-schema-complete.ts",
-        "optimize:schema": "tsx prisma/scripts/optimize-schema.ts"
+        "optimize:schema": "tsx prisma/scripts/optimize-schema.ts",
+        "db:backup:prod": "bash scripts/backup-db.sh production",
+        "db:backup:dev": "bash scripts/backup-db.sh development",
+        "db:test:prod": "node scripts/test-db-connection.js production",
+        "db:test:dev": "node scripts/test-db-connection.js development",
+        "validate:prod": "node scripts/validate-prod-config.js",
+        "db:studio:prod": "dotenv -e .env.production -- npx prisma studio",
+        "db:push:prod": "dotenv -e .env.production -- npx prisma db push",
+        "db:migrate:prod": "dotenv -e .env.production -- npx prisma migrate deploy"
     },
     "dependencies": {
         "@ai-sdk/openai": "^2.0.59",
@@ -45,6 +53,8 @@
         "@stripe/stripe-js": "^8.3.0",
         "@tanstack/react-query": "^5.90.5",
         "@tanstack/react-table": "^8.21.3",
+        "@upstash/ratelimit": "^2.0.7",
+        "@upstash/redis": "^1.35.6",
         "ai": "^5.0.86",
         "bcryptjs": "^2.4.3",
         "canvas-confetti": "^1.9.4",
@@ -53,6 +63,7 @@
         "cmdk": "^1.1.1",
         "csv-parse": "^6.1.0",
         "date-fns": "^4.1.0",
+        "framer-motion": "^12.23.24",
         "geist": "^1.5.1",
         "lucide-react": "^0.548.0",
         "nanoid": "^5.1.6",
@@ -71,6 +82,7 @@
         "sonner": "^2.0.7",
         "stripe": "^19.3.0",
         "tailwind-merge": "^3.3.1",
+        "tiktoken": "^1.0.22",
         "zod": "^3.25.76"
     },
     "devDependencies": {

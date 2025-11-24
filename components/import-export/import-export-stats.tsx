@@ -11,21 +11,22 @@ export interface ImportExportStatsProps {
  */
 export function ImportExportStats({ clientsCount }: ImportExportStatsProps) {
     return (
-        <div className="grid gap-4 md:grid-cols-3">
-            <Card className="border-black/10">
-                <div className="p-6">
+        <div className="grid gap-5 md:grid-cols-3">
+            <Card className="group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500">
+                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="relative p-6">
                     <div className="flex items-center gap-4">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-black/5">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-black/5">
                             <Users
                                 className="h-5 w-5 text-black/60"
                                 strokeWidth={2}
                             />
                         </div>
                         <div>
-                            <p className="text-[24px] font-semibold tracking-[-0.01em] text-black">
+                            <p className="text-[28px] font-bold tracking-[-0.02em] text-black">
                                 {clientsCount}
                             </p>
-                            <p className="text-[14px] text-black/60">
+                            <p className="text-[13px] text-black/60">
                                 Clients dans la base
                             </p>
                         </div>
@@ -33,20 +34,21 @@ export function ImportExportStats({ clientsCount }: ImportExportStatsProps) {
                 </div>
             </Card>
 
-            <Card className="border-black/10">
-                <div className="p-6">
+            <Card className="group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500">
+                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="relative p-6">
                     <div className="flex items-center gap-4">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-black/5">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-black/5">
                             <Download
                                 className="h-5 w-5 text-black/60"
                                 strokeWidth={2}
                             />
                         </div>
                         <div>
-                            <p className="text-[24px] font-semibold tracking-[-0.01em] text-black">
+                            <p className="text-[28px] font-bold tracking-[-0.02em] text-black">
                                 2
                             </p>
-                            <p className="text-[14px] text-black/60">
+                            <p className="text-[13px] text-black/60">
                                 Formats d&apos;export
                             </p>
                         </div>
@@ -54,20 +56,21 @@ export function ImportExportStats({ clientsCount }: ImportExportStatsProps) {
                 </div>
             </Card>
 
-            <Card className="border-black/10">
-                <div className="p-6">
+            <Card className="group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500">
+                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="relative p-6">
                     <div className="flex items-center gap-4">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-black/5">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-black/5">
                             <FileUp
                                 className="h-5 w-5 text-black/60"
                                 strokeWidth={2}
                             />
                         </div>
                         <div>
-                            <p className="text-[24px] font-semibold tracking-[-0.01em] text-black">
+                            <p className="text-[28px] font-bold tracking-[-0.02em] text-black">
                                 CSV
                             </p>
-                            <p className="text-[14px] text-black/60">
+                            <p className="text-[13px] text-black/60">
                                 Format d&apos;import
                             </p>
                         </div>

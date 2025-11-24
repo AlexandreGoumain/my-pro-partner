@@ -57,7 +57,7 @@ export class DocumentConverterService {
         }
 
         // Generate invoice number
-        const { numero, serieId } = await DocumentNumberGeneratorService.generateNumber(
+        const { numero } = await DocumentNumberGeneratorService.generateNumber(
             entrepriseId,
             "FACTURE"
         );
@@ -69,7 +69,6 @@ export class DocumentConverterService {
                 type: "FACTURE",
                 clientId: devis.clientId,
                 entrepriseId: devis.entrepriseId,
-                serieId,
                 dateEmission: new Date(),
                 dateEcheance: devis.dateEcheance || null,
                 statut: "ENVOYE",

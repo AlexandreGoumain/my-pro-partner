@@ -1,17 +1,14 @@
 "use client";
 
+import type { Reparation } from "@/lib/generated/prisma";
 import { RepairStatusBadge } from "./repair-status-badge";
 import { RepairPriorityBadge } from "./repair-priority-badge";
+import { RepairStatusActionButton } from "./repair-status-action-button";
 import { BackButton } from "@/components/ui/back-button";
 import { useRouter } from "next/navigation";
 
 interface RepairDetailHeaderProps {
-  reparation: {
-    numero: string;
-    statut: string;
-    priorite: string;
-    dateDepot: Date;
-  };
+  reparation: Reparation;
 }
 
 export function RepairDetailHeader({ reparation }: RepairDetailHeaderProps) {
@@ -41,9 +38,16 @@ export function RepairDetailHeader({ reparation }: RepairDetailHeaderProps) {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <RepairStatusBadge status={reparation.statut} />
-          <RepairPriorityBadge priority={reparation.priorite} />
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <RepairStatusBadge status={reparation.statut} />
+            <RepairPriorityBadge priority={reparation.priorite} />
+          </div>
+          <RepairStatusActionButton
+            reparation={reparation}
+            variant="outline"
+            className="h-11 px-6 text-[14px]"
+          />
         </div>
       </div>
     </div>

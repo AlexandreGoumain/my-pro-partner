@@ -26,12 +26,22 @@ const config: Config = {
           from: { transform: "translate(-50%, -50%) scale(1)", opacity: "1" },
           to: { transform: "translate(-50%, -48%) scale(0.96)", opacity: "0" },
         },
+        "dialog-in-top": {
+          from: { transform: "translate(-50%, calc(-50% - 45vh)) scale(0.96)", opacity: "0" },
+          to: { transform: "translate(-50%, calc(-50% - 45vh)) scale(1)", opacity: "1" },
+        },
+        "dialog-out-top": {
+          from: { transform: "translate(-50%, calc(-50% - 45vh)) scale(1)", opacity: "1" },
+          to: { transform: "translate(-50%, calc(-50% - 45vh + 2vh)) scale(0.96)", opacity: "0" },
+        },
       },
       animation: {
         "fade-in": "fade-in 200ms ease-out",
         "fade-out": "fade-out 200ms ease-out",
         "dialog-in": "dialog-in 200ms cubic-bezier(0.16, 1, 0.3, 1)",
         "dialog-out": "dialog-out 150ms cubic-bezier(0.16, 1, 0.3, 1)",
+        "dialog-in-top": "dialog-in-top 200ms cubic-bezier(0.16, 1, 0.3, 1)",
+        "dialog-out-top": "dialog-out-top 150ms cubic-bezier(0.16, 1, 0.3, 1)",
       },
       colors: {
         background: "var(--background)",

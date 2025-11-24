@@ -75,9 +75,17 @@ export const ProductsFeature: FeatureModule = {
       order: 20,
     },
     subItems: [
-      { label: "Catalogue", href: "/dashboard/catalogue", order: 1 },
-      { label: "Stock", href: "/dashboard/catalogue/stock", order: 2 },
-      { label: "Catégories", href: "/dashboard/catalogue/categories", order: 3 },
+      { label: "Catalogue", href: "/dashboard/catalogue", order: 0 },
+      { label: "Stock", href: "/dashboard/catalogue/stock", order: 1 },
+      { label: "Catégories", href: "/dashboard/catalogue/categories", order: 2 },
+    ],
+    quickActions: [
+      {
+        label: "Nouvel article",
+        icon: "Plus",
+        href: "/dashboard/catalogue/new",
+        order: 1,
+      },
     ],
   },
   routes: [
@@ -436,8 +444,45 @@ export const BankReconciliationFeature: FeatureModule = {
 };
 
 // ============================================
-// OCCASION (Computer shops only)
+// COMPUTER SHOPS SPECIFIC
 // ============================================
+
+export const RepairsFeature: FeatureModule = {
+  id: "repairs",
+  name: "Réparations",
+  navigation: {
+    main: {
+      icon: "Wrench",
+      label: "Réparations",
+      href: "/dashboard/reparations",
+      order: 21,
+    },
+    subItems: [
+      { label: "Toutes les réparations", href: "/dashboard/reparations", order: 0 },
+      { label: "En cours", href: "/dashboard/reparations?filter=en-cours", order: 1 },
+      { label: "Prêtes", href: "/dashboard/reparations?filter=prete", order: 2 },
+    ],
+    quickActions: [
+      {
+        label: "Nouvelle réparation",
+        icon: "Plus",
+        href: "/dashboard/reparations/new",
+        order: 5,
+      },
+    ],
+  },
+  routes: [
+    "/dashboard/reparations",
+    "/dashboard/reparations/new",
+    "/dashboard/reparations/[id]",
+  ],
+  dependencies: ["clients"],
+  i18n: {
+    singular: "Réparation",
+    plural: "Réparations",
+  },
+  permissions: ["canViewProducts"],
+};
 
 export const RachatsFeature: FeatureModule = {
   id: "rachats",
@@ -462,7 +507,7 @@ export const RachatsFeature: FeatureModule = {
     "/dashboard/rachats",
     "/dashboard/rachats/[id]",
   ],
-  dependencies: ["products"],
+  dependencies: ["catalogue"],
   permissions: ["canViewProducts"],
 };
 
@@ -482,6 +527,10 @@ export const AtelierFeature: FeatureModule = {
   permissions: ["canViewProducts"],
 };
 
+// ============================================
+// CATALOGUE (Unified view)
+// ============================================
+
 export const CatalogueFeature: FeatureModule = {
   id: "catalogue",
   name: "Catalogue",
@@ -493,7 +542,8 @@ export const CatalogueFeature: FeatureModule = {
       order: 20,
     },
     subItems: [
-      { label: "Tous les articles", href: "/dashboard/catalogue", order: 1 },
+      { label: "Tous les articles", href: "/dashboard/catalogue", order: 0 },
+      { label: "Stock", href: "/dashboard/catalogue/stock", order: 1 },
       { label: "Catégories", href: "/dashboard/catalogue/categories", order: 2 },
     ],
     quickActions: [
@@ -509,6 +559,7 @@ export const CatalogueFeature: FeatureModule = {
     "/dashboard/catalogue",
     "/dashboard/catalogue/new",
     "/dashboard/catalogue/[id]",
+    "/dashboard/catalogue/stock",
     "/dashboard/catalogue/categories",
   ],
   i18n: {
@@ -598,7 +649,8 @@ export const FEATURE_CATALOG: Record<string, FeatureModule> = {
   stores: StoresFeature,
   // terminals: TerminalsFeature, // Désactivé - Voir lib/config/features.config.ts
 
-  // Occasion (Computer shops)
+  // Computer shops specific
+  repairs: RepairsFeature,
   rachats: RachatsFeature,
   atelier: AtelierFeature,
   catalogue: CatalogueFeature,

@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { useScroll } from "@/hooks/use-scroll";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 export function Navigation() {
     const scrolled = useScroll(20);
+    const { data: session } = useSession();
 
     return (
         <nav
@@ -27,37 +29,56 @@ export function Navigation() {
 
                     <div className="hidden md:flex items-center space-x-8">
                         <Link
-                            href="#features"
+                            href="/#features"
                             className="text-[12px] font-medium text-black/60 hover:text-black transition-colors duration-200"
                         >
                             Fonctionnalités
                         </Link>
                         <Link
-                            href="#pricing"
+                            href="/#pricing"
                             className="text-[12px] font-medium text-black/60 hover:text-black transition-colors duration-200"
                         >
                             Tarifs
                         </Link>
+                        <Link
+                            href="/contact"
+                            className="text-[12px] font-medium text-black/60 hover:text-black transition-colors duration-200"
+                        >
+                            Contact
+                        </Link>
                     </div>
 
                     <div className="flex items-center space-x-2">
-                        <Link href="/auth/login">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-[12px] font-medium h-7 px-3 hover:bg-black/5"
-                            >
-                                Connexion
-                            </Button>
-                        </Link>
-                        <Link href="/auth/register">
-                            <Button
-                                size="sm"
-                                className="bg-black hover:bg-black/90 text-white rounded-full h-7 px-4 text-[12px] font-medium shadow-sm hover:shadow transition-all duration-200"
-                            >
-                                Essai gratuit
-                            </Button>
-                        </Link>
+                        {session ? (
+                            <Link href="/account">
+                                <Button
+                                    size="sm"
+                                    className="bg-black hover:bg-black/90 text-white rounded-full h-7 px-4 text-[12px] font-medium shadow-sm hover:shadow transition-all duration-200"
+                                >
+                                    Mon compte
+                                </Button>
+                            </Link>
+                        ) : (
+                            <>
+                                <Link href="/waitlist">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="text-[12px] font-medium h-7 px-3 hover:bg-black/5"
+                                    >
+                                        Connexion
+                                    </Button>
+                                </Link>
+                                <Link href="/waitlist">
+                                    <Button
+                                        size="sm"
+                                        className="bg-black hover:bg-black/90 text-white rounded-full h-7 px-4 text-[12px] font-medium shadow-sm hover:shadow transition-all duration-200"
+                                    >
+                                        Essai gratuit
+                                    </Button>
+                                </Link>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>

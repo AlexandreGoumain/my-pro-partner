@@ -7,6 +7,7 @@
 import { useChatbot } from "@/lib/chatbot/chatbot-context";
 import { cn } from "@/lib/utils";
 import { MessageSquare, X } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import { ChatbotWindow } from "./chatbot-window";
 
 export function ChatbotWidget() {
@@ -14,8 +15,19 @@ export function ChatbotWidget() {
 
     return (
         <>
-            {/* Fenêtre du chat */}
-            {isOpen && <ChatbotWindow />}
+            {/* Fenêtre du chat avec animation */}
+            <AnimatePresence>
+                {isOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 20, scale: 0.95 }}
+                        transition={{ duration: 0.2, ease: "easeOut" }}
+                    >
+                        <ChatbotWindow />
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Bouton flottant */}
             <button

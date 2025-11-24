@@ -10,6 +10,13 @@
  */
 
 import { Resend } from "resend";
+import {
+    getRepairDepositedTemplate,
+    getDiagnosticCompleteTemplate,
+    getReadyForPickupTemplate,
+    getDelayedRepairTemplate,
+    getRepairDeliveredTemplate,
+} from "./repair-email-templates";
 
 let resend: Resend | null = null;
 
@@ -144,6 +151,118 @@ L'équipe
             subject: "Bienvenue sur votre espace client",
             html,
             text,
+        });
+    }
+
+    // Repair notification methods
+    static async sendRepairDepositedEmail(
+        email: string,
+        data: {
+            clientName: string;
+            repairNumber: string;
+            deviceType: string;
+            deviceBrand: string;
+            deviceModel: string;
+            problemDescription: string;
+            estimatedReturnDate?: string;
+            storeName: string;
+            storeAddress: string;
+            storePhone: string;
+        }
+    ): Promise<boolean> {
+        const html = getRepairDepositedTemplate(data);
+
+        return this.sendEmail({
+            to: email,
+            subject: `Réparation ${data.repairNumber} - Dépôt confirmé`,
+            html,
+        });
+    }
+
+    static async sendDiagnosticCompleteEmail(
+        email: string,
+        data: {
+            clientName: string;
+            repairNumber: string;
+            deviceType: string;
+            diagnosticDetail: string;
+            estimatedCost?: number;
+            repairDelay?: number;
+            storeName: string;
+            storePhone: string;
+            quoteAcceptUrl?: string;
+        }
+    ): Promise<boolean> {
+        const html = getDiagnosticCompleteTemplate(data);
+
+        return this.sendEmail({
+            to: email,
+            subject: `Réparation ${data.repairNumber} - Diagnostic terminé`,
+            html,
+        });
+    }
+
+    static async sendReadyForPickupEmail(
+        email: string,
+        data: {
+            clientName: string;
+            repairNumber: string;
+            deviceType: string;
+            totalCost: number;
+            storeName: string;
+            storeAddress: string;
+            storePhone: string;
+            storeHours: string;
+        }
+    ): Promise<boolean> {
+        const html = getReadyForPickupTemplate(data);
+
+        return this.sendEmail({
+            to: email,
+            subject: `Réparation ${data.repairNumber} - Votre appareil est prêt !`,
+            html,
+        });
+    }
+
+    static async sendDelayedRepairEmail(
+        email: string,
+        data: {
+            clientName: string;
+            repairNumber: string;
+            deviceType: string;
+            reason: string;
+            newEstimatedDate: string;
+            storeName: string;
+            storePhone: string;
+        }
+    ): Promise<boolean> {
+        const html = getDelayedRepairTemplate(data);
+
+        return this.sendEmail({
+            to: email,
+            subject: `Réparation ${data.repairNumber} - Mise à jour`,
+            html,
+        });
+    }
+
+    static async sendRepairDeliveredEmail(
+        email: string,
+        data: {
+            clientName: string;
+            repairNumber: string;
+            deviceType: string;
+            warrantyDays: number;
+            storeName: string;
+            storePhone: string;
+            feedbackUrl?: string;
+        }
+    ): Promise<boolean> {
+        const html = getRepairDeliveredTemplate(data);
+
+        return this.sendEmail({
+            to: email,
+            subject: `Réparation ${data.repairNumber} - Merci pour votre confiance`,
+            html,
         });
     }
 

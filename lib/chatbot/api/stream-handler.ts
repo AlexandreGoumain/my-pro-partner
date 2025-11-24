@@ -3,6 +3,13 @@
 // ============================================
 
 import { executeAction } from '../chatbot-executor';
+import { logger, logSecurityEvent } from '../security/logger';
+import {
+  getActionMetadata,
+  requiresConfirmation,
+  getConfirmationMessage,
+  isCriticalAction,
+} from '../security/action-metadata';
 
 interface ToolCall {
   id: string;
@@ -44,7 +51,7 @@ export async function createOpenAIStream({
           const { done, value } = await reader.read();
 
           if (done) {
-            console.log('Stream done. Full text:', fullText.length, 'Tool calls:', toolCalls.length);
+            logger.debug('Stream completed', { textLength: fullText.length, toolCallsCount: toolCalls.length });
 
             // Execute tool calls if any
             if (toolCalls.length > 0) {
@@ -75,7 +82,7 @@ export async function createOpenAIStream({
                 // Handle text content
                 if (delta?.content) {
                   fullText += delta.content;
-                  console.log('Content chunk:', delta.content.substring(0, 50));
+                  logger.debug('Streaming content chunk', { chunkLength: delta.content.length });
                   controller.enqueue(encoder.encode(delta.content));
                 }
 
@@ -90,7 +97,7 @@ export async function createOpenAIStream({
           }
         }
       } catch (error) {
-        console.error('Stream error:', error);
+        logger.error('Stream processing error', error);
         controller.error(error);
       }
     },
@@ -142,11 +149,49 @@ async function executeToolCalls(
 
   for (const toolCall of toolCalls) {
     try {
-      console.log('Executing tool:', toolCall.function.name, toolCall.function.arguments);
+      const actionName = toolCall.function.name;
       const args = JSON.parse(toolCall.function.arguments);
-      const result = await executeAction(toolCall.function.name, args, baseUrl);
 
-      console.log('Tool result:', result);
+      // ✅ SÉCURITÉ : Vérifier si l'action nécessite une confirmation
+      if (requiresConfirmation(actionName)) {
+        const metadata = getActionMetadata(actionName);
+        const confirmationMsg = getConfirmationMessage(actionName, args);
+
+        // Log security event for critical actions
+        if (isCriticalAction(actionName)) {
+          logSecurityEvent(
+            'Critical action attempted',
+            'high',
+            `User attempted to execute critical action: ${actionName}`,
+            { action: actionName }
+          );
+        }
+
+        // Pour l'instant, demander confirmation via le message
+        // TODO Phase 2: Implémenter un vrai système de confirmation avec token
+        const warningMessage = `\n\n⚠️ **Confirmation requise**\n\n${confirmationMsg}\n\n_Cette action nécessite une confirmation. Pour des raisons de sécurité, veuillez exécuter cette action manuellement depuis l'interface appropriée._`;
+        updatedText += warningMessage;
+        controller.enqueue(encoder.encode(warningMessage));
+
+        logger.warn('Action blocked - requires confirmation', {
+          action: actionName,
+          riskLevel: metadata?.riskLevel
+        });
+
+        continue; // Skip execution
+      }
+
+      logger.info('Executing chatbot action', {
+        functionName: actionName,
+        argsLength: toolCall.function.arguments.length
+      });
+
+      const result = await executeAction(actionName, args, baseUrl);
+
+      logger.debug('Action execution completed', {
+        functionName: actionName,
+        success: result.success
+      });
 
       // Send result to client
       if (result.success) {
@@ -169,7 +214,9 @@ async function executeToolCalls(
         controller.enqueue(encoder.encode(errorMessage));
       }
     } catch (execError) {
-      console.error('Error executing tool:', execError);
+      logger.error('Error executing chatbot action', execError, {
+        action: toolCall.function.name
+      });
       const errorMessage = `\n\n✗ Erreur lors de l'exécution: ${
         execError instanceof Error ? execError.message : 'Erreur inconnue'
       }`;

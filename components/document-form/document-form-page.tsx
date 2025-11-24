@@ -11,7 +11,6 @@ import { DatePicker } from "@/components/ui/date-picker";
 import { LineItemsEditor } from "./line-items-editor";
 import { DocumentTotals } from "./document-totals";
 import { ClientCombobox } from "./client-combobox";
-import { SerieCombobox } from "./serie-combobox";
 import { ArrowLeft, Save, Send } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useDocumentForm } from "@/hooks/use-document-form";
@@ -40,7 +39,6 @@ export function DocumentFormPage({
         formData,
         setFormData,
         clients,
-        series,
         articles,
         lines,
         setLines,
@@ -74,10 +72,17 @@ export function DocumentFormPage({
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
-                    <Card className="p-6 border-black/8 shadow-sm">
-                        <h3 className="text-[16px] font-semibold tracking-[-0.01em] text-black mb-4">
-                            Informations générales
-                        </h3>
+                    <Card className="group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500">
+                        <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                        <div className="relative p-6">
+                            <div className="mb-6">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <div className="w-1 h-4 bg-gradient-to-b from-black to-black/40 rounded-full" />
+                                    <h3 className="text-[15px] font-semibold tracking-[-0.02em] text-black">
+                                        Informations générales
+                                    </h3>
+                                </div>
+                            </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="client" className="text-[14px] font-medium">
@@ -91,23 +96,6 @@ export function DocumentFormPage({
                                     }
                                     triggerClassName="h-11 text-[14px] border-black/10"
                                 />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="serie" className="text-[14px] font-medium">
-                                    Série de numérotation
-                                </Label>
-                                <SerieCombobox
-                                    series={series}
-                                    value={formData.serieId || ""}
-                                    onValueChange={(value) =>
-                                        setFormData((prev) => ({ ...prev, serieId: value }))
-                                    }
-                                    triggerClassName="h-11 text-[14px] border-black/10"
-                                />
-                                <p className="text-[12px] text-black/40">
-                                    Laissez vide pour utiliser la série par défaut
-                                </p>
                             </div>
 
                             <div className="space-y-2">
@@ -192,6 +180,7 @@ export function DocumentFormPage({
                                 placeholder="Notes ou commentaires additionnels..."
                                 className="min-h-[100px] border-black/10"
                             />
+                        </div>
                         </div>
                     </Card>
 

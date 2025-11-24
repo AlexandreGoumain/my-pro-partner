@@ -5,6 +5,7 @@ import { requireBusinessType } from "@/lib/middleware/business-type-check";
 import { prisma } from "@/lib/prisma";
 import { reparationStatusSchema } from "@/lib/validation";
 import { ReparationService } from "@/lib/services/reparation.service";
+import { RepairNotificationService } from "@/lib/services/repair-notification.service";
 
 // POST: Change repair status
 export async function POST(
@@ -76,6 +77,7 @@ export async function POST(
       },
       include: {
         client: true,
+        store: true,
         technicien: {
           select: {
             id: true,
@@ -103,10 +105,12 @@ export async function POST(
       },
     });
 
-    // TODO: Send notification to client based on new status
-    // - DIAGNOSTIC_COMPLETE: Send diagnostic + quote
-    // - PRETE: Send ready for pickup notification
-    // - LIVREE: Send thank you + warranty info
+    // Send notification to client based on new status
+    await RepairNotificationService.sendStatusNotification(
+      updatedReparation,
+      newStatut,
+      notes
+    );
 
     return NextResponse.json(updatedReparation);
   }, { resourceName: "Reparation", operation: "update_status" });

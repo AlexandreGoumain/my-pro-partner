@@ -43,17 +43,21 @@ export default function RachatsPage() {
                 onChange={handlers.setSearch}
             />
 
-            <Card className="border-black/8 shadow-sm">
-                <CardHeader className="border-b border-black/8 p-6">
-                    <CardTitle className="text-[18px] font-semibold text-black">
-                        Liste des rachats
-                    </CardTitle>
-                    <CardDescription className="text-[14px] text-black/60">
+            <Card className="group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500">
+                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <CardHeader className="relative border-b border-black/[0.08] p-6">
+                    <div className="flex items-center gap-2 mb-1">
+                        <div className="w-1 h-4 bg-gradient-to-b from-black to-black/40 rounded-full" />
+                        <CardTitle className="text-[15px] font-semibold tracking-[-0.02em] text-black">
+                            Liste des rachats
+                        </CardTitle>
+                    </div>
+                    <CardDescription className="text-[13px] text-black/60 ml-3">
                         {handlers.pagination?.total || 0} rachat(s)
                         enregistré(s)
                     </CardDescription>
                 </CardHeader>
-                <CardContent className="p-0">
+                <CardContent className="relative p-0">
                     {handlers.isLoading ? (
                         <RachatsLoadingState />
                     ) : handlers.rachats.length > 0 ? (

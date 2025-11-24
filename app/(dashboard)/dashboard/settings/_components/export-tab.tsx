@@ -55,22 +55,22 @@ export function ExportTab() {
         description="Le Fichier des Écritures Comptables est obligatoire pour toutes les entreprises françaises tenant leur comptabilité au moyen de systèmes informatisés"
       >
         <div className="space-y-4">
-          <div className="rounded-lg bg-blue-50 border border-blue-200 p-4">
+          <div className="rounded-lg bg-white border border-black/[0.08] p-4 shadow-sm">
             <div className="flex gap-3">
               <div className="flex-shrink-0">
-                <FileText className="h-5 w-5 text-blue-600" />
+                <FileText className="h-5 w-5 text-black/60" strokeWidth={2} />
               </div>
               <div className="space-y-2 text-[14px]">
-                <p className="font-medium text-blue-900">
+                <p className="font-medium text-black">
                   Obligation légale
                 </p>
-                <p className="text-blue-800">
+                <p className="text-black/70">
                   Le FEC doit être produit sur demande de l&apos;administration
                   fiscale lors d&apos;un contrôle (Article A47 A-1 du Livre des
                   procédures fiscales). Le format est standardisé et doit
                   contenir toutes les écritures comptables de l&apos;exercice.
                 </p>
-                <p className="text-blue-800 text-[13px] mt-2">
+                <p className="text-black/70 text-[13px] mt-2">
                   <strong>Format du fichier :</strong> TXT avec séparateur pipe (|)
                   <br />
                   <strong>Nomenclature :</strong> SiretFECAAAAMMJJ.txt
@@ -213,17 +213,17 @@ export function ExportTab() {
               </div>
 
               {/* Montants */}
-              <div className="rounded-lg bg-green-50 border border-green-200 p-4">
-                <div className="flex items-center gap-2 text-green-900 mb-3">
-                  <TrendingUp className="h-4 w-4" />
+              <div className="rounded-lg bg-white border border-black/[0.08] p-4 shadow-sm">
+                <div className="flex items-center gap-2 text-black mb-3">
+                  <TrendingUp className="h-4 w-4" strokeWidth={2} />
                   <span className="text-[13px] font-semibold">
                     Chiffre d&apos;affaires
                   </span>
                 </div>
                 <div className="grid grid-cols-3 gap-4 text-[13px]">
                   <div>
-                    <div className="text-green-700 mb-1">HT</div>
-                    <div className="font-bold text-green-900">
+                    <div className="text-black/60 mb-1">HT</div>
+                    <div className="font-bold text-black">
                       {parseFloat(stats.montants.ventesHT).toLocaleString("fr-FR", {
                         minimumFractionDigits: 2,
                       })}{" "}
@@ -231,8 +231,8 @@ export function ExportTab() {
                     </div>
                   </div>
                   <div>
-                    <div className="text-green-700 mb-1">TVA</div>
-                    <div className="font-bold text-green-900">
+                    <div className="text-black/60 mb-1">TVA</div>
+                    <div className="font-bold text-black">
                       {parseFloat(stats.montants.tva).toLocaleString("fr-FR", {
                         minimumFractionDigits: 2,
                       })}{" "}
@@ -240,8 +240,8 @@ export function ExportTab() {
                     </div>
                   </div>
                   <div>
-                    <div className="text-green-700 mb-1">TTC</div>
-                    <div className="font-bold text-green-900">
+                    <div className="text-black/60 mb-1">TTC</div>
+                    <div className="font-bold text-black">
                       {parseFloat(stats.montants.ventesTTC).toLocaleString("fr-FR", {
                         minimumFractionDigits: 2,
                       })}{" "}

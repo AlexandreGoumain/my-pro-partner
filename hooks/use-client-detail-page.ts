@@ -27,6 +27,8 @@ export interface ClientDetailPageHandlers {
     setDeleteDialogOpen: (open: boolean) => void;
     emailDialogOpen: boolean;
     setEmailDialogOpen: (open: boolean) => void;
+    documentTypeDialogOpen: boolean;
+    setDocumentTypeDialogOpen: (open: boolean) => void;
 
     handleEdit: () => void;
     handleEditSuccess: () => void;
@@ -34,6 +36,7 @@ export interface ClientDetailPageHandlers {
     confirmDelete: () => void;
     handleSendEmail: () => void;
     handleCall: () => void;
+    handleCreateDocument: () => void;
     handleBack: () => void;
 
     isDeleting: boolean;
@@ -50,6 +53,7 @@ export function useClientDetailPage(
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [emailDialogOpen, setEmailDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [documentTypeDialogOpen, setDocumentTypeDialogOpen] = useState(false);
 
     // Calcul du statut et score santé
     const clientHealth = useMemo(() => {
@@ -172,6 +176,10 @@ export function useClientDetailPage(
         }
     }, [client]);
 
+    const handleCreateDocument = useCallback(() => {
+        setDocumentTypeDialogOpen(true);
+    }, []);
+
     return {
         client,
         isLoading,
@@ -187,12 +195,15 @@ export function useClientDetailPage(
         setDeleteDialogOpen,
         emailDialogOpen,
         setEmailDialogOpen,
+        documentTypeDialogOpen,
+        setDocumentTypeDialogOpen,
         handleEdit,
         handleEditSuccess,
         handleDelete,
         confirmDelete,
         handleSendEmail,
         handleCall,
+        handleCreateDocument,
         handleBack,
         isDeleting: deleteClient.isPending,
     };

@@ -3,6 +3,7 @@
 // ============================================
 
 import type { ActionResult } from "./chatbot-actions";
+import { logger } from "./security/logger";
 
 // Import all action modules
 import {
@@ -213,10 +214,9 @@ export async function executeAction(
                 };
         }
     } catch (error) {
-        console.error(
-            `Erreur lors de l'exécution de l'action ${actionName}:`,
-            error
-        );
+        logger.error(`Error executing chatbot action: ${actionName}`, error, {
+            action: actionName
+        });
         return {
             success: false,
             error: error instanceof Error ? error.message : "Erreur inconnue",

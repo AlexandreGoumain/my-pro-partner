@@ -145,7 +145,7 @@ export function SocialProofMetrics() {
                             </p>
                         </div>
                         <a
-                            href="/auth/register"
+                            href="/waitlist"
                             className="px-8 py-3 rounded-lg bg-black text-white text-[14px] font-medium hover:bg-black/90 transition-colors"
                         >
                             Essayer gratuitement

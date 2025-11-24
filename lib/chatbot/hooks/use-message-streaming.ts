@@ -94,13 +94,15 @@ export function useMessageStreaming({
             while (true) {
               const { done, value } = await reader.read();
               if (done) {
-                console.log('Stream completed. Final message:', assistantMessage);
+                // ✅ SÉCURITÉ : Ne pas logger le contenu des messages
+                if (process.env.NODE_ENV === 'development') {
+                  console.log('Stream completed');
+                }
                 break;
               }
 
               // Decode chunk
               const chunk = decoder.decode(value, { stream: true });
-              console.log('Received chunk:', chunk);
 
               // Check if it's a navigation event (JSON)
               const lines = chunk.split('\n');
@@ -109,7 +111,6 @@ export function useMessageStreaming({
                   try {
                     const event = JSON.parse(line.trim());
                     if (event.type === 'navigation' && event.path) {
-                      console.log('Navigation event detected:', event.path);
                       // Perform navigation
                       router.push(event.path);
                       continue;
@@ -139,7 +140,10 @@ export function useMessageStreaming({
               });
             }
           } catch (streamError) {
-            console.error('Error reading stream:', streamError);
+            // ✅ SÉCURITÉ : Logger uniquement le type d'erreur
+            if (process.env.NODE_ENV === 'development') {
+              console.error('Error reading stream:', streamError instanceof Error ? streamError.message : 'Unknown error');
+            }
           }
         }
 
@@ -147,7 +151,10 @@ export function useMessageStreaming({
         await loadConversations();
       } catch (err: unknown) {
         setError(err as Error);
-        console.error('Error sending message:', err);
+        // ✅ SÉCURITÉ : Logger uniquement le message d'erreur
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Error sending message:', err instanceof Error ? err.message : 'Unknown error');
+        }
       } finally {
         setIsLoading(false);
       }
@@ -165,7 +172,10 @@ export function useMessageStreaming({
         });
         if (!response.ok) throw new Error("Erreur lors de l'envoi du feedback");
       } catch (error) {
-        console.error('Error submitting feedback:', error);
+        // ✅ SÉCURITÉ : Logger uniquement en développement
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Error submitting feedback');
+        }
       }
     },
     []

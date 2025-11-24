@@ -38,11 +38,12 @@ export function ArticleFiltersBar({
     return (
         <div
             className={cn(
-                "flex flex-col lg:flex-row gap-4 p-4 bg-muted/30 rounded-lg border",
+                "group relative overflow-hidden flex flex-col lg:flex-row gap-4 p-4 bg-white rounded-lg border border-black/[0.08] hover:shadow-lg hover:shadow-black/5 transition-all duration-300",
                 className
             )}
         >
-            <div className="flex flex-1 items-center gap-4">
+            <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="relative flex flex-1 items-center gap-4">
                 <FilterBar
                     filters={[
                         {
@@ -61,7 +62,7 @@ export function ArticleFiltersBar({
                     onViewModeChange={onViewModeChange}
                 />
             </div>
-            <div className="flex flex-col sm:flex-row gap-2">
+            <div className="relative flex flex-col sm:flex-row gap-2">
                 <CategoryFilter
                     selectedCategoryIds={selectedCategoryIds}
                     onSelectionChange={onCategoryChange}

@@ -126,7 +126,7 @@ export function AIAssistant() {
                             <p className="text-[16px] text-white/60 max-w-[600px]">
                                 Pendant que vos concurrents perdent des heures, vous obtenez des insights en 3 secondes.
                             </p>
-                            <Link href="/auth/register">
+                            <Link href="/waitlist">
                                 <Button
                                     size="lg"
                                     className="bg-white hover:bg-white/90 text-black rounded-full h-12 px-8 text-[15px] font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"

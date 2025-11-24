@@ -37,14 +37,20 @@ export function StockAlertsList({
 
   if (isLoading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Alertes de stock</CardTitle>
-          <CardDescription>
+      <Card className="group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500">
+        <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <CardHeader className="relative">
+          <div className="flex items-center gap-2 mb-1">
+            <div className="w-1 h-4 bg-gradient-to-b from-black to-black/40 rounded-full" />
+            <CardTitle className="text-[15px] font-semibold tracking-[-0.02em] text-black">
+              Alertes de stock
+            </CardTitle>
+          </div>
+          <CardDescription className="text-[13px] text-black/60 ml-3">
             Articles en rupture ou sous le seuil minimum
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="relative">
           <GridSkeleton
             itemCount={3}
             gridColumns={{ default: 1 }}
@@ -63,39 +69,43 @@ export function StockAlertsList({
 
   return (
     <>
-      <Card>
-        <CardHeader>
+      <Card className="group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500">
+        <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <CardHeader className="relative">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-orange-500" />
-                Alertes de stock
-              </CardTitle>
-              <CardDescription>
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-1 h-4 bg-gradient-to-b from-black to-black/40 rounded-full" />
+                <CardTitle className="text-[15px] font-semibold tracking-[-0.02em] text-black flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-black/60" strokeWidth={2} />
+                  Alertes de stock
+                </CardTitle>
+              </div>
+              <CardDescription className="text-[13px] text-black/60 ml-3">
                 Articles en rupture ou sous le seuil minimum
               </CardDescription>
             </div>
             <div className="flex gap-2">
-              <Badge variant="destructive" className="h-6">
+              <Badge className="bg-black text-white text-[12px] h-6 px-3 font-medium border-0">
                 {ruptureArticles.length} en rupture
               </Badge>
-              <Badge variant="outline" className="h-6 border-orange-500 text-orange-600">
+              <Badge variant="outline" className="bg-black/5 text-black/70 border-black/10 text-[12px] h-6 px-3 font-medium">
                 {alerteArticles.length} en alerte
               </Badge>
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="relative">
           {articles.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">
+            <p className="text-black/60 text-[13px] text-center py-8">
               Aucune alerte de stock
             </p>
           ) : (
             <div className="space-y-3">
               {ruptureArticles.length > 0 && (
                 <div className="space-y-2">
-                  <h3 className="font-semibold text-sm text-destructive flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4" />
+                  <h3 className="text-[14px] font-semibold text-black flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4" strokeWidth={2} />
                     Rupture de stock ({ruptureArticles.length})
                   </h3>
                   {ruptureArticles.map((article) => (
@@ -111,8 +121,8 @@ export function StockAlertsList({
 
               {alerteArticles.length > 0 && (
                 <div className="space-y-2">
-                  <h3 className="font-semibold text-sm text-orange-600 flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4" />
+                  <h3 className="text-[14px] font-semibold text-black flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4" strokeWidth={2} />
                     Stock faible ({alerteArticles.length})
                   </h3>
                   {alerteArticles.map((article) => (
@@ -153,29 +163,36 @@ function ArticleAlertItem({
   onAddStock: () => void;
 }) {
   return (
-    <Alert variant={severity === "rupture" ? "destructive" : "default"} className={severity === "alerte" ? "border-orange-500/50 text-orange-600 [&>svg]:text-orange-600" : ""}>
-      <AlertTriangle className="h-4 w-4" />
+    <Alert
+      variant="default"
+      className="border-black/10 bg-black/[0.02] hover:bg-black/[0.04] transition-colors duration-200"
+    >
+      <AlertTriangle className="h-4 w-4 text-black/60" strokeWidth={2} />
       <div className="flex items-center justify-between w-full">
         <div className="flex-1">
-          <AlertTitle className="flex items-center gap-2 mb-1">
+          <AlertTitle className="flex items-center gap-2 mb-1 text-[14px] font-semibold text-black">
             {article.nom}
             {article.categorie && (
-              <Badge variant="outline" className="h-5 text-xs">
+              <Badge variant="outline" className="bg-black/5 text-black/70 border-black/10 text-[11px] h-5 px-2 font-medium">
                 {article.categorie.nom}
               </Badge>
             )}
           </AlertTitle>
-          <AlertDescription>
+          <AlertDescription className="text-[13px] text-black/70">
             <div className="flex items-center gap-4">
               <span>Réf: {article.reference}</span>
-              <span className="font-medium">
+              <span className="font-medium text-black">
                 Stock: {article.stock_actuel} / Min: {article.stock_min}
               </span>
             </div>
           </AlertDescription>
         </div>
-        <Button size="sm" onClick={onAddStock} className="ml-4 shrink-0">
-          <PackagePlus className="h-4 w-4 mr-2" />
+        <Button
+          size="sm"
+          onClick={onAddStock}
+          className="ml-4 shrink-0 bg-black hover:bg-black/90 text-white h-9 px-4 text-[13px] font-medium"
+        >
+          <PackagePlus className="h-4 w-4 mr-2" strokeWidth={2} />
           Approvisionner
         </Button>
       </div>
