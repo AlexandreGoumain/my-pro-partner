@@ -11,20 +11,22 @@
 
 ## 📋 À propos du projet
 
-Application ERP SaaS **production-ready** développée avec les dernières technologies web, conçue pour gérer l'ensemble des besoins opérationnels d'une petite entreprise artisanale : gestion clients, catalogue produits, stocks multi-magasins, devis, factures, paiements, fidélité, équipe, caisse (POS), réconciliation bancaire, automatisations marketing et assistant IA.
+Application ERP SaaS **production-ready** développée avec les dernières technologies web, conçue pour gérer l'ensemble des besoins opérationnels d'une petite entreprise artisanale : gestion clients, catalogue produits, stocks multi-magasins, devis, factures, paiements, fidélité, équipe, caisse (POS), réconciliation bancaire, automatisations marketing, assistant IA, et **modules spécialisés** (SAV/réparations, rachats, atelier, démontage).
 
 **Ce projet met en avant :**
 
 - Architecture SaaS multi-tenant complète avec isolation des données
-- 122 API routes RESTful sécurisées avec validation stricte
-- 40+ modèles de base de données avec relations complexes
-- 66+ Custom Hooks pour architecture propre (séparation UI/logique)
-- 12 services métier encapsulés et réutilisables
+- **API routes RESTful** sécurisées avec validation stricte
+- **modèles de base de données** avec relations complexes
+- **Custom Hooks** pour architecture propre (séparation UI/logique)
+- **services métier** encapsulés et réutilisables
+- **composants UI** organisés par feature
 - Système de pricing avancé avec 4 plans (FREE, STARTER, PRO, ENTERPRISE)
 - Navigation business-adaptive (20 types d'activités supportés)
 - Authentification double : admin + portail client séparé
 - Intégrations professionnelles (Stripe, OpenAI, Resend)
 - PWA avec mode offline pour utilisation hors ligne
+- **Modules spécialisés** pour magasins informatiques (SAV, rachats, démontage)
 
 ### 📊 État d'avancement du projet
 
@@ -39,22 +41,22 @@ Application ERP SaaS **production-ready** développée avec les dernières techn
 - **React 19** avec Server Components et Client Components
 - **Next.js 16** (App Router) avec optimisations automatiques
 - **TypeScript strict** - Type safety complète avec validation runtime (Zod)
-- **Shadcn/ui** - 50+ composants accessibles et personnalisables
+- **Shadcn/ui** - composants accessibles et personnalisables
+- **composants UI personnalisés** - Organisés par feature avec architecture modulaire
 - **Tailwind CSS v4** - Styling moderne responsive
 - **React Hook Form + Zod** - Validation formulaires robuste
 - **TanStack Query** - Cache et synchronisation serveur avec pagination
-- **66+ Custom Hooks** - Architecture propre avec séparation complète UI/logique
+- **118 Custom Hooks** - Architecture propre avec séparation complète UI/logique
 - **PWA & Offline Mode** - Application installable avec mode hors ligne
 
 ### Backend & Architecture
 
-- **Next.js API Routes** - 122 endpoints RESTful
-- **Prisma ORM 6** - 40+ modèles avec type-safe queries
+- **Next.js API Routes** - endpoints RESTful
+- **Prisma ORM 6** - modèles avec type-safe queries
 - **PostgreSQL 16** - Base de données relationnelle avec migrations
 - **NextAuth.js v4** - Authentification double (admin + client portal)
 - **Multi-Tenancy** - Isolation complète des données par entreprise
-- **Service Layer** - 12 services métier réutilisables et testables
-- **Role-Based Access Control (RBAC)** - 6 rôles avec 30+ permissions granulaires
+- **Service Layer** - services métier réutilisables et testables
 - **Error Handling** - Gestion centralisée avec logging structuré
 - **API Security** - CSRF protection, validation Zod, JWT sessions
 
@@ -69,8 +71,9 @@ Application ERP SaaS **production-ready** développée avec les dernières techn
 ### Architecture & Patterns
 
 - **Clean Architecture** - Séparation stricte (Présentation / Hooks / Services / Data)
-- **Custom Hooks Pattern** - 66+ hooks réutilisables pour logique métier
-- **Service Layer Pattern** - Services encapsulés et testables
+- **Custom Hooks Pattern** - hooks réutilisables pour logique métier
+- **Service Layer Pattern** - services encapsulés et testables
+- **Component-Driven Design** - composants modulaires et réutilisables
 - **Multi-Tenancy Pattern** - Architecture SaaS avec isolation des données
 - **Type Safety** - TypeScript strict + validation runtime (Zod)
 - **Business-Adaptive Navigation** - UI qui s'adapte au type d'activité
@@ -290,6 +293,42 @@ Général, Plomberie, Électricité, Chauffage, Menuiserie, Peinture, Maçonneri
 - ✅ Gestion offline/online
 - ✅ Icônes app (192x192, 512x512)
 
+### 🔧 Modules Spécialisés - Magasins Informatiques ✅
+
+**SAV & Réparations :**
+
+- ✅ **Gestion complète des réparations** (8 statuts : En attente, En cours, Diagnostic, Devis envoyé, Réparation, Terminée, Livrée, Annulée)
+- ✅ Création de réparations avec informations client et appareil
+- ✅ **Diagnostic détaillé** avec photos et description problème
+- ✅ **Devis réparation** avec lignes de pièces et main d'œuvre
+- ✅ **Interventions techniques** avec suivi du temps passé
+- ✅ **Historique complet** de toutes les actions (statuts, commentaires)
+- ✅ **Notifications automatiques** par email (création, changement statut, devis envoyé)
+- ✅ Calcul automatique du montant total (pièces + main d'œuvre + TVA)
+- ✅ Dashboard SAV avec statistiques (nombre, CA, délai moyen)
+
+**Atelier & Démontage :**
+
+- ✅ **Gestion des démontages** d'appareils pour récupération de pièces
+- ✅ **Extraction automatique de pièces** dans le catalogue avec type PIECE
+- ✅ **Gestion des ressources atelier** (employés disponibles, outils)
+- ✅ Suivi des appareils en cours de démontage
+
+**Rachats d'Occasion :**
+
+- ✅ **Système de rachat** d'appareils d'occasion
+- ✅ Évaluation et fixation du prix de rachat
+- ✅ **Ajout automatique au catalogue** avec type OCCASION
+- ✅ Gestion du stock des articles d'occasion
+- ✅ Historique des rachats par client
+
+**Réservations :**
+
+- ✅ **Système de réservations** (rendez-vous, produits)
+- ✅ Gestion des créneaux horaires
+- ✅ Confirmation et annulation
+- ✅ Notifications clients
+
 ---
 
 ## 🛠️ Stack technique
@@ -298,12 +337,14 @@ Général, Plomberie, Électricité, Chauffage, Menuiserie, Peinture, Maçonneri
 | -------------- | ------------------------------------------------- |
 | **Framework**  | Next.js 16 (App Router), React 19                 |
 | **Language**   | TypeScript 5.x (strict mode)                      |
-| **Styling**    | Tailwind CSS v4, Shadcn/ui (50+ composants)       |
+| **Styling**    | Tailwind CSS v4, Shadcn/ui                        |
+| **Components** | composants UI personnalisés                       |
 | **Database**   | PostgreSQL 16 + Prisma ORM 6                      |
 | **Auth**       | NextAuth.js v4 (JWT + OAuth Google)               |
 | **Validation** | Zod + React Hook Form                             |
-| **State**      | TanStack Query, React Hooks (66+), Context API    |
-| **API**        | Next.js API Routes (122 endpoints RESTful)        |
+| **State**      | TanStack Query, React Hooks, Context API          |
+| **API**        | Next.js API Routes                                |
+| **Services**   | business services (service layer pattern)         |
 | **Payments**   | Stripe (Checkout, Subscriptions, Terminal, Links) |
 | **AI**         | OpenAI GPT-4 (chatbot, function calling)          |
 | **PDF**        | @react-pdf/renderer                               |
@@ -335,7 +376,13 @@ my-pro-partner/
 │   │       ├── bank/             # Réconciliation bancaire
 │   │       ├── stores/           # Multi-magasins
 │   │       ├── personnel/        # Gestion équipe
-│   │       └── chatbot/          # Assistant IA
+│   │       ├── chatbot/          # Assistant IA
+│   │       ├── reparations/      # SAV & Réparations
+│   │       ├── atelier/          # Atelier & Démontage
+│   │       ├── rachats/          # Rachats d'occasion
+│   │       ├── reservations/     # Réservations
+│   │       ├── tables/           # Tables (restaurants)
+│   │       └── integrations/     # Intégrations tierces
 │   ├── (client-portal)/          # Portail client (auth séparée)
 │   │   └── client/
 │   │       ├── login/            # Connexion client
@@ -344,7 +391,7 @@ my-pro-partner/
 │   │       ├── documents/        # Documents client
 │   │       ├── loyalty/          # Fidélité client
 │   │       └── profile/          # Profil client
-│   ├── api/                      # 122 API Routes REST
+│   ├── api/                      # API Routes REST
 │   │   ├── auth/                 # Auth admin
 │   │   ├── client/auth/          # Auth client portal
 │   │   ├── admin/                # Routes admin
@@ -368,6 +415,10 @@ my-pro-partner/
 │   │   ├── subscription/         # Stripe subscriptions
 │   │   ├── analytics/            # Endpoints analytics
 │   │   ├── export/               # Exports (FEC, CSV)
+│   │   ├── reparations/          # SAV & Réparations
+│   │   ├── atelier/              # Atelier & Démontage
+│   │   ├── rachats/              # Rachats d'occasion
+│   │   ├── reservations/         # Réservations
 │   │   └── webhooks/             # Webhooks Stripe
 │   ├── auth/                     # Pages login/register admin
 │   ├── team/                     # Acceptation invitations équipe
@@ -375,8 +426,8 @@ my-pro-partner/
 │   ├── pricing/                  # Pages pricing
 │   ├── pay/                      # Pages paiement public Stripe
 │   └── payment/                  # Pages success/cancel paiement
-├── components/
-│   ├── ui/                       # Design system (50+ Shadcn)
+├── components/                   # composants UI personnalisés
+│   ├── ui/                       # Design system
 │   ├── dashboard/                # Composants dashboard
 │   ├── articles/                 # Composants articles
 │   ├── categories/               # Composants catégories
@@ -389,13 +440,16 @@ my-pro-partner/
 │   ├── pos/                      # Composants POS
 │   ├── bank/                     # Composants réconciliation
 │   ├── personnel/                # Composants équipe
+│   ├── reparations/              # Composants SAV & Réparations
+│   ├── atelier/                  # Composants atelier & démontage
+│   ├── rachats/                  # Composants rachats
 │   ├── onboarding/               # Composants onboarding
 │   ├── pricing/                  # Composants pricing
 │   ├── paywall/                  # Composants limitation plans
 │   ├── pdf/                      # Templates PDF
 │   ├── analytics/                # Composants analytics
 │   └── providers/                # Context providers
-├── hooks/                        # 66+ Custom Hooks
+├── hooks/                        # Custom Hooks
 │   ├── use-dashboard-stats.ts    # Stats dashboard
 │   ├── use-article-stats.ts      # Stats articles
 │   ├── use-article-filters.ts    # Filtrage articles
@@ -415,21 +469,31 @@ my-pro-partner/
 │   ├── use-client-auth.ts        # Auth client portal
 │   ├── use-client-loyalty.ts     # Fidélité client
 │   ├── use-business-navigation.ts # Navigation business-adaptive
-│   └── ...                       # 45+ autres hooks
+│   ├── use-reparations.ts        # Gestion réparations
+│   ├── use-rachats.ts            # Gestion rachats
+│   ├── use-demontage.ts          # Gestion démontage
+│   └── ...                       # autres hooks
 ├── lib/
-│   ├── services/                 # 12 Services métier
-│   │   ├── business-template.service.ts
-│   │   ├── email-notification.service.ts
-│   │   ├── loyalty.service.ts
-│   │   ├── fec.service.ts
-│   │   ├── subscription.service.ts
+│   ├── services/                 # Services métier
+│   │   ├── article.service.ts
 │   │   ├── bank-reconciliation.service.ts
-│   │   ├── terminal.service.ts
+│   │   ├── business-template.service.ts
+│   │   ├── campaign.service.ts
+│   │   ├── client.service.ts
+│   │   ├── document-converter.service.ts
+│   │   ├── document-number-generator.service.ts
+│   │   ├── email-notification.service.ts
+│   │   ├── fec.service.ts
+│   │   ├── loyalty.service.ts
+│   │   ├── notification.service.ts
+│   │   ├── onboarding.service.ts
 │   │   ├── payment-link.service.ts
 │   │   ├── qr-code.service.ts
-│   │   ├── notification.service.ts
-│   │   ├── document-converter.service.ts
-│   │   └── document-number-generator.service.ts
+│   │   ├── repair-notification.service.ts
+│   │   ├── reparation.service.ts
+│   │   ├── segment.service.ts
+│   │   ├── subscription.service.ts
+│   │   └── terminal.service.ts
 │   ├── navigation/               # Navigation business-adaptive
 │   │   ├── navigation-config.ts
 │   │   ├── navigation-labels.ts
@@ -453,7 +517,7 @@ my-pro-partner/
 │   ├── types/                    # Types TypeScript globaux
 │   └── utils/                    # Helpers & utilities
 └── prisma/
-    ├── schema.prisma             # 40+ modèles de données
+    ├── schema.prisma             # modèles de données
     └── migrations/               # Historique migrations
 ```
 
@@ -461,13 +525,14 @@ my-pro-partner/
 
 ## 📊 Modèle de données (Prisma)
 
-### 40+ Entités Implémentées
+### 45+ Entités Implémentées
 
 **Multi-Tenancy & Subscriptions**
 
-- **Entreprise** - Tenant principal (54 champs, 27 relations)
+- **Entreprise** - Tenant principal
 - **Subscription** - Abonnements Stripe
 - **UsageCounter** - Compteurs mensuels (documents, questions)
+- **Employee** - Employés (relation avec User)
 
 **Gestion Utilisateurs & Équipe**
 
@@ -539,6 +604,23 @@ my-pro-partner/
 
 - **ParametresEntreprise** - Paramètres globaux
 - **BusinessType** - Type d'activité (20 types)
+
+**Modules Spécialisés (Magasins Informatiques)**
+
+- **Reparation** - Réparations SAV
+- **ReparationLignePiece** - Lignes de pièces réparation
+- **ReparationIntervention** - Interventions techniques
+- **ReparationPhoto** - Photos diagnostic
+- **ReparationHistorique** - Historique des actions
+- **RachatArticle** - Rachats d'occasion
+- **DemontageArticle** - Démontage pour récupération pièces
+- **RessourceAtelier** - Ressources atelier (employés, outils)
+
+**Autres**
+
+- **Waitlist** - Liste d'attente (landing page)
+- **ContactMessage** - Messages de contact
+- **Reservation** - Réservations (restaurants/services)
 
 ---
 
@@ -756,8 +838,9 @@ if (isLimited('maxClients', clientsCount)) {
 - ⏳ Upload et gestion d'images produits (Cloudinary/AWS S3)
 - ⏳ Export Excel pour tous les rapports analytics
 - ⏳ Intégration SMS (Twilio) pour campagnes et notifications
-- ⏳ Tables & Réservations (restaurants/bars) - backend à compléter
+- ⏳ Tables & Réservations (restaurants/bars) - compléter UI frontend
 - ⏳ Intégrations comptables (Sage, QuickBooks)
+- ⏳ Module de gestion des achats fournisseurs
 
 ### 🚀 Améliorations futures (v2.0+)
 
@@ -797,10 +880,11 @@ Ce projet est un **projet portfolio production-ready** démontrant mes compéten
 Ce projet représente **~90% d'avancement** vers une version 1.0 production :
 
 - ✅ **Architecture SaaS complète** avec multi-tenancy et isolation des données
-- ✅ **122 API routes RESTful** avec validation stricte
-- ✅ **40+ modèles de données** avec relations complexes
-- ✅ **66+ Custom Hooks** pour architecture propre (séparation UI/logique)
-- ✅ **12 Services métier** encapsulés et réutilisables
+- ✅ ** API routes RESTful** avec validation stricte
+- ✅ ** modèles de données** avec relations complexes
+- ✅ ** Custom Hooks** pour architecture propre (séparation UI/logique)
+- ✅ ** Services métier** encapsulés et réutilisables
+- ✅ ** composants UI** organisés par feature
 - ✅ **Authentification double** (admin dashboard + portail client)
 - ✅ **Intégrations professionnelles** (Stripe, OpenAI, Resend)
 - ✅ **Système de pricing** avancé avec 4 plans et 40+ limites
@@ -811,16 +895,19 @@ Ce projet représente **~90% d'avancement** vers une version 1.0 production :
 - ✅ **Réconciliation bancaire** automatique
 - ✅ **Automatisations marketing** avec triggers/actions
 - ✅ **Assistant IA** avec GPT-4
+- ✅ **Modules spécialisés** (SAV/réparations, rachats, atelier, démontage)
 - ✅ **PWA avec mode offline**
 
 📚 **Le code démontre ma capacité à :**
 
 - Architecturer une application SaaS complexe avec **Clean Architecture**
-- Implémenter des **patterns professionnels** (Custom Hooks, Service Layer, Multi-Tenancy)
+- Implémenter des **patterns professionnels** (Custom Hooks, Services, Multi-Tenancy)
+- Concevoir des **architectures modulaires** (composants réutilisables)
 - Gérer des **intégrations tierces** (Stripe, OpenAI, Resend, PDF)
 - Optimiser les **performances** (React Query, pagination, caching)
 - Maintenir une **qualité de code** élevée (DRY, types stricts, error handling)
-- Développer des **features avancées** (RBAC, pricing, business templates, AI chatbot)
+- Développer des **features avancées** (RBAC, pricing, business templates, AI chatbot, SAV complet)
+- Créer des **modules spécialisés** adaptés à différents secteurs d'activité
 
 **Prochaines étapes** : Upload d'images, tests E2E, documentation API, optimisations performance
 
