@@ -1,8 +1,9 @@
-import { useState, useCallback } from "react";
-import { toast } from "sonner";
-import type { Client } from "@/lib/generated/prisma";
 import { useDeleteClient, useImportClients } from "@/hooks/use-clients";
+import { useCrudDialogs } from "@/hooks/use-crud-dialogs";
+import type { Client } from "@/lib/generated/prisma";
 import type { CSVMapping } from "@/lib/types";
+import { useCallback, useState } from "react";
+import { toast } from "sonner";
 
 export interface ClientHandlers {
     createDialogOpen: boolean;
@@ -27,77 +28,119 @@ export interface ClientHandlers {
 }
 
 export function useClientHandlers(): ClientHandlers {
-    const [createDialogOpen, setCreateDialogOpen] = useState(false);
-    const [editDialogOpen, setEditDialogOpen] = useState(false);
-    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    // Use generic CRUD dialogs hook
+    const {
+        dialogs,
+        selected: selectedClient,
+        handlers: dialogHandlers,
+        setDialogs,
+    } = useCrudDialogs<Client>();
+
+    // Additional dialog for import (specific to clients)
     const [importDialogOpen, setImportDialogOpen] = useState(false);
-    const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
     const deleteClient = useDeleteClient();
     const importClients = useImportClients();
 
     const handleCreate = useCallback(() => {
-        setCreateDialogOpen(true);
-    }, []);
+        dialogHandlers.openCreate();
+    }, [dialogHandlers]);
 
-    const handleEdit = useCallback((client: Client) => {
-        setSelectedClient(client);
-        setEditDialogOpen(true);
-    }, []);
+    const handleEdit = useCallback(
+        (client: Client) => {
+            dialogHandlers.openEdit(client);
+        },
+        [dialogHandlers]
+    );
 
-    const handleDelete = useCallback((client: Client) => {
-        setSelectedClient(client);
-        setDeleteDialogOpen(true);
-    }, []);
+    const handleDelete = useCallback(
+        (client: Client) => {
+            dialogHandlers.openDelete(client);
+        },
+        [dialogHandlers]
+    );
 
     const confirmDelete = useCallback(() => {
         if (!selectedClient) return;
 
         deleteClient.mutate(selectedClient.id, {
             onSuccess: () => {
-                toast.success("Client supprimé avec succès");
-                setDeleteDialogOpen(false);
-                setSelectedClient(null);
+                toast.success("Client supprimé", {
+                    description: "Le client a été supprimé avec succès",
+                });
+                dialogHandlers.closeDelete();
             },
             onError: (error) => {
-                toast.error(
-                    error instanceof Error
-                        ? error.message
-                        : "Erreur lors de la suppression"
-                );
+                toast.error("Erreur", {
+                    description:
+                        error instanceof Error
+                            ? error.message
+                            : "Impossible de supprimer le client",
+                });
             },
         });
-    }, [selectedClient, deleteClient]);
+    }, [selectedClient, deleteClient, dialogHandlers]);
 
     const handleImport = useCallback(
         async (file: File, mapping: CSVMapping[]) => {
             try {
                 await importClients.mutateAsync({ file, mapping });
-                toast.success("Import réussi");
+                toast.success("Import réussi", {
+                    description: "Les clients ont été importés avec succès",
+                });
                 setImportDialogOpen(false);
             } catch (error) {
-                toast.error(
-                    error instanceof Error ? error.message : "Erreur lors de l'import"
-                );
+                toast.error("Erreur", {
+                    description:
+                        error instanceof Error
+                            ? error.message
+                            : "Erreur lors de l'import",
+                });
             }
         },
         [importClients]
     );
 
     const handleCreateSuccess = useCallback(() => {
-        toast.success("Client créé avec succès");
+        toast.success("Client créé", {
+            description: "Le client a été créé avec succès",
+        });
     }, []);
 
     const handleEditSuccess = useCallback(() => {
-        toast.success("Client modifié avec succès");
+        toast.success("Client modifié", {
+            description: "Le client a été modifié avec succès",
+        });
     }, []);
 
+    // Dialog state setters with stable references
+    const setCreateDialogOpen = useCallback(
+        (open: boolean) => {
+            setDialogs((prev) => ({ ...prev, create: open }));
+        },
+        [setDialogs]
+    );
+
+    const setEditDialogOpen = useCallback(
+        (open: boolean) => {
+            setDialogs((prev) => ({ ...prev, edit: open }));
+        },
+        [setDialogs]
+    );
+
+    const setDeleteDialogOpen = useCallback(
+        (open: boolean) => {
+            setDialogs((prev) => ({ ...prev, delete: open }));
+        },
+        [setDialogs]
+    );
+
     return {
-        createDialogOpen,
+        createDialogOpen: dialogs.create,
         setCreateDialogOpen,
-        editDialogOpen,
+        editDialogOpen: dialogs.edit,
         setEditDialogOpen,
-        deleteDialogOpen,
+        deleteDialogOpen: dialogs.delete,
         setDeleteDialogOpen,
         importDialogOpen,
         setImportDialogOpen,

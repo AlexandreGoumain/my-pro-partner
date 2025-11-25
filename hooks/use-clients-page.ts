@@ -1,7 +1,6 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { toast } from "sonner";
-import { ColumnDef } from "@tanstack/react-table";
+import { createColumns } from "@/app/(dashboard)/dashboard/clients/_components/data-table/columns";
+import { useLimitDialog } from "@/components/providers/limit-dialog-provider";
+import type { PaginationInfo } from "@/components/ui/data-table/pagination";
 import {
     Client,
     useClientsPaginated,
@@ -9,13 +8,16 @@ import {
     useDeleteClient,
     useImportClients,
 } from "@/hooks/use-clients";
-import { useSegment, useSegmentClients } from "@/hooks/use-segments";
 import { useCrudDialogs } from "@/hooks/use-crud-dialogs";
-import { createColumns } from "@/app/(dashboard)/dashboard/clients/_components/data-table/columns";
-import { useLimitDialog } from "@/components/providers/limit-dialog-provider";
-import type { PaginationInfo } from "@/components/ui/data-table/pagination";
+import { usePageFiltersWithScroll } from "@/hooks/use-page-filters";
+import { useUrlFilter } from "@/hooks/use-page-navigation";
+import { useSegment, useSegmentClients } from "@/hooks/use-segments";
 import type { Segment } from "@/lib/generated/prisma";
 import type { PlanType } from "@/lib/pricing-config";
+import { ColumnDef } from "@tanstack/react-table";
+import { useRouter } from "next/navigation";
+import { useCallback, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 export interface ClientsPageHandlers {
     // Search & View Mode
@@ -95,35 +97,39 @@ export interface ClientsPageHandlers {
 
 export function useClientsPage(): ClientsPageHandlers {
     const router = useRouter();
-    const searchParams = useSearchParams();
-    const segmentId = searchParams.get("segment");
+
+    // Use URL filter for segment
+    const { filterId: segmentId, clearFilter: clearSegmentFilter } =
+        useUrlFilter("segment");
 
     // Pricing limit check
     const { checkLimit, userPlan } = useLimitDialog();
 
     // CRUD Dialogs management (create, edit, delete)
-    const { dialogs, selected: selectedClient, handlers: dialogHandlers, setDialogs } = useCrudDialogs<Client>();
+    const {
+        dialogs,
+        selected: selectedClient,
+        handlers: dialogHandlers,
+        setDialogs,
+    } = useCrudDialogs<Client>();
 
-    // State management
-    const [searchTerm, setSearchTerm] = useState("");
-    const [debouncedSearch, setDebouncedSearch] = useState("");
-    const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-    const [page, setPage] = useState(1);
-    const [pageSize, setPageSize] = useState(viewMode === "grid" ? 24 : 20);
+    // Use generic page filters hook for pagination, search, view mode
+    const {
+        page,
+        pageSize,
+        handlePageChange,
+        handlePageSizeChange,
+        searchTerm,
+        setSearchTerm,
+        debouncedSearch,
+        viewMode,
+        setViewMode,
+        handleViewModeChange,
+    } = usePageFiltersWithScroll();
 
     // Additional dialogs specific to clients page
     const [importDialogOpen, setImportDialogOpen] = useState(false);
     const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
-
-    // Debounce search term to avoid too many API calls
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setDebouncedSearch(searchTerm);
-            setPage(1); // Reset to first page when searching
-        }, 300);
-
-        return () => clearTimeout(timer);
-    }, [searchTerm]);
 
     // Always use server-side pagination for better performance
     const { data: paginatedData, isLoading } = useClientsPaginated({
@@ -177,10 +183,6 @@ export function useClientsPage(): ClientsPageHandlers {
         };
     }, [stats]);
 
-    const clearSegmentFilter = useCallback(() => {
-        router.push("/dashboard/clients");
-    }, [router]);
-
     // Navigation helpers
     const navigateToSegments = useCallback(() => {
         router.push("/dashboard/clients/segments");
@@ -227,13 +229,19 @@ export function useClientsPage(): ClientsPageHandlers {
         [router]
     );
 
-    const handleEdit = useCallback((client: Client) => {
-        dialogHandlers.openEdit(client);
-    }, [dialogHandlers]);
+    const handleEdit = useCallback(
+        (client: Client) => {
+            dialogHandlers.openEdit(client);
+        },
+        [dialogHandlers]
+    );
 
-    const handleDelete = useCallback((client: Client) => {
-        dialogHandlers.openDelete(client);
-    }, [dialogHandlers]);
+    const handleDelete = useCallback(
+        (client: Client) => {
+            dialogHandlers.openDelete(client);
+        },
+        [dialogHandlers]
+    );
 
     const confirmDelete = useCallback(() => {
         if (!selectedClient) return;
@@ -276,23 +284,6 @@ export function useClientsPage(): ClientsPageHandlers {
         [importClients]
     );
 
-    const handlePageChange = useCallback((newPage: number) => {
-        setPage(newPage);
-        window.scrollTo({ top: 0, behavior: "smooth" });
-    }, []);
-
-    const handlePageSizeChange = useCallback((newSize: number) => {
-        setPageSize(newSize);
-        setPage(1); // Reset to first page when changing page size
-    }, []);
-
-    const handleViewModeChange = useCallback((mode: "grid" | "list") => {
-        setViewMode(mode);
-        setPage(1); // Reset to first page when changing view mode
-        // Adjust page size based on view mode
-        setPageSize(mode === "grid" ? 24 : 20);
-    }, []);
-
     // Create columns for DataTable
     const columns = useMemo(
         () =>
@@ -325,11 +316,14 @@ export function useClientsPage(): ClientsPageHandlers {
         clearSegmentFilter,
         // CRUD dialogs (using useCrudDialogs hook)
         createDialogOpen: dialogs.create,
-        setCreateDialogOpen: (open: boolean) => setDialogs(prev => ({ ...prev, create: open })),
+        setCreateDialogOpen: (open: boolean) =>
+            setDialogs((prev) => ({ ...prev, create: open })),
         editDialogOpen: dialogs.edit,
-        setEditDialogOpen: (open: boolean) => setDialogs(prev => ({ ...prev, edit: open })),
+        setEditDialogOpen: (open: boolean) =>
+            setDialogs((prev) => ({ ...prev, edit: open })),
         deleteDialogOpen: dialogs.delete,
-        setDeleteDialogOpen: (open: boolean) => setDialogs(prev => ({ ...prev, delete: open })),
+        setDeleteDialogOpen: (open: boolean) =>
+            setDialogs((prev) => ({ ...prev, delete: open })),
         // Additional dialogs specific to clients
         importDialogOpen,
         setImportDialogOpen,
