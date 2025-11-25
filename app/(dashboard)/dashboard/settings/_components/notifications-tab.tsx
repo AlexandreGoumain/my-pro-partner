@@ -11,144 +11,95 @@ interface NotificationsTabProps {
     onChange: (field: string, value: boolean) => void;
 }
 
-export function NotificationsTab({
-    notifications,
+interface NotificationSwitchProps {
+    id: string;
+    label: string;
+    description: string;
+    checked: boolean;
+    onChange: (checked: boolean) => void;
+}
+
+function NotificationSwitch({
+    id,
+    label,
+    description,
+    checked,
     onChange,
-}: NotificationsTabProps) {
+}: NotificationSwitchProps) {
+    return (
+        <div className="flex items-center justify-between py-3 border-b border-black/5 last:border-0">
+            <div className="flex-1 pr-4">
+                <Label htmlFor={id} className="text-[14px] font-medium cursor-pointer">
+                    {label}
+                </Label>
+                <p className="text-[13px] text-black/50 mt-0.5">{description}</p>
+            </div>
+            <Switch id={id} checked={checked} onCheckedChange={onChange} />
+        </div>
+    );
+}
+
+export function NotificationsTab({ notifications, onChange }: NotificationsTabProps) {
+    const notificationOptions = [
+        {
+            id: "email_nouveau_client",
+            label: "Nouveau client",
+            description: "Notification lors de la création d'un nouveau client",
+        },
+        {
+            id: "email_document_cree",
+            label: "Document créé",
+            description: "Notification lors de la création d'un devis ou facture",
+        },
+        {
+            id: "email_document_paye",
+            label: "Document payé",
+            description: "Notification lors du paiement d'une facture",
+        },
+        {
+            id: "email_stock_bas",
+            label: "Alerte stock bas",
+            description: "Alerte lorsqu'un article atteint son seuil minimum",
+        },
+        {
+            id: "email_rapport_hebdomadaire",
+            label: "Rapport hebdomadaire",
+            description: "Résumé hebdomadaire de votre activité",
+        },
+    ];
+
     return (
         <div className="space-y-6">
             <SettingsSection
                 icon={Bell}
-                title="Notifications par email"
-                description="Configurez les notifications que vous souhaitez recevoir"
+                title="Notifications email"
+                description="Choisissez les notifications à recevoir par email"
             >
-                <div className="space-y-4 max-w-2xl">
-                    <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                            <Label
-                                htmlFor="email_nouveau_client"
-                                className="text-[14px] font-medium"
-                            >
-                                Nouveau client
-                            </Label>
-                            <p className="text-[13px] text-black/40 mt-0.5">
-                                Recevoir une notification lors de la création
-                                d&apos;un nouveau client
-                            </p>
+                <div className="max-w-2xl bg-white rounded-lg border border-black/8 divide-y divide-black/5">
+                    {notificationOptions.map((option) => (
+                        <div key={option.id} className="px-4">
+                            <NotificationSwitch
+                                id={option.id}
+                                label={option.label}
+                                description={option.description}
+                                checked={
+                                    notifications[option.id as keyof NotificationPreferences] as boolean || false
+                                }
+                                onChange={(checked) => onChange(option.id, checked)}
+                            />
                         </div>
-                        <Switch
-                            id="email_nouveau_client"
-                            checked={
-                                notifications.email_nouveau_client || false
-                            }
-                            onCheckedChange={(checked) =>
-                                onChange("email_nouveau_client", checked)
-                            }
-                        />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                            <Label
-                                htmlFor="email_document_cree"
-                                className="text-[14px] font-medium"
-                            >
-                                Document créé
-                            </Label>
-                            <p className="text-[13px] text-black/40 mt-0.5">
-                                Recevoir une notification lors de la création
-                                d&apos;un devis ou d&apos;une facture
-                            </p>
-                        </div>
-                        <Switch
-                            id="email_document_cree"
-                            checked={notifications.email_document_cree || false}
-                            onCheckedChange={(checked) =>
-                                onChange("email_document_cree", checked)
-                            }
-                        />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                            <Label
-                                htmlFor="email_document_paye"
-                                className="text-[14px] font-medium"
-                            >
-                                Document payé
-                            </Label>
-                            <p className="text-[13px] text-black/40 mt-0.5">
-                                Recevoir une notification lors du paiement
-                                d&apos;une facture
-                            </p>
-                        </div>
-                        <Switch
-                            id="email_document_paye"
-                            checked={notifications.email_document_paye || false}
-                            onCheckedChange={(checked) =>
-                                onChange("email_document_paye", checked)
-                            }
-                        />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                            <Label
-                                htmlFor="email_stock_bas"
-                                className="text-[14px] font-medium"
-                            >
-                                Alerte stock bas
-                            </Label>
-                            <p className="text-[13px] text-black/40 mt-0.5">
-                                Recevoir une alerte lorsqu&apos;un article
-                                atteint son seuil minimum
-                            </p>
-                        </div>
-                        <Switch
-                            id="email_stock_bas"
-                            checked={notifications.email_stock_bas || false}
-                            onCheckedChange={(checked) =>
-                                onChange("email_stock_bas", checked)
-                            }
-                        />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                            <Label
-                                htmlFor="email_rapport_hebdomadaire"
-                                className="text-[14px] font-medium"
-                            >
-                                Rapport hebdomadaire
-                            </Label>
-                            <p className="text-[13px] text-black/40 mt-0.5">
-                                Recevoir un résumé hebdomadaire de votre
-                                activité
-                            </p>
-                        </div>
-                        <Switch
-                            id="email_rapport_hebdomadaire"
-                            checked={
-                                notifications.email_rapport_hebdomadaire ||
-                                false
-                            }
-                            onCheckedChange={(checked) =>
-                                onChange("email_rapport_hebdomadaire", checked)
-                            }
-                        />
-                    </div>
+                    ))}
                 </div>
             </SettingsSection>
 
             <SettingsSection
                 icon={Webhook}
                 title="Webhooks"
-                description="Configuration des webhooks (fonctionnalité à venir)"
+                description="Intégration avec des services tiers"
             >
-                <div className="bg-black/5 border border-black/10 rounded-md p-4 text-center max-w-2xl">
-                    <p className="text-[14px] text-black/60">
-                        La configuration des webhooks sera disponible
-                        prochainement
+                <div className="max-w-2xl rounded-lg border border-black/8 bg-black/[0.02] p-4">
+                    <p className="text-[14px] text-black/60 text-center">
+                        Configuration des webhooks disponible prochainement
                     </p>
                 </div>
             </SettingsSection>

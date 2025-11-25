@@ -24,7 +24,6 @@ function SettingsPageContent() {
     const tabParam = searchParams.get("tab");
     const [activeTab, setActiveTab] = useState(tabParam || "general");
 
-    // Mettre à jour l'onglet actif si le paramètre URL change
     useEffect(() => {
         if (tabParam) {
             setActiveTab(tabParam);
@@ -43,13 +42,12 @@ function SettingsPageContent() {
         handleSubmit,
     } = useSettingsForm();
 
+    const showSaveButton = ["general", "notifications", "preferences"].includes(activeTab);
+
     return (
         <ConditionalSkeleton
             isLoading={isLoading}
-            skeletonProps={{
-                layout: "form",
-                withTabs: true,
-            }}
+            skeletonProps={{ layout: "form", withTabs: true }}
         >
             <div className="space-y-8">
                 <div className="text-center">
@@ -60,75 +58,62 @@ function SettingsPageContent() {
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                <Tabs
-                    value={activeTab}
-                    onValueChange={setActiveTab}
-                    className="w-full"
-                >
-                    <SettingsTabs />
+                    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                        <SettingsTabs />
 
-                    <TabsContent value="general" className="mt-0">
-                        <SettingsContentWrapper>
-                            <GeneralTab
-                                settings={settings}
-                                onChange={handleSettingsChange}
-                            />
-                        </SettingsContentWrapper>
-                        <SettingsSaveButton isSaving={isSaving} />
-                    </TabsContent>
+                        <TabsContent value="general" className="mt-0">
+                            <SettingsContentWrapper>
+                                <GeneralTab settings={settings} onChange={handleSettingsChange} />
+                            </SettingsContentWrapper>
+                        </TabsContent>
 
-                    <TabsContent value="notifications" className="mt-0">
-                        <SettingsContentWrapper>
-                            <NotificationsTab
-                                notifications={notifications}
-                                onChange={handleNotificationsChange}
-                            />
-                        </SettingsContentWrapper>
-                        <SettingsSaveButton isSaving={isSaving} />
-                    </TabsContent>
+                        <TabsContent value="notifications" className="mt-0">
+                            <SettingsContentWrapper>
+                                <NotificationsTab
+                                    notifications={notifications}
+                                    onChange={handleNotificationsChange}
+                                />
+                            </SettingsContentWrapper>
+                        </TabsContent>
 
-                    <TabsContent value="preferences" className="mt-0">
-                        <SettingsContentWrapper>
-                            <PreferencesTab
-                                preferences={preferences}
-                                onChange={handlePreferencesChange}
-                            />
-                        </SettingsContentWrapper>
-                        <SettingsSaveButton isSaving={isSaving} />
-                    </TabsContent>
+                        <TabsContent value="preferences" className="mt-0">
+                            <SettingsContentWrapper>
+                                <PreferencesTab
+                                    preferences={preferences}
+                                    onChange={handlePreferencesChange}
+                                />
+                            </SettingsContentWrapper>
+                        </TabsContent>
 
-                    <TabsContent value="account" className="mt-0">
-                        <SettingsContentWrapper>
-                            <AccountTab user={session?.user} />
-                        </SettingsContentWrapper>
-                    </TabsContent>
+                        <TabsContent value="account" className="mt-0">
+                            <SettingsContentWrapper>
+                                <AccountTab user={session?.user} />
+                            </SettingsContentWrapper>
+                        </TabsContent>
 
-                    <TabsContent value="subscription" className="mt-0">
-                        <SettingsContentWrapper>
-                            <SubscriptionTab />
-                        </SettingsContentWrapper>
-                    </TabsContent>
+                        <TabsContent value="subscription" className="mt-0">
+                            <SettingsContentWrapper>
+                                <SubscriptionTab />
+                            </SettingsContentWrapper>
+                        </TabsContent>
 
-                    <TabsContent value="export" className="mt-0">
-                        <SettingsContentWrapper>
-                            <ExportTab />
-                        </SettingsContentWrapper>
-                    </TabsContent>
-                </Tabs>
-            </form>
-        </div>
+                        <TabsContent value="export" className="mt-0">
+                            <SettingsContentWrapper>
+                                <ExportTab />
+                            </SettingsContentWrapper>
+                        </TabsContent>
+                    </Tabs>
+
+                    {showSaveButton && <SettingsSaveButton isSaving={isSaving} />}
+                </form>
+            </div>
         </ConditionalSkeleton>
     );
 }
 
 export default function SettingsPage() {
     return (
-        <SuspensePage
-            skeletonProps={{
-                layout: "form",
-                withTabs: true,
-            }}
-        >
+        <SuspensePage skeletonProps={{ layout: "form", withTabs: true }}>
             <SettingsPageContent />
         </SuspensePage>
     );
