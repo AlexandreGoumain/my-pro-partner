@@ -1,9 +1,15 @@
+import { CATEGORY_CONFIGS } from "@/lib/config/business-hierarchy.config";
 import { prisma } from "@/lib/prisma";
 import { BusinessType } from "@/lib/types/business";
+import type { BusinessCategory } from "@/lib/types/business-category";
+import { CapabilityService } from "./capability.service";
 
 /**
  * Service de gestion des templates métier
  * Permet de personnaliser l'expérience selon le type de business
+ *
+ * @see CapabilityService pour la gestion des capabilities
+ * @see business-hierarchy.config.ts pour la configuration des catégories
  */
 
 // Constantes
@@ -1013,41 +1019,43 @@ export class BusinessTemplateService {
     }
 
     /**
-     * Récupérer les templates par catégorie
+     * Récupérer les templates par catégorie (utilise la nouvelle hiérarchie)
      */
     static getTemplatesByCategory(): Record<string, BusinessTemplate[]> {
-        return {
-            "Artisanat & BTP": [
-                this.TEMPLATES.PLOMBERIE,
-                this.TEMPLATES.ELECTRICITE,
-                this.TEMPLATES.CHAUFFAGE,
-                this.TEMPLATES.MENUISERIE,
-                this.TEMPLATES.PEINTURE,
-                this.TEMPLATES.MACONNERIE,
-            ],
-            "Restauration & Alimentation": [
-                this.TEMPLATES.RESTAURATION,
-                this.TEMPLATES.BOULANGERIE,
-            ],
-            "Beauté & Bien-être": [
-                this.TEMPLATES.COIFFURE,
-                this.TEMPLATES.ESTHETIQUE,
-                this.TEMPLATES.FITNESS,
-            ],
-            "Services professionnels": [
-                this.TEMPLATES.INFORMATIQUE,
-                this.TEMPLATES.CONSULTING,
-                this.TEMPLATES.GARAGE,
-                this.TEMPLATES.COMPTABILITE,
-                this.TEMPLATES.JURIDIQUE,
-            ],
-            "Commerce & Immobilier": [
-                this.TEMPLATES.COMMERCE_DETAIL,
-                this.TEMPLATES.IMMOBILIER,
-            ],
-            Santé: [this.TEMPLATES.SANTE],
-            Autre: [this.TEMPLATES.GENERAL],
-        };
+        const result: Record<string, BusinessTemplate[]> = {};
+
+        for (const [_category, config] of Object.entries(CATEGORY_CONFIGS)) {
+            result[config.label] = config.businessTypes.map(
+                (type) => this.TEMPLATES[type]
+            );
+        }
+
+        return result;
+    }
+
+    /**
+     * Récupérer les templates groupés par BusinessCategory (typed)
+     */
+    static getTemplatesByBusinessCategory(): Record<
+        BusinessCategory,
+        BusinessTemplate[]
+    > {
+        const result = {} as Record<BusinessCategory, BusinessTemplate[]>;
+
+        for (const [category, config] of Object.entries(CATEGORY_CONFIGS)) {
+            result[category as BusinessCategory] = config.businessTypes.map(
+                (type) => this.TEMPLATES[type]
+            );
+        }
+
+        return result;
+    }
+
+    /**
+     * Récupérer la catégorie d'un business type
+     */
+    static getCategoryForType(type: BusinessType): BusinessCategory {
+        return CapabilityService.getCategoryForType(type);
     }
 
     /**

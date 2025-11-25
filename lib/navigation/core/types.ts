@@ -6,6 +6,9 @@
 import { BusinessType } from "@/lib/types/business";
 import { LucideIcon } from "lucide-react";
 
+// Article types - mirroring Prisma enum but as a type to avoid importing Prisma Client
+export type ArticleTypeValue = "PRODUIT" | "SERVICE" | "OCCASION" | "PIECE";
+
 // ============================================
 // NAVIGATION TYPES
 // ============================================
@@ -147,6 +150,9 @@ export interface BusinessPreset {
 
     /** Features to enable (by ID) */
     features: string[];
+
+    /** Article types available for this business */
+    availableArticleTypes?: ArticleTypeValue[];
 
     /** Vocabulary customization per feature */
     i18n?: Record<string, Record<string, string>>;

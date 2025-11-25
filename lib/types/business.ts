@@ -3,6 +3,10 @@
  * Fichier séparé pour éviter les imports Prisma côté client
  *
  * IMPORTANT: Utilise des constantes pour que Turbopack puisse les voir côté client
+ *
+ * @see business-category.ts pour les catégories fonctionnelles
+ * @see capability.ts pour les capabilities
+ * @see business-hierarchy.ts pour les mappings
  */
 
 // Constante avec toutes les valeurs possibles
@@ -36,3 +40,8 @@ export type BusinessType = (typeof BUSINESS_TYPES)[number];
 export function isBusinessType(value: string): value is BusinessType {
     return BUSINESS_TYPES.includes(value as BusinessType);
 }
+
+// Re-export des types liés pour faciliter les imports
+export type { BusinessCategory } from "./business-category";
+export type { BusinessTypeConfig, CategoryConfig } from "./business-hierarchy";
+export type { Capability } from "./capability";
