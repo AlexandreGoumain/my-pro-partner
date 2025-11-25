@@ -27,7 +27,9 @@ export const authOptions: NextAuthOptions = {
                 }
 
                 if (!user.entreprise) {
-                    throw new Error("Aucune entreprise associée à cet utilisateur");
+                    throw new Error(
+                        "Aucune entreprise associée à cet utilisateur"
+                    );
                 }
 
                 if (!user.entreprise.abonnementActif) {
@@ -51,6 +53,7 @@ export const authOptions: NextAuthOptions = {
                     entrepriseId: user.entrepriseId,
                     onboardingComplete: user.onboardingComplete,
                     plan: user.entreprise.plan,
+                    businessType: user.entreprise.businessType,
                 };
             },
         }),
@@ -62,7 +65,7 @@ export const authOptions: NextAuthOptions = {
     session: {
         strategy: "jwt",
         maxAge: 7 * 24 * 60 * 60, // 7 jours - durée totale de la session
-        updateAge: 0, // Revalider à chaque requête pour avoir les données fraîches
+        updateAge: 24 * 60 * 60, // Revalider toutes les 24h (au lieu de chaque requête)
     },
     jwt: {
         secret: process.env.NEXTAUTH_SECRET,
@@ -116,15 +119,17 @@ export const authOptions: NextAuthOptions = {
                             });
 
                             // Create or update default settings
-                            const existingParams = await tx.parametresEntreprise.findUnique({
-                                where: { entrepriseId: entreprise.id },
-                            });
+                            const existingParams =
+                                await tx.parametresEntreprise.findUnique({
+                                    where: { entrepriseId: entreprise.id },
+                                });
 
                             if (!existingParams) {
                                 await tx.parametresEntreprise.create({
                                     data: {
                                         entrepriseId: entreprise.id,
-                                        nom_entreprise: user.name || "Mon Entreprise",
+                                        nom_entreprise:
+                                            user.name || "Mon Entreprise",
                                     },
                                 });
                             }
@@ -142,7 +147,10 @@ export const authOptions: NextAuthOptions = {
                     }
 
                     if (!existingUser.entreprise.abonnementActif) {
-                        console.error("Subscription expired for entreprise:", existingUser.entreprise.nom);
+                        console.error(
+                            "Subscription expired for entreprise:",
+                            existingUser.entreprise.nom
+                        );
                         return false;
                     }
                 } catch (error) {
@@ -159,6 +167,7 @@ export const authOptions: NextAuthOptions = {
                 token.entrepriseId = user.entrepriseId;
                 token.onboardingComplete = user.onboardingComplete;
                 token.plan = user.plan || "FREE";
+                token.businessType = user.businessType || "GENERAL";
             }
 
             // For OAuth users, fetch from database on first sign in
@@ -174,18 +183,22 @@ export const authOptions: NextAuthOptions = {
                     token.entrepriseId = dbUser.entrepriseId;
                     token.onboardingComplete = dbUser.onboardingComplete;
                     token.plan = dbUser.entreprise.plan;
+                    token.businessType = dbUser.entreprise.businessType;
                 }
             }
 
-            // Refetch onboarding status and plan from DB when session is updated
+            // Refetch onboarding status, plan and businessType from DB when session is updated
             if (trigger === "update" && token.id) {
                 const dbUser = await prisma.user.findUnique({
                     where: { id: token.id as string },
                     select: {
                         onboardingComplete: true,
                         entreprise: {
-                            select: { plan: true }
-                        }
+                            select: {
+                                plan: true,
+                                businessType: true,
+                            },
+                        },
                     },
                 });
 
@@ -193,6 +206,7 @@ export const authOptions: NextAuthOptions = {
                     token.onboardingComplete = dbUser.onboardingComplete;
                     if (dbUser.entreprise) {
                         token.plan = dbUser.entreprise.plan;
+                        token.businessType = dbUser.entreprise.businessType;
                     }
                 }
             }
@@ -205,7 +219,9 @@ export const authOptions: NextAuthOptions = {
                 session.user.role = token.role as string;
                 session.user.plan = token.plan as string;
                 session.user.entrepriseId = token.entrepriseId as string;
-                session.user.onboardingComplete = token.onboardingComplete as boolean;
+                session.user.onboardingComplete =
+                    token.onboardingComplete as boolean;
+                session.user.businessType = token.businessType as string;
             }
             return session;
         },

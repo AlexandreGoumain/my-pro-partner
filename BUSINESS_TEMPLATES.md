@@ -18,15 +18,15 @@ Catégorie (ex: INTERVENTION)
 
 Les catégories regroupent les métiers par mode de fonctionnement similaire.
 
-| Catégorie | Label | Description | Icône |
-|-----------|-------|-------------|-------|
-| `INTERVENTION` | Artisanat & Intervention | Activités d'intervention à domicile ou en atelier | Wrench |
-| `POINT_DE_VENTE` | Points de Vente | Commerces avec encaissement sur place | Store |
-| `RENDEZ_VOUS` | Rendez-vous & Services | Activités sur rendez-vous | Calendar |
-| `SERVICE_INTELLECTUEL` | Services Professionnels | Prestations intellectuelles et conseil | Briefcase |
-| `COMMERCE` | Commerce | Commerce de détail | ShoppingCart |
-| `IMMOBILIER` | Immobilier | Gestion immobilière | Home |
-| `GENERAL` | Général | Configuration standard personnalisable | Building2 |
+| Catégorie              | Label                    | Description                                       | Icône        |
+| ---------------------- | ------------------------ | ------------------------------------------------- | ------------ |
+| `INTERVENTION`         | Artisanat & Intervention | Activités d'intervention à domicile ou en atelier | Wrench       |
+| `POINT_DE_VENTE`       | Points de Vente          | Commerces avec encaissement sur place             | Store        |
+| `RENDEZ_VOUS`          | Rendez-vous & Services   | Activités sur rendez-vous                         | Calendar     |
+| `SERVICE_INTELLECTUEL` | Services Professionnels  | Prestations intellectuelles et conseil            | Briefcase    |
+| `COMMERCE`             | Commerce                 | Commerce de détail                                | ShoppingCart |
+| `IMMOBILIER`           | Immobilier               | Gestion immobilière                               | Home         |
+| `GENERAL`              | Général                  | Configuration standard personnalisable            | Building2    |
 
 ---
 
@@ -34,57 +34,57 @@ Les catégories regroupent les métiers par mode de fonctionnement similaire.
 
 ### INTERVENTION (Artisanat)
 
-| Type | Label | Description | Couleur |
-|------|-------|-------------|---------|
-| `PLOMBERIE` | Plomberie | Plomberie, chauffagiste, sanitaire | #3B82F6 |
-| `ELECTRICITE` | Électricité | Électricien, domotique, alarmes | #F59E0B |
-| `CHAUFFAGE` | Chauffage | Chauffagiste, climatisation, pompes à chaleur | #EF4444 |
-| `MENUISERIE` | Menuiserie | Menuisier, ébéniste, charpentier | #92400E |
-| `PEINTURE` | Peinture | Peintre, décorateur, ravalement | #8B5CF6 |
-| `MACONNERIE` | Maçonnerie | Maçon, gros œuvre, terrassement | #6B7280 |
-| `GARAGE` | Garage Auto | Réparation automobile, entretien véhicules | #1F2937 |
-| `INFORMATIQUE` | Informatique | Boutique informatique, réparation PC/Mac | #06B6D4 |
+| Type           | Label        | Description                                   | Couleur |
+| -------------- | ------------ | --------------------------------------------- | ------- |
+| `PLOMBERIE`    | Plomberie    | Plomberie, chauffagiste, sanitaire            | #3B82F6 |
+| `ELECTRICITE`  | Électricité  | Électricien, domotique, alarmes               | #F59E0B |
+| `CHAUFFAGE`    | Chauffage    | Chauffagiste, climatisation, pompes à chaleur | #EF4444 |
+| `MENUISERIE`   | Menuiserie   | Menuisier, ébéniste, charpentier              | #92400E |
+| `PEINTURE`     | Peinture     | Peintre, décorateur, ravalement               | #8B5CF6 |
+| `MACONNERIE`   | Maçonnerie   | Maçon, gros œuvre, terrassement               | #6B7280 |
+| `GARAGE`       | Garage Auto  | Réparation automobile, entretien véhicules    | #1F2937 |
+| `INFORMATIQUE` | Informatique | Boutique informatique, réparation PC/Mac      | #06B6D4 |
 
 ### POINT_DE_VENTE
 
-| Type | Label | Description | Couleur |
-|------|-------|-------------|---------|
-| `RESTAURATION` | Restauration | Restaurant, brasserie, café | #DC2626 |
-| `BOULANGERIE` | Boulangerie | Boulangerie, pâtisserie, traiteur | #D97706 |
+| Type           | Label        | Description                       | Couleur |
+| -------------- | ------------ | --------------------------------- | ------- |
+| `RESTAURATION` | Restauration | Restaurant, brasserie, café       | #DC2626 |
+| `BOULANGERIE`  | Boulangerie  | Boulangerie, pâtisserie, traiteur | #D97706 |
 
 ### RENDEZ_VOUS
 
-| Type | Label | Description | Couleur |
-|------|-------|-------------|---------|
-| `COIFFURE` | Coiffure | Salon de coiffure, barbier | #EC4899 |
-| `ESTHETIQUE` | Esthétique | Institut de beauté, spa, onglerie | #F472B6 |
-| `FITNESS` | Fitness | Coach sportif, salle de sport, yoga | #10B981 |
-| `SANTE` | Santé | Praticien de santé, kinésithérapeute, ostéopathe | #EF4444 |
+| Type         | Label      | Description                                      | Couleur |
+| ------------ | ---------- | ------------------------------------------------ | ------- |
+| `COIFFURE`   | Coiffure   | Salon de coiffure, barbier                       | #EC4899 |
+| `ESTHETIQUE` | Esthétique | Institut de beauté, spa, onglerie                | #F472B6 |
+| `FITNESS`    | Fitness    | Coach sportif, salle de sport, yoga              | #10B981 |
+| `SANTE`      | Santé      | Praticien de santé, kinésithérapeute, ostéopathe | #EF4444 |
 
 ### SERVICE_INTELLECTUEL
 
-| Type | Label | Description | Couleur |
-|------|-------|-------------|---------|
-| `CONSULTING` | Consulting | Consultant, conseil aux entreprises | #6366F1 |
-| `COMPTABILITE` | Comptabilité | Expert-comptable, gestion | #059669 |
-| `JURIDIQUE` | Juridique | Avocat, juriste, notaire | #7C3AED |
+| Type           | Label        | Description                         | Couleur |
+| -------------- | ------------ | ----------------------------------- | ------- |
+| `CONSULTING`   | Consulting   | Consultant, conseil aux entreprises | #6366F1 |
+| `COMPTABILITE` | Comptabilité | Expert-comptable, gestion           | #059669 |
+| `JURIDIQUE`    | Juridique    | Avocat, juriste, notaire            | #7C3AED |
 
 ### COMMERCE
 
-| Type | Label | Description | Couleur |
-|------|-------|-------------|---------|
+| Type              | Label              | Description                   | Couleur |
+| ----------------- | ------------------ | ----------------------------- | ------- |
 | `COMMERCE_DETAIL` | Commerce de détail | Boutique, magasin, e-commerce | #F97316 |
 
 ### IMMOBILIER
 
-| Type | Label | Description | Couleur |
-|------|-------|-------------|---------|
+| Type         | Label      | Description                        | Couleur |
+| ------------ | ---------- | ---------------------------------- | ------- |
 | `IMMOBILIER` | Immobilier | Agent immobilier, gestion locative | #0EA5E9 |
 
 ### GENERAL
 
-| Type | Label | Description | Couleur |
-|------|-------|-------------|---------|
+| Type      | Label   | Description                            | Couleur |
+| --------- | ------- | -------------------------------------- | ------- |
 | `GENERAL` | Général | Configuration standard personnalisable | #64748B |
 
 ---
@@ -95,66 +95,66 @@ Les capabilities sont des modules activables selon le type de business.
 
 ### Capabilities de base (tous les business)
 
-| Capability | Label | Description |
-|------------|-------|-------------|
-| `clients` | Gestion clients | CRM, fiches clients, historique |
-| `documents` | Devis & Factures | Création de devis, factures, avoirs |
-| `analytics` | Statistiques | Tableaux de bord et rapports |
-| `fidelite` | Programme fidélité | Points, récompenses clients |
+| Capability  | Label              | Description                         |
+| ----------- | ------------------ | ----------------------------------- |
+| `clients`   | Gestion clients    | CRM, fiches clients, historique     |
+| `documents` | Devis & Factures   | Création de devis, factures, avoirs |
+| `analytics` | Statistiques       | Tableaux de bord et rapports        |
+| `fidelite`  | Programme fidélité | Points, récompenses clients         |
 
 ### Capabilities INTERVENTION
 
-| Capability | Label | Description |
-|------------|-------|-------------|
-| `domicile` | Interventions à domicile | Déplacements chez le client |
-| `atelier` | Réparations en atelier | Travaux en boutique/atelier |
-| `suivi_bien` | Suivi de biens clients | Véhicules, PC, équipements |
-| `urgence` | Gestion des urgences | Astreintes, priorités |
-| `contrats` | Contrats de maintenance | Abonnements, entretiens récurrents |
-| `garanties` | Suivi des garanties | Garanties pièces et main d'œuvre |
-| `stock_camionnette` | Stock mobile/camionnette | Inventaire véhicules techniciens |
+| Capability          | Label                    | Description                        |
+| ------------------- | ------------------------ | ---------------------------------- |
+| `domicile`          | Interventions à domicile | Déplacements chez le client        |
+| `atelier`           | Réparations en atelier   | Travaux en boutique/atelier        |
+| `suivi_bien`        | Suivi de biens clients   | Véhicules, PC, équipements         |
+| `urgence`           | Gestion des urgences     | Astreintes, priorités              |
+| `contrats`          | Contrats de maintenance  | Abonnements, entretiens récurrents |
+| `garanties`         | Suivi des garanties      | Garanties pièces et main d'œuvre   |
+| `stock_camionnette` | Stock mobile/camionnette | Inventaire véhicules techniciens   |
 
 ### Capabilities POINT_DE_VENTE
 
-| Capability | Label | Description |
-|------------|-------|-------------|
-| `pos` | Caisse / POS | Point de vente, encaissement |
-| `tables` | Gestion des tables | Plan de salle, réservations |
-| `tickets` | Tickets rapides | Impression reçus |
-| `commandes_rapides` | Commandes rapides | Mode service rapide |
+| Capability          | Label              | Description                  |
+| ------------------- | ------------------ | ---------------------------- |
+| `pos`               | Caisse / POS       | Point de vente, encaissement |
+| `tables`            | Gestion des tables | Plan de salle, réservations  |
+| `tickets`           | Tickets rapides    | Impression reçus             |
+| `commandes_rapides` | Commandes rapides  | Mode service rapide          |
 
 ### Capabilities RENDEZ_VOUS
 
-| Capability | Label | Description |
-|------------|-------|-------------|
-| `agenda` | Agenda / Planning | Calendrier rendez-vous |
-| `creneaux` | Créneaux horaires | Plages de disponibilité |
-| `rappels_sms` | Rappels SMS | Notifications automatiques |
-| `recurrence` | RDV récurrents | Rendez-vous périodiques |
+| Capability    | Label             | Description                |
+| ------------- | ----------------- | -------------------------- |
+| `agenda`      | Agenda / Planning | Calendrier rendez-vous     |
+| `creneaux`    | Créneaux horaires | Plages de disponibilité    |
+| `rappels_sms` | Rappels SMS       | Notifications automatiques |
+| `recurrence`  | RDV récurrents    | Rendez-vous périodiques    |
 
 ### Capabilities SERVICE_INTELLECTUEL
 
-| Capability | Label | Description |
-|------------|-------|-------------|
-| `temps_passe` | Suivi du temps | Timesheet, heures facturables |
-| `projets` | Gestion de projets | Dossiers, missions |
-| `facturation_horaire` | Facturation horaire | Taux horaire, temps × tarif |
+| Capability            | Label               | Description                   |
+| --------------------- | ------------------- | ----------------------------- |
+| `temps_passe`         | Suivi du temps      | Timesheet, heures facturables |
+| `projets`             | Gestion de projets  | Dossiers, missions            |
+| `facturation_horaire` | Facturation horaire | Taux horaire, temps × tarif   |
 
 ### Capabilities COMMERCE
 
-| Capability | Label | Description |
-|------------|-------|-------------|
+| Capability  | Label              | Description                 |
+| ----------- | ------------------ | --------------------------- |
 | `catalogue` | Catalogue produits | Fiches produits, références |
-| `stock` | Gestion des stocks | Inventaire, mouvements |
-| `ventes` | Suivi des ventes | Historique transactions |
+| `stock`     | Gestion des stocks | Inventaire, mouvements      |
+| `ventes`    | Suivi des ventes   | Historique transactions     |
 
 ### Capabilities IMMOBILIER
 
-| Capability | Label | Description |
-|------------|-------|-------------|
-| `mandats` | Gestion des mandats | Contrats agence |
-| `biens` | Gestion des biens | Propriétés, lots |
-| `visites` | Planification visites | RDV visites immobilières |
+| Capability | Label                 | Description              |
+| ---------- | --------------------- | ------------------------ |
+| `mandats`  | Gestion des mandats   | Contrats agence          |
+| `biens`    | Gestion des biens     | Propriétés, lots         |
+| `visites`  | Planification visites | RDV visites immobilières |
 
 ---
 
@@ -162,42 +162,42 @@ Les capabilities sont des modules activables selon le type de business.
 
 ### Implémentation complète
 
-| Template | Pages | APIs | Modèles DB | Status |
-|----------|-------|------|------------|--------|
-| **PLOMBERIE** | interventions, planning, contrats, flotte, stock-camionnette | Toutes | Intervention, Camionnette, ContratEntretien, etc. | **Production ready** |
-| **INFORMATIQUE** | réparations, rachats, démontages | Toutes | Reparation, Rachat, Demontage | **Production ready** |
+| Template         | Pages                                                        | APIs   | Modèles DB                                        | Status               |
+| ---------------- | ------------------------------------------------------------ | ------ | ------------------------------------------------- | -------------------- |
+| **PLOMBERIE**    | interventions, planning, contrats, flotte, stock-camionnette | Toutes | Intervention, Camionnette, ContratEntretien, etc. | **Production ready** |
+| **INFORMATIQUE** | réparations, rachats, démontages                             | Toutes | Reparation, Rachat, Demontage                     | **Production ready** |
 
 ### Implémentation de base (fonctionnel)
 
-| Template | Status | Notes |
-|----------|--------|-------|
+| Template    | Status                         | Notes                        |
+| ----------- | ------------------------------ | ---------------------------- |
 | ELECTRICITE | Utilise le modèle INTERVENTION | Même structure que plomberie |
-| CHAUFFAGE | Utilise le modèle INTERVENTION | Même structure que plomberie |
-| MENUISERIE | Utilise le modèle INTERVENTION | Même structure que plomberie |
-| PEINTURE | Utilise le modèle INTERVENTION | Même structure que plomberie |
-| MACONNERIE | Utilise le modèle INTERVENTION | Même structure que plomberie |
-| GARAGE | Utilise le modèle INTERVENTION | Spécialisation possible |
+| CHAUFFAGE   | Utilise le modèle INTERVENTION | Même structure que plomberie |
+| MENUISERIE  | Utilise le modèle INTERVENTION | Même structure que plomberie |
+| PEINTURE    | Utilise le modèle INTERVENTION | Même structure que plomberie |
+| MACONNERIE  | Utilise le modèle INTERVENTION | Même structure que plomberie |
+| GARAGE      | Utilise le modèle INTERVENTION | Spécialisation possible      |
 
 ### En développement
 
-| Template | Status | Notes |
-|----------|--------|-------|
-| RESTAURATION | Base POS disponible | Tables en cours |
-| BOULANGERIE | Base POS disponible | - |
-| COIFFURE | Base agenda disponible | - |
-| ESTHETIQUE | Base agenda disponible | - |
+| Template     | Status                 | Notes           |
+| ------------ | ---------------------- | --------------- |
+| RESTAURATION | Base POS disponible    | Tables en cours |
+| BOULANGERIE  | Base POS disponible    | -               |
+| COIFFURE     | Base agenda disponible | -               |
+| ESTHETIQUE   | Base agenda disponible | -               |
 
 ### Planifié
 
-| Template | Status |
-|----------|--------|
-| FITNESS | Prévu |
-| SANTE | Prévu |
-| CONSULTING | Prévu |
-| COMPTABILITE | Prévu |
-| JURIDIQUE | Prévu |
-| COMMERCE_DETAIL | Prévu |
-| IMMOBILIER | Prévu |
+| Template        | Status |
+| --------------- | ------ |
+| FITNESS         | Prévu  |
+| SANTE           | Prévu  |
+| CONSULTING      | Prévu  |
+| COMPTABILITE    | Prévu  |
+| JURIDIQUE       | Prévu  |
+| COMMERCE_DETAIL | Prévu  |
+| IMMOBILIER      | Prévu  |
 
 ---
 

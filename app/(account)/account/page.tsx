@@ -15,9 +15,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
     AlertTriangle,
     Bell,
@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function AccountPage() {
@@ -43,7 +43,8 @@ export default function AccountPage() {
     const [profileEmail, setProfileEmail] = useState("");
     const [emailNotifications, setEmailNotifications] = useState(true);
     const [newsUpdates, setNewsUpdates] = useState(false);
-    const [initialEmailNotifications, setInitialEmailNotifications] = useState(true);
+    const [initialEmailNotifications, setInitialEmailNotifications] =
+        useState(true);
     const [initialNewsUpdates, setInitialNewsUpdates] = useState(false);
 
     // Update form values when session loads
@@ -195,7 +196,9 @@ export default function AccountPage() {
                 toast.success("Profil mis à jour avec succès");
             } else {
                 const error = await response.json();
-                toast.error(error.error || "Erreur lors de la mise à jour du profil");
+                toast.error(
+                    error.error || "Erreur lors de la mise à jour du profil"
+                );
             }
         } catch (error) {
             console.error("Error updating profile:", error);
@@ -236,7 +239,9 @@ export default function AccountPage() {
                 toast.success("Mot de passe modifié avec succès");
             } else {
                 const error = await response.json();
-                toast.error(error.message || "Erreur lors du changement de mot de passe");
+                toast.error(
+                    error.message || "Erreur lors du changement de mot de passe"
+                );
             }
         } catch (error) {
             console.error("Error changing password:", error);
@@ -300,7 +305,9 @@ export default function AccountPage() {
                 await signOut({ callbackUrl: "/" });
             } else {
                 const error = await response.json();
-                toast.error(error.message || "Erreur lors de la suppression du compte");
+                toast.error(
+                    error.message || "Erreur lors de la suppression du compte"
+                );
             }
         } catch (error) {
             console.error("Error deleting account:", error);
@@ -363,7 +370,9 @@ export default function AccountPage() {
                                     name="name"
                                     type="text"
                                     value={profileName}
-                                    onChange={(e) => setProfileName(e.target.value)}
+                                    onChange={(e) =>
+                                        setProfileName(e.target.value)
+                                    }
                                     className="h-11 border-black/10 focus:border-black/30"
                                 />
                             </div>
@@ -383,7 +392,9 @@ export default function AccountPage() {
                                     name="email"
                                     type="email"
                                     value={profileEmail}
-                                    onChange={(e) => setProfileEmail(e.target.value)}
+                                    onChange={(e) =>
+                                        setProfileEmail(e.target.value)
+                                    }
                                     className="h-11 border-black/10 focus:border-black/30"
                                 />
                             </div>

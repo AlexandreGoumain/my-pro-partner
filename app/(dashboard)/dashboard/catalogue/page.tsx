@@ -13,13 +13,27 @@ import { SuspensePage } from "@/components/ui/suspense-page";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UsageLimitCard } from "@/components/ui/usage-limit-card";
 import { useArticlesPage } from "@/hooks/use-articles-page";
+import { useBusinessNavigation } from "@/hooks/use-business-navigation";
 import { ARTICLE_SORT_OPTIONS } from "@/lib/constants/article-sort-options";
-import { ArticleType } from "@/lib/generated/prisma/client";
+import { getAvailableArticleTypes } from "@/lib/utils/article-helpers";
 import { Package, Plus, RotateCcw, Settings2, Wrench } from "lucide-react";
 import Link from "next/link";
 
+// Article type constants (to avoid importing Prisma Client on client side)
+const ArticleType = {
+    PRODUIT: "PRODUIT" as const,
+    SERVICE: "SERVICE" as const,
+    OCCASION: "OCCASION" as const,
+    PIECE: "PIECE" as const,
+};
+type ArticleTypeValue = (typeof ArticleType)[keyof typeof ArticleType];
+
 function CataloguePageContent() {
     const page = useArticlesPage();
+    const { businessType } = useBusinessNavigation();
+
+    // Get available article types for this business
+    const availableTypes = getAvailableArticleTypes(businessType);
 
     // Map active tab to type filter
     const activeTab = page.typeFilter === "TOUS" ? "all" : page.typeFilter;
@@ -28,7 +42,7 @@ function CataloguePageContent() {
         if (value === "all") {
             page.setTypeFilter("TOUS");
         } else {
-            page.setTypeFilter(value as ArticleType);
+            page.setTypeFilter(value as ArticleTypeValue);
         }
     };
 
@@ -76,34 +90,48 @@ function CataloguePageContent() {
                         <Package className="h-4 w-4 mr-2" strokeWidth={2} />
                         Tous
                     </TabsTrigger>
-                    <TabsTrigger
-                        value="PRODUIT"
-                        className="data-[state=active]:bg-white data-[state=active]:text-black text-[14px]"
-                    >
-                        <Package className="h-4 w-4 mr-2" strokeWidth={2} />
-                        Produits neufs
-                    </TabsTrigger>
-                    <TabsTrigger
-                        value="SERVICE"
-                        className="data-[state=active]:bg-white data-[state=active]:text-black text-[14px]"
-                    >
-                        <Settings2 className="h-4 w-4 mr-2" strokeWidth={2} />
-                        Services
-                    </TabsTrigger>
-                    <TabsTrigger
-                        value="OCCASION"
-                        className="data-[state=active]:bg-white data-[state=active]:text-black text-[14px]"
-                    >
-                        <RotateCcw className="h-4 w-4 mr-2" strokeWidth={2} />
-                        Occasion
-                    </TabsTrigger>
-                    <TabsTrigger
-                        value="PIECE"
-                        className="data-[state=active]:bg-white data-[state=active]:text-black text-[14px]"
-                    >
-                        <Wrench className="h-4 w-4 mr-2" strokeWidth={2} />
-                        Pièces détachées
-                    </TabsTrigger>
+                    {availableTypes.includes(ArticleType.PRODUIT) && (
+                        <TabsTrigger
+                            value="PRODUIT"
+                            className="data-[state=active]:bg-white data-[state=active]:text-black text-[14px]"
+                        >
+                            <Package className="h-4 w-4 mr-2" strokeWidth={2} />
+                            Produits neufs
+                        </TabsTrigger>
+                    )}
+                    {availableTypes.includes(ArticleType.SERVICE) && (
+                        <TabsTrigger
+                            value="SERVICE"
+                            className="data-[state=active]:bg-white data-[state=active]:text-black text-[14px]"
+                        >
+                            <Settings2
+                                className="h-4 w-4 mr-2"
+                                strokeWidth={2}
+                            />
+                            Services
+                        </TabsTrigger>
+                    )}
+                    {availableTypes.includes(ArticleType.OCCASION) && (
+                        <TabsTrigger
+                            value="OCCASION"
+                            className="data-[state=active]:bg-white data-[state=active]:text-black text-[14px]"
+                        >
+                            <RotateCcw
+                                className="h-4 w-4 mr-2"
+                                strokeWidth={2}
+                            />
+                            Occasion
+                        </TabsTrigger>
+                    )}
+                    {availableTypes.includes(ArticleType.PIECE) && (
+                        <TabsTrigger
+                            value="PIECE"
+                            className="data-[state=active]:bg-white data-[state=active]:text-black text-[14px]"
+                        >
+                            <Wrench className="h-4 w-4 mr-2" strokeWidth={2} />
+                            Pièces détachées
+                        </TabsTrigger>
+                    )}
                 </TabsList>
 
                 {/* Content for all tabs */}
