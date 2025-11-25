@@ -5,13 +5,14 @@ import { useArticleFilters } from "@/hooks/use-article-filters";
 import { useArticleHandlers } from "@/hooks/use-article-handlers";
 import { useArticlesPaginated, useArticlesStats } from "@/hooks/use-articles";
 import { useCategories } from "@/hooks/use-categories";
+import { usePageFiltersWithScroll } from "@/hooks/use-page-filters";
 import { type PlanLimits, type PlanType } from "@/lib/pricing-config";
 import { type Article, type ArticleTypeFilter } from "@/lib/types/article";
 import { expandCategoryIds } from "@/lib/types/category";
 import { getArticleEmptyStateMessage } from "@/lib/utils/article-helpers";
 import { type ColumnDef } from "@tanstack/react-table";
 import { type LucideIcon } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 
 export interface ArticlesPageHandlers {
     // Data
@@ -98,27 +99,45 @@ export function useArticlesPage(): ArticlesPageHandlers {
     // Categories for filtering
     const { data: categories = [] } = useCategories();
 
-    // UI states
-    const [searchTerm, setSearchTerm] = useState("");
-    const [debouncedSearch, setDebouncedSearch] = useState("");
-    const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>(
-        []
+    // Use generic page filters hook for pagination, search, view mode
+    const {
+        page,
+        pageSize,
+        handlePageChange,
+        handlePageSizeChange,
+        searchTerm,
+        setSearchTerm,
+        debouncedSearch,
+        viewMode,
+        setViewMode,
+        handleViewModeChange,
+        sortBy,
+        setSortBy,
+        filters,
+        setFilter,
+    } = usePageFiltersWithScroll<string, ArticleTypeFilter | string>({
+        initialSort: "Nom A-Z",
+        initialFilters: { type: "TOUS" as ArticleTypeFilter },
+    });
+
+    // Type filter from generic filters
+    const typeFilter = (filters.type as ArticleTypeFilter) || "TOUS";
+    const setTypeFilter = useCallback(
+        (type: ArticleTypeFilter) => setFilter("type", type),
+        [setFilter]
     );
-    const [sortBy, setSortBy] = useState("Nom A-Z");
-    const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-    const [page, setPage] = useState(1);
-    const [pageSize, setPageSize] = useState(viewMode === "grid" ? 24 : 20);
-    const [typeFilter, setTypeFilter] = useState<ArticleTypeFilter>("TOUS");
 
-    // Debounce search term to avoid too many API calls
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setDebouncedSearch(searchTerm);
-            setPage(1); // Reset to first page when searching
-        }, 300);
+    // Category filter from generic filters
+    const selectedCategoryIds = useMemo(() => {
+        const categoryFilter = filters.categories;
+        if (!categoryFilter || categoryFilter === "") return [];
+        return (categoryFilter as string).split(",");
+    }, [filters.categories]);
 
-        return () => clearTimeout(timer);
-    }, [searchTerm]);
+    const setSelectedCategoryIds = useCallback(
+        (ids: string[]) => setFilter("categories", ids.join(",")),
+        [setFilter]
+    );
 
     // Always use server-side pagination for better performance
     const { data: paginatedData, isLoading } = useArticlesPaginated({
@@ -164,7 +183,7 @@ export function useArticlesPage(): ArticlesPageHandlers {
                 setTypeFilter(type);
             }
         },
-        [typeFilter]
+        [typeFilter, setTypeFilter]
     );
 
     // Wrapper pour vérifier la limite avant de créer
@@ -186,7 +205,7 @@ export function useArticlesPage(): ArticlesPageHandlers {
         searchTerm: debouncedSearch,
         selectedCategoryIds,
         allCategoryIds: getAllCategoryIds,
-        sortBy,
+        sortBy: sortBy || "Nom A-Z",
         typeFilter,
     });
 
@@ -195,24 +214,6 @@ export function useArticlesPage(): ArticlesPageHandlers {
         () => getArticleEmptyStateMessage(typeFilter, articlesCount === 0),
         [typeFilter, articlesCount]
     );
-
-    // Pagination handlers
-    const handlePageChange = useCallback((newPage: number) => {
-        setPage(newPage);
-        window.scrollTo({ top: 0, behavior: "smooth" });
-    }, []);
-
-    const handlePageSizeChange = useCallback((newSize: number) => {
-        setPageSize(newSize);
-        setPage(1); // Reset to first page when changing page size
-    }, []);
-
-    const handleViewModeChange = useCallback((mode: "grid" | "list") => {
-        setViewMode(mode);
-        setPage(1); // Reset to first page when changing view mode
-        // Adjust page size based on view mode
-        setPageSize(mode === "grid" ? 24 : 20);
-    }, []);
 
     // Create columns with handlers
     const columns = useMemo(
@@ -251,7 +252,7 @@ export function useArticlesPage(): ArticlesPageHandlers {
         setSearchTerm,
         selectedCategoryIds,
         setSelectedCategoryIds,
-        sortBy,
+        sortBy: sortBy || "Nom A-Z",
         setSortBy,
         viewMode,
         setViewMode,

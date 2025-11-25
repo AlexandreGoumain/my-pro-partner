@@ -1,5 +1,16 @@
-import { LucideIcon, Package, Briefcase, ShoppingBag, Search, RotateCcw, Wrench } from "lucide-react";
+import { type ArticleTypeValue } from "@/lib/navigation/core/types";
+import { BUSINESS_PRESETS } from "@/lib/navigation/presets";
 import { type ArticleTypeFilter } from "@/lib/types/article";
+import { BusinessType } from "@/lib/types/business";
+import {
+    Briefcase,
+    LucideIcon,
+    Package,
+    RotateCcw,
+    Search,
+    ShoppingBag,
+    Wrench,
+} from "lucide-react";
 
 export interface ArticleEmptyStateMessage {
     title: string;
@@ -70,4 +81,22 @@ export function getArticleEmptyStateMessage(
         buttonText: "Ajouter un article",
         icon: Search,
     };
+}
+
+/**
+ * Get available article types for a business type
+ * Returns the article types that can be used by this business
+ */
+export function getAvailableArticleTypes(
+    businessType: BusinessType
+): ArticleTypeValue[] {
+    const preset = BUSINESS_PRESETS[businessType];
+
+    // If preset has custom availableArticleTypes, use them
+    if (preset?.availableArticleTypes) {
+        return preset.availableArticleTypes;
+    }
+
+    // Default fallback: all types except OCCASION
+    return ["PRODUIT", "SERVICE", "PIECE"];
 }

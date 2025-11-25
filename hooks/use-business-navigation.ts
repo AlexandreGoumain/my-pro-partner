@@ -3,8 +3,14 @@
 import { NavigationBuilder } from "@/lib/navigation/core/navigation-builder";
 import { ResolvedNavigation } from "@/lib/navigation/core/types";
 import { BusinessType } from "@/lib/types/business";
+import type { BusinessCategory } from "@/lib/types/business-category";
+import {
+    BUSINESS_TYPE_DEFAULT_CAPABILITIES,
+    BUSINESS_TYPE_TO_CATEGORY,
+} from "@/lib/types/business-hierarchy";
+import type { Capability } from "@/lib/types/capability";
 import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 // Constantes
 const DEFAULT_BUSINESS_TYPE: BusinessType = "GENERAL";
@@ -40,8 +46,15 @@ async function fetchBusinessTypeFromAPI(): Promise<BusinessType> {
 }
 
 /**
- * Hook to get business-adapted navigation
+ * Hook to get business-adapted navigation with capabilities
  * Returns navigation config based on the user's business type
+ *
+ * @example
+ * const { hasCapability, isInCategory, businessType } = useBusinessNavigation();
+ *
+ * if (hasCapability("pos")) {
+ *   // Show POS module
+ * }
  */
 export function useBusinessNavigation() {
     const { data: session } = useSession();
@@ -90,10 +103,72 @@ export function useBusinessNavigation() {
         loadNavigation();
     }, [session]);
 
+    // Business type courant
+    const businessType = navigation?.businessType || DEFAULT_BUSINESS_TYPE;
+
+    // Catégorie de l'entreprise
+    const category = useMemo<BusinessCategory>(
+        () => BUSINESS_TYPE_TO_CATEGORY[businessType],
+        [businessType]
+    );
+
+    // Capabilities de l'entreprise
+    const capabilities = useMemo<Capability[]>(
+        () => BUSINESS_TYPE_DEFAULT_CAPABILITIES[businessType],
+        [businessType]
+    );
+
+    // Vérifier si l'entreprise a une capability
+    const hasCapability = useCallback(
+        (capability: Capability): boolean => {
+            return capabilities.includes(capability);
+        },
+        [capabilities]
+    );
+
+    // Vérifier si l'entreprise a toutes les capabilities
+    const hasAllCapabilities = useCallback(
+        (...caps: Capability[]): boolean => {
+            return caps.every((cap) => capabilities.includes(cap));
+        },
+        [capabilities]
+    );
+
+    // Vérifier si l'entreprise a au moins une des capabilities
+    const hasAnyCapability = useCallback(
+        (...caps: Capability[]): boolean => {
+            return caps.some((cap) => capabilities.includes(cap));
+        },
+        [capabilities]
+    );
+
+    // Vérifier si l'entreprise est dans une catégorie
+    const isInCategory = useCallback(
+        (cat: BusinessCategory): boolean => {
+            return category === cat;
+        },
+        [category]
+    );
+
     return {
+        // Navigation
         navigation,
         isLoading,
-        businessType: navigation?.businessType || DEFAULT_BUSINESS_TYPE,
+        businessType,
+
+        // Capabilities (nouveau)
+        category,
+        capabilities,
+        hasCapability,
+        hasAllCapabilities,
+        hasAnyCapability,
+        isInCategory,
+
+        // Raccourcis catégories
+        isIntervention: category === "INTERVENTION",
+        isPointDeVente: category === "POINT_DE_VENTE",
+        isRendezVous: category === "RENDEZ_VOUS",
+        isServiceIntellectuel: category === "SERVICE_INTELLECTUEL",
 
         /** Check if a feature is active */
         isFeatureActive: (featureId: string) =>

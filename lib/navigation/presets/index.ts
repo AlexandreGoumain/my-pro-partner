@@ -1,9 +1,17 @@
 /**
  * Business Presets - Navigation configurations for each business type
  * Each preset defines which features are enabled and how they're customized
+ *
+ * @see business-hierarchy.ts pour les catégories et capabilities
+ * @see CapabilityService pour interroger la hiérarchie
  */
 
 import { BusinessType } from "@/lib/types/business";
+import type { BusinessCategory } from "@/lib/types/business-category";
+import {
+    BUSINESS_TYPE_TO_CATEGORY,
+    CATEGORY_TO_BUSINESS_TYPES,
+} from "@/lib/types/business-hierarchy";
 import { BusinessPreset } from "../core/types";
 
 // ============================================
@@ -28,6 +36,8 @@ const GeneralPreset: BusinessPreset = {
         "analytics",
         "settings",
     ],
+
+    availableArticleTypes: ["PRODUIT", "SERVICE", "PIECE"],
 };
 
 // ============================================
@@ -50,6 +60,8 @@ const ArtisanBasePreset: Partial<BusinessPreset> = {
         "settings",
     ],
 
+    availableArticleTypes: ["PRODUIT", "SERVICE", "PIECE"],
+
     i18n: {
         products: {
             singular: "Article",
@@ -65,7 +77,14 @@ const PlomberiePreset: BusinessPreset = {
     color: "#3B82F6",
     description: "Artisan plombier, installation sanitaire",
     ...ArtisanBasePreset,
-    features: [...(ArtisanBasePreset.features || [])],
+    features: [
+        ...(ArtisanBasePreset.features || []),
+        "interventions",
+        "stock-camionnette",
+        "contrats",
+        "planning",
+        "flotte",
+    ],
 };
 
 const ElectricitePreset: BusinessPreset = {
@@ -375,6 +394,8 @@ const InformatiquePreset: BusinessPreset = {
         "settings",
     ],
 
+    availableArticleTypes: ["PRODUIT", "SERVICE", "OCCASION", "PIECE"],
+
     i18n: {
         catalogue: {
             singular: "Article",
@@ -632,3 +653,44 @@ export const BUSINESS_PRESETS: Record<BusinessType, BusinessPreset> = {
     // Santé
     SANTE: SantePreset,
 };
+
+// ============================================
+// HELPERS - Intégration avec la hiérarchie
+// ============================================
+
+/**
+ * Récupère la catégorie d'un business type
+ */
+export function getPresetCategory(type: BusinessType): BusinessCategory {
+    return BUSINESS_TYPE_TO_CATEGORY[type];
+}
+
+/**
+ * Récupère tous les presets d'une catégorie
+ */
+export function getPresetsByCategory(
+    category: BusinessCategory
+): BusinessPreset[] {
+    const types = CATEGORY_TO_BUSINESS_TYPES[category];
+    return types.map((type) => BUSINESS_PRESETS[type]);
+}
+
+/**
+ * Récupère les presets groupés par catégorie
+ */
+export function getPresetsGroupedByCategory(): Record<
+    BusinessCategory,
+    BusinessPreset[]
+> {
+    const result = {} as Record<BusinessCategory, BusinessPreset[]>;
+
+    for (const [category, types] of Object.entries(
+        CATEGORY_TO_BUSINESS_TYPES
+    )) {
+        result[category as BusinessCategory] = types.map(
+            (type) => BUSINESS_PRESETS[type]
+        );
+    }
+
+    return result;
+}

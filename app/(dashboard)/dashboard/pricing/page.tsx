@@ -10,27 +10,29 @@ import {
     SubscriptionManagement,
 } from "@/components/subscription";
 import { useSubscriptionStatus } from "@/hooks/use-subscription-status";
-import { PLAN_PRICING, PlanType } from "@/lib/pricing-config";
+import { PLANS_CONFIG, PlanType } from "@/lib/config/plans.config";
+import { IntervalType } from "@/lib/types/pricing";
 import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useState } from "react";
+
+const PLAN_ORDER: PlanType[] = ["FREE", "STARTER", "PRO", "ENTERPRISE"];
 
 export default function PricingPage() {
     const { update: updateSession } = useSession();
     const subscriptionState = useSubscriptionStatus();
 
+    const [interval, setInterval] = useState<IntervalType>("month");
     const [dialogOpen, setDialogOpen] = useState(false);
     const [selectedPlan, setSelectedPlan] = useState<PlanType | null>(null);
 
-    // Rafraîchir la session au chargement
     useEffect(() => {
         void updateSession();
-    }, [updateSession]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const handlePlanClick = useCallback(
         (plan: PlanType) => {
-            // Ignorer si c'est le plan actuel
             if (subscriptionState.isSamePlan(plan)) return;
-
             setSelectedPlan(plan);
             setDialogOpen(true);
         },
@@ -39,43 +41,36 @@ export default function PricingPage() {
 
     return (
         <>
-            <div className="min-h-screen">
-                {/* Hero Header */}
-                <PricingPageHeader />
+            <div className="min-h-screen px-6">
+                <PricingPageHeader
+                    interval={interval}
+                    onIntervalChange={setInterval}
+                />
 
-                {/* Grille des plans */}
-                <div className="max-w-7xl mx-auto">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {(Object.keys(PLAN_PRICING) as PlanType[]).map(
-                            (plan) => (
-                                <PricingPlanCard
-                                    key={plan}
-                                    plan={plan}
-                                    isCurrent={subscriptionState.isSamePlan(
-                                        plan
-                                    )}
-                                    isFreePlan={
-                                        subscriptionState.currentPlan === "FREE"
-                                    }
-                                    onPlanClick={handlePlanClick}
-                                />
-                            )
-                        )}
+                <div className="max-w-6xl mx-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                        {PLAN_ORDER.map((plan) => (
+                            <PricingPlanCard
+                                key={plan}
+                                plan={plan}
+                                interval={interval}
+                                isCurrent={subscriptionState.isSamePlan(plan)}
+                                isFreePlan={subscriptionState.currentPlan === "FREE"}
+                                onPlanClick={handlePlanClick}
+                            />
+                        ))}
                     </div>
                 </div>
 
-                {/* Gestion de l'abonnement (si plan actif) */}
                 {subscriptionState.currentPlan !== "FREE" && (
-                    <div className="max-w-2xl mx-auto mt-16">
+                    <div className="max-w-2xl mx-auto mt-12">
                         <SubscriptionManagement />
                     </div>
                 )}
 
-                {/* FAQ ou Note en bas */}
                 <PricingFooter />
             </div>
 
-            {/* Dialog de changement de plan */}
             <PlanChangeDialog
                 open={dialogOpen}
                 onOpenChange={setDialogOpen}

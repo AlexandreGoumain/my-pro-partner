@@ -1,30 +1,33 @@
 import { DefaultSession } from "next-auth";
 
 declare module "next-auth" {
-  interface User {
-    role?: string;
-    plan?: string;
-    entrepriseId?: string;
-    onboardingComplete?: boolean;
-  }
+    interface User {
+        role?: string;
+        plan?: string;
+        entrepriseId?: string;
+        onboardingComplete?: boolean;
+        businessType?: string;
+    }
 
-  interface Session {
-    user: {
-      id: string;
-      role: string;
-      plan: string;
-      entrepriseId: string;
-      onboardingComplete: boolean;
-    } & DefaultSession["user"];
-  }
+    interface Session {
+        user: {
+            id: string;
+            role: string;
+            plan: string;
+            entrepriseId: string;
+            onboardingComplete: boolean;
+            businessType: string;
+        } & DefaultSession["user"];
+    }
 }
 
 declare module "next-auth/jwt" {
-  interface JWT {
-    id: string;
-    role: string;
-    plan: string;
-    entrepriseId?: string;
-    onboardingComplete?: boolean;
-  }
+    interface JWT {
+        id: string;
+        role: string;
+        plan: string;
+        entrepriseId?: string;
+        onboardingComplete?: boolean;
+        businessType?: string;
+    }
 }

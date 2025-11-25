@@ -1345,7 +1345,7 @@ export const employeeBaseSchema = z.object({
         .max(20, "Le téléphone ne peut pas dépasser 20 caractères")
         .optional()
         .or(z.literal("")),
-    dateNaissance: z.date().optional().nullable(),
+    dateNaissance: z.coerce.date().optional().nullable(),
     adresse: z
         .string()
         .max(200, "L'adresse ne peut pas dépasser 200 caractères")
@@ -1381,15 +1381,15 @@ export const employeeBaseSchema = z.object({
         .or(z.literal("")),
     statut: z.enum(["ACTIF", "CONGE", "MALADIE", "ABSENT", "INACTIF"]).default("ACTIF"),
     typeContrat: z.enum(["CDI", "CDD", "INTERIM", "APPRENTI", "STAGE", "FREELANCE"]).default("CDI"),
-    dateEmbauche: z.date({
+    dateEmbauche: z.coerce.date({
         required_error: "La date d'embauche est requise",
     }),
-    dateFin: z.date().optional().nullable(),
+    dateFin: z.coerce.date().optional().nullable(),
     salaireBrut: z
         .number({
             required_error: "Le salaire brut est requis",
         })
-        .positive("Le salaire doit être positif")
+        .min(0, "Le salaire ne peut pas être négatif")
         .max(999999.99, "Le salaire est trop élevé"),
     devise: z.string().max(10, "La devise ne peut pas dépasser 10 caractères").default("EUR"),
     heuresHebdo: z

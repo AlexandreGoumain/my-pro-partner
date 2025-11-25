@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { EmployeeStatsCard } from "@/components/personnel/employee-stats-card";
 import { EmployeeFilters } from "@/components/personnel/employee-filters";
 import { EmployeeTable } from "@/components/personnel/employee-table";
-import { EmployeeDialog, type EmployeeFormData } from "@/components/personnel/employee-dialog";
+import { EmployeeQuickAdd, type QuickAddFormData } from "@/components/personnel/employee-quick-add";
+import { EmployeeWizard, type WizardFormData } from "@/components/personnel/employee-wizard";
 import {
     useEmployees,
     useEmployeesStats,
@@ -38,7 +39,8 @@ export default function PersonnelPage() {
     const [contractFilter, setContractFilter] = useState("all");
 
     // Dialog state
-    const [dialogOpen, setDialogOpen] = useState(false);
+    const [quickAddOpen, setQuickAddOpen] = useState(false);
+    const [wizardOpen, setWizardOpen] = useState(false);
     const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [employeeToDelete, setEmployeeToDelete] = useState<Employee | null>(null);
@@ -123,12 +125,12 @@ export default function PersonnelPage() {
     // Handlers
     const handleOpenCreateDialog = () => {
         setSelectedEmployee(null);
-        setDialogOpen(true);
+        setQuickAddOpen(true);
     };
 
     const handleOpenEditDialog = (employee: Employee) => {
         setSelectedEmployee(employee);
-        setDialogOpen(true);
+        setWizardOpen(true);
     };
 
     const handleOpenDeleteDialog = (employee: Employee) => {
@@ -136,9 +138,37 @@ export default function PersonnelPage() {
         setDeleteDialogOpen(true);
     };
 
-    const handleSubmit = async (data: EmployeeFormData) => {
+    const handleSwitchToAdvanced = () => {
+        setQuickAddOpen(false);
+        setSelectedEmployee(null);
+        setWizardOpen(true);
+    };
+
+    const handleQuickAddSubmit = async (data: QuickAddFormData) => {
         try {
-            // Convert date strings to Date objects
+            const formattedData = {
+                ...data,
+                dateEmbauche: new Date(data.dateEmbauche),
+                // Default values for required fields
+                statut: "ACTIF" as const,
+                salaireBrut: 0,
+                pays: "France",
+                devise: "EUR",
+                heuresHebdo: 35,
+                congesRestants: 25,
+                congesPris: 0,
+            };
+
+            await createEmployee.mutateAsync(formattedData);
+            toast.success("Employé créé avec succès");
+            setQuickAddOpen(false);
+        } catch (error) {
+            toast.error("Erreur lors de la création de l'employé");
+        }
+    };
+
+    const handleWizardSubmit = async (data: WizardFormData) => {
+        try {
             const formattedData = {
                 ...data,
                 dateEmbauche: new Date(data.dateEmbauche),
@@ -156,7 +186,7 @@ export default function PersonnelPage() {
                 await createEmployee.mutateAsync(formattedData);
                 toast.success("Employé créé avec succès");
             }
-            setDialogOpen(false);
+            setWizardOpen(false);
         } catch (error) {
             toast.error(
                 selectedEmployee
@@ -264,12 +294,21 @@ export default function PersonnelPage() {
                 />
             )}
 
-            {/* Create/Edit Dialog */}
-            <EmployeeDialog
-                open={dialogOpen}
-                onOpenChange={setDialogOpen}
+            {/* Quick Add Dialog */}
+            <EmployeeQuickAdd
+                open={quickAddOpen}
+                onOpenChange={setQuickAddOpen}
+                onSubmit={handleQuickAddSubmit}
+                onAdvancedMode={handleSwitchToAdvanced}
+                isLoading={createEmployee.isPending}
+            />
+
+            {/* Wizard Dialog (Edit or Advanced Create) */}
+            <EmployeeWizard
+                open={wizardOpen}
+                onOpenChange={setWizardOpen}
                 employee={selectedEmployee}
-                onSubmit={handleSubmit}
+                onSubmit={handleWizardSubmit}
                 isLoading={createEmployee.isPending || updateEmployee.isPending}
             />
 
