@@ -12,12 +12,15 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useCapabilities } from "@/hooks/use-capabilities";
 import {
     useInterventions,
     useInterventionStats,
     type InterventionFilters,
 } from "@/hooks/use-interventions";
+import { BUSINESS_TYPE_CONFIGS } from "@/lib/config/business-hierarchy.config";
 import {
+    INTERVENTIONS_PAR_METIER,
     PRIORITE_LABELS,
     STATUT_LABELS,
     TYPE_INTERVENTION_ICONS,
@@ -30,6 +33,7 @@ import { AlertCircle, Clock, Filter, MapPin, Plus, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 
 export default function InterventionsPage() {
+    const { businessType } = useCapabilities();
     const [dialogOpen, setDialogOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [statutFilter, setStatutFilter] = useState<
@@ -41,6 +45,17 @@ export default function InterventionsPage() {
     const [typeFilter, setTypeFilter] = useState<TypeIntervention | "ALL">(
         "ALL"
     );
+
+    // Get business config for dynamic labels
+    const businessConfig = BUSINESS_TYPE_CONFIGS[businessType];
+    const businessLabel = businessConfig?.label || "Intervention";
+
+    // Get filtered intervention types for this business
+    const availableInterventionTypes = useMemo(() => {
+        return INTERVENTIONS_PAR_METIER[
+            businessType as keyof typeof INTERVENTIONS_PAR_METIER
+        ] || Object.keys(TYPE_INTERVENTION_LABELS);
+    }, [businessType]);
 
     // Build filters object
     const filters: InterventionFilters = useMemo(
@@ -92,7 +107,7 @@ export default function InterventionsPage() {
     };
 
     return (
-        <RouteGuard capability="domicile">
+        <RouteGuard anyCapability={["domicile", "atelier"]}>
             <div className="flex-1 space-y-6 p-6">
                 {/* Header */}
                 <div className="flex items-center justify-between">
@@ -101,7 +116,7 @@ export default function InterventionsPage() {
                             Interventions
                         </h1>
                         <p className="text-[14px] text-black/40 mt-1">
-                            Gestion des interventions plomberie
+                            Gestion des interventions {businessLabel.toLowerCase()}
                         </p>
                     </div>
                     <Button
@@ -219,13 +234,11 @@ export default function InterventionsPage() {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="ALL">Tous les types</SelectItem>
-                            {Object.entries(TYPE_INTERVENTION_LABELS).map(
-                                ([value, label]) => (
-                                    <SelectItem key={value} value={value}>
-                                        {label}
-                                    </SelectItem>
-                                )
-                            )}
+                            {availableInterventionTypes.map((type) => (
+                                <SelectItem key={type} value={type}>
+                                    {TYPE_INTERVENTION_LABELS[type as TypeIntervention]}
+                                </SelectItem>
+                            ))}
                         </SelectContent>
                     </Select>
 

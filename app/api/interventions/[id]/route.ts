@@ -1,5 +1,5 @@
 import { authOptions } from "@/lib/auth";
-import { requireCapability } from "@/lib/middleware/business-type-check";
+import { requireAnyCapability } from "@/lib/middleware/business-type-check";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
@@ -18,7 +18,8 @@ export async function GET(
             );
         }
 
-        const capabilityCheck = await requireCapability("domicile");
+        // Allow both domicile (mobile work) and atelier (workshop) businesses
+        const capabilityCheck = await requireAnyCapability("domicile", "atelier");
         if (capabilityCheck) return capabilityCheck;
 
         const intervention = await prisma.intervention.findUnique({
@@ -96,7 +97,8 @@ export async function PUT(
             );
         }
 
-        const capabilityCheck = await requireCapability("domicile");
+        // Allow both domicile (mobile work) and atelier (workshop) businesses
+        const capabilityCheck = await requireAnyCapability("domicile", "atelier");
         if (capabilityCheck) return capabilityCheck;
 
         const body = await request.json();
@@ -152,7 +154,8 @@ export async function DELETE(
             );
         }
 
-        const capabilityCheck = await requireCapability("domicile");
+        // Allow both domicile (mobile work) and atelier (workshop) businesses
+        const capabilityCheck = await requireAnyCapability("domicile", "atelier");
         if (capabilityCheck) return capabilityCheck;
 
         await prisma.intervention.delete({

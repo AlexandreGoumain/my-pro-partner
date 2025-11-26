@@ -1,8 +1,8 @@
 "use client";
 
 import { DayView } from "@/components/planning/day-view";
-import { InterventionDialog } from "@/components/planning/intervention-dialog";
 import { MonthView } from "@/components/planning/month-view";
+import { TourneeDialog } from "@/components/planning/tournee-dialog";
 import { ViewToggle } from "@/components/planning/view-toggle";
 import { WeekView } from "@/components/planning/week-view";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,7 @@ import {
     subMonths,
 } from "date-fns";
 import { fr } from "date-fns/locale";
+import { useCapabilities } from "@/hooks/use-capabilities";
 import {
     Calendar,
     ChevronLeft,
@@ -38,7 +39,30 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
+// Labels dynamiques selon le type de business
+const PLANNING_LABELS = {
+    GARAGE: {
+        title: "Planning Atelier",
+        description: "Organisation des réparations par mécanicien",
+        newButton: "Planifier une intervention",
+        technicianLabel: "Mécaniciens actifs",
+        technicianSubLabel: "mécaniciens à l'atelier",
+        locationsLabel: "Véhicules",
+        locationsSubLabel: "en intervention",
+    },
+    DEFAULT: {
+        title: "Planning & Tournées",
+        description: "Organisation des interventions par technicien",
+        newButton: "Planifier une tournée",
+        technicianLabel: "Techniciens actifs",
+        technicianSubLabel: "techniciens sur le terrain",
+        locationsLabel: "Villes couvertes",
+        locationsSubLabel: "zones d'intervention",
+    },
+} as const;
+
 export default function PlanningPage() {
+    const { businessType } = useCapabilities();
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [selectedPlombier, setSelectedPlombier] = useState<string>("ALL");
     const [dialogOpen, setDialogOpen] = useState(false);
@@ -144,17 +168,20 @@ export default function PlanningPage() {
         };
     }, [plombiers]);
 
+    // Labels dynamiques selon le business type
+    const labels = PLANNING_LABELS[businessType as keyof typeof PLANNING_LABELS] || PLANNING_LABELS.DEFAULT;
+
     return (
-        <RouteGuard capability="domicile">
+        <RouteGuard anyCapability={["domicile", "atelier"]}>
             <div className="flex-1 space-y-6 p-6">
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div>
                         <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-black">
-                            Planning & Tournées
+                            {labels.title}
                         </h1>
                         <p className="text-[14px] text-black/40 mt-1">
-                            Organisation des interventions par technicien
+                            {labels.description}
                         </p>
                     </div>
                     <div className="flex items-center gap-3">
@@ -170,7 +197,7 @@ export default function PlanningPage() {
                             className="bg-black hover:bg-black/90 text-white h-11 px-6 text-[14px] font-medium rounded-md shadow-sm"
                         >
                             <Plus className="w-4 h-4 mr-2" strokeWidth={2} />
-                            Nouvelle intervention
+                            {labels.newButton}
                         </Button>
                     </div>
                 </div>
@@ -200,7 +227,7 @@ export default function PlanningPage() {
                     <div className="p-5 rounded-xl bg-white border border-black/8 shadow-sm">
                         <div className="flex items-center justify-between mb-3">
                             <span className="text-[12px] font-medium text-black/40 uppercase tracking-wide">
-                                Techniciens actifs
+                                {labels.technicianLabel}
                             </span>
                             <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
                                 <User
@@ -213,7 +240,7 @@ export default function PlanningPage() {
                             {stats.plombiersActifs}
                         </p>
                         <p className="text-[12px] text-black/40 mt-1">
-                            techniciens sur le terrain
+                            {labels.technicianSubLabel}
                         </p>
                     </div>
 
@@ -240,7 +267,7 @@ export default function PlanningPage() {
                     <div className="p-5 rounded-xl bg-white border border-black/8 shadow-sm">
                         <div className="flex items-center justify-between mb-3">
                             <span className="text-[12px] font-medium text-black/40 uppercase tracking-wide">
-                                Villes couvertes
+                                {labels.locationsLabel}
                             </span>
                             <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
                                 <MapPin
@@ -253,7 +280,7 @@ export default function PlanningPage() {
                             {stats.villesCouvertes}
                         </p>
                         <p className="text-[12px] text-black/40 mt-1">
-                            zones d&apos;intervention
+                            {labels.locationsSubLabel}
                         </p>
                     </div>
                 </div>
@@ -339,8 +366,8 @@ export default function PlanningPage() {
                     )}
                 </div>
 
-                {/* Create Dialog */}
-                <InterventionDialog
+                {/* Create Tournée Dialog */}
+                <TourneeDialog
                     open={dialogOpen}
                     onOpenChange={setDialogOpen}
                     onSuccess={() => setDialogOpen(false)}

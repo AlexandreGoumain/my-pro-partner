@@ -2,30 +2,34 @@
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { DraggableIntervention } from "./draggable-intervention";
-import { usePlanning, useUpdateIntervention, type PlombierPlanning } from "@/hooks/use-interventions";
-import type { Intervention } from "@/lib/types/intervention";
-import { format } from "date-fns";
-import { Calendar, Clock, Plus, User } from "lucide-react";
 import {
+    usePlanning,
+    useUpdateIntervention,
+    type PlombierPlanning,
+} from "@/hooks/use-interventions";
+import type { Intervention } from "@/lib/types/intervention";
+import {
+    closestCenter,
     DndContext,
     DragOverlay,
-    closestCenter,
     KeyboardSensor,
     PointerSensor,
+    useDroppable,
     useSensor,
     useSensors,
     type DragEndEvent,
     type DragStartEvent,
-    useDroppable,
 } from "@dnd-kit/core";
 import {
     SortableContext,
     sortableKeyboardCoordinates,
     verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { useState, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { Calendar, Clock, Plus, User } from "lucide-react";
+import { useCallback, useState } from "react";
+import { DraggableIntervention } from "./draggable-intervention";
 
 interface DayViewProps {
     selectedDate: Date;
@@ -35,7 +39,7 @@ interface DayViewProps {
 
 function DroppablePlombierZone({
     plombier,
-    children
+    children,
 }: {
     plombier: PlombierPlanning;
     children: React.ReactNode;
@@ -59,7 +63,11 @@ function DroppablePlombierZone({
     );
 }
 
-export function DayView({ selectedDate, selectedPlombier, onNewIntervention }: DayViewProps) {
+export function DayView({
+    selectedDate,
+    selectedPlombier,
+    onNewIntervention,
+}: DayViewProps) {
     const dateString = format(selectedDate, "yyyy-MM-dd");
     const queryClient = useQueryClient();
 
@@ -69,7 +77,9 @@ export function DayView({ selectedDate, selectedPlombier, onNewIntervention }: D
     );
 
     const updateIntervention = useUpdateIntervention();
-    const [activeIntervention, setActiveIntervention] = useState<(Intervention & { dureeEstimeeH?: number }) | null>(null);
+    const [activeIntervention, setActiveIntervention] = useState<
+        (Intervention & { dureeEstimeeH?: number }) | null
+    >(null);
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -82,21 +92,34 @@ export function DayView({ selectedDate, selectedPlombier, onNewIntervention }: D
         })
     );
 
-    const findIntervention = useCallback((id: string): (Intervention & { dureeEstimeeH?: number }) | null => {
-        for (const plombier of plombiers) {
-            const intervention = plombier.interventions.find((i) => i.id === id);
-            if (intervention) return intervention as Intervention & { dureeEstimeeH?: number };
-        }
-        return null;
-    }, [plombiers]);
+    const findIntervention = useCallback(
+        (id: string): (Intervention & { dureeEstimeeH?: number }) | null => {
+            for (const plombier of plombiers) {
+                const intervention = plombier.interventions.find(
+                    (i) => i.id === id
+                );
+                if (intervention)
+                    return intervention as Intervention & {
+                        dureeEstimeeH?: number;
+                    };
+            }
+            return null;
+        },
+        [plombiers]
+    );
 
-    const findPlombierByIntervention = useCallback((interventionId: string): string | null => {
-        for (const plombier of plombiers) {
-            const intervention = plombier.interventions.find((i) => i.id === interventionId);
-            if (intervention) return plombier.id;
-        }
-        return null;
-    }, [plombiers]);
+    const findPlombierByIntervention = useCallback(
+        (interventionId: string): string | null => {
+            for (const plombier of plombiers) {
+                const intervention = plombier.interventions.find(
+                    (i) => i.id === interventionId
+                );
+                if (intervention) return plombier.id;
+            }
+            return null;
+        },
+        [plombiers]
+    );
 
     const handleDragStart = (event: DragStartEvent) => {
         const { active } = event;
@@ -168,7 +191,7 @@ export function DayView({ selectedDate, selectedPlombier, onNewIntervention }: D
                         className="h-10"
                     >
                         <Plus className="w-4 h-4 mr-2" strokeWidth={2} />
-                        Nouvelle intervention
+                        Planifier une tournée
                     </Button>
                 )}
             </div>
@@ -184,7 +207,10 @@ export function DayView({ selectedDate, selectedPlombier, onNewIntervention }: D
         >
             <div className="space-y-4">
                 {plombiers.map((plombier) => (
-                    <DroppablePlombierZone key={plombier.id} plombier={plombier}>
+                    <DroppablePlombierZone
+                        key={plombier.id}
+                        plombier={plombier}
+                    >
                         {/* Plombier Header */}
                         <div className="flex items-center justify-between mb-4 pb-4 border-b border-black/8">
                             <div className="flex items-center gap-3">
@@ -199,8 +225,11 @@ export function DayView({ selectedDate, selectedPlombier, onNewIntervention }: D
                                         {plombier.name}
                                     </h3>
                                     <p className="text-[13px] text-black/50">
-                                        {plombier.interventionsCount} intervention
-                                        {plombier.interventionsCount > 1 ? "s" : ""}
+                                        {plombier.interventionsCount}{" "}
+                                        intervention
+                                        {plombier.interventionsCount > 1
+                                            ? "s"
+                                            : ""}
                                     </p>
                                 </div>
                             </div>
@@ -210,7 +239,8 @@ export function DayView({ selectedDate, selectedPlombier, onNewIntervention }: D
                                     {plombier.interventions
                                         .reduce(
                                             (sum, i) =>
-                                                sum + ((i as any).dureeEstimeeH || 0),
+                                                sum +
+                                                ((i as any).dureeEstimeeH || 0),
                                             0
                                         )
                                         .toFixed(1)}
@@ -230,12 +260,18 @@ export function DayView({ selectedDate, selectedPlombier, onNewIntervention }: D
                                         Glissez une intervention ici
                                     </p>
                                 ) : (
-                                    plombier.interventions.map((intervention) => (
-                                        <DraggableIntervention
-                                            key={intervention.id}
-                                            intervention={intervention as Intervention & { dureeEstimeeH?: number }}
-                                        />
-                                    ))
+                                    plombier.interventions.map(
+                                        (intervention) => (
+                                            <DraggableIntervention
+                                                key={intervention.id}
+                                                intervention={
+                                                    intervention as Intervention & {
+                                                        dureeEstimeeH?: number;
+                                                    }
+                                                }
+                                            />
+                                        )
+                                    )
                                 )}
                             </div>
                         </SortableContext>
