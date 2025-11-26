@@ -9,6 +9,7 @@ import {
     Building2,
     Calculator,
     Calendar,
+    CalendarClock,
     CalendarDays,
     Car,
     CreditCard,
@@ -76,6 +77,7 @@ export const ICON_MAP: Record<string, LucideIcon> = {
 
     // Features
     Calendar, // Planning
+    CalendarClock, // Entretiens à planifier
     CalendarDays, // Reservations
     Award, // Loyalty
     Mail, // Campaigns

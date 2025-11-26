@@ -76,10 +76,11 @@ async function deleteCamionnette(id: string): Promise<void> {
 }
 
 // Hooks
-export function useFlotte() {
+export function useFlotte(options?: { enabled?: boolean }) {
     return useQuery({
         queryKey: flotteKeys.list(),
         queryFn: fetchCamionnettes,
+        enabled: options?.enabled ?? true,
     });
 }
 
