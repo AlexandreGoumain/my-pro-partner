@@ -9,6 +9,7 @@ import {
 } from "@/components/articles";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
+import { RouteGuard } from "@/components/ui/route-guard";
 import { SuspensePage } from "@/components/ui/suspense-page";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UsageLimitCard } from "@/components/ui/usage-limit-card";
@@ -221,15 +222,17 @@ function CataloguePageContent() {
 
 export default function CataloguePage() {
     return (
-        <SuspensePage
-            skeletonProps={{
-                layout: "stats",
-                headerActionsCount: 2,
-                statsCount: 5,
-                statsHeight: "h-24",
-            }}
-        >
-            <CataloguePageContent />
-        </SuspensePage>
+        <RouteGuard capability="atelier">
+            <SuspensePage
+                skeletonProps={{
+                    layout: "stats",
+                    headerActionsCount: 2,
+                    statsCount: 5,
+                    statsHeight: "h-24",
+                }}
+            >
+                <CataloguePageContent />
+            </SuspensePage>
+        </RouteGuard>
     );
 }

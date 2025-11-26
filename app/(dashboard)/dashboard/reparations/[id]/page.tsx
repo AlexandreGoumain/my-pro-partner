@@ -3,6 +3,7 @@
 import { use } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
+import { RouteGuard } from "@/components/ui/route-guard";
 import { RepairDetailHeader } from "@/components/reparations/repair-detail-header";
 import { RepairDeviceInfo } from "@/components/reparations/repair-device-info";
 import { RepairClientInfo } from "@/components/reparations/repair-client-info";
@@ -51,35 +52,37 @@ export default function ReparationDetailPage({ params }: PageProps) {
   }
 
   return (
-    <div className="space-y-6 p-8">
-      {/* Header */}
-      <RepairDetailHeader reparation={reparation} />
+    <RouteGuard capability="atelier">
+      <div className="space-y-6 p-8">
+        {/* Header */}
+        <RepairDetailHeader reparation={reparation} />
 
-      {/* Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column - Device & Client Info */}
-        <div className="lg:col-span-2 space-y-6">
-          <RepairDeviceInfo reparation={reparation} />
-          <RepairClientInfo
-            client={reparation.client}
-            technicien={reparation.technicien}
+        {/* Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column - Device & Client Info */}
+          <div className="lg:col-span-2 space-y-6">
+            <RepairDeviceInfo reparation={reparation} />
+            <RepairClientInfo
+              client={reparation.client}
+              technicien={reparation.technicien}
+            />
+          </div>
+
+          {/* Right Column - Costs */}
+          <div className="space-y-6">
+            <RepairCostBreakdown reparation={reparation} />
+          </div>
+        </div>
+
+        {/* Parts & History */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <RepairPartsList pieces={reparation.lignesPieces || []} />
+          <RepairStatusTimeline
+            statusChangeLogs={reparation.statutChangeLogs || []}
+            historique={reparation.historique || []}
           />
         </div>
-
-        {/* Right Column - Costs */}
-        <div className="space-y-6">
-          <RepairCostBreakdown reparation={reparation} />
-        </div>
       </div>
-
-      {/* Parts & History */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <RepairPartsList pieces={reparation.lignesPieces || []} />
-        <RepairStatusTimeline
-          statusChangeLogs={reparation.statutChangeLogs || []}
-          historique={reparation.historique || []}
-        />
-      </div>
-    </div>
+    </RouteGuard>
   );
 }
