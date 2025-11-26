@@ -3,9 +3,16 @@
  */
 
 export type TypeContratEntretien =
-    | "CHAUDIERE"
+    // Chauffage
+    | "CHAUDIERE_GAZ"
+    | "CHAUDIERE_FIOUL"
+    | "POMPE_A_CHALEUR"
+    | "CLIMATISATION"
+    | "PLANCHER_CHAUFFANT"
+    // Plomberie
     | "ADOUCISSEUR"
     | "PLOMBERIE_GENERAL"
+    // Commun
     | "MULTI_EQUIPEMENTS"
     | "PERSONNALISE";
 
@@ -23,12 +30,38 @@ export type PeriodiciteContrat =
     | "ANNUEL";
 
 export const TYPE_CONTRAT_LABELS: Record<TypeContratEntretien, string> = {
-    CHAUDIERE: "Chaudière",
+    // Chauffage
+    CHAUDIERE_GAZ: "Chaudière gaz",
+    CHAUDIERE_FIOUL: "Chaudière fioul",
+    POMPE_A_CHALEUR: "Pompe à chaleur",
+    CLIMATISATION: "Climatisation",
+    PLANCHER_CHAUFFANT: "Plancher chauffant",
+    // Plomberie
     ADOUCISSEUR: "Adoucisseur",
     PLOMBERIE_GENERAL: "Plomberie générale",
+    // Commun
     MULTI_EQUIPEMENTS: "Multi-équipements",
     PERSONNALISE: "Personnalisé",
 };
+
+// Groupes de contrats par métier
+export const CONTRATS_PAR_METIER = {
+    CHAUFFAGE: [
+        "CHAUDIERE_GAZ",
+        "CHAUDIERE_FIOUL",
+        "POMPE_A_CHALEUR",
+        "CLIMATISATION",
+        "PLANCHER_CHAUFFANT",
+        "MULTI_EQUIPEMENTS",
+        "PERSONNALISE",
+    ],
+    PLOMBERIE: [
+        "ADOUCISSEUR",
+        "PLOMBERIE_GENERAL",
+        "MULTI_EQUIPEMENTS",
+        "PERSONNALISE",
+    ],
+} as const;
 
 export const STATUT_CONTRAT_LABELS: Record<StatutContrat, string> = {
     ACTIF: "Actif",
