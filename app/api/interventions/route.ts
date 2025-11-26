@@ -1,5 +1,5 @@
 import { authOptions } from "@/lib/auth";
-import { requireCapability } from "@/lib/middleware/business-type-check";
+import { requireAnyCapability } from "@/lib/middleware/business-type-check";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
@@ -15,7 +15,8 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        const capabilityCheck = await requireCapability("domicile");
+        // Allow both domicile (mobile work) and atelier (workshop) businesses
+        const capabilityCheck = await requireAnyCapability("domicile", "atelier");
         if (capabilityCheck) return capabilityCheck;
 
         const searchParams = request.nextUrl.searchParams;
@@ -90,10 +91,47 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const capabilityCheck = await requireCapability("domicile");
+        // Allow both domicile (mobile work) and atelier (workshop) businesses
+        const capabilityCheck = await requireAnyCapability("domicile", "atelier");
         if (capabilityCheck) return capabilityCheck;
 
         const body = await request.json();
+
+        let clientId = body.clientId;
+
+        // If newClient is provided, create the client first
+        if (body.newClient && !clientId) {
+            const { nom, prenom, telephone } = body.newClient;
+
+            if (!nom || !telephone) {
+                return NextResponse.json(
+                    { error: "Nom et téléphone requis pour un nouveau client" },
+                    { status: 400 }
+                );
+            }
+
+            // Create the new client
+            const newClient = await prisma.client.create({
+                data: {
+                    entrepriseId: session.user.entrepriseId,
+                    nom,
+                    prenom: prenom || null,
+                    telephone,
+                    adresse: body.adresse,
+                    codePostal: body.codePostal,
+                    ville: body.ville,
+                },
+            });
+
+            clientId = newClient.id;
+        }
+
+        if (!clientId) {
+            return NextResponse.json(
+                { error: "Client requis" },
+                { status: 400 }
+            );
+        }
 
         // Get next numero
         const lastIntervention = await prisma.intervention.findFirst({
@@ -116,7 +154,7 @@ export async function POST(request: NextRequest) {
             data: {
                 numero,
                 entrepriseId: session.user.entrepriseId,
-                clientId: body.clientId,
+                clientId,
                 typeIntervention: body.typeIntervention,
                 priorite: body.priorite || "NORMALE",
                 description: body.description,

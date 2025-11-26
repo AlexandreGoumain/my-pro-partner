@@ -10,6 +10,7 @@ import { ArticleSalesTab } from "@/components/articles/article-sales-tab";
 import { ArticleStockTab } from "@/components/articles/article-stock-tab";
 import { ConditionalSkeleton } from "@/components/ui/conditional-skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
+import { RouteGuard } from "@/components/ui/route-guard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useArticleDetail } from "@/hooks/use-article-detail";
 import { AlertCircle, ArrowLeft } from "lucide-react";
@@ -46,20 +47,21 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
     const isService = useMemo(() => article?.type === "SERVICE", [article]);
 
     return (
-        <ConditionalSkeleton
-            isLoading={isLoading}
-            skeletonProps={{
-                layout: "stats-grid",
-                statsCount: 4,
-                gridColumns: 2,
-                itemCount: 4,
-                withTabs: true,
-                tabsCount: 5,
-                statsHeight: "h-32",
-                itemHeight: "h-80",
-            }}
-        >
-            {!article ? (
+        <RouteGuard capability="atelier">
+            <ConditionalSkeleton
+                isLoading={isLoading}
+                skeletonProps={{
+                    layout: "stats-grid",
+                    statsCount: 4,
+                    gridColumns: 2,
+                    itemCount: 4,
+                    withTabs: true,
+                    tabsCount: 5,
+                    statsHeight: "h-32",
+                    itemHeight: "h-80",
+                }}
+            >
+                {!article ? (
                 <EmptyState
                     icon={AlertCircle}
                     title="Article non trouvé"
@@ -151,6 +153,7 @@ export default function ArticleDetailPage({ params }: ArticleDetailPageProps) {
                     </Tabs>
                 </div>
             )}
-        </ConditionalSkeleton>
+            </ConditionalSkeleton>
+        </RouteGuard>
     );
 }

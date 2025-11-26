@@ -1,11 +1,17 @@
 "use client";
 
-import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
-import { useSession } from "next-auth/react";
-import { PlanType, PlanLimits } from "@/lib/pricing-config";
-import { usePlanLimits } from "@/hooks/use-plan-limits";
 import { LimitReachedDialog } from "@/components/paywall";
+import { usePlanLimits } from "@/hooks/use-plan-limits";
 import { useUserPlan } from "@/hooks/use-user-plan";
+import { PlanLimits, PlanType } from "@/lib/pricing-config";
+import { useSession } from "next-auth/react";
+import React, {
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useState,
+} from "react";
 
 interface LimitDialogContextValue {
     /**
@@ -85,7 +91,10 @@ export function LimitDialogProvider({
         document.addEventListener("visibilitychange", handleVisibilityChange);
 
         return () => {
-            document.removeEventListener("visibilitychange", handleVisibilityChange);
+            document.removeEventListener(
+                "visibilitychange",
+                handleVisibilityChange
+            );
         };
     }, [updateSession]);
 

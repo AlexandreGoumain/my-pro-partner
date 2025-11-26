@@ -94,7 +94,22 @@ const ElectricitePreset: BusinessPreset = {
     color: "#EAB308",
     description: "Électricien, installation électrique",
     ...ArtisanBasePreset,
-    features: [...(ArtisanBasePreset.features || [])],
+    features: [
+        ...(ArtisanBasePreset.features || []),
+        "interventions",
+        "stock-camionnette",
+        "contrats",
+        "planning",
+        "flotte",
+    ],
+    quickActions: [
+        {
+            feature: "interventions",
+            action: "new",
+            label: "Nouvelle intervention",
+            icon: "Zap",
+        },
+    ],
 };
 
 const ChauffagePreset: BusinessPreset = {
@@ -102,9 +117,38 @@ const ChauffagePreset: BusinessPreset = {
     name: "Chauffage",
     icon: "Flame",
     color: "#F97316",
-    description: "Chauffagiste, climatisation",
+    description: "Chauffagiste, climatisation, entretien chaudières",
     ...ArtisanBasePreset,
-    features: [...(ArtisanBasePreset.features || [])],
+    features: [
+        ...(ArtisanBasePreset.features || []),
+        "interventions",
+        "stock-camionnette",
+        "contrats",
+        "planning",
+        "flotte",
+        "equipements",
+        "entretiens-planifier",
+    ],
+    quickActions: [
+        {
+            feature: "interventions",
+            action: "new",
+            label: "Nouvelle intervention",
+            icon: "Wrench",
+        },
+        {
+            feature: "equipements",
+            action: "new",
+            label: "Nouvel équipement",
+            icon: "Flame",
+        },
+    ],
+    dashboardWidgets: [
+        "entretiens-urgents",
+        "controles-a-planifier",
+        "interventions-en-cours",
+        "equipements-stats",
+    ],
 };
 
 const MenuiseriePreset: BusinessPreset = {
@@ -114,7 +158,22 @@ const MenuiseriePreset: BusinessPreset = {
     color: "#92400E",
     description: "Menuisier, ébéniste",
     ...ArtisanBasePreset,
-    features: [...(ArtisanBasePreset.features || [])],
+    features: [
+        ...(ArtisanBasePreset.features || []),
+        "interventions",
+        "stock-camionnette",
+        "contrats",
+        "planning",
+        "flotte",
+    ],
+    quickActions: [
+        {
+            feature: "interventions",
+            action: "new",
+            label: "Nouvelle intervention",
+            icon: "Hammer",
+        },
+    ],
 };
 
 const PeinturePreset: BusinessPreset = {
@@ -124,7 +183,22 @@ const PeinturePreset: BusinessPreset = {
     color: "#0891B2",
     description: "Peintre en bâtiment",
     ...ArtisanBasePreset,
-    features: [...(ArtisanBasePreset.features || [])],
+    features: [
+        ...(ArtisanBasePreset.features || []),
+        "interventions",
+        "stock-camionnette",
+        "contrats",
+        "planning",
+        "flotte",
+    ],
+    quickActions: [
+        {
+            feature: "interventions",
+            action: "new",
+            label: "Nouveau chantier",
+            icon: "Paintbrush",
+        },
+    ],
 };
 
 const MaconneriePreset: BusinessPreset = {
@@ -134,7 +208,22 @@ const MaconneriePreset: BusinessPreset = {
     color: "#78350F",
     description: "Maçon, gros œuvre",
     ...ArtisanBasePreset,
-    features: [...(ArtisanBasePreset.features || [])],
+    features: [
+        ...(ArtisanBasePreset.features || []),
+        "interventions",
+        "stock-camionnette",
+        "contrats",
+        "planning",
+        "flotte",
+    ],
+    quickActions: [
+        {
+            feature: "interventions",
+            action: "new",
+            label: "Nouveau chantier",
+            icon: "HardHat",
+        },
+    ],
 };
 
 // ============================================
@@ -418,8 +507,10 @@ const GaragePreset: BusinessPreset = {
     features: [
         "dashboard",
         "clients",
-        "reservations", // RDV entretien
-        "products", // Pièces & prestations
+        "interventions",
+        "contrats",
+        "planning",
+        "products",
         "inventory",
         "quotes",
         "invoices",
@@ -428,14 +519,27 @@ const GaragePreset: BusinessPreset = {
         "settings",
     ],
 
+    quickActions: [
+        {
+            feature: "interventions",
+            action: "new",
+            label: "Nouvelle intervention",
+            icon: "Car",
+        },
+    ],
+
     i18n: {
         products: {
-            singular: "Article",
+            singular: "Pièce",
             plural: "Pièces & Prestations",
         },
-        reservations: {
+        interventions: {
             singular: "Intervention",
-            plural: "Planning atelier",
+            plural: "Interventions",
+        },
+        planning: {
+            singular: "Planning",
+            plural: "Planning Atelier",
         },
     },
 };

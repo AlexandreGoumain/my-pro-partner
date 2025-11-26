@@ -815,6 +815,58 @@ export const FlotteFeature: FeatureModule = {
     permissions: ["canViewStock"],
 };
 
+export const EquipementsFeature: FeatureModule = {
+    id: "equipements",
+    name: "Parc Équipements",
+    navigation: {
+        main: {
+            icon: "Flame",
+            label: "Équipements",
+            href: "/dashboard/equipements",
+            order: 26,
+        },
+        quickActions: [
+            {
+                label: "Nouvel équipement",
+                icon: "Plus",
+                href: "/dashboard/equipements/new",
+                order: 4,
+            },
+        ],
+    },
+    routes: [
+        "/dashboard/equipements",
+        "/dashboard/equipements/new",
+        "/dashboard/equipements/[id]",
+    ],
+    dependencies: ["clients"],
+    i18n: {
+        singular: "Équipement",
+        plural: "Parc Équipements",
+    },
+    permissions: ["canViewProducts"],
+};
+
+export const EntretiensPlanifierFeature: FeatureModule = {
+    id: "entretiens-planifier",
+    name: "Entretiens à planifier",
+    navigation: {
+        main: {
+            icon: "CalendarClock",
+            label: "Entretiens",
+            href: "/dashboard/entretiens-planifier",
+            order: 27,
+        },
+    },
+    routes: ["/dashboard/entretiens-planifier"],
+    dependencies: ["equipements"],
+    i18n: {
+        singular: "Entretien",
+        plural: "Entretiens à planifier",
+    },
+    permissions: ["canViewProducts"],
+};
+
 // ============================================
 // FEATURE CATALOG
 // ============================================
@@ -864,12 +916,14 @@ export const FEATURE_CATALOG: Record<string, FeatureModule> = {
     atelier: AtelierFeature,
     catalogue: CatalogueFeature,
 
-    // Plumbing specific
+    // Plumbing/Heating specific
     interventions: InterventionsFeature,
     "stock-camionnette": StockCamionnetteFeature,
     contrats: ContratsEntretienFeature,
     planning: PlanningFeature,
     flotte: FlotteFeature,
+    equipements: EquipementsFeature,
+    "entretiens-planifier": EntretiensPlanifierFeature,
 
     // Finance
     payments: PaymentsFeature,

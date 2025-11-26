@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button";
 import { EmployeeStatsCard } from "@/components/personnel/employee-stats-card";
 import { EmployeeFilters } from "@/components/personnel/employee-filters";
 import { EmployeeTable } from "@/components/personnel/employee-table";
+import { TechnicienTable } from "@/components/personnel/technicien-table";
 import { EmployeeQuickAdd, type QuickAddFormData } from "@/components/personnel/employee-quick-add";
 import { EmployeeWizard, type WizardFormData } from "@/components/personnel/employee-wizard";
+import { TechnicienQuickAdd, type TechnicienFormData } from "@/components/personnel/technicien-quick-add";
 import {
     useEmployees,
     useEmployeesStats,
@@ -15,8 +17,11 @@ import {
     useDeleteEmployee,
     type Employee,
 } from "@/hooks/use-employees";
+import { useTechniciens, useCreateTechnicien } from "@/hooks/use-techniciens";
+import { useFlotte } from "@/hooks/use-flotte";
+import { useCapabilities } from "@/hooks/use-capabilities";
 import { formatCurrency } from "@/lib/utils/format";
-import { Users, UserCheck, UserX, Calendar, TrendingUp } from "lucide-react";
+import { Users, UserCheck, UserX, Calendar, TrendingUp, Wrench } from "lucide-react";
 import type { EmployeeSortBy, SortOrder } from "@/lib/types/personnel.types";
 import { toast } from "sonner";
 import {
@@ -31,6 +36,12 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function PersonnelPage() {
+    // Business type detection
+    const { isIntervention, businessType, hasCapability } = useCapabilities();
+
+    // Check if business has access to fleet management (camionnettes)
+    const hasFlotteAccess = hasCapability("stock_camionnette");
+
     // Filters and sorting state
     const [search, setSearch] = useState("");
     const [sortBy, setSortBy] = useState<EmployeeSortBy>("dateEmbauche");
@@ -40,6 +51,7 @@ export default function PersonnelPage() {
 
     // Dialog state
     const [quickAddOpen, setQuickAddOpen] = useState(false);
+    const [technicienAddOpen, setTechnicienAddOpen] = useState(false);
     const [wizardOpen, setWizardOpen] = useState(false);
     const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -47,10 +59,38 @@ export default function PersonnelPage() {
 
     // Hooks
     const { data: employees = [], isLoading: isLoadingEmployees } = useEmployees();
+    const { data: techniciensData, isLoading: isLoadingTechniciens } = useTechniciens();
     const { data: stats, isLoading: isLoadingStats } = useEmployeesStats();
     const createEmployee = useCreateEmployee();
     const updateEmployee = useUpdateEmployee();
     const deleteEmployee = useDeleteEmployee();
+    const createTechnicien = useCreateTechnicien();
+    const { data: camionnettes = [] } = useFlotte({ enabled: hasFlotteAccess });
+
+    // Get techniciens list from response
+    const techniciens = techniciensData?.techniciens ?? [];
+
+    // Get business-specific label for technicians
+    const technicienLabel = useMemo(() => {
+        switch (businessType) {
+            case "PLOMBERIE":
+                return "Plombier";
+            case "CHAUFFAGE":
+                return "Chauffagiste";
+            case "ELECTRICITE":
+                return "Électricien";
+            case "MENUISERIE":
+                return "Menuisier";
+            case "PEINTURE":
+                return "Peintre";
+            case "MACONNERIE":
+                return "Maçon";
+            case "GARAGE":
+                return "Mécanicien";
+            default:
+                return "Technicien";
+        }
+    }, [businessType]);
 
     // Filter and sort employees
     const filteredEmployees = useMemo(() => {
@@ -125,7 +165,11 @@ export default function PersonnelPage() {
     // Handlers
     const handleOpenCreateDialog = () => {
         setSelectedEmployee(null);
-        setQuickAddOpen(true);
+        if (isIntervention) {
+            setTechnicienAddOpen(true);
+        } else {
+            setQuickAddOpen(true);
+        }
     };
 
     const handleOpenEditDialog = (employee: Employee) => {
@@ -142,6 +186,16 @@ export default function PersonnelPage() {
         setQuickAddOpen(false);
         setSelectedEmployee(null);
         setWizardOpen(true);
+    };
+
+    const handleTechnicienSubmit = async (data: TechnicienFormData) => {
+        try {
+            await createTechnicien.mutateAsync(data);
+            toast.success(`${technicienLabel} ajouté - Invitation envoyée par email`);
+            setTechnicienAddOpen(false);
+        } catch (_error) {
+            toast.error(`Erreur lors de l'ajout du ${technicienLabel.toLowerCase()}`);
+        }
     };
 
     const handleQuickAddSubmit = async (data: QuickAddFormData) => {
@@ -162,7 +216,7 @@ export default function PersonnelPage() {
             await createEmployee.mutateAsync(formattedData);
             toast.success("Employé créé avec succès");
             setQuickAddOpen(false);
-        } catch (error) {
+        } catch (_error) {
             toast.error("Erreur lors de la création de l'employé");
         }
     };
@@ -187,7 +241,7 @@ export default function PersonnelPage() {
                 toast.success("Employé créé avec succès");
             }
             setWizardOpen(false);
-        } catch (error) {
+        } catch (_error) {
             toast.error(
                 selectedEmployee
                     ? "Erreur lors de la modification de l'employé"
@@ -204,12 +258,14 @@ export default function PersonnelPage() {
             toast.success("Employé supprimé avec succès");
             setDeleteDialogOpen(false);
             setEmployeeToDelete(null);
-        } catch (error) {
+        } catch (_error) {
             toast.error("Erreur lors de la suppression de l'employé");
         }
     };
 
-    const isLoading = isLoadingEmployees || isLoadingStats;
+    const isLoading = isIntervention
+        ? isLoadingTechniciens || isLoadingStats
+        : isLoadingEmployees || isLoadingStats;
 
     return (
         <div className="flex flex-col gap-8 p-8">
@@ -217,17 +273,26 @@ export default function PersonnelPage() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-black">
-                        Gestion du Personnel
+                        {isIntervention ? "Équipe terrain" : "Gestion du Personnel"}
                     </h1>
                     <p className="text-[14px] text-black/40 mt-1">
-                        Vue d&apos;ensemble et gestion de vos employés
+                        {isIntervention
+                            ? `Gérez vos ${technicienLabel.toLowerCase()}s et leurs affectations`
+                            : "Vue d'ensemble et gestion de vos employés"}
                     </p>
                 </div>
                 <Button
                     onClick={handleOpenCreateDialog}
                     className="bg-black hover:bg-black/90 text-white h-11 px-6 text-[14px] font-medium rounded-md shadow-sm"
                 >
-                    Ajouter un employé
+                    {isIntervention ? (
+                        <>
+                            <Wrench className="w-4 h-4 mr-2" strokeWidth={2} />
+                            Ajouter un {technicienLabel.toLowerCase()}
+                        </>
+                    ) : (
+                        "Ajouter un employé"
+                    )}
                 </Button>
             </div>
 
@@ -286,6 +351,14 @@ export default function PersonnelPage() {
                 <div className="flex items-center justify-center py-12 border border-black/[0.08] rounded-lg bg-white">
                     <div className="text-[14px] text-black/40">Chargement...</div>
                 </div>
+            ) : isIntervention ? (
+                <TechnicienTable
+                    techniciens={techniciens}
+                    onEdit={(t) => handleOpenEditDialog(t as unknown as Employee)}
+                    onDelete={(t) => handleOpenDeleteDialog(t as unknown as Employee)}
+                    businessLabel={technicienLabel}
+                    showVehicles={hasFlotteAccess}
+                />
             ) : (
                 <EmployeeTable
                     employees={filteredEmployees}
@@ -294,13 +367,29 @@ export default function PersonnelPage() {
                 />
             )}
 
-            {/* Quick Add Dialog */}
+            {/* Quick Add Dialog (standard employees) */}
             <EmployeeQuickAdd
                 open={quickAddOpen}
                 onOpenChange={setQuickAddOpen}
                 onSubmit={handleQuickAddSubmit}
                 onAdvancedMode={handleSwitchToAdvanced}
                 isLoading={createEmployee.isPending}
+            />
+
+            {/* Technicien Quick Add Dialog (intervention businesses) */}
+            <TechnicienQuickAdd
+                open={technicienAddOpen}
+                onOpenChange={setTechnicienAddOpen}
+                onSubmit={handleTechnicienSubmit}
+                camionnettes={camionnettes
+                    .filter(c => c.nom && c.immatriculation)
+                    .map(c => ({
+                        id: c.id,
+                        nom: c.nom!,
+                        immatriculation: c.immatriculation,
+                    }))}
+                isLoading={createTechnicien.isPending}
+                businessLabel={technicienLabel}
             />
 
             {/* Wizard Dialog (Edit or Advanced Create) */}

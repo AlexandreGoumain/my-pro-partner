@@ -149,6 +149,35 @@ export async function hasAnyCapability(
     }
 }
 
+/**
+ * Middleware bloquant - vérifie que l'entreprise a au moins une des capabilities
+ *
+ * @example
+ * const check = await requireAnyCapability("domicile", "atelier");
+ * if (check) return check;
+ */
+export async function requireAnyCapability(
+    ...capabilities: Capability[]
+): Promise<NextResponse | null> {
+    const { entreprise } = await requireTenantAuth();
+    const businessType = entreprise.businessType as BusinessType;
+
+    if (!CapabilityService.hasAnyCapability(businessType, capabilities)) {
+        return createForbiddenResponse(
+            "Fonctionnalité non disponible pour votre type d'entreprise",
+            {
+                requiredCapabilities: capabilities,
+                requiresAnyOf: true,
+                currentType: businessType,
+                availableCapabilities:
+                    CapabilityService.getCapabilitiesForType(businessType),
+            }
+        );
+    }
+
+    return null;
+}
+
 // ============================================
 // Vérifications par Catégorie
 // ============================================
