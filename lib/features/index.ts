@@ -59,7 +59,7 @@ export const ClientsFeature: FeatureModule = {
             {
                 label: "Nouveau client",
                 icon: "Plus",
-                href: "/dashboard/clients/new",
+                href: "/dashboard/clients?action=new",
                 order: 1,
             },
         ],
@@ -209,6 +209,111 @@ export const CreditsFeature: FeatureModule = {
 // SERVICES & APPOINTMENTS
 // ============================================
 
+export const AgendaFeature: FeatureModule = {
+    id: "agenda",
+    name: "Agenda",
+    navigation: {
+        main: {
+            icon: "CalendarDays",
+            label: "Agenda",
+            href: "/dashboard/agenda",
+            order: 5,
+        },
+        quickActions: [
+            {
+                label: "Nouveau RDV",
+                icon: "Plus",
+                href: "/dashboard/agenda?action=new",
+                order: 1,
+            },
+        ],
+    },
+    routes: ["/dashboard/agenda"],
+    dependencies: ["clients"],
+    i18n: {
+        singular: "Rendez-vous",
+        plural: "Agenda",
+    },
+};
+
+export const PrestationsFeature: FeatureModule = {
+    id: "prestations",
+    name: "Prestations",
+    navigation: {
+        main: {
+            icon: "Scissors",
+            label: "Prestations",
+            href: "/dashboard/prestations",
+            order: 15,
+        },
+        quickActions: [
+            {
+                label: "Nouvelle prestation",
+                icon: "Plus",
+                href: "/dashboard/prestations?action=new",
+                order: 2,
+            },
+        ],
+    },
+    routes: ["/dashboard/prestations"],
+    i18n: {
+        singular: "Prestation",
+        plural: "Prestations",
+    },
+};
+
+export const EquipeFeature: FeatureModule = {
+    id: "equipe",
+    name: "Équipe",
+    navigation: {
+        main: {
+            icon: "Users",
+            label: "Équipe",
+            href: "/dashboard/equipe",
+            order: 20,
+        },
+        quickActions: [
+            {
+                label: "Nouvel employé",
+                icon: "Plus",
+                href: "/dashboard/equipe?action=new",
+                order: 3,
+            },
+        ],
+    },
+    routes: ["/dashboard/equipe"],
+    i18n: {
+        singular: "Employé",
+        plural: "Équipe",
+    },
+};
+
+export const CabinesFeature: FeatureModule = {
+    id: "cabines",
+    name: "Cabines",
+    navigation: {
+        main: {
+            icon: "DoorOpen",
+            label: "Cabines",
+            href: "/dashboard/cabines",
+            order: 22,
+        },
+        quickActions: [
+            {
+                label: "Nouvelle cabine",
+                icon: "Plus",
+                href: "/dashboard/cabines?action=new",
+                order: 4,
+            },
+        ],
+    },
+    routes: ["/dashboard/cabines"],
+    i18n: {
+        singular: "Cabine",
+        plural: "Cabines",
+    },
+};
+
 export const ReservationsFeature: FeatureModule = {
     id: "reservations",
     name: "Réservations",
@@ -249,8 +354,23 @@ export const TablesFeature: FeatureModule = {
 export const MenuFeature: FeatureModule = {
     id: "menu",
     name: "Menu & Carte",
-    dependencies: ["products"],
-    routes: ["/dashboard/catalogue"],
+    navigation: {
+        main: {
+            icon: "ChefHat",
+            label: "Menu & Carte",
+            href: "/dashboard/menu",
+            order: 15,
+        },
+        quickActions: [
+            {
+                label: "Nouveau plat",
+                icon: "Plus",
+                href: "/dashboard/menu/new",
+                order: 1,
+            },
+        ],
+    },
+    routes: ["/dashboard/menu", "/dashboard/menu/new", "/dashboard/menu/[id]"],
     i18n: {
         singular: "Plat",
         plural: "Menu & Carte",
@@ -273,7 +393,7 @@ export const POSFeature: FeatureModule = {
         },
     },
     routes: ["/dashboard/pos"],
-    dependencies: ["products", "clients"],
+    dependencies: ["clients"],
     permissions: ["canProcessSales"],
 };
 
@@ -868,6 +988,176 @@ export const EntretiensPlanifierFeature: FeatureModule = {
 };
 
 // ============================================
+// FITNESS / GYM SPECIFIC
+// ============================================
+
+export const AbonnementsFitnessFeature: FeatureModule = {
+    id: "abonnements-fitness",
+    name: "Abonnements",
+    navigation: {
+        main: {
+            icon: "CreditCard",
+            label: "Abonnements",
+            href: "/dashboard/fitness/abonnements",
+            order: 15,
+        },
+        subItems: [
+            {
+                label: "Tous les abonnements",
+                href: "/dashboard/fitness/abonnements",
+                order: 0,
+            },
+            {
+                label: "Types d'abonnements",
+                href: "/dashboard/fitness/types-abonnements",
+                order: 1,
+            },
+        ],
+        quickActions: [
+            {
+                label: "Nouvel abonnement",
+                icon: "Plus",
+                href: "/dashboard/fitness/abonnements?action=new",
+                order: 1,
+            },
+        ],
+    },
+    routes: [
+        "/dashboard/fitness/abonnements",
+        "/dashboard/fitness/abonnements/[id]",
+        "/dashboard/fitness/types-abonnements",
+    ],
+    i18n: {
+        singular: "Abonnement",
+        plural: "Abonnements",
+    },
+};
+
+export const CoursFitnessFeature: FeatureModule = {
+    id: "cours-fitness",
+    name: "Cours collectifs",
+    navigation: {
+        main: {
+            icon: "Users",
+            label: "Cours",
+            href: "/dashboard/fitness/cours",
+            order: 20,
+        },
+        subItems: [
+            {
+                label: "Tous les cours",
+                href: "/dashboard/fitness/cours",
+                order: 0,
+            },
+            {
+                label: "Planning",
+                href: "/dashboard/fitness/planning",
+                order: 1,
+            },
+        ],
+        quickActions: [
+            {
+                label: "Nouveau cours",
+                icon: "Plus",
+                href: "/dashboard/fitness/cours?action=new",
+                order: 2,
+            },
+        ],
+    },
+    routes: [
+        "/dashboard/fitness/cours",
+        "/dashboard/fitness/cours/[id]",
+        "/dashboard/fitness/planning",
+    ],
+    i18n: {
+        singular: "Cours",
+        plural: "Cours collectifs",
+    },
+};
+
+export const SallesFitnessFeature: FeatureModule = {
+    id: "salles-fitness",
+    name: "Salles & Zones",
+    navigation: {
+        main: {
+            icon: "DoorOpen",
+            label: "Salles",
+            href: "/dashboard/fitness/salles",
+            order: 25,
+        },
+        quickActions: [
+            {
+                label: "Nouvelle salle",
+                icon: "Plus",
+                href: "/dashboard/fitness/salles?action=new",
+                order: 3,
+            },
+        ],
+    },
+    routes: ["/dashboard/fitness/salles", "/dashboard/fitness/salles/[id]"],
+    i18n: {
+        singular: "Salle",
+        plural: "Salles & Zones",
+    },
+};
+
+export const CheckInFeature: FeatureModule = {
+    id: "check-in",
+    name: "Check-in & Présences",
+    navigation: {
+        main: {
+            icon: "UserCheck",
+            label: "Check-in",
+            href: "/dashboard/fitness/check-in",
+            order: 5,
+        },
+        subItems: [
+            {
+                label: "Check-in",
+                href: "/dashboard/fitness/check-in",
+                order: 1,
+            },
+            {
+                label: "Historique présences",
+                href: "/dashboard/fitness/presences",
+                order: 2,
+            },
+        ],
+    },
+    routes: ["/dashboard/fitness/check-in", "/dashboard/fitness/presences"],
+    i18n: {
+        singular: "Présence",
+        plural: "Check-in",
+    },
+};
+
+export const CoachsFeature: FeatureModule = {
+    id: "coachs",
+    name: "Coachs & Instructeurs",
+    navigation: {
+        main: {
+            icon: "Dumbbell",
+            label: "Coachs",
+            href: "/dashboard/fitness/coachs",
+            order: 35,
+        },
+        quickActions: [
+            {
+                label: "Nouveau coach",
+                icon: "Plus",
+                href: "/dashboard/fitness/coachs?action=new",
+                order: 4,
+            },
+        ],
+    },
+    routes: ["/dashboard/fitness/coachs", "/dashboard/fitness/coachs/[id]"],
+    i18n: {
+        singular: "Coach",
+        plural: "Coachs",
+    },
+};
+
+// ============================================
 // FEATURE CATALOG
 // ============================================
 
@@ -886,6 +1176,10 @@ export const FEATURE_CATALOG: Record<string, FeatureModule> = {
     credits: CreditsFeature,
 
     // Services & Appointments
+    agenda: AgendaFeature,
+    prestations: PrestationsFeature,
+    equipe: EquipeFeature,
+    cabines: CabinesFeature,
     reservations: ReservationsFeature,
     tables: TablesFeature,
     menu: MenuFeature,
@@ -924,6 +1218,13 @@ export const FEATURE_CATALOG: Record<string, FeatureModule> = {
     flotte: FlotteFeature,
     equipements: EquipementsFeature,
     "entretiens-planifier": EntretiensPlanifierFeature,
+
+    // Fitness / Gym specific
+    "abonnements-fitness": AbonnementsFitnessFeature,
+    "cours-fitness": CoursFitnessFeature,
+    "salles-fitness": SallesFitnessFeature,
+    "check-in": CheckInFeature,
+    coachs: CoachsFeature,
 
     // Finance
     payments: PaymentsFeature,
