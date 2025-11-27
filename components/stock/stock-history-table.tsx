@@ -1,17 +1,8 @@
 "use client";
 
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -20,6 +11,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import {
     Table,
     TableBody,
@@ -28,7 +20,6 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { useDeleteStockMouvement } from "@/hooks/use-stock";
 import { getMovementConfig } from "@/lib/constants/stock-movements";
 import type { MouvementStockDisplay } from "@/lib/types/stock";
@@ -97,9 +88,17 @@ export function StockHistoryTable({
                 <Table>
                     <TableHeader>
                         <TableRow className="bg-black/[0.02] hover:bg-black/[0.02]">
-                            <TableHead className="text-[13px] font-medium text-black/70">Date</TableHead>
-                            {showArticle && <TableHead className="text-[13px] font-medium text-black/70">Article</TableHead>}
-                            <TableHead className="text-[13px] font-medium text-black/70">Type</TableHead>
+                            <TableHead className="text-[13px] font-medium text-black/70">
+                                Date
+                            </TableHead>
+                            {showArticle && (
+                                <TableHead className="text-[13px] font-medium text-black/70">
+                                    Article
+                                </TableHead>
+                            )}
+                            <TableHead className="text-[13px] font-medium text-black/70">
+                                Type
+                            </TableHead>
                             <TableHead className="text-right text-[13px] font-medium text-black/70">
                                 Quantité
                             </TableHead>
@@ -109,8 +108,12 @@ export function StockHistoryTable({
                             <TableHead className="text-right text-[13px] font-medium text-black/70">
                                 Stock après
                             </TableHead>
-                            <TableHead className="text-[13px] font-medium text-black/70">Motif</TableHead>
-                            <TableHead className="text-[13px] font-medium text-black/70">Référence</TableHead>
+                            <TableHead className="text-[13px] font-medium text-black/70">
+                                Motif
+                            </TableHead>
+                            <TableHead className="text-[13px] font-medium text-black/70">
+                                Référence
+                            </TableHead>
                             <TableHead className="w-[50px]"></TableHead>
                         </TableRow>
                     </TableHeader>
@@ -118,7 +121,10 @@ export function StockHistoryTable({
                         {mouvements.map((mouvement) => {
                             const config = getMovementConfig(mouvement.type);
                             return (
-                                <TableRow key={mouvement.id} className="hover:bg-black/[0.02] transition-colors">
+                                <TableRow
+                                    key={mouvement.id}
+                                    className="hover:bg-black/[0.02] transition-colors"
+                                >
                                     <TableCell className="text-[13px] font-medium text-black">
                                         {format(
                                             new Date(mouvement.createdAt),
@@ -174,7 +180,10 @@ export function StockHistoryTable({
                                                     <span className="sr-only">
                                                         Ouvrir le menu
                                                     </span>
-                                                    <MoreHorizontal className="h-4 w-4" strokeWidth={2} />
+                                                    <MoreHorizontal
+                                                        className="h-4 w-4"
+                                                        strokeWidth={2}
+                                                    />
                                                 </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
@@ -190,7 +199,10 @@ export function StockHistoryTable({
                                                     }
                                                     className="text-destructive text-[13px]"
                                                 >
-                                                    <Trash2 className="mr-2 h-4 w-4" strokeWidth={2} />
+                                                    <Trash2
+                                                        className="mr-2 h-4 w-4"
+                                                        strokeWidth={2}
+                                                    />
                                                     Annuler le mouvement
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>
@@ -203,34 +215,15 @@ export function StockHistoryTable({
                 </Table>
             </div>
 
-            <AlertDialog
+            <ConfirmDialog
                 open={!!deleteId}
                 onOpenChange={() => setDeleteId(null)}
-            >
-                <AlertDialogContent className="border-black/[0.08]">
-                    <AlertDialogHeader>
-                        <AlertDialogTitle className="text-[18px] font-semibold tracking-[-0.02em] text-black">
-                            Annuler ce mouvement ?
-                        </AlertDialogTitle>
-                        <AlertDialogDescription className="text-[13px] text-black/70">
-                            Cette action va créer un mouvement compensatoire
-                            pour annuler cet enregistrement. Le stock de
-                            l&apos;article sera ajusté en conséquence.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel className="border-black/10 hover:bg-black/5 text-[14px] font-medium">
-                            Annuler
-                        </AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={handleDelete}
-                            className="bg-black hover:bg-black/90 text-white text-[14px] font-medium"
-                        >
-                            Confirmer
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+                onConfirm={handleDelete}
+                title="Annuler ce mouvement ?"
+                description="Cette action va créer un mouvement compensatoire pour annuler cet enregistrement. Le stock de l'article sera ajusté en conséquence."
+                confirmLabel="Confirmer"
+                isLoading={deleteMouvement.isPending}
+            />
         </>
     );
 }

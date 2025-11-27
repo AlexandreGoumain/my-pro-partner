@@ -1,6 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { MetadataField } from "@/components/ui/metadata-field";
 import { Euro } from "lucide-react";
 
 interface RepairCostBreakdownProps {
@@ -26,38 +27,27 @@ export function RepairCostBreakdown({ reparation }: RepairCostBreakdownProps) {
       <CardContent className="space-y-4">
         {/* Diagnostic */}
         {reparation.diagnostic && (
-          <div>
-            <div className="text-[13px] font-medium text-black/40 mb-1">
-              Diagnostic
-            </div>
-            <div className="text-[14px] text-black whitespace-pre-wrap">
-              {reparation.diagnostic}
-            </div>
-          </div>
+          <MetadataField
+            label="Diagnostic"
+            value={reparation.diagnostic}
+            preserveWhitespace
+          />
         )}
 
         {/* Estimated Cost */}
         {reparation.coutEstime !== null && reparation.coutEstime !== undefined && (
-          <div>
-            <div className="text-[13px] font-medium text-black/40 mb-1">
-              Coût estimé
-            </div>
-            <div className="text-[14px] text-black">
-              {Number(reparation.coutEstime).toFixed(2)} €
-            </div>
-          </div>
+          <MetadataField
+            label="Coût estimé"
+            value={`${Number(reparation.coutEstime).toFixed(2)} €`}
+          />
         )}
 
         {/* Repair Time */}
         {reparation.delaiReparation && (
-          <div>
-            <div className="text-[13px] font-medium text-black/40 mb-1">
-              Délai de réparation estimé
-            </div>
-            <div className="text-[14px] text-black">
-              {reparation.delaiReparation} jour{reparation.delaiReparation > 1 ? "s" : ""}
-            </div>
-          </div>
+          <MetadataField
+            label="Délai de réparation estimé"
+            value={`${reparation.delaiReparation} jour${reparation.delaiReparation > 1 ? "s" : ""}`}
+          />
         )}
 
         {/* Cost Breakdown */}

@@ -1,17 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import type { Employee } from "@/hooks/use-employees";
-import type { StatutEmploye, TypeContrat } from "@/lib/types/personnel.types";
-import { STATUT_LABELS, TYPE_CONTRAT_LABELS } from "@/lib/types/personnel.types";
-import {
-    Dialog,
-    DialogContent,
-    DialogFooter,
-} from "@/components/ui/dialog";
+import { DatePicker } from "@/components/ui/date-picker";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { DialogActionButtons } from "@/components/ui/dialog-action-buttons";
+import { DialogHeaderSection } from "@/components/ui/dialog-header-section";
 import {
     Form,
     FormControl,
@@ -20,6 +12,7 @@ import {
     FormLabel,
     FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import {
     Select,
     SelectContent,
@@ -27,12 +20,16 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { PrimaryActionButton } from "@/components/ui/primary-action-button";
-import { DialogHeaderSection } from "@/components/ui/dialog-header-section";
-import { DatePicker } from "@/components/ui/date-picker";
+import type { Employee } from "@/hooks/use-employees";
+import {
+    STATUT_LABELS,
+    TYPE_CONTRAT_LABELS,
+} from "@/lib/types/personnel.types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 // Schema adapté pour le formulaire (avec string dates)
 const employeeFormSchema = z.object({
@@ -47,11 +44,18 @@ const employeeFormSchema = z.object({
     pays: z.string().max(100).default("France"),
     poste: z.string().min(1, "Le poste est requis").max(100),
     departement: z.string().max(100).optional().or(z.literal("")),
-    statut: z.enum(["ACTIF", "CONGE", "MALADIE", "ABSENT", "INACTIF"]).default("ACTIF"),
-    typeContrat: z.enum(["CDI", "CDD", "INTERIM", "APPRENTI", "STAGE", "FREELANCE"]).default("CDI"),
+    statut: z
+        .enum(["ACTIF", "CONGE", "MALADIE", "ABSENT", "INACTIF"])
+        .default("ACTIF"),
+    typeContrat: z
+        .enum(["CDI", "CDD", "INTERIM", "APPRENTI", "STAGE", "FREELANCE"])
+        .default("CDI"),
     dateEmbauche: z.string().min(1, "La date d'embauche est requise"),
     dateFin: z.string().optional().or(z.literal("")),
-    salaireBrut: z.number().positive("Le salaire doit être positif").max(999999.99),
+    salaireBrut: z
+        .number()
+        .positive("Le salaire doit être positif")
+        .max(999999.99),
     devise: z.string().max(10).default("EUR"),
     heuresHebdo: z.number().int().min(1).max(70).default(35).optional(),
     joursTravail: z.string().max(100).optional().or(z.literal("")),
@@ -120,7 +124,9 @@ export function EmployeeDialog({
                 email: employee.email,
                 telephone: employee.telephone || "",
                 dateNaissance: employee.dateNaissance
-                    ? new Date(employee.dateNaissance).toISOString().split("T")[0]
+                    ? new Date(employee.dateNaissance)
+                          .toISOString()
+                          .split("T")[0]
                     : "",
                 adresse: employee.adresse || "",
                 ville: employee.ville || "",
@@ -130,7 +136,9 @@ export function EmployeeDialog({
                 departement: employee.departement || "",
                 statut: employee.statut,
                 typeContrat: employee.typeContrat,
-                dateEmbauche: new Date(employee.dateEmbauche).toISOString().split("T")[0],
+                dateEmbauche: new Date(employee.dateEmbauche)
+                    .toISOString()
+                    .split("T")[0],
                 dateFin: employee.dateFin
                     ? new Date(employee.dateFin).toISOString().split("T")[0]
                     : "",
@@ -167,7 +175,10 @@ export function EmployeeDialog({
                 />
 
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+                    <form
+                        onSubmit={form.handleSubmit(handleSubmit)}
+                        className="space-y-6"
+                    >
                         {/* Informations personnelles */}
                         <div className="space-y-4">
                             <h3 className="text-[15px] font-medium tracking-[-0.01em] text-black">
@@ -270,8 +281,20 @@ export function EmployeeDialog({
                                         </FormLabel>
                                         <FormControl>
                                             <DatePicker
-                                                date={field.value ? new Date(field.value) : undefined}
-                                                onSelect={(date) => field.onChange(date ? date.toISOString().split("T")[0] : "")}
+                                                date={
+                                                    field.value
+                                                        ? new Date(field.value)
+                                                        : undefined
+                                                }
+                                                onSelect={(date) =>
+                                                    field.onChange(
+                                                        date
+                                                            ? date
+                                                                  .toISOString()
+                                                                  .split("T")[0]
+                                                            : ""
+                                                    )
+                                                }
                                                 placeholder="Sélectionner une date"
                                                 className="border-black/10"
                                             />
@@ -431,8 +454,13 @@ export function EmployeeDialog({
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    {Object.entries(STATUT_LABELS).map(([value, label]) => (
-                                                        <SelectItem key={value} value={value}>
+                                                    {Object.entries(
+                                                        STATUT_LABELS
+                                                    ).map(([value, label]) => (
+                                                        <SelectItem
+                                                            key={value}
+                                                            value={value}
+                                                        >
                                                             {label}
                                                         </SelectItem>
                                                     ))}
@@ -461,8 +489,13 @@ export function EmployeeDialog({
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    {Object.entries(TYPE_CONTRAT_LABELS).map(([value, label]) => (
-                                                        <SelectItem key={value} value={value}>
+                                                    {Object.entries(
+                                                        TYPE_CONTRAT_LABELS
+                                                    ).map(([value, label]) => (
+                                                        <SelectItem
+                                                            key={value}
+                                                            value={value}
+                                                        >
                                                             {label}
                                                         </SelectItem>
                                                     ))}
@@ -485,8 +518,24 @@ export function EmployeeDialog({
                                             </FormLabel>
                                             <FormControl>
                                                 <DatePicker
-                                                    date={field.value ? new Date(field.value) : undefined}
-                                                    onSelect={(date) => field.onChange(date ? date.toISOString().split("T")[0] : "")}
+                                                    date={
+                                                        field.value
+                                                            ? new Date(
+                                                                  field.value
+                                                              )
+                                                            : undefined
+                                                    }
+                                                    onSelect={(date) =>
+                                                        field.onChange(
+                                                            date
+                                                                ? date
+                                                                      .toISOString()
+                                                                      .split(
+                                                                          "T"
+                                                                      )[0]
+                                                                : ""
+                                                        )
+                                                    }
                                                     placeholder="Sélectionner une date"
                                                     className="border-black/10"
                                                 />
@@ -506,8 +555,24 @@ export function EmployeeDialog({
                                             </FormLabel>
                                             <FormControl>
                                                 <DatePicker
-                                                    date={field.value ? new Date(field.value) : undefined}
-                                                    onSelect={(date) => field.onChange(date ? date.toISOString().split("T")[0] : "")}
+                                                    date={
+                                                        field.value
+                                                            ? new Date(
+                                                                  field.value
+                                                              )
+                                                            : undefined
+                                                    }
+                                                    onSelect={(date) =>
+                                                        field.onChange(
+                                                            date
+                                                                ? date
+                                                                      .toISOString()
+                                                                      .split(
+                                                                          "T"
+                                                                      )[0]
+                                                                : ""
+                                                        )
+                                                    }
                                                     placeholder="Sélectionner une date"
                                                     className="border-black/10"
                                                 />
@@ -535,7 +600,11 @@ export function EmployeeDialog({
                                                     className="h-11 border-black/10 focus:border-black/30"
                                                     {...field}
                                                     onChange={(e) =>
-                                                        field.onChange(parseFloat(e.target.value) || 0)
+                                                        field.onChange(
+                                                            parseFloat(
+                                                                e.target.value
+                                                            ) || 0
+                                                        )
                                                     }
                                                 />
                                             </FormControl>
@@ -581,7 +650,11 @@ export function EmployeeDialog({
                                                     className="h-11 border-black/10 focus:border-black/30"
                                                     {...field}
                                                     onChange={(e) =>
-                                                        field.onChange(parseInt(e.target.value) || 35)
+                                                        field.onChange(
+                                                            parseInt(
+                                                                e.target.value
+                                                            ) || 35
+                                                        )
                                                     }
                                                 />
                                             </FormControl>
@@ -634,7 +707,11 @@ export function EmployeeDialog({
                                                     className="h-11 border-black/10 focus:border-black/30"
                                                     {...field}
                                                     onChange={(e) =>
-                                                        field.onChange(parseInt(e.target.value) || 0)
+                                                        field.onChange(
+                                                            parseInt(
+                                                                e.target.value
+                                                            ) || 0
+                                                        )
                                                     }
                                                 />
                                             </FormControl>
@@ -658,7 +735,11 @@ export function EmployeeDialog({
                                                     className="h-11 border-black/10 focus:border-black/30"
                                                     {...field}
                                                     onChange={(e) =>
-                                                        field.onChange(parseInt(e.target.value) || 0)
+                                                        field.onChange(
+                                                            parseInt(
+                                                                e.target.value
+                                                            ) || 0
+                                                        )
                                                     }
                                                 />
                                             </FormControl>
@@ -718,24 +799,14 @@ export function EmployeeDialog({
                             />
                         </div>
 
-                        <DialogFooter>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => onOpenChange(false)}
-                                disabled={isLoading}
-                                className="border-black/10 hover:bg-black/5 h-11 px-6 text-[14px] font-medium"
-                            >
-                                Annuler
-                            </Button>
-                            <PrimaryActionButton type="submit" disabled={isLoading}>
-                                {isLoading
-                                    ? "Enregistrement..."
-                                    : isEditMode
-                                    ? "Enregistrer"
-                                    : "Ajouter l'employé"}
-                            </PrimaryActionButton>
-                        </DialogFooter>
+                        <DialogActionButtons
+                            onCancel={() => onOpenChange(false)}
+                            submitLabel={
+                                isEditMode ? "Enregistrer" : "Ajouter l'employé"
+                            }
+                            isLoading={isLoading}
+                            isEditing={isEditMode}
+                        />
                     </form>
                 </Form>
             </DialogContent>

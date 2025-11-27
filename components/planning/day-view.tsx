@@ -1,6 +1,7 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { IconBox } from "@/components/ui/icon-box";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
     usePlanning,
@@ -173,28 +174,21 @@ export function DayView({
 
     if (plombiers.length === 0) {
         return (
-            <div className="text-center py-12 border border-dashed border-black/10 rounded-xl">
-                <Calendar
-                    className="w-12 h-12 text-black/20 mx-auto mb-4"
-                    strokeWidth={1.5}
-                />
-                <p className="text-[16px] font-medium text-black/60 mb-2">
-                    Aucune intervention planifiée
-                </p>
-                <p className="text-[14px] text-black/40 mb-4">
-                    Planifiez votre première intervention
-                </p>
-                {onNewIntervention && (
-                    <Button
-                        onClick={onNewIntervention}
-                        variant="outline"
-                        className="h-10"
-                    >
-                        <Plus className="w-4 h-4 mr-2" strokeWidth={2} />
-                        Planifier une tournée
-                    </Button>
-                )}
-            </div>
+            <EmptyState
+                icon={Calendar}
+                title="Aucune intervention planifiée"
+                description="Planifiez votre première intervention"
+                action={
+                    onNewIntervention
+                        ? {
+                              label: "Planifier une tournée",
+                              onClick: onNewIntervention,
+                              icon: Plus,
+                          }
+                        : undefined
+                }
+                variant="dashed"
+            />
         );
     }
 
@@ -214,12 +208,12 @@ export function DayView({
                         {/* Plombier Header */}
                         <div className="flex items-center justify-between mb-4 pb-4 border-b border-black/8">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-black/5 flex items-center justify-center">
-                                    <User
-                                        className="w-5 h-5 text-black/60"
-                                        strokeWidth={2}
-                                    />
-                                </div>
+                                <IconBox
+                                    icon={User}
+                                    shape="circle"
+                                    bgColor="bg-black/5"
+                                    iconColor="text-black/60"
+                                />
                                 <div>
                                     <h3 className="text-[16px] font-semibold text-black">
                                         {plombier.name}

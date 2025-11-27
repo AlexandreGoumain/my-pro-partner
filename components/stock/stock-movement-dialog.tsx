@@ -1,13 +1,7 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import type { Article } from "@/lib/types/article";
-import { ButtonWithSpinner } from "@/components/ui/button-with-spinner";
-import {
-    Dialog,
-    DialogContent,
-    DialogFooter,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { DialogActionButtons } from "@/components/ui/dialog-action-buttons";
 import { DialogHeaderSection } from "@/components/ui/dialog-header-section";
 import {
     Form,
@@ -31,11 +25,12 @@ import { useArticles } from "@/hooks/use-articles";
 import { useFormReset } from "@/hooks/use-form-reset";
 import { useCreateStockMouvement } from "@/hooks/use-stock";
 import { STOCK_MOVEMENT_TYPES } from "@/lib/constants/stock-movements";
+import type { Article } from "@/lib/types/article";
+import { toastMessages } from "@/lib/utils/toast-messages";
 import {
     mouvementStockCreateSchema,
     type MouvementStockCreateInput,
 } from "@/lib/validation";
-import { toastMessages } from "@/lib/utils/toast-messages";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -152,19 +147,21 @@ export function StockMovementDialog({
                                         </FormControl>
                                         <SelectContent>
                                             {stockEnabledArticles
-                                                .filter((article) => article.id && article.id.trim() !== "")
-                                                .map(
-                                                    (article) => (
-                                                        <SelectItem
-                                                            key={article.id}
-                                                            value={article.id}
-                                                        >
-                                                            {article.reference} -{" "}
-                                                            {article.nom} (Stock:{" "}
-                                                            {article.stock})
-                                                        </SelectItem>
-                                                    )
-                                                )}
+                                                .filter(
+                                                    (article) =>
+                                                        article.id &&
+                                                        article.id.trim() !== ""
+                                                )
+                                                .map((article) => (
+                                                    <SelectItem
+                                                        key={article.id}
+                                                        value={article.id}
+                                                    >
+                                                        {article.reference} -{" "}
+                                                        {article.nom} (Stock:{" "}
+                                                        {article.stock})
+                                                    </SelectItem>
+                                                ))}
                                         </SelectContent>
                                     </Select>
                                     {selectedArticle && (
@@ -282,22 +279,11 @@ export function StockMovementDialog({
                             </p>
                         )}
 
-                        <DialogFooter>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => onOpenChange(false)}
-                                disabled={createMouvement.isPending}
-                            >
-                                Annuler
-                            </Button>
-                            <ButtonWithSpinner
-                                type="submit"
-                                isLoading={createMouvement.isPending}
-                            >
-                                Créer le mouvement
-                            </ButtonWithSpinner>
-                        </DialogFooter>
+                        <DialogActionButtons
+                            onCancel={() => onOpenChange(false)}
+                            isLoading={createMouvement.isPending}
+                            submitLabel="Créer le mouvement"
+                        />
                     </form>
                 </Form>
             </DialogContent>

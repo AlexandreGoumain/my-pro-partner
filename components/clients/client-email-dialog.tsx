@@ -1,19 +1,14 @@
 "use client";
 
-import {
-    Dialog,
-    DialogContent,
-} from "@/components/ui/dialog";
+import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { DialogActionButtons } from "@/components/ui/dialog-action-buttons";
 import { DialogHeaderSection } from "@/components/ui/dialog-header-section";
-import { Button } from "@/components/ui/button";
-import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card } from "@/components/ui/card";
-import { Mail, User, Send } from "lucide-react";
-import { Spinner } from "@/components/ui/spinner";
 import { useEmailSender } from "@/hooks/use-email-sender";
+import { Mail, User } from "lucide-react";
 
 interface ClientEmailDialogProps {
     open: boolean;
@@ -40,14 +35,21 @@ export function ClientEmailDialog({
         onOpenChange(false);
     };
 
-    const { subject, body, sending, setSubject, setBody, handleSubmit, resetForm } =
-        useEmailSender({
-            recipientId: client?.id || "",
-            recipientType: "client",
-            recipientName: nomComplet,
-            recipientEmail: client?.email || "",
-            onSuccess: handleClose,
-        });
+    const {
+        subject,
+        body,
+        sending,
+        setSubject,
+        setBody,
+        handleSubmit,
+        resetForm,
+    } = useEmailSender({
+        recipientId: client?.id || "",
+        recipientType: "client",
+        recipientName: nomComplet,
+        recipientEmail: client?.email || "",
+        onSuccess: handleClose,
+    });
 
     if (!client) return null;
 
@@ -150,36 +152,13 @@ export function ClientEmailDialog({
                     </Card>
 
                     {/* Actions */}
-                    <div className="flex justify-end gap-3 pt-4">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={handleClose}
-                            disabled={sending}
-                            className="h-11 px-5 text-[14px] border-black/10 hover:bg-black/5"
-                        >
-                            Annuler
-                        </Button>
-                        <PrimaryActionButton
-                            type="submit"
-                            disabled={sending || !subject.trim() || !body.trim()}
-                        >
-                            {sending ? (
-                                <>
-                                    <Spinner className="w-4 h-4 mr-2" />
-                                    Envoi en cours...
-                                </>
-                            ) : (
-                                <>
-                                    <Send
-                                        className="w-4 h-4 mr-2"
-                                        strokeWidth={2}
-                                    />
-                                    Envoyer
-                                </>
-                            )}
-                        </PrimaryActionButton>
-                    </div>
+                    <DialogActionButtons
+                        onCancel={handleClose}
+                        isLoading={sending}
+                        disabled={!subject.trim() || !body.trim()}
+                        submitLabel="Envoyer"
+                        loadingLabel="Envoi en cours..."
+                    />
                 </form>
             </DialogContent>
         </Dialog>

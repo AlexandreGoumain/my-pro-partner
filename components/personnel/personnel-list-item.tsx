@@ -12,8 +12,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { RoleBadge } from "./role-badge";
-import { StatusBadge } from "./status-badge";
+import { InitialsBox } from "@/components/ui/icon-box";
 import { User } from "@/hooks/personnel/use-personnel";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -25,6 +24,8 @@ import {
     Trash2,
     XCircle,
 } from "lucide-react";
+import { RoleBadge } from "./role-badge";
+import { StatusBadge } from "./status-badge";
 
 export interface PersonnelListItemProps {
     user: User;
@@ -43,13 +44,13 @@ export function PersonnelListItem({
         <div className="flex items-center justify-between p-4 border border-black/8 rounded-lg hover:bg-black/2 transition-all duration-200">
             <div className="flex items-center gap-4 flex-1">
                 {/* Avatar */}
-                <div className="h-10 w-10 rounded-full bg-black/5 flex items-center justify-center text-black font-semibold text-[14px]">
-                    {(
-                        user.prenom?.[0] ||
-                        user.name?.[0] ||
-                        user.email[0]
-                    ).toUpperCase()}
-                </div>
+                <InitialsBox
+                    initials={
+                        user.prenom?.[0] || user.name?.[0] || user.email[0]
+                    }
+                    bgColor="bg-black/5"
+                    textColor="text-black"
+                />
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">

@@ -1,16 +1,11 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { InitialsBox } from "@/components/ui/icon-box";
 import { Input } from "@/components/ui/input";
-import { PRIORITE_LABELS, TYPE_INTERVENTION_LABELS } from "@/lib/types/intervention";
+import { TYPE_INTERVENTION_LABELS } from "@/lib/types/intervention";
 import { cn } from "@/lib/utils";
-import {
-    ArrowDown,
-    ArrowUp,
-    Clock,
-    GripVertical,
-    MapPin,
-} from "lucide-react";
+import { ArrowDown, ArrowUp, Clock, MapPin } from "lucide-react";
 import type { InterventionNonPlanifiee } from "./select-interventions-step";
 
 interface InterventionAvecHoraire extends InterventionNonPlanifiee {
@@ -70,7 +65,9 @@ export function OrganiserTourneeStep({
     return (
         <div className="space-y-4">
             <div className="space-y-2">
-                <h3 className="text-[16px] font-medium">Organiser la tournée</h3>
+                <h3 className="text-[16px] font-medium">
+                    Organiser la tournée
+                </h3>
                 <p className="text-[13px] text-black/50">
                     Ordonnez les interventions et définissez les horaires
                 </p>
@@ -119,16 +116,21 @@ export function OrganiserTourneeStep({
                                     size="icon"
                                     className="h-6 w-6"
                                     onClick={() => moveDown(index)}
-                                    disabled={index === interventions.length - 1}
+                                    disabled={
+                                        index === interventions.length - 1
+                                    }
                                 >
                                     <ArrowDown className="w-3 h-3" />
                                 </Button>
                             </div>
 
                             {/* Order number */}
-                            <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-[13px] font-medium">
-                                {index + 1}
-                            </div>
+                            <InitialsBox
+                                initials={String(index + 1)}
+                                size="sm"
+                                bgColor="bg-black"
+                                textColor="text-white"
+                            />
 
                             {/* Intervention info */}
                             <div className="flex-1 min-w-0">

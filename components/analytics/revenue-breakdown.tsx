@@ -1,6 +1,7 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 
 export interface RevenueItem {
     label: string;
@@ -34,7 +35,9 @@ export function RevenueBreakdown({
     };
 
     return (
-        <Card className={`group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500 ${className}`}>
+        <Card
+            className={`group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500 ${className}`}
+        >
             <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             <div className="relative p-6">
                 <div className="mb-6">
@@ -51,9 +54,7 @@ export function RevenueBreakdown({
                         <div key={index}>
                             <div className="flex items-center justify-between mb-2">
                                 <div className="flex items-center gap-2">
-                                    <div
-                                        className="h-2 w-2 rounded-full bg-black"
-                                    />
+                                    <div className="h-2 w-2 rounded-full bg-black" />
                                     <span className="text-[14px] font-medium text-black">
                                         {item.label}
                                     </span>
@@ -83,11 +84,10 @@ export function RevenueBreakdown({
                 </div>
 
                 {items.length === 0 && (
-                    <div className="text-center py-8">
-                        <p className="text-[14px] text-black/40">
-                            Aucune donnée disponible
-                        </p>
-                    </div>
+                    <EmptyState
+                        title="Aucune donnée disponible"
+                        variant="inline"
+                    />
                 )}
             </div>
         </Card>

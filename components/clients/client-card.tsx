@@ -4,6 +4,7 @@ import { memo, useCallback } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ContactInfoRow } from "@/components/ui/contact-info-row";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -121,30 +122,15 @@ export const ClientCard = memo(function ClientCard({
                 {(client.email || client.telephone || localisation) ? (
                     <div className="space-y-3">
                         {client.email && (
-                            <div className="flex items-center gap-3">
-                                <div className="flex items-center justify-center h-7 w-7 rounded-md bg-black/5">
-                                    <Mail className="h-3.5 w-3.5 text-black/60" strokeWidth={2} />
-                                </div>
-                                <p className="text-[13px] text-black/70 truncate flex-1">{client.email}</p>
-                            </div>
+                            <ContactInfoRow icon={Mail} value={client.email} truncate />
                         )}
 
                         {client.telephone && (
-                            <div className="flex items-center gap-3">
-                                <div className="flex items-center justify-center h-7 w-7 rounded-md bg-black/5">
-                                    <Phone className="h-3.5 w-3.5 text-black/60" strokeWidth={2} />
-                                </div>
-                                <p className="text-[13px] text-black/70">{client.telephone}</p>
-                            </div>
+                            <ContactInfoRow icon={Phone} value={client.telephone} />
                         )}
 
                         {localisation && (
-                            <div className="flex items-center gap-3">
-                                <div className="flex items-center justify-center h-7 w-7 rounded-md bg-black/5">
-                                    <MapPin className="h-3.5 w-3.5 text-black/60" strokeWidth={2} />
-                                </div>
-                                <p className="text-[13px] text-black/70 truncate flex-1">{localisation}</p>
-                            </div>
+                            <ContactInfoRow icon={MapPin} value={localisation} truncate />
                         )}
                     </div>
                 ) : (

@@ -1,13 +1,8 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { DialogActionButtons } from "@/components/ui/dialog-action-buttons";
 import { DialogHeaderSection } from "@/components/ui/dialog-header-section";
-import { PrimaryActionButton } from "@/components/ui/primary-action-button";
-import {
-    Dialog,
-    DialogContent,
-    DialogFooter,
-} from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
 import { FormInput } from "@/components/ui/form-input";
 import { useCreateClient } from "@/hooks/use-clients";
@@ -203,24 +198,11 @@ export function ClientCreateDialog({
                             </p>
                         )}
 
-                        <DialogFooter>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => onOpenChange(false)}
-                                className="border-black/10 hover:bg-black/5 h-11 px-6 text-[14px] font-medium"
-                            >
-                                Annuler
-                            </Button>
-                            <PrimaryActionButton
-                                type="submit"
-                                disabled={createClient.isPending}
-                            >
-                                {createClient.isPending
-                                    ? "Création..."
-                                    : "Créer le client"}
-                            </PrimaryActionButton>
-                        </DialogFooter>
+                        <DialogActionButtons
+                            onCancel={() => onOpenChange(false)}
+                            submitLabel="Créer le client"
+                            isLoading={createClient.isPending}
+                        />
                     </form>
                 </Form>
             </DialogContent>

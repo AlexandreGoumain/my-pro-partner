@@ -1,13 +1,12 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import {
     Dialog,
     DialogContent,
-    DialogFooter,
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import { DialogActionButtons } from "@/components/ui/dialog-action-buttons";
 import {
     Form,
     FormControl,
@@ -17,7 +16,6 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import {
     Select,
     SelectContent,
@@ -362,27 +360,14 @@ export function CamionnetteDialog({
                             />
                         )}
 
-                        <DialogFooter>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => onOpenChange(false)}
-                            >
-                                Annuler
-                            </Button>
-                            <PrimaryActionButton
-                                type="submit"
-                                disabled={isPending}
-                            >
-                                {isPending
-                                    ? isEditing
-                                        ? "Modification..."
-                                        : "Création..."
-                                    : isEditing
-                                      ? "Modifier"
-                                      : "Créer le véhicule"}
-                            </PrimaryActionButton>
-                        </DialogFooter>
+                        <DialogActionButtons
+                            onCancel={() => onOpenChange(false)}
+                            isLoading={isPending}
+                            isEditing={isEditing}
+                            submitLabel={
+                                isEditing ? "Modifier" : "Créer le véhicule"
+                            }
+                        />
                     </form>
                 </Form>
             </DialogContent>

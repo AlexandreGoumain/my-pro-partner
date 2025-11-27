@@ -1,19 +1,17 @@
+import { Card, CardContent } from "@/components/ui/card";
 import {
     Dialog,
     DialogContent,
     DialogDescription,
-    DialogFooter,
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { DialogActionButtons } from "@/components/ui/dialog-action-buttons";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent } from "@/components/ui/card";
 import type { CategorieWithCount } from "@/lib/types/category";
 import { Info, Lightbulb } from "lucide-react";
-import { Spinner } from "@/components/ui/spinner";
 
 type Category = CategorieWithCount;
 
@@ -78,7 +76,9 @@ export function CategoryDialog({
                                         <strong className="text-black">
                                             {
                                                 categories.find(
-                                                    (c) => c.id === formData.parentId
+                                                    (c) =>
+                                                        c.id ===
+                                                        formData.parentId
                                                 )?.nom
                                             }
                                         </strong>
@@ -89,8 +89,15 @@ export function CategoryDialog({
                     )}
 
                     <div className="space-y-2">
-                        <Label htmlFor="nom" className="text-[14px] font-medium">
-                            Nom {isSubCategory ? "de la sous-catégorie" : "de la catégorie"} *
+                        <Label
+                            htmlFor="nom"
+                            className="text-[14px] font-medium"
+                        >
+                            Nom{" "}
+                            {isSubCategory
+                                ? "de la sous-catégorie"
+                                : "de la catégorie"}{" "}
+                            *
                         </Label>
                         <Input
                             id="nom"
@@ -120,7 +127,10 @@ export function CategoryDialog({
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="description" className="text-[14px] font-medium">
+                        <Label
+                            htmlFor="description"
+                            className="text-[14px] font-medium"
+                        >
                             Description (optionnel)
                         </Label>
                         <Textarea
@@ -148,9 +158,10 @@ export function CategoryDialog({
                                             Conseil
                                         </p>
                                         <p className="text-black/60">
-                                            Créez d&apos;abord vos catégories principales,
-                                            puis créez des sous-catégories pour mieux
-                                            organiser vos articles.
+                                            Créez d&apos;abord vos catégories
+                                            principales, puis créez des
+                                            sous-catégories pour mieux organiser
+                                            vos articles.
                                         </p>
                                     </div>
                                 </div>
@@ -159,32 +170,14 @@ export function CategoryDialog({
                     )}
                 </div>
 
-                <DialogFooter>
-                    <Button
-                        variant="outline"
-                        onClick={() => onOpenChange(false)}
-                        disabled={isSubmitting}
-                        className="border-black/10"
-                    >
-                        Annuler
-                    </Button>
-                    <Button
-                        onClick={onSubmit}
-                        disabled={!formData.nom.trim() || isSubmitting}
-                        className="bg-black hover:bg-black/90 text-white"
-                    >
-                        {isSubmitting ? (
-                            <>
-                                <Spinner className="mr-2" />
-                                {editMode ? "Enregistrement..." : "Création..."}
-                            </>
-                        ) : editMode ? (
-                            "Enregistrer"
-                        ) : (
-                            "Créer"
-                        )}
-                    </Button>
-                </DialogFooter>
+                <DialogActionButtons
+                    type="button"
+                    onCancel={() => onOpenChange(false)}
+                    onSubmit={onSubmit}
+                    disabled={!formData.nom.trim()}
+                    isLoading={isSubmitting}
+                    isEditing={editMode}
+                />
             </DialogContent>
         </Dialog>
     );

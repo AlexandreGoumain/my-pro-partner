@@ -2,10 +2,10 @@ import {
     Dialog,
     DialogContent,
     DialogDescription,
-    DialogFooter,
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import { DialogActionButtons } from "@/components/ui/dialog-action-buttons";
 import {
     Form,
     FormControl,
@@ -16,10 +16,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { PrimaryActionButton } from "@/components/ui/primary-action-button";
-import type { UseFormReturn } from "react-hook-form";
 import type { NiveauFideliteCreateInput } from "@/lib/validation";
+import type { UseFormReturn } from "react-hook-form";
 
 export interface LoyaltyLevelDialogProps {
     open: boolean;
@@ -141,7 +139,9 @@ export function LoyaltyLevelDialog({
                                                 step="0.01"
                                                 onChange={(e) =>
                                                     field.onChange(
-                                                        parseFloat(e.target.value)
+                                                        parseFloat(
+                                                            e.target.value
+                                                        )
                                                     )
                                                 }
                                                 className="h-11 border-black/10"
@@ -194,26 +194,11 @@ export function LoyaltyLevelDialog({
                             )}
                         />
 
-                        <DialogFooter>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => onOpenChange(false)}
-                                className="border-black/10 hover:bg-black/5 h-11 px-6 text-[14px] font-medium"
-                            >
-                                Annuler
-                            </Button>
-                            <PrimaryActionButton
-                                type="submit"
-                                disabled={isSubmitting}
-                            >
-                                {isSubmitting
-                                    ? "Enregistrement..."
-                                    : editMode
-                                    ? "Modifier"
-                                    : "Créer"}
-                            </PrimaryActionButton>
-                        </DialogFooter>
+                        <DialogActionButtons
+                            onCancel={() => onOpenChange(false)}
+                            isLoading={isSubmitting}
+                            isEditing={editMode}
+                        />
                     </form>
                 </Form>
             </DialogContent>

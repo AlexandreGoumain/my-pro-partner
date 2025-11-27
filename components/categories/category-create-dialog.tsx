@@ -1,12 +1,7 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { ButtonWithSpinner } from "@/components/ui/button-with-spinner";
-import {
-    Dialog,
-    DialogContent,
-    DialogFooter,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { DialogActionButtons } from "@/components/ui/dialog-action-buttons";
 import { DialogHeaderSection } from "@/components/ui/dialog-header-section";
 import {
     Form,
@@ -28,11 +23,11 @@ import {
 } from "@/components/ui/select";
 import { useCategories, useCreateCategorie } from "@/hooks/use-categories";
 import { useFormReset } from "@/hooks/use-form-reset";
+import { toastMessages } from "@/lib/utils/toast-messages";
 import {
     categorieCreateSchema,
     type CategorieCreateInput,
 } from "@/lib/validation";
-import { toastMessages } from "@/lib/utils/toast-messages";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
@@ -142,7 +137,12 @@ export function CategoryCreateDialog({
                                                 Aucune (catégorie racine)
                                             </SelectItem>
                                             {categories
-                                                .filter((cat) => !cat.parentId && cat.id && cat.id.trim() !== "") // Seulement les catégories racines avec ID valide
+                                                .filter(
+                                                    (cat) =>
+                                                        !cat.parentId &&
+                                                        cat.id &&
+                                                        cat.id.trim() !== ""
+                                                ) // Seulement les catégories racines avec ID valide
                                                 .map((categorie) => (
                                                     <SelectItem
                                                         key={categorie.id}
@@ -198,22 +198,11 @@ export function CategoryCreateDialog({
                             </p>
                         )}
 
-                        <DialogFooter>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => onOpenChange(false)}
-                                disabled={createCategorie.isPending}
-                            >
-                                Annuler
-                            </Button>
-                            <ButtonWithSpinner
-                                type="submit"
-                                isLoading={createCategorie.isPending}
-                            >
-                                Créer la catégorie
-                            </ButtonWithSpinner>
-                        </DialogFooter>
+                        <DialogActionButtons
+                            onCancel={() => onOpenChange(false)}
+                            submitLabel="Créer la catégorie"
+                            isLoading={createCategorie.isPending}
+                        />
                     </form>
                 </Form>
             </DialogContent>

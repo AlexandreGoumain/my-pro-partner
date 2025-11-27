@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import {
     Collapsible,
     CollapsibleContent,
@@ -10,10 +9,10 @@ import {
     Dialog,
     DialogContent,
     DialogDescription,
-    DialogFooter,
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import { DialogActionButtons } from "@/components/ui/dialog-action-buttons";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -40,7 +39,7 @@ import {
 } from "@/lib/types/intervention";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, Loader2, MapPin, UserPlus, Users } from "lucide-react";
+import { ChevronDown, MapPin, UserPlus, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -395,7 +394,11 @@ export function InterventionDialog({
                                         ] || TYPE_INTERVENTION
                                     ).map((type) => (
                                         <SelectItem key={type} value={type}>
-                                            {TYPE_INTERVENTION_LABELS[type as TypeIntervention]}
+                                            {
+                                                TYPE_INTERVENTION_LABELS[
+                                                    type as TypeIntervention
+                                                ]
+                                            }
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -613,26 +616,12 @@ export function InterventionDialog({
                     )}
 
                     {/* Actions */}
-                    <DialogFooter className="pt-2">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => onOpenChange(false)}
-                            className="h-11 px-6 border-black/10 hover:bg-black/5"
-                        >
-                            Annuler
-                        </Button>
-                        <Button
-                            type="submit"
-                            disabled={isLoading}
-                            className="h-11 px-6 bg-black hover:bg-black/90"
-                        >
-                            {isLoading && (
-                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            )}
-                            Créer
-                        </Button>
-                    </DialogFooter>
+                    <DialogActionButtons
+                        onCancel={() => onOpenChange(false)}
+                        submitLabel="Créer"
+                        isLoading={isLoading}
+                        className="pt-2"
+                    />
                 </form>
             </DialogContent>
         </Dialog>

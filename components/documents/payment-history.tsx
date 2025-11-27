@@ -1,6 +1,7 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
+import { ListItemRow } from "@/components/ui/list-item-row";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { CreditCard, Banknote, Building2 } from "lucide-react";
@@ -91,37 +92,23 @@ export function PaymentHistory({ payments, resteAPayer, totalTTC }: PaymentHisto
                         const label = PAYMENT_LABELS[payment.moyen_paiement as keyof typeof PAYMENT_LABELS] || payment.moyen_paiement;
 
                         return (
-                            <div
+                            <ListItemRow
                                 key={payment.id}
-                                className="flex items-start gap-3 p-3 rounded-md border border-black/5 bg-black/2"
-                            >
-                                <div className="mt-0.5">
-                                    <Icon className="w-4 h-4 text-black/40" strokeWidth={2} />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex items-center justify-between mb-1">
-                                        <span className="text-[13px] font-medium text-black">
-                                            {label}
-                                        </span>
-                                        <span className="text-[14px] font-semibold text-black">
-                                            {formatCurrency(Number(payment.montant))}
-                                        </span>
-                                    </div>
-                                    <div className="text-[12px] text-black/60">
-                                        {format(new Date(payment.date_paiement), "dd MMMM yyyy", { locale: fr })}
-                                    </div>
-                                    {payment.reference && (
-                                        <div className="text-[12px] text-black/40 mt-1">
-                                            Réf: {payment.reference}
-                                        </div>
-                                    )}
-                                    {payment.notes && (
-                                        <div className="text-[12px] text-black/60 mt-1">
-                                            {payment.notes}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
+                                icon={Icon}
+                                label={label}
+                                value={formatCurrency(Number(payment.montant))}
+                                details={format(new Date(payment.date_paiement), "dd MMMM yyyy", { locale: fr })}
+                                extra={
+                                    <>
+                                        {payment.reference && (
+                                            <div className="text-[12px] text-black/40">Réf: {payment.reference}</div>
+                                        )}
+                                        {payment.notes && (
+                                            <div className="text-[12px] text-black/60">{payment.notes}</div>
+                                        )}
+                                    </>
+                                }
+                            />
                         );
                     })}
                 </div>
