@@ -1,39 +1,47 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { Button } from "@/components/ui/button";
-import { EmployeeStatsCard } from "@/components/personnel/employee-stats-card";
 import { EmployeeFilters } from "@/components/personnel/employee-filters";
-import { EmployeeTable } from "@/components/personnel/employee-table";
-import { TechnicienTable } from "@/components/personnel/technicien-table";
-import { EmployeeQuickAdd, type QuickAddFormData } from "@/components/personnel/employee-quick-add";
-import { EmployeeWizard, type WizardFormData } from "@/components/personnel/employee-wizard";
-import { TechnicienQuickAdd, type TechnicienFormData } from "@/components/personnel/technicien-quick-add";
 import {
+    EmployeeQuickAdd,
+    type QuickAddFormData,
+} from "@/components/personnel/employee-quick-add";
+import { EmployeeStatsCard } from "@/components/personnel/employee-stats-card";
+import { EmployeeTable } from "@/components/personnel/employee-table";
+import {
+    EmployeeWizard,
+    type WizardFormData,
+} from "@/components/personnel/employee-wizard";
+import {
+    TechnicienQuickAdd,
+    type TechnicienFormData,
+} from "@/components/personnel/technicien-quick-add";
+import { TechnicienTable } from "@/components/personnel/technicien-table";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { PageHeader } from "@/components/ui/page-header";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
+import { useCapabilities } from "@/hooks/use-capabilities";
+import {
+    useCreateEmployee,
+    useDeleteEmployee,
     useEmployees,
     useEmployeesStats,
-    useCreateEmployee,
     useUpdateEmployee,
-    useDeleteEmployee,
     type Employee,
 } from "@/hooks/use-employees";
-import { useTechniciens, useCreateTechnicien } from "@/hooks/use-techniciens";
 import { useFlotte } from "@/hooks/use-flotte";
-import { useCapabilities } from "@/hooks/use-capabilities";
-import { formatCurrency } from "@/lib/utils/format";
-import { Users, UserCheck, UserX, Calendar, TrendingUp, Wrench } from "lucide-react";
+import { useCreateTechnicien, useTechniciens } from "@/hooks/use-techniciens";
 import type { EmployeeSortBy, SortOrder } from "@/lib/types/personnel.types";
-import { toast } from "sonner";
+import { formatCurrency } from "@/lib/utils/format";
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+    Calendar,
+    TrendingUp,
+    UserCheck,
+    Users,
+    UserX,
+    Wrench,
+} from "lucide-react";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 export default function PersonnelPage() {
     // Business type detection
@@ -53,13 +61,19 @@ export default function PersonnelPage() {
     const [quickAddOpen, setQuickAddOpen] = useState(false);
     const [technicienAddOpen, setTechnicienAddOpen] = useState(false);
     const [wizardOpen, setWizardOpen] = useState(false);
-    const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+    const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(
+        null
+    );
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    const [employeeToDelete, setEmployeeToDelete] = useState<Employee | null>(null);
+    const [employeeToDelete, setEmployeeToDelete] = useState<Employee | null>(
+        null
+    );
 
     // Hooks
-    const { data: employees = [], isLoading: isLoadingEmployees } = useEmployees();
-    const { data: techniciensData, isLoading: isLoadingTechniciens } = useTechniciens();
+    const { data: employees = [], isLoading: isLoadingEmployees } =
+        useEmployees();
+    const { data: techniciensData, isLoading: isLoadingTechniciens } =
+        useTechniciens();
     const { data: stats, isLoading: isLoadingStats } = useEmployeesStats();
     const createEmployee = useCreateEmployee();
     const updateEmployee = useUpdateEmployee();
@@ -116,7 +130,9 @@ export default function PersonnelPage() {
 
         // Contract filter
         if (contractFilter !== "all") {
-            filtered = filtered.filter((emp) => emp.typeContrat === contractFilter);
+            filtered = filtered.filter(
+                (emp) => emp.typeContrat === contractFilter
+            );
         }
 
         // Sort
@@ -191,10 +207,14 @@ export default function PersonnelPage() {
     const handleTechnicienSubmit = async (data: TechnicienFormData) => {
         try {
             await createTechnicien.mutateAsync(data);
-            toast.success(`${technicienLabel} ajouté - Invitation envoyée par email`);
+            toast.success(
+                `${technicienLabel} ajouté - Invitation envoyée par email`
+            );
             setTechnicienAddOpen(false);
         } catch (_error) {
-            toast.error(`Erreur lors de l'ajout du ${technicienLabel.toLowerCase()}`);
+            toast.error(
+                `Erreur lors de l'ajout du ${technicienLabel.toLowerCase()}`
+            );
         }
     };
 
@@ -226,7 +246,9 @@ export default function PersonnelPage() {
             const formattedData = {
                 ...data,
                 dateEmbauche: new Date(data.dateEmbauche),
-                dateNaissance: data.dateNaissance ? new Date(data.dateNaissance) : undefined,
+                dateNaissance: data.dateNaissance
+                    ? new Date(data.dateNaissance)
+                    : undefined,
                 dateFin: data.dateFin ? new Date(data.dateFin) : undefined,
             };
 
@@ -269,32 +291,31 @@ export default function PersonnelPage() {
 
     return (
         <div className="flex flex-col gap-8 p-8">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-black">
-                        {isIntervention ? "Équipe terrain" : "Gestion du Personnel"}
-                    </h1>
-                    <p className="text-[14px] text-black/40 mt-1">
-                        {isIntervention
-                            ? `Gérez vos ${technicienLabel.toLowerCase()}s et leurs affectations`
-                            : "Vue d'ensemble et gestion de vos employés"}
-                    </p>
-                </div>
-                <Button
-                    onClick={handleOpenCreateDialog}
-                    className="bg-black hover:bg-black/90 text-white h-11 px-6 text-[14px] font-medium rounded-md shadow-sm"
-                >
-                    {isIntervention ? (
-                        <>
-                            <Wrench className="w-4 h-4 mr-2" strokeWidth={2} />
-                            Ajouter un {technicienLabel.toLowerCase()}
-                        </>
-                    ) : (
-                        "Ajouter un employé"
-                    )}
-                </Button>
-            </div>
+            <PageHeader
+                title={
+                    isIntervention ? "Équipe terrain" : "Gestion du Personnel"
+                }
+                description={
+                    isIntervention
+                        ? `Gérez vos ${technicienLabel.toLowerCase()}s et leurs affectations`
+                        : "Vue d'ensemble et gestion de vos employés"
+                }
+                actions={
+                    <PrimaryActionButton onClick={handleOpenCreateDialog}>
+                        {isIntervention ? (
+                            <>
+                                <Wrench
+                                    className="w-4 h-4 mr-2"
+                                    strokeWidth={2}
+                                />
+                                Ajouter un {technicienLabel.toLowerCase()}
+                            </>
+                        ) : (
+                            "Ajouter un employé"
+                        )}
+                    </PrimaryActionButton>
+                }
+            />
 
             {/* Stats Cards */}
             {!isLoadingStats && stats && (
@@ -349,13 +370,19 @@ export default function PersonnelPage() {
             {/* Table */}
             {isLoading ? (
                 <div className="flex items-center justify-center py-12 border border-black/[0.08] rounded-lg bg-white">
-                    <div className="text-[14px] text-black/40">Chargement...</div>
+                    <div className="text-[14px] text-black/40">
+                        Chargement...
+                    </div>
                 </div>
             ) : isIntervention ? (
                 <TechnicienTable
                     techniciens={techniciens}
-                    onEdit={(t) => handleOpenEditDialog(t as unknown as Employee)}
-                    onDelete={(t) => handleOpenDeleteDialog(t as unknown as Employee)}
+                    onEdit={(t) =>
+                        handleOpenEditDialog(t as unknown as Employee)
+                    }
+                    onDelete={(t) =>
+                        handleOpenDeleteDialog(t as unknown as Employee)
+                    }
                     businessLabel={technicienLabel}
                     showVehicles={hasFlotteAccess}
                 />
@@ -382,8 +409,8 @@ export default function PersonnelPage() {
                 onOpenChange={setTechnicienAddOpen}
                 onSubmit={handleTechnicienSubmit}
                 camionnettes={camionnettes
-                    .filter(c => c.nom && c.immatriculation)
-                    .map(c => ({
+                    .filter((c) => c.nom && c.immatriculation)
+                    .map((c) => ({
                         id: c.id,
                         nom: c.nom!,
                         immatriculation: c.immatriculation,
@@ -402,33 +429,15 @@ export default function PersonnelPage() {
             />
 
             {/* Delete Confirmation Dialog */}
-            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <AlertDialogContent className="bg-white">
-                    <AlertDialogHeader>
-                        <AlertDialogTitle className="text-[20px] font-semibold tracking-[-0.02em] text-black">
-                            Confirmer la suppression
-                        </AlertDialogTitle>
-                        <AlertDialogDescription className="text-[14px] text-black/60">
-                            Êtes-vous sûr de vouloir supprimer l&apos;employé{" "}
-                            <span className="font-medium text-black">
-                                {employeeToDelete?.prenom} {employeeToDelete?.nom}
-                            </span>{" "}
-                            ? Cette action est irréversible.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel className="border-black/10 hover:bg-black/5">
-                            Annuler
-                        </AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={handleDelete}
-                            className="bg-black hover:bg-black/90 text-white"
-                        >
-                            Supprimer
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+            <ConfirmDialog
+                open={deleteDialogOpen}
+                onOpenChange={setDeleteDialogOpen}
+                onConfirm={handleDelete}
+                title="Confirmer la suppression"
+                description={`Êtes-vous sûr de vouloir supprimer l'employé ${employeeToDelete?.prenom} ${employeeToDelete?.nom} ? Cette action est irréversible.`}
+                confirmLabel="Supprimer"
+                isLoading={deleteEmployee.isPending}
+            />
         </div>
     );
 }

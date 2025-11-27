@@ -1,17 +1,13 @@
 "use client";
 
 import { ContratDialog } from "@/components/contrats/contrat-dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { EmptyState } from "@/components/ui/empty-state";
+import { FilterBar } from "@/components/ui/filter-bar";
+import { GridSkeleton } from "@/components/ui/grid-skeleton";
+import { PageHeader } from "@/components/ui/page-header";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { RouteGuard } from "@/components/ui/route-guard";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
+import { StatCard } from "@/components/ui/stat-card";
 import { useContrats, useContratStats } from "@/hooks/use-contrats";
 import {
     STATUT_CONTRAT_LABELS,
@@ -24,7 +20,6 @@ import {
     Calendar,
     FileText,
     Plus,
-    Search,
     TrendingUp,
 } from "lucide-react";
 import { useState } from "react";
@@ -74,214 +69,123 @@ export default function ContratsPage() {
     return (
         <RouteGuard capability="contrats">
             <div className="flex-1 space-y-6 p-6">
-                {/* Header */}
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-black">
-                            Contrats d&apos;Entretien
-                        </h1>
-                        <p className="text-[14px] text-black/40 mt-1">
-                            Gestion des contrats récurrents et maintenances
-                        </p>
-                    </div>
-                    <Button
-                        onClick={() => setDialogOpen(true)}
-                        className="bg-black hover:bg-black/90 text-white h-11 px-6 text-[14px] font-medium rounded-md shadow-sm"
-                    >
-                        <Plus className="w-4 h-4 mr-2" strokeWidth={2} />
-                        Nouveau contrat
-                    </Button>
-                </div>
+                <PageHeader
+                    title="Contrats d'Entretien"
+                    description="Gestion des contrats récurrents et maintenances"
+                    actions={
+                        <PrimaryActionButton
+                            onClick={() => setDialogOpen(true)}
+                        >
+                            <Plus className="w-4 h-4 mr-2" strokeWidth={2} />
+                            Nouveau contrat
+                        </PrimaryActionButton>
+                    }
+                />
 
                 {/* Stats Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="p-5 rounded-xl bg-white border border-black/8 shadow-sm">
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-[12px] font-medium text-black/40 uppercase tracking-wide">
-                                Total contrats
-                            </span>
-                            <div className="w-8 h-8 rounded-lg bg-black/5 flex items-center justify-center">
-                                <FileText
-                                    className="w-4 h-4 text-black/60"
-                                    strokeWidth={2}
-                                />
-                            </div>
-                        </div>
-                        <p className="text-[32px] font-bold text-black tracking-tight">
-                            {stats?.total || 0}
-                        </p>
-                        <p className="text-[12px] text-black/40 mt-1">
-                            contrats signés
-                        </p>
-                    </div>
-
-                    <div className="p-5 rounded-xl bg-white border border-black/8 shadow-sm">
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-[12px] font-medium text-black/40 uppercase tracking-wide">
-                                Contrats actifs
-                            </span>
-                            <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
-                                <TrendingUp
-                                    className="w-4 h-4 text-green-600"
-                                    strokeWidth={2}
-                                />
-                            </div>
-                        </div>
-                        <p className="text-[32px] font-bold text-black tracking-tight">
-                            {stats?.actifs || 0}
-                        </p>
-                        <p className="text-[12px] text-black/40 mt-1">
-                            en cours
-                        </p>
-                    </div>
-
-                    <div className="p-5 rounded-xl bg-white border border-black/8 shadow-sm">
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-[12px] font-medium text-black/40 uppercase tracking-wide">
-                                Révisions ce mois
-                            </span>
-                            <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
-                                <Calendar
-                                    className="w-4 h-4 text-blue-600"
-                                    strokeWidth={2}
-                                />
-                            </div>
-                        </div>
-                        <p className="text-[32px] font-bold text-black tracking-tight">
-                            {stats?.revisionsDuMois || 0}
-                        </p>
-                        <p className="text-[12px] text-black/40 mt-1">
-                            à planifier
-                        </p>
-                    </div>
-
-                    <div className="p-5 rounded-xl bg-white border border-black/8 shadow-sm">
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-[12px] font-medium text-black/40 uppercase tracking-wide">
-                                MRR
-                            </span>
-                            <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
-                                <TrendingUp
-                                    className="w-4 h-4 text-emerald-600"
-                                    strokeWidth={2}
-                                />
-                            </div>
-                        </div>
-                        <p className="text-[32px] font-bold text-black tracking-tight">
-                            {(stats?.revenusRecurrents || 0).toFixed(0)}€
-                        </p>
-                        <p className="text-[12px] text-black/40 mt-1">
-                            revenus mensuels
-                        </p>
-                    </div>
+                    <StatCard
+                        icon={FileText}
+                        label="Total contrats"
+                        value={stats?.total || 0}
+                        description="contrats signés"
+                    />
+                    <StatCard
+                        icon={TrendingUp}
+                        label="Contrats actifs"
+                        value={stats?.actifs || 0}
+                        description="en cours"
+                    />
+                    <StatCard
+                        icon={Calendar}
+                        label="Révisions ce mois"
+                        value={stats?.revisionsDuMois || 0}
+                        description="à planifier"
+                    />
+                    <StatCard
+                        icon={TrendingUp}
+                        label="MRR"
+                        value={`${(stats?.revenusRecurrents || 0).toFixed(0)}€`}
+                        description="revenus mensuels"
+                    />
                 </div>
 
                 {/* Filters */}
-                <div className="flex flex-col sm:flex-row gap-3">
-                    <div className="relative flex-1">
-                        <Search
-                            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-black/40"
-                            strokeWidth={2}
-                        />
-                        <Input
-                            placeholder="Rechercher par client, numéro..."
-                            value={searchInput}
-                            onChange={(e) => setSearchInput(e.target.value)}
-                            onKeyDown={(e) =>
-                                e.key === "Enter" && handleSearch()
-                            }
-                            className="pl-9 h-11 border-black/10 bg-white"
-                        />
-                    </div>
-
-                    <Select
-                        value={typeFilter}
-                        onValueChange={(value) =>
-                            setTypeFilter(value as TypeContratEntretien | "ALL")
-                        }
-                    >
-                        <SelectTrigger className="w-[200px] h-11 border-black/10 bg-white">
-                            <SelectValue placeholder="Type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="ALL">Tous les types</SelectItem>
-                            {Object.entries(TYPE_CONTRAT_LABELS).map(
-                                ([value, label]) => (
-                                    <SelectItem key={value} value={value}>
-                                        {label}
-                                    </SelectItem>
-                                )
-                            )}
-                        </SelectContent>
-                    </Select>
-
-                    <Select
-                        value={statutFilter}
-                        onValueChange={(value) =>
-                            setStatutFilter(value as StatutContrat | "ALL")
-                        }
-                    >
-                        <SelectTrigger className="w-[180px] h-11 border-black/10 bg-white">
-                            <SelectValue placeholder="Statut" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="ALL">
-                                Tous les statuts
-                            </SelectItem>
-                            {Object.entries(STATUT_CONTRAT_LABELS).map(
-                                ([value, label]) => (
-                                    <SelectItem key={value} value={value}>
-                                        {label}
-                                    </SelectItem>
-                                )
-                            )}
-                        </SelectContent>
-                    </Select>
-
-                    <Button
-                        onClick={handleSearch}
-                        variant="outline"
-                        className="h-11 px-6 border-black/10 hover:bg-black/5"
-                    >
-                        Filtrer
-                    </Button>
-                </div>
+                <FilterBar
+                    filters={[
+                        {
+                            type: "search",
+                            value: searchInput,
+                            onChange: setSearchInput,
+                            placeholder: "Rechercher par client, numéro...",
+                            className: "flex-1 max-w-none",
+                        },
+                        {
+                            type: "select",
+                            value: typeFilter,
+                            onChange: (value) =>
+                                setTypeFilter(
+                                    value as TypeContratEntretien | "ALL"
+                                ),
+                            placeholder: "Type",
+                            options: [
+                                { value: "ALL", label: "Tous les types" },
+                                ...Object.entries(TYPE_CONTRAT_LABELS).map(
+                                    ([value, label]) => ({
+                                        value,
+                                        label,
+                                    })
+                                ),
+                            ],
+                        },
+                        {
+                            type: "select",
+                            value: statutFilter,
+                            onChange: (value) =>
+                                setStatutFilter(value as StatutContrat | "ALL"),
+                            placeholder: "Statut",
+                            className: "w-[180px]",
+                            options: [
+                                { value: "ALL", label: "Tous les statuts" },
+                                ...Object.entries(STATUT_CONTRAT_LABELS).map(
+                                    ([value, label]) => ({
+                                        value,
+                                        label,
+                                    })
+                                ),
+                            ],
+                        },
+                        {
+                            type: "action",
+                            label: "Filtrer",
+                            onClick: handleSearch,
+                            variant: "outline",
+                            className: "border-black/10 hover:bg-black/5",
+                        },
+                    ]}
+                />
 
                 {/* Contrats List */}
                 <div className="space-y-3">
                     {isLoading ? (
-                        <>
-                            {[...Array(5)].map((_, i) => (
-                                <Skeleton
-                                    key={i}
-                                    className="h-[140px] rounded-xl"
-                                />
-                            ))}
-                        </>
+                        <GridSkeleton
+                            itemCount={5}
+                            gridColumns={{ default: 1 }}
+                            gap={3}
+                            itemHeight="h-[140px]"
+                        />
                     ) : contrats.length === 0 ? (
-                        <div className="text-center py-12 border border-dashed border-black/10 rounded-xl">
-                            <FileText
-                                className="w-12 h-12 text-black/20 mx-auto mb-4"
-                                strokeWidth={1.5}
-                            />
-                            <p className="text-[16px] font-medium text-black/60 mb-2">
-                                Aucun contrat
-                            </p>
-                            <p className="text-[14px] text-black/40 mb-4">
-                                Créez votre premier contrat d&apos;entretien
-                            </p>
-                            <Button
-                                onClick={() => setDialogOpen(true)}
-                                variant="outline"
-                                className="h-10"
-                            >
-                                <Plus
-                                    className="w-4 h-4 mr-2"
-                                    strokeWidth={2}
-                                />
-                                Nouveau contrat
-                            </Button>
-                        </div>
+                        <EmptyState
+                            icon={FileText}
+                            title="Aucun contrat"
+                            description="Créez votre premier contrat d'entretien"
+                            action={{
+                                label: "Nouveau contrat",
+                                onClick: () => setDialogOpen(true),
+                                icon: Plus,
+                            }}
+                            variant="dashed"
+                        />
                     ) : (
                         contrats.map((contrat) => (
                             <div

@@ -1,11 +1,13 @@
 "use client";
 
 import { TableCard } from "@/components/tables/table-card";
+import { TableDialog } from "@/components/tables/table-dialog";
 import { TableStatsGrid } from "@/components/tables/table-stats-grid";
 import { CardSection } from "@/components/ui/card-section";
 import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
 import { PrimaryActionButton } from "@/components/ui/primary-action-button";
+import { RouteGuard } from "@/components/ui/route-guard";
 import { SearchBar } from "@/components/ui/search-bar";
 import {
     Select,
@@ -15,6 +17,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { SuspensePage } from "@/components/ui/suspense-page";
+import { EmptyState } from "@/components/ui/empty-state";
 import { useTablesPage } from "@/hooks/use-tables-page";
 import { TableStatus } from "@/lib/types/table.types";
 import { Plus } from "lucide-react";
@@ -33,6 +36,13 @@ function TablesContent() {
         handleCreate,
         handleTableClick,
         availableZones,
+        createDialogOpen,
+        setCreateDialogOpen,
+        editDialogOpen,
+        setEditDialogOpen,
+        selectedTable,
+        handleCreateSuccess,
+        handleEditSuccess,
     } = useTablesPage();
 
     return (
@@ -118,11 +128,10 @@ function TablesContent() {
                         itemHeight="h-[200px]"
                     />
                 ) : tables.length === 0 ? (
-                    <div className="text-center py-12">
-                        <p className="text-[14px] text-black/40">
-                            Aucune table trouvée
-                        </p>
-                    </div>
+                    <EmptyState
+                        title="Aucune table trouvée"
+                        variant="inline"
+                    />
                 ) : (
                     <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
                         {tables.map((table) => (
@@ -135,22 +144,39 @@ function TablesContent() {
                     </div>
                 )}
             </CardSection>
+
+            {/* Create Dialog */}
+            <TableDialog
+                open={createDialogOpen}
+                onOpenChange={setCreateDialogOpen}
+                onSuccess={handleCreateSuccess}
+            />
+
+            {/* Edit Dialog */}
+            <TableDialog
+                open={editDialogOpen}
+                onOpenChange={setEditDialogOpen}
+                onSuccess={handleEditSuccess}
+                table={selectedTable}
+            />
         </div>
     );
 }
 
 export default function TablesPage() {
     return (
-        <SuspensePage
-            skeletonProps={{
-                layout: "stats-grid",
-                statsCount: 4,
-                gridColumns: 4,
-                itemCount: 8,
-                itemHeight: "h-[200px]",
-            }}
-        >
-            <TablesContent />
-        </SuspensePage>
+        <RouteGuard capability="tables">
+            <SuspensePage
+                skeletonProps={{
+                    layout: "stats-grid",
+                    statsCount: 4,
+                    gridColumns: 4,
+                    itemCount: 8,
+                    itemHeight: "h-[200px]",
+                }}
+            >
+                <TablesContent />
+            </SuspensePage>
+        </RouteGuard>
     );
 }

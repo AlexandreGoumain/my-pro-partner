@@ -1,23 +1,17 @@
 "use client";
 
 import { EntretienDialog } from "@/components/flotte/entretien-dialog";
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { EmptyState } from "@/components/ui/empty-state";
+import { PageHeader } from "@/components/ui/page-header";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { RouteGuard } from "@/components/ui/route-guard";
 import {
     Select,
@@ -27,12 +21,16 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StatCard } from "@/components/ui/stat-card";
 import {
     useDeleteEntretienVehicule,
     useEntretiensVehicules,
 } from "@/hooks/use-entretiens-vehicules";
 import { useFlotte } from "@/hooks/use-flotte";
-import type { EntretienVehicule, TypeEntretienVehicule } from "@/lib/types/flotte";
+import type {
+    EntretienVehicule,
+    TypeEntretienVehicule,
+} from "@/lib/types/flotte";
 import { TYPE_ENTRETIEN_LABELS } from "@/lib/types/flotte";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -143,86 +141,37 @@ export default function EntretiensPage() {
     return (
         <RouteGuard capability="stock_camionnette">
             <div className="flex-1 space-y-6 p-6">
-                {/* Header */}
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-black">
-                            Entretiens véhicules
-                        </h1>
-                        <p className="text-[14px] text-black/40 mt-1">
-                            Suivi des entretiens et réparations de votre flotte
-                        </p>
-                    </div>
-                    <Button
-                        onClick={handleCreate}
-                        className="bg-black hover:bg-black/90 text-white h-11 px-6 text-[14px] font-medium rounded-md shadow-sm"
-                    >
-                        <Plus className="w-4 h-4 mr-2" strokeWidth={2} />
-                        Nouvel entretien
-                    </Button>
-                </div>
+                <PageHeader
+                    title="Entretiens véhicules"
+                    description="Suivi des entretiens et réparations de votre flotte"
+                    actions={
+                        <PrimaryActionButton onClick={handleCreate}>
+                            <Plus className="w-4 h-4 mr-2" strokeWidth={2} />
+                            Nouvel entretien
+                        </PrimaryActionButton>
+                    }
+                />
 
                 {/* Stats Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="p-5 rounded-xl bg-white border border-black/8 shadow-sm">
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-[12px] font-medium text-black/40 uppercase tracking-wide">
-                                Total entretiens
-                            </span>
-                            <div className="w-8 h-8 rounded-lg bg-black/5 flex items-center justify-center">
-                                <Wrench
-                                    className="w-4 h-4 text-black/60"
-                                    strokeWidth={2}
-                                />
-                            </div>
-                        </div>
-                        <p className="text-[32px] font-bold text-black tracking-tight">
-                            {stats.total}
-                        </p>
-                        <p className="text-[12px] text-black/40 mt-1">
-                            entretiens enregistrés
-                        </p>
-                    </div>
-
-                    <div className="p-5 rounded-xl bg-white border border-black/8 shadow-sm">
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-[12px] font-medium text-black/40 uppercase tracking-wide">
-                                Ce mois
-                            </span>
-                            <div className="w-8 h-8 rounded-lg bg-black/5 flex items-center justify-center">
-                                <Calendar
-                                    className="w-4 h-4 text-black/60"
-                                    strokeWidth={2}
-                                />
-                            </div>
-                        </div>
-                        <p className="text-[32px] font-bold text-black tracking-tight">
-                            {stats.thisMonth}
-                        </p>
-                        <p className="text-[12px] text-black/40 mt-1">
-                            entretiens ce mois
-                        </p>
-                    </div>
-
-                    <div className="p-5 rounded-xl bg-white border border-black/8 shadow-sm">
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-[12px] font-medium text-black/40 uppercase tracking-wide">
-                                Coût total
-                            </span>
-                            <div className="w-8 h-8 rounded-lg bg-black/5 flex items-center justify-center">
-                                <Euro
-                                    className="w-4 h-4 text-black/60"
-                                    strokeWidth={2}
-                                />
-                            </div>
-                        </div>
-                        <p className="text-[32px] font-bold text-black tracking-tight">
-                            {stats.coutTotal.toLocaleString("fr-FR")} €
-                        </p>
-                        <p className="text-[12px] text-black/40 mt-1">
-                            dépenses d&apos;entretien
-                        </p>
-                    </div>
+                    <StatCard
+                        icon={Wrench}
+                        label="Total entretiens"
+                        value={stats.total}
+                        description="entretiens enregistrés"
+                    />
+                    <StatCard
+                        icon={Calendar}
+                        label="Ce mois"
+                        value={stats.thisMonth}
+                        description="entretiens ce mois"
+                    />
+                    <StatCard
+                        icon={Euro}
+                        label="Coût total"
+                        value={`${stats.coutTotal.toLocaleString("fr-FR")} €`}
+                        description="dépenses d'entretien"
+                    />
                 </div>
 
                 {/* Filters */}
@@ -231,12 +180,17 @@ export default function EntretiensPage() {
                         <Filter className="w-4 h-4" strokeWidth={2} />
                         <span>Filtres :</span>
                     </div>
-                    <Select value={filterVehicule} onValueChange={setFilterVehicule}>
+                    <Select
+                        value={filterVehicule}
+                        onValueChange={setFilterVehicule}
+                    >
                         <SelectTrigger className="w-[200px] h-10">
                             <SelectValue placeholder="Tous les véhicules" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">Tous les véhicules</SelectItem>
+                            <SelectItem value="all">
+                                Tous les véhicules
+                            </SelectItem>
                             {camionnettes.map((c) => (
                                 <SelectItem key={c.id} value={c.id}>
                                     {c.immatriculation}
@@ -273,26 +227,17 @@ export default function EntretiensPage() {
                             ))}
                         </>
                     ) : entretiens.length === 0 ? (
-                        <div className="text-center py-12 border border-dashed border-black/10 rounded-xl">
-                            <Wrench
-                                className="w-12 h-12 text-black/20 mx-auto mb-4"
-                                strokeWidth={1.5}
-                            />
-                            <p className="text-[16px] font-medium text-black/60 mb-2">
-                                Aucun entretien
-                            </p>
-                            <p className="text-[14px] text-black/40 mb-4">
-                                Enregistrez le premier entretien d&apos;un véhicule
-                            </p>
-                            <Button
-                                onClick={handleCreate}
-                                variant="outline"
-                                className="h-10"
-                            >
-                                <Plus className="w-4 h-4 mr-2" strokeWidth={2} />
-                                Ajouter un entretien
-                            </Button>
-                        </div>
+                        <EmptyState
+                            icon={Wrench}
+                            title="Aucun entretien"
+                            description="Enregistrez le premier entretien d'un véhicule"
+                            action={{
+                                label: "Ajouter un entretien",
+                                onClick: handleCreate,
+                                icon: Plus,
+                            }}
+                            variant="dashed"
+                        />
                     ) : (
                         entretiens.map((entretien) => (
                             <div
@@ -312,11 +257,17 @@ export default function EntretiensPage() {
                                                 <span
                                                     className={`px-2 py-0.5 rounded-md text-[11px] font-medium ${getTypeColor(entretien.type)}`}
                                                 >
-                                                    {TYPE_ENTRETIEN_LABELS[entretien.type]}
+                                                    {
+                                                        TYPE_ENTRETIEN_LABELS[
+                                                            entretien.type
+                                                        ]
+                                                    }
                                                 </span>
                                                 <span className="text-[14px] text-black/40">
                                                     {format(
-                                                        new Date(entretien.dateEntretien),
+                                                        new Date(
+                                                            entretien.dateEntretien
+                                                        ),
                                                         "d MMMM yyyy",
                                                         { locale: fr }
                                                     )}
@@ -328,12 +279,24 @@ export default function EntretiensPage() {
                                                     strokeWidth={2}
                                                 />
                                                 <span className="text-[15px] font-medium text-black font-mono">
-                                                    {entretien.camionnette?.immatriculation}
+                                                    {
+                                                        entretien.camionnette
+                                                            ?.immatriculation
+                                                    }
                                                 </span>
-                                                {entretien.camionnette?.marque && (
+                                                {entretien.camionnette
+                                                    ?.marque && (
                                                     <span className="text-[13px] text-black/50">
-                                                        {entretien.camionnette.marque}{" "}
-                                                        {entretien.camionnette.modele}
+                                                        {
+                                                            entretien
+                                                                .camionnette
+                                                                .marque
+                                                        }{" "}
+                                                        {
+                                                            entretien
+                                                                .camionnette
+                                                                .modele
+                                                        }
                                                     </span>
                                                 )}
                                             </div>
@@ -349,7 +312,9 @@ export default function EntretiensPage() {
                                         <div className="text-right">
                                             {entretien.cout && (
                                                 <p className="text-[16px] font-semibold text-black">
-                                                    {Number(entretien.cout).toLocaleString(
+                                                    {Number(
+                                                        entretien.cout
+                                                    ).toLocaleString(
                                                         "fr-FR"
                                                     )}{" "}
                                                     €
@@ -382,13 +347,17 @@ export default function EntretiensPage() {
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
                                                 <DropdownMenuItem
-                                                    onClick={() => handleEdit(entretien)}
+                                                    onClick={() =>
+                                                        handleEdit(entretien)
+                                                    }
                                                 >
                                                     <Pencil className="h-4 w-4 mr-2" />
                                                     Modifier
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem
-                                                    onClick={() => handleDelete(entretien)}
+                                                    onClick={() =>
+                                                        handleDelete(entretien)
+                                                    }
                                                     className="text-red-600"
                                                 >
                                                     <Trash2 className="h-4 w-4 mr-2" />
@@ -399,16 +368,22 @@ export default function EntretiensPage() {
                                     </div>
                                 </div>
 
-                                {(entretien.prestataire || entretien.dateProchain) && (
+                                {(entretien.prestataire ||
+                                    entretien.dateProchain) && (
                                     <div className="flex items-center gap-6 mt-4 pt-4 border-t border-black/5 text-[13px] text-black/50">
                                         {entretien.prestataire && (
-                                            <span>Prestataire : {entretien.prestataire}</span>
+                                            <span>
+                                                Prestataire :{" "}
+                                                {entretien.prestataire}
+                                            </span>
                                         )}
                                         {entretien.dateProchain && (
                                             <span>
                                                 Prochain :{" "}
                                                 {format(
-                                                    new Date(entretien.dateProchain),
+                                                    new Date(
+                                                        entretien.dateProchain
+                                                    ),
                                                     "d MMM yyyy",
                                                     { locale: fr }
                                                 )}
@@ -431,33 +406,15 @@ export default function EntretiensPage() {
                 />
 
                 {/* Delete Confirmation Dialog */}
-                <AlertDialog
+                <ConfirmDialog
                     open={deleteDialogOpen}
                     onOpenChange={setDeleteDialogOpen}
-                >
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>
-                                Supprimer cet entretien ?
-                            </AlertDialogTitle>
-                            <AlertDialogDescription>
-                                Cette action est irréversible. L&apos;entretien sera
-                                définitivement supprimé.
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Annuler</AlertDialogCancel>
-                            <AlertDialogAction
-                                onClick={confirmDelete}
-                                className="bg-red-600 hover:bg-red-700"
-                            >
-                                {deleteEntretien.isPending
-                                    ? "Suppression..."
-                                    : "Supprimer"}
-                            </AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
+                    onConfirm={confirmDelete}
+                    title="Supprimer cet entretien ?"
+                    description="Cette action est irréversible. L'entretien sera définitivement supprimé."
+                    confirmLabel="Supprimer"
+                    isLoading={deleteEntretien.isPending}
+                />
             </div>
         </RouteGuard>
     );

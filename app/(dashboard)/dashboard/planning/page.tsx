@@ -6,6 +6,8 @@ import { TourneeDialog } from "@/components/planning/tournee-dialog";
 import { ViewToggle } from "@/components/planning/view-toggle";
 import { WeekView } from "@/components/planning/week-view";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/ui/page-header";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { RouteGuard } from "@/components/ui/route-guard";
 import {
     Select,
@@ -14,20 +16,21 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { StatCard } from "@/components/ui/stat-card";
+import { useCapabilities } from "@/hooks/use-capabilities";
 import { usePlanningRange, type CalendarView } from "@/hooks/use-interventions";
 import {
-    format,
-    startOfWeek,
-    endOfWeek,
-    startOfMonth,
-    endOfMonth,
-    addWeeks,
-    subWeeks,
     addMonths,
+    addWeeks,
+    endOfMonth,
+    endOfWeek,
+    format,
+    startOfMonth,
+    startOfWeek,
     subMonths,
+    subWeeks,
 } from "date-fns";
 import { fr } from "date-fns/locale";
-import { useCapabilities } from "@/hooks/use-capabilities";
 import {
     Calendar,
     ChevronLeft,
@@ -114,12 +117,22 @@ export default function PlanningPage() {
     const navigate = (direction: "prev" | "next") => {
         if (view === "day") {
             const newDate = new Date(selectedDate);
-            newDate.setDate(newDate.getDate() + (direction === "next" ? 1 : -1));
+            newDate.setDate(
+                newDate.getDate() + (direction === "next" ? 1 : -1)
+            );
             setSelectedDate(newDate);
         } else if (view === "week") {
-            setSelectedDate(direction === "next" ? addWeeks(selectedDate, 1) : subWeeks(selectedDate, 1));
+            setSelectedDate(
+                direction === "next"
+                    ? addWeeks(selectedDate, 1)
+                    : subWeeks(selectedDate, 1)
+            );
         } else {
-            setSelectedDate(direction === "next" ? addMonths(selectedDate, 1) : subMonths(selectedDate, 1));
+            setSelectedDate(
+                direction === "next"
+                    ? addMonths(selectedDate, 1)
+                    : subMonths(selectedDate, 1)
+            );
         }
     };
 
@@ -169,120 +182,70 @@ export default function PlanningPage() {
     }, [plombiers]);
 
     // Labels dynamiques selon le business type
-    const labels = PLANNING_LABELS[businessType as keyof typeof PLANNING_LABELS] || PLANNING_LABELS.DEFAULT;
+    const labels =
+        PLANNING_LABELS[businessType as keyof typeof PLANNING_LABELS] ||
+        PLANNING_LABELS.DEFAULT;
 
     return (
         <RouteGuard anyCapability={["domicile", "atelier"]}>
             <div className="flex-1 space-y-6 p-6">
-                {/* Header */}
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-black">
-                            {labels.title}
-                        </h1>
-                        <p className="text-[14px] text-black/40 mt-1">
-                            {labels.description}
-                        </p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <Button
-                            onClick={goToToday}
-                            variant="outline"
-                            className="h-11 px-6 border-black/10 hover:bg-black/5"
-                        >
-                            Aujourd&apos;hui
-                        </Button>
-                        <Button
-                            onClick={() => setDialogOpen(true)}
-                            className="bg-black hover:bg-black/90 text-white h-11 px-6 text-[14px] font-medium rounded-md shadow-sm"
-                        >
-                            <Plus className="w-4 h-4 mr-2" strokeWidth={2} />
-                            {labels.newButton}
-                        </Button>
-                    </div>
-                </div>
+                <PageHeader
+                    title={labels.title}
+                    description={labels.description}
+                    actions={
+                        <div className="flex items-center gap-3">
+                            <Button
+                                onClick={goToToday}
+                                variant="outline"
+                                className="h-11 px-6 border-black/10 hover:bg-black/5"
+                            >
+                                Aujourd&apos;hui
+                            </Button>
+                            <PrimaryActionButton
+                                onClick={() => setDialogOpen(true)}
+                            >
+                                <Plus
+                                    className="w-4 h-4 mr-2"
+                                    strokeWidth={2}
+                                />
+                                {labels.newButton}
+                            </PrimaryActionButton>
+                        </div>
+                    }
+                />
 
                 {/* Stats Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="p-5 rounded-xl bg-white border border-black/8 shadow-sm">
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-[12px] font-medium text-black/40 uppercase tracking-wide">
-                                Interventions
-                            </span>
-                            <div className="w-8 h-8 rounded-lg bg-black/5 flex items-center justify-center">
-                                <Calendar
-                                    className="w-4 h-4 text-black/60"
-                                    strokeWidth={2}
-                                />
-                            </div>
-                        </div>
-                        <p className="text-[32px] font-bold text-black tracking-tight">
-                            {stats.totalInterventions}
-                        </p>
-                        <p className="text-[12px] text-black/40 mt-1">
-                            {view === "day" ? "planifiées ce jour" : view === "week" ? "cette semaine" : "ce mois"}
-                        </p>
-                    </div>
-
-                    <div className="p-5 rounded-xl bg-white border border-black/8 shadow-sm">
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-[12px] font-medium text-black/40 uppercase tracking-wide">
-                                {labels.technicianLabel}
-                            </span>
-                            <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
-                                <User
-                                    className="w-4 h-4 text-blue-600"
-                                    strokeWidth={2}
-                                />
-                            </div>
-                        </div>
-                        <p className="text-[32px] font-bold text-black tracking-tight">
-                            {stats.plombiersActifs}
-                        </p>
-                        <p className="text-[12px] text-black/40 mt-1">
-                            {labels.technicianSubLabel}
-                        </p>
-                    </div>
-
-                    <div className="p-5 rounded-xl bg-white border border-black/8 shadow-sm">
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-[12px] font-medium text-black/40 uppercase tracking-wide">
-                                Heures estimées
-                            </span>
-                            <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
-                                <Clock
-                                    className="w-4 h-4 text-green-600"
-                                    strokeWidth={2}
-                                />
-                            </div>
-                        </div>
-                        <p className="text-[32px] font-bold text-black tracking-tight">
-                            {stats.totalHeuresEstimees.toFixed(1)}h
-                        </p>
-                        <p className="text-[12px] text-black/40 mt-1">
-                            durée totale estimée
-                        </p>
-                    </div>
-
-                    <div className="p-5 rounded-xl bg-white border border-black/8 shadow-sm">
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-[12px] font-medium text-black/40 uppercase tracking-wide">
-                                {labels.locationsLabel}
-                            </span>
-                            <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center">
-                                <MapPin
-                                    className="w-4 h-4 text-purple-600"
-                                    strokeWidth={2}
-                                />
-                            </div>
-                        </div>
-                        <p className="text-[32px] font-bold text-black tracking-tight">
-                            {stats.villesCouvertes}
-                        </p>
-                        <p className="text-[12px] text-black/40 mt-1">
-                            {labels.locationsSubLabel}
-                        </p>
-                    </div>
+                    <StatCard
+                        icon={Calendar}
+                        label="Interventions"
+                        value={stats.totalInterventions}
+                        description={
+                            view === "day"
+                                ? "planifiées ce jour"
+                                : view === "week"
+                                  ? "cette semaine"
+                                  : "ce mois"
+                        }
+                    />
+                    <StatCard
+                        icon={User}
+                        label={labels.technicianLabel}
+                        value={stats.plombiersActifs}
+                        description={labels.technicianSubLabel}
+                    />
+                    <StatCard
+                        icon={Clock}
+                        label="Heures estimées"
+                        value={`${stats.totalHeuresEstimees.toFixed(1)}h`}
+                        description="durée totale estimée"
+                    />
+                    <StatCard
+                        icon={MapPin}
+                        label={labels.locationsLabel}
+                        value={stats.villesCouvertes}
+                        description={labels.locationsSubLabel}
+                    />
                 </div>
 
                 {/* Date Navigation & Filters */}
@@ -328,9 +291,14 @@ export default function PlanningPage() {
                                 <SelectValue placeholder="Tous les techniciens" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="ALL">Tous les techniciens</SelectItem>
+                                <SelectItem value="ALL">
+                                    Tous les techniciens
+                                </SelectItem>
                                 {plombiersForDialog.map((plombier) => (
-                                    <SelectItem key={plombier.id} value={plombier.id}>
+                                    <SelectItem
+                                        key={plombier.id}
+                                        value={plombier.id}
+                                    >
                                         {plombier.name || "Sans nom"}
                                     </SelectItem>
                                 ))}

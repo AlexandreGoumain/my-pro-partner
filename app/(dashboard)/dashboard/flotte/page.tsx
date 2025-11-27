@@ -1,25 +1,20 @@
 "use client";
 
 import { CamionnetteDialog } from "@/components/flotte/camionnette-dialog";
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { EmptyState } from "@/components/ui/empty-state";
+import { GridSkeleton } from "@/components/ui/grid-skeleton";
+import { PageHeader } from "@/components/ui/page-header";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { RouteGuard } from "@/components/ui/route-guard";
-import { Skeleton } from "@/components/ui/skeleton";
+import { StatCard } from "@/components/ui/stat-card";
 import { useDeleteCamionnette, useFlotte } from "@/hooks/use-flotte";
 import type { Camionnette } from "@/lib/types/flotte";
 import {
@@ -96,143 +91,66 @@ export default function FlottePage() {
     return (
         <RouteGuard capability="stock_camionnette">
             <div className="flex-1 space-y-6 p-6">
-                {/* Header */}
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-black">
-                            Flotte de véhicules
-                        </h1>
-                        <p className="text-[14px] text-black/40 mt-1">
-                            Gestion de vos camionnettes et véhicules
-                        </p>
-                    </div>
-                    <Button
-                        onClick={handleCreate}
-                        className="bg-black hover:bg-black/90 text-white h-11 px-6 text-[14px] font-medium rounded-md shadow-sm"
-                    >
-                        <Plus className="w-4 h-4 mr-2" strokeWidth={2} />
-                        Nouveau véhicule
-                    </Button>
-                </div>
+                <PageHeader
+                    title="Flotte de véhicules"
+                    description="Gestion de vos camionnettes et véhicules"
+                    actions={
+                        <PrimaryActionButton onClick={handleCreate}>
+                            <Plus className="w-4 h-4 mr-2" strokeWidth={2} />
+                            Nouveau véhicule
+                        </PrimaryActionButton>
+                    }
+                />
 
                 {/* Stats Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="p-5 rounded-xl bg-white border border-black/8 shadow-sm">
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-[12px] font-medium text-black/40 uppercase tracking-wide">
-                                Total véhicules
-                            </span>
-                            <div className="w-8 h-8 rounded-lg bg-black/5 flex items-center justify-center">
-                                <Truck
-                                    className="w-4 h-4 text-black/60"
-                                    strokeWidth={2}
-                                />
-                            </div>
-                        </div>
-                        <p className="text-[32px] font-bold text-black tracking-tight">
-                            {stats.total}
-                        </p>
-                        <p className="text-[12px] text-black/40 mt-1">
-                            dans la flotte
-                        </p>
-                    </div>
-
-                    <div className="p-5 rounded-xl bg-white border border-black/8 shadow-sm">
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-[12px] font-medium text-black/40 uppercase tracking-wide">
-                                Actifs
-                            </span>
-                            <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
-                                <Car
-                                    className="w-4 h-4 text-green-600"
-                                    strokeWidth={2}
-                                />
-                            </div>
-                        </div>
-                        <p className="text-[32px] font-bold text-black tracking-tight">
-                            {stats.actifs}
-                        </p>
-                        <p className="text-[12px] text-black/40 mt-1">
-                            véhicules en service
-                        </p>
-                    </div>
-
-                    <div className="p-5 rounded-xl bg-white border border-black/8 shadow-sm">
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-[12px] font-medium text-black/40 uppercase tracking-wide">
-                                Inactifs
-                            </span>
-                            <div className="w-8 h-8 rounded-lg bg-black/5 flex items-center justify-center">
-                                <Car
-                                    className="w-4 h-4 text-black/40"
-                                    strokeWidth={2}
-                                />
-                            </div>
-                        </div>
-                        <p className="text-[32px] font-bold text-black tracking-tight">
-                            {stats.inactifs}
-                        </p>
-                        <p className="text-[12px] text-black/40 mt-1">
-                            hors service
-                        </p>
-                    </div>
-
-                    <div className="p-5 rounded-xl bg-white border border-black/8 shadow-sm">
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-[12px] font-medium text-black/40 uppercase tracking-wide">
-                                Stock total
-                            </span>
-                            <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
-                                <Package
-                                    className="w-4 h-4 text-blue-600"
-                                    strokeWidth={2}
-                                />
-                            </div>
-                        </div>
-                        <p className="text-[32px] font-bold text-black tracking-tight">
-                            {stats.totalStock}
-                        </p>
-                        <p className="text-[12px] text-black/40 mt-1">
-                            articles en stock mobile
-                        </p>
-                    </div>
+                    <StatCard
+                        icon={Truck}
+                        label="Total véhicules"
+                        value={stats.total}
+                        description="dans la flotte"
+                    />
+                    <StatCard
+                        icon={Car}
+                        label="Actifs"
+                        value={stats.actifs}
+                        description="véhicules en service"
+                    />
+                    <StatCard
+                        icon={Car}
+                        label="Inactifs"
+                        value={stats.inactifs}
+                        description="hors service"
+                    />
+                    <StatCard
+                        icon={Package}
+                        label="Stock total"
+                        value={stats.totalStock}
+                        description="articles en stock mobile"
+                    />
                 </div>
 
                 {/* Vehicle List */}
                 <div className="space-y-3">
                     {isLoading ? (
-                        <>
-                            {[...Array(3)].map((_, i) => (
-                                <Skeleton
-                                    key={i}
-                                    className="h-[120px] rounded-xl"
-                                />
-                            ))}
-                        </>
+                        <GridSkeleton
+                            itemCount={3}
+                            gridColumns={{ default: 1 }}
+                            gap={3}
+                            itemHeight="h-[120px]"
+                        />
                     ) : camionnettes.length === 0 ? (
-                        <div className="text-center py-12 border border-dashed border-black/10 rounded-xl">
-                            <Truck
-                                className="w-12 h-12 text-black/20 mx-auto mb-4"
-                                strokeWidth={1.5}
-                            />
-                            <p className="text-[16px] font-medium text-black/60 mb-2">
-                                Aucun véhicule
-                            </p>
-                            <p className="text-[14px] text-black/40 mb-4">
-                                Ajoutez votre premier véhicule à la flotte
-                            </p>
-                            <Button
-                                onClick={handleCreate}
-                                variant="outline"
-                                className="h-10"
-                            >
-                                <Plus
-                                    className="w-4 h-4 mr-2"
-                                    strokeWidth={2}
-                                />
-                                Ajouter un véhicule
-                            </Button>
-                        </div>
+                        <EmptyState
+                            icon={Truck}
+                            title="Aucun véhicule"
+                            description="Ajoutez votre premier véhicule à la flotte"
+                            action={{
+                                label: "Ajouter un véhicule",
+                                onClick: handleCreate,
+                                icon: Plus,
+                            }}
+                            variant="dashed"
+                        />
                     ) : (
                         camionnettes.map((camionnette) => (
                             <div
@@ -264,7 +182,9 @@ export default function FlottePage() {
                                         <div>
                                             <div className="flex items-center gap-2">
                                                 <h3 className="text-[16px] font-semibold text-black font-mono">
-                                                    {camionnette.immatriculation}
+                                                    {
+                                                        camionnette.immatriculation
+                                                    }
                                                 </h3>
                                                 {!camionnette.actif && (
                                                     <span className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-black/5 text-black/50">
@@ -368,36 +288,15 @@ export default function FlottePage() {
                 />
 
                 {/* Delete Confirmation Dialog */}
-                <AlertDialog
+                <ConfirmDialog
                     open={deleteDialogOpen}
                     onOpenChange={setDeleteDialogOpen}
-                >
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>
-                                Supprimer ce véhicule ?
-                            </AlertDialogTitle>
-                            <AlertDialogDescription>
-                                Cette action est irréversible. Le véhicule{" "}
-                                <span className="font-medium font-mono">
-                                    {selectedCamionnette?.immatriculation}
-                                </span>{" "}
-                                sera définitivement supprimé de votre flotte.
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Annuler</AlertDialogCancel>
-                            <AlertDialogAction
-                                onClick={confirmDelete}
-                                className="bg-red-600 hover:bg-red-700"
-                            >
-                                {deleteCamionnette.isPending
-                                    ? "Suppression..."
-                                    : "Supprimer"}
-                            </AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
+                    onConfirm={confirmDelete}
+                    title="Supprimer ce véhicule ?"
+                    description={`Cette action est irréversible. Le véhicule ${selectedCamionnette?.immatriculation} sera définitivement supprimé de votre flotte.`}
+                    confirmLabel="Supprimer"
+                    isLoading={deleteCamionnette.isPending}
+                />
             </div>
         </RouteGuard>
     );

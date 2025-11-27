@@ -1,17 +1,13 @@
 "use client";
 
 import { InterventionDialog } from "@/components/interventions/intervention-dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { EmptyState } from "@/components/ui/empty-state";
+import { FilterBar } from "@/components/ui/filter-bar";
+import { GridSkeleton } from "@/components/ui/grid-skeleton";
+import { PageHeader } from "@/components/ui/page-header";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { RouteGuard } from "@/components/ui/route-guard";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
+import { StatCard } from "@/components/ui/stat-card";
 import { useCapabilities } from "@/hooks/use-capabilities";
 import {
     useInterventions,
@@ -29,7 +25,7 @@ import {
     type StatutIntervention,
     type TypeIntervention,
 } from "@/lib/types/intervention";
-import { AlertCircle, Clock, Filter, MapPin, Plus, Search } from "lucide-react";
+import { AlertCircle, ClipboardList, Clock, MapPin, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 
 export default function InterventionsPage() {
@@ -52,9 +48,11 @@ export default function InterventionsPage() {
 
     // Get filtered intervention types for this business
     const availableInterventionTypes = useMemo(() => {
-        return INTERVENTIONS_PAR_METIER[
-            businessType as keyof typeof INTERVENTIONS_PAR_METIER
-        ] || Object.keys(TYPE_INTERVENTION_LABELS);
+        return (
+            INTERVENTIONS_PAR_METIER[
+                businessType as keyof typeof INTERVENTIONS_PAR_METIER
+            ] || Object.keys(TYPE_INTERVENTION_LABELS)
+        );
     }, [businessType]);
 
     // Build filters object
@@ -109,219 +107,150 @@ export default function InterventionsPage() {
     return (
         <RouteGuard anyCapability={["domicile", "atelier"]}>
             <div className="flex-1 space-y-6 p-6">
-                {/* Header */}
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-black">
-                            Interventions
-                        </h1>
-                        <p className="text-[14px] text-black/40 mt-1">
-                            Gestion des interventions {businessLabel.toLowerCase()}
-                        </p>
-                    </div>
-                    <Button
-                        onClick={() => setDialogOpen(true)}
-                        className="bg-black hover:bg-black/90 text-white h-11 px-6 text-[14px] font-medium rounded-md shadow-sm"
-                    >
-                        <Plus className="w-4 h-4 mr-2" strokeWidth={2} />
-                        Nouvelle intervention
-                    </Button>
-                </div>
+                <PageHeader
+                    title="Interventions"
+                    description={`Gestion des interventions ${businessLabel.toLowerCase()}`}
+                    actions={
+                        <PrimaryActionButton
+                            onClick={() => setDialogOpen(true)}
+                        >
+                            <Plus className="w-4 h-4 mr-2" strokeWidth={2} />
+                            Nouvelle intervention
+                        </PrimaryActionButton>
+                    }
+                />
 
                 {/* Stats Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="p-5 rounded-xl bg-white border border-black/8 shadow-sm">
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-[12px] font-medium text-black/40 uppercase tracking-wide">
-                                Total
-                            </span>
-                            <div className="w-8 h-8 rounded-lg bg-black/5 flex items-center justify-center">
-                                <span className="text-[16px]">📋</span>
-                            </div>
-                        </div>
-                        <p className="text-[32px] font-bold text-black tracking-tight">
-                            {stats?.total ?? 0}
-                        </p>
-                        <p className="text-[12px] text-black/40 mt-1">
-                            interventions
-                        </p>
-                    </div>
-
-                    <div className="p-5 rounded-xl bg-white border border-black/8 shadow-sm">
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-[12px] font-medium text-black/40 uppercase tracking-wide">
-                                En cours
-                            </span>
-                            <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center">
-                                <Clock
-                                    className="w-4 h-4 text-orange-600"
-                                    strokeWidth={2}
-                                />
-                            </div>
-                        </div>
-                        <p className="text-[32px] font-bold text-black tracking-tight">
-                            {stats?.enCours ?? 0}
-                        </p>
-                        <p className="text-[12px] text-black/40 mt-1">
-                            interventions actives
-                        </p>
-                    </div>
-
-                    <div className="p-5 rounded-xl bg-white border border-black/8 shadow-sm">
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-[12px] font-medium text-black/40 uppercase tracking-wide">
-                                Urgentes
-                            </span>
-                            <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center">
-                                <AlertCircle
-                                    className="w-4 h-4 text-red-600"
-                                    strokeWidth={2}
-                                />
-                            </div>
-                        </div>
-                        <p className="text-[32px] font-bold text-black tracking-tight">
-                            {stats?.urgentes ?? 0}
-                        </p>
-                        <p className="text-[12px] text-black/40 mt-1">
-                            nécessitent attention
-                        </p>
-                    </div>
-
-                    <div className="p-5 rounded-xl bg-white border border-black/8 shadow-sm">
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-[12px] font-medium text-black/40 uppercase tracking-wide">
-                                En retard
-                            </span>
-                            <div className="w-8 h-8 rounded-lg bg-yellow-100 flex items-center justify-center">
-                                <MapPin
-                                    className="w-4 h-4 text-yellow-600"
-                                    strokeWidth={2}
-                                />
-                            </div>
-                        </div>
-                        <p className="text-[32px] font-bold text-black tracking-tight">
-                            {stats?.enRetard ?? 0}
-                        </p>
-                        <p className="text-[12px] text-black/40 mt-1">
-                            dépassent l&apos;échéance
-                        </p>
-                    </div>
+                    <StatCard
+                        icon={ClipboardList}
+                        label="Total"
+                        value={stats?.total ?? 0}
+                        description="interventions"
+                    />
+                    <StatCard
+                        icon={Clock}
+                        label="En cours"
+                        value={stats?.enCours ?? 0}
+                        description="interventions actives"
+                    />
+                    <StatCard
+                        icon={AlertCircle}
+                        label="Urgentes"
+                        value={stats?.urgentes ?? 0}
+                        description="nécessitent attention"
+                    />
+                    <StatCard
+                        icon={MapPin}
+                        label="En retard"
+                        value={stats?.enRetard ?? 0}
+                        description="dépassent l'échéance"
+                    />
                 </div>
 
                 {/* Filters */}
-                <div className="flex flex-col sm:flex-row gap-3">
-                    <div className="relative flex-1">
-                        <Search
-                            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-black/40"
-                            strokeWidth={2}
-                        />
-                        <Input
-                            placeholder="Rechercher par client, adresse, numéro..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-9 h-11 border-black/10 bg-white"
-                        />
-                    </div>
-
-                    <Select
-                        value={typeFilter}
-                        onValueChange={(value) =>
-                            setTypeFilter(value as TypeIntervention | "ALL")
-                        }
-                    >
-                        <SelectTrigger className="w-[180px] h-11 border-black/10 bg-white">
-                            <SelectValue placeholder="Type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="ALL">Tous les types</SelectItem>
-                            {availableInterventionTypes.map((type) => (
-                                <SelectItem key={type} value={type}>
-                                    {TYPE_INTERVENTION_LABELS[type as TypeIntervention]}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-
-                    <Select
-                        value={prioriteFilter}
-                        onValueChange={(value) =>
-                            setPrioriteFilter(
-                                value as PrioriteIntervention | "ALL"
-                            )
-                        }
-                    >
-                        <SelectTrigger className="w-[180px] h-11 border-black/10 bg-white">
-                            <SelectValue placeholder="Priorité" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="ALL">
-                                Toutes priorités
-                            </SelectItem>
-                            {Object.entries(PRIORITE_LABELS).map(
-                                ([value, label]) => (
-                                    <SelectItem key={value} value={value}>
-                                        {label}
-                                    </SelectItem>
-                                )
-                            )}
-                        </SelectContent>
-                    </Select>
-
-                    <Select
-                        value={statutFilter}
-                        onValueChange={(value) =>
-                            setStatutFilter(value as StatutIntervention | "ALL")
-                        }
-                    >
-                        <SelectTrigger className="w-[200px] h-11 border-black/10 bg-white">
-                            <SelectValue placeholder="Statut" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="ALL">
-                                Tous les statuts
-                            </SelectItem>
-                            {Object.entries(STATUT_LABELS).map(
-                                ([value, label]) => (
-                                    <SelectItem key={value} value={value}>
-                                        {label}
-                                    </SelectItem>
-                                )
-                            )}
-                        </SelectContent>
-                    </Select>
-
-                    <Button
-                        variant="outline"
-                        className="h-11 px-6 border-black/10 hover:bg-black/5"
-                        onClick={() => {
-                            setSearchQuery("");
-                            setTypeFilter("ALL");
-                            setPrioriteFilter("ALL");
-                            setStatutFilter("ALL");
-                        }}
-                    >
-                        <Filter className="w-4 h-4 mr-2" strokeWidth={2} />
-                        Réinitialiser
-                    </Button>
-                </div>
+                <FilterBar
+                    filters={[
+                        {
+                            type: "search",
+                            value: searchQuery,
+                            onChange: setSearchQuery,
+                            placeholder:
+                                "Rechercher par client, adresse, numéro...",
+                            className: "flex-1",
+                        },
+                        {
+                            type: "select",
+                            value: typeFilter,
+                            onChange: (value) =>
+                                setTypeFilter(
+                                    value as TypeIntervention | "ALL"
+                                ),
+                            placeholder: "Type",
+                            className: "w-[180px]",
+                            options: [
+                                { value: "ALL", label: "Tous les types" },
+                                ...availableInterventionTypes.map((type) => ({
+                                    value: type,
+                                    label: TYPE_INTERVENTION_LABELS[
+                                        type as TypeIntervention
+                                    ],
+                                })),
+                            ],
+                        },
+                        {
+                            type: "select",
+                            value: prioriteFilter,
+                            onChange: (value) =>
+                                setPrioriteFilter(
+                                    value as PrioriteIntervention | "ALL"
+                                ),
+                            placeholder: "Priorité",
+                            className: "w-[180px]",
+                            options: [
+                                { value: "ALL", label: "Toutes priorités" },
+                                ...Object.entries(PRIORITE_LABELS).map(
+                                    ([value, label]) => ({
+                                        value,
+                                        label,
+                                    })
+                                ),
+                            ],
+                        },
+                        {
+                            type: "select",
+                            value: statutFilter,
+                            onChange: (value) =>
+                                setStatutFilter(
+                                    value as StatutIntervention | "ALL"
+                                ),
+                            placeholder: "Statut",
+                            options: [
+                                { value: "ALL", label: "Tous les statuts" },
+                                ...Object.entries(STATUT_LABELS).map(
+                                    ([value, label]) => ({
+                                        value,
+                                        label,
+                                    })
+                                ),
+                            ],
+                        },
+                        {
+                            type: "action",
+                            label: "Réinitialiser",
+                            onClick: () => {
+                                setSearchQuery("");
+                                setTypeFilter("ALL");
+                                setPrioriteFilter("ALL");
+                                setStatutFilter("ALL");
+                            },
+                            variant: "outline",
+                            className: "border-black/10 hover:bg-black/5",
+                        },
+                    ]}
+                />
 
                 {/* Interventions List */}
                 <div className="space-y-3">
                     {isLoading ? (
-                        <>
-                            {[...Array(5)].map((_, i) => (
-                                <Skeleton
-                                    key={i}
-                                    className="h-[140px] rounded-xl"
-                                />
-                            ))}
-                        </>
+                        <GridSkeleton
+                            itemCount={5}
+                            gridColumns={{ default: 1 }}
+                            gap={3}
+                            itemHeight="h-[140px]"
+                        />
                     ) : interventions.length === 0 ? (
-                        <div className="text-center py-12">
-                            <p className="text-[14px] text-black/40">
-                                Aucune intervention trouvée
-                            </p>
-                        </div>
+                        <EmptyState
+                            icon={ClipboardList}
+                            title="Aucune intervention"
+                            description="Créez votre première intervention"
+                            action={{
+                                label: "Nouvelle intervention",
+                                onClick: () => setDialogOpen(true),
+                                icon: Plus,
+                            }}
+                            variant="dashed"
+                        />
                     ) : (
                         interventions.map((intervention) => (
                             <div

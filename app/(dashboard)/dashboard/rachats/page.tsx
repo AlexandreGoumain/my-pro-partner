@@ -7,7 +7,6 @@ import { RachatsEmptyState } from "@/components/rachats/rachats-empty-state";
 import { RachatsLoadingState } from "@/components/rachats/rachats-loading-state";
 import { RachatsSearchBar } from "@/components/rachats/rachats-search-bar";
 import { RachatsTable } from "@/components/rachats/rachats-table";
-import { Button } from "@/components/ui/button";
 import {
     Card,
     CardContent,
@@ -16,6 +15,7 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { RouteGuard } from "@/components/ui/route-guard";
 import { useRachatsPage } from "@/hooks/use-rachats-page";
 import { Plus } from "lucide-react";
@@ -30,13 +30,12 @@ export default function RachatsPage() {
                     title="Rachats"
                     description="Gérez vos rachats d'articles d'occasion"
                     actions={
-                        <Button
+                        <PrimaryActionButton
                             onClick={handlers.handleCreateClick}
-                            className="bg-black hover:bg-black/90 text-white h-11 px-6 text-[14px] font-medium rounded-md shadow-sm"
                         >
                             <Plus className="h-4 w-4 mr-2" strokeWidth={2} />
                             Nouveau rachat
-                        </Button>
+                        </PrimaryActionButton>
                     }
                 />
 
