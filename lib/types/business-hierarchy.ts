@@ -188,9 +188,11 @@ export const BUSINESS_TYPE_DEFAULT_CAPABILITIES: Record<
     // === POINT_DE_VENTE ===
     RESTAURATION: [
         "pos",
+        "menu", // Menu & Carte
         "tables",
         "tickets",
         "commandes_rapides",
+        "agenda", // Pour les réservations
         "clients",
         "documents",
         "analytics",
@@ -228,10 +230,18 @@ export const BUSINESS_TYPE_DEFAULT_CAPABILITIES: Record<
         "fidelite",
     ],
     FITNESS: [
+        // Fitness-specific
+        "abonnements_fitness",
+        "cours_collectifs",
+        "salles_fitness",
+        "presences_fitness",
+        "planning_fitness",
+        // RDV capabilities (pour planning équipe/coachs)
         "agenda",
         "creneaux",
         "rappels_sms",
         "recurrence",
+        // Base
         "clients",
         "documents",
         "analytics",

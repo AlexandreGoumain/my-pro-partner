@@ -6,12 +6,18 @@ export enum TableStatus {
 }
 
 // Table zone type
-export type TableZone = "Terrasse" | "Salle principale" | "Salle VIP" | "Bar" | "Autre";
+export type TableZone =
+    | "Terrasse"
+    | "Salle principale"
+    | "Salle VIP"
+    | "Bar"
+    | "Autre";
 
 // Base table interface
 export interface Table {
     id: string;
     numero: number;
+    nom?: string | null; // "Table 1", "Terrasse 3", etc.
     capacite: number;
     statut: TableStatus;
     zone: TableZone;
