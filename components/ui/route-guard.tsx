@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { IconBox } from "@/components/ui/icon-box";
 import { useBusinessNavigation } from "@/hooks/use-business-navigation";
 import type { BusinessCategory } from "@/lib/types/business-category";
 import type { Capability } from "@/lib/types/capability";
@@ -157,12 +158,14 @@ export function RouteGuard({
         return (
             <div className="flex items-center justify-center min-h-[600px] p-8">
                 <div className="max-w-md text-center space-y-6">
-                    <div className="w-16 h-16 rounded-full bg-black/5 flex items-center justify-center mx-auto">
-                        <AlertCircle
-                            className="w-8 h-8 text-black/40"
-                            strokeWidth={2}
-                        />
-                    </div>
+                    <IconBox
+                        icon={AlertCircle}
+                        size="xl"
+                        shape="circle"
+                        bgColor="bg-black/5"
+                        iconColor="text-black/40"
+                        className="mx-auto"
+                    />
                     <div className="space-y-2">
                         <h2 className="text-[20px] font-semibold tracking-[-0.01em] text-black">
                             Accès non autorisé

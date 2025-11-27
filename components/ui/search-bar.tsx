@@ -1,6 +1,6 @@
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
 import { DS } from "@/lib/constants/design-system";
+import { cn } from "@/lib/utils";
 import { Search } from "lucide-react";
 
 export interface SearchBarProps {
@@ -8,6 +8,9 @@ export interface SearchBarProps {
     onChange: (value: string) => void;
     placeholder?: string;
     className?: string;
+    onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+    autoFocus?: boolean;
+    inputClassName?: string;
 }
 
 /**
@@ -21,6 +24,9 @@ export function SearchBar({
     onChange,
     placeholder = "Rechercher...",
     className,
+    onKeyDown,
+    autoFocus,
+    inputClassName,
 }: SearchBarProps) {
     return (
         <div className={cn("relative max-w-md", className)}>
@@ -36,11 +42,14 @@ export function SearchBar({
                 placeholder={placeholder}
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
+                onKeyDown={onKeyDown}
+                autoFocus={autoFocus}
                 className={cn(
                     "pl-10 h-11 bg-white",
                     DS.text.body.base,
                     DS.color.border.medium,
-                    "focus-visible:ring-black/20"
+                    "focus-visible:ring-black/20",
+                    inputClassName
                 )}
             />
         </div>
