@@ -1,5 +1,4 @@
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { createStatusBadge } from "@/components/ui/status-badge";
 
 export type DocumentStatus =
     | "BROUILLON"
@@ -9,12 +8,7 @@ export type DocumentStatus =
     | "PAYE"
     | "ANNULE";
 
-export interface DocumentStatusBadgeProps {
-    status: DocumentStatus;
-    className?: string;
-}
-
-const statusConfig: Record<
+const DOCUMENT_STATUS_CONFIG: Record<
     DocumentStatus,
     { label: string; className: string }
 > = {
@@ -44,22 +38,16 @@ const statusConfig: Record<
     },
 };
 
+const BaseDocumentStatusBadge = createStatusBadge(DOCUMENT_STATUS_CONFIG);
+
+export interface DocumentStatusBadgeProps {
+    status: DocumentStatus;
+    className?: string;
+}
+
 export function DocumentStatusBadge({
     status,
     className,
 }: DocumentStatusBadgeProps) {
-    const config = statusConfig[status];
-
-    return (
-        <Badge
-            variant="outline"
-            className={cn(
-                "text-[12px] font-medium px-2.5 py-0.5 rounded-full",
-                config.className,
-                className
-            )}
-        >
-            {config.label}
-        </Badge>
-    );
+    return <BaseDocumentStatusBadge status={status} className={className} />;
 }

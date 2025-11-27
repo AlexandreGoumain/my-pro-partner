@@ -1,8 +1,11 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { RouteGuard } from "@/components/ui/route-guard";
+import { PageHeader } from "@/components/ui/page-header";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
+import { StatCard } from "@/components/ui/stat-card";
+import { SearchBar } from "@/components/ui/search-bar";
 import {
     Select,
     SelectContent,
@@ -12,11 +15,11 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
     AlertCircle,
     Package,
     Plus,
-    Search,
     TrendingDown,
     Truck,
 } from "lucide-react";
@@ -137,112 +140,43 @@ export default function StockCamionnettePage() {
     return (
         <RouteGuard capability="stock_camionnette">
             <div className="flex-1 space-y-6 p-6">
-                {/* Header */}
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-black">
-                            Stock Camionnettes
-                        </h1>
-                        <p className="text-[14px] text-black/40 mt-1">
-                            Gestion du stock mobile par véhicule
-                        </p>
-                    </div>
-                    <Button className="bg-black hover:bg-black/90 text-white h-11 px-6 text-[14px] font-medium rounded-md shadow-sm">
-                        <Plus className="w-4 h-4 mr-2" strokeWidth={2} />
-                        Ajouter matériel
-                    </Button>
-                </div>
+                <PageHeader
+                    title="Stock Camionnettes"
+                    description="Gestion du stock mobile par véhicule"
+                    actions={
+                        <PrimaryActionButton>
+                            <Plus className="w-4 h-4 mr-2" strokeWidth={2} />
+                            Ajouter matériel
+                        </PrimaryActionButton>
+                    }
+                />
 
                 {/* Stats Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="p-5 rounded-xl bg-white border border-black/8 shadow-sm">
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-[12px] font-medium text-black/40 uppercase tracking-wide">
-                                Camionnettes
-                            </span>
-                            <div className="w-8 h-8 rounded-lg bg-black/5 flex items-center justify-center">
-                                <Truck
-                                    className="w-4 h-4 text-black/60"
-                                    strokeWidth={2}
-                                />
-                            </div>
-                        </div>
-                        <p className="text-[32px] font-bold text-black tracking-tight">
-                            {camionnettes.filter((c) => c.actif).length}
-                        </p>
-                        <p className="text-[12px] text-black/40 mt-1">
-                            véhicules actifs
-                        </p>
-                    </div>
-
-                    <div className="p-5 rounded-xl bg-white border border-black/8 shadow-sm">
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-[12px] font-medium text-black/40 uppercase tracking-wide">
-                                Articles total
-                            </span>
-                            <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
-                                <Package
-                                    className="w-4 h-4 text-blue-600"
-                                    strokeWidth={2}
-                                />
-                            </div>
-                        </div>
-                        <p className="text-[32px] font-bold text-black tracking-tight">
-                            {stockItems.length}
-                        </p>
-                        <p className="text-[12px] text-black/40 mt-1">
-                            références en stock
-                        </p>
-                    </div>
-
-                    <div className="p-5 rounded-xl bg-white border border-black/8 shadow-sm">
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-[12px] font-medium text-black/40 uppercase tracking-wide">
-                                Alertes stock bas
-                            </span>
-                            <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center">
-                                <AlertCircle
-                                    className="w-4 h-4 text-red-600"
-                                    strokeWidth={2}
-                                />
-                            </div>
-                        </div>
-                        <p className="text-[32px] font-bold text-black tracking-tight">
-                            {lowStockItems.length}
-                        </p>
-                        <p className="text-[12px] text-black/40 mt-1">
-                            nécessitent réassort
-                        </p>
-                    </div>
-
-                    <div className="p-5 rounded-xl bg-white border border-black/8 shadow-sm">
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-[12px] font-medium text-black/40 uppercase tracking-wide">
-                                Valeur totale
-                            </span>
-                            <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
-                                <TrendingDown
-                                    className="w-4 h-4 text-green-600"
-                                    strokeWidth={2}
-                                />
-                            </div>
-                        </div>
-                        <p className="text-[32px] font-bold text-black tracking-tight">
-                            {stockItems
-                                .reduce(
-                                    (sum, item) =>
-                                        sum +
-                                        item.quantite *
-                                            Number(item.prixUnitaire),
-                                    0
-                                )
-                                .toFixed(0)}
-                            €
-                        </p>
-                        <p className="text-[12px] text-black/40 mt-1">
-                            valeur stock mobile
-                        </p>
-                    </div>
+                    <StatCard
+                        icon={Truck}
+                        label="Camionnettes"
+                        value={camionnettes.filter((c) => c.actif).length}
+                        description="véhicules actifs"
+                    />
+                    <StatCard
+                        icon={Package}
+                        label="Articles total"
+                        value={stockItems.length}
+                        description="références en stock"
+                    />
+                    <StatCard
+                        icon={AlertCircle}
+                        label="Alertes stock bas"
+                        value={lowStockItems.length}
+                        description="nécessitent réassort"
+                    />
+                    <StatCard
+                        icon={TrendingDown}
+                        label="Valeur totale"
+                        value={`${stockItems.reduce((sum, item) => sum + item.quantite * Number(item.prixUnitaire), 0).toFixed(0)}€`}
+                        description="valeur stock mobile"
+                    />
                 </div>
 
                 {/* Camionnette Selector */}
@@ -273,21 +207,13 @@ export default function StockCamionnettePage() {
                         </SelectContent>
                     </Select>
 
-                    <div className="relative flex-1">
-                        <Search
-                            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-black/40"
-                            strokeWidth={2}
-                        />
-                        <Input
-                            placeholder="Rechercher matériel..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            onKeyDown={(e) =>
-                                e.key === "Enter" && handleSearch()
-                            }
-                            className="pl-9 h-11 border-black/10 bg-white"
-                        />
-                    </div>
+                    <SearchBar
+                        value={searchQuery}
+                        onChange={setSearchQuery}
+                        onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                        placeholder="Rechercher matériel..."
+                        className="flex-1"
+                    />
 
                     <Select
                         value={categorieFilter}
@@ -392,11 +318,14 @@ export default function StockCamionnettePage() {
                                 ))}
                             </>
                         ) : stockItems.length === 0 ? (
-                            <div className="text-center py-12">
-                                <p className="text-[14px] text-black/40">
-                                    Aucun matériel dans cette camionnette
-                                </p>
-                            </div>
+                            <EmptyState
+                                icon={Package}
+                                title="Aucun matériel"
+                                description="Aucun matériel dans cette camionnette"
+                                variant="minimal"
+                                iconSize="sm"
+                                textSize="sm"
+                            />
                         ) : (
                             stockItems.map((item) => (
                                 <div
@@ -461,11 +390,14 @@ export default function StockCamionnettePage() {
 
                     <TabsContent value="alertes" className="space-y-3">
                         {lowStockItems.length === 0 ? (
-                            <div className="text-center py-12">
-                                <p className="text-[14px] text-black/40">
-                                    Aucune alerte stock bas
-                                </p>
-                            </div>
+                            <EmptyState
+                                icon={AlertCircle}
+                                title="Aucune alerte"
+                                description="Aucune alerte stock bas"
+                                variant="minimal"
+                                iconSize="sm"
+                                textSize="sm"
+                            />
                         ) : (
                             lowStockItems.map((item) => (
                                 <div

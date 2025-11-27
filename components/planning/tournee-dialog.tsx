@@ -10,15 +10,14 @@ import {
 } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
 import { PrimaryActionButton } from "@/components/ui/primary-action-button";
+import { StepperIndicator } from "@/components/ui/stepper-indicator";
 import { useFlotte } from "@/hooks/use-flotte";
 import { useInterventions, useUpdateIntervention } from "@/hooks/use-interventions";
 import type { Camionnette } from "@/lib/types/flotte";
-import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import {
     Calendar,
-    CheckCircle2,
     ChevronLeft,
     ChevronRight,
     ClipboardList,
@@ -248,66 +247,7 @@ export function TourneeDialog({
                     </DialogTitle>
                 </DialogHeader>
 
-                {/* Stepper */}
-                <div className="flex items-center justify-between px-2 py-4">
-                    {steps.map((step, index) => {
-                        const isActive = step.id === currentStep;
-                        const isCompleted = step.id < currentStep;
-                        const Icon = step.icon;
-
-                        return (
-                            <div
-                                key={step.id}
-                                className="flex items-center flex-1"
-                            >
-                                <div className="flex flex-col items-center gap-2">
-                                    <div
-                                        className={cn(
-                                            "w-10 h-10 rounded-full flex items-center justify-center transition-all",
-                                            isCompleted
-                                                ? "bg-black text-white"
-                                                : isActive
-                                                  ? "bg-black text-white"
-                                                  : "bg-black/5 text-black/40"
-                                        )}
-                                    >
-                                        {isCompleted ? (
-                                            <CheckCircle2
-                                                className="w-5 h-5"
-                                                strokeWidth={2}
-                                            />
-                                        ) : (
-                                            <Icon
-                                                className="w-5 h-5"
-                                                strokeWidth={2}
-                                            />
-                                        )}
-                                    </div>
-                                    <span
-                                        className={cn(
-                                            "text-[11px] font-medium text-center",
-                                            isActive || isCompleted
-                                                ? "text-black"
-                                                : "text-black/40"
-                                        )}
-                                    >
-                                        {step.name}
-                                    </span>
-                                </div>
-                                {index < steps.length - 1 && (
-                                    <div
-                                        className={cn(
-                                            "flex-1 h-[2px] mx-4 mt-[-20px]",
-                                            isCompleted
-                                                ? "bg-black"
-                                                : "bg-black/10"
-                                        )}
-                                    />
-                                )}
-                            </div>
-                        );
-                    })}
-                </div>
+                <StepperIndicator steps={steps} currentStep={currentStep} />
 
                 <Form {...form}>
                     <form className="space-y-6">

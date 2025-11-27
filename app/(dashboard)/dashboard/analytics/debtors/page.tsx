@@ -1,9 +1,10 @@
 "use client";
 
-import { AnalyticsKPICard } from "@/components/analytics/analytics-kpi-card";
+import { AnalyticsKPIGrid } from "@/components/analytics/analytics-kpi-grid";
 import { DebtorCard } from "@/components/analytics/debtor-card";
 import { ConditionalSkeleton } from "@/components/ui/conditional-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
+import { SectionTitle } from "@/components/ui/section-title";
 import {
     Select,
     SelectContent,
@@ -57,46 +58,51 @@ export default function DebtorsPage() {
                     />
 
                     {summary && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                            <AnalyticsKPICard
-                                title="Clients débiteurs"
-                                value={summary.totalClients}
-                                icon={Users}
-                            />
-                            <AnalyticsKPICard
-                                title="Montant total impayé"
-                                value={formatAmount(summary.totalDebtAmount)}
-                                icon={Euro}
-                            />
-                            <AnalyticsKPICard
-                                title="Risque élevé"
-                                value={summary.highRiskCount}
-                                icon={AlertCircle}
-                            />
-                            <AnalyticsKPICard
-                                title="Risque moyen"
-                                value={summary.mediumRiskCount}
-                                icon={Shield}
-                            />
-                        </div>
+                        <AnalyticsKPIGrid
+                            kpis={[
+                                {
+                                    title: "Clients débiteurs",
+                                    value: summary.totalClients,
+                                    icon: Users,
+                                },
+                                {
+                                    title: "Montant total impayé",
+                                    value: formatAmount(
+                                        summary.totalDebtAmount
+                                    ),
+                                    icon: Euro,
+                                },
+                                {
+                                    title: "Risque élevé",
+                                    value: summary.highRiskCount,
+                                    icon: AlertCircle,
+                                },
+                                {
+                                    title: "Risque moyen",
+                                    value: summary.mediumRiskCount,
+                                    icon: Shield,
+                                },
+                            ]}
+                            className="gap-6"
+                        />
                     )}
 
-                    <div className="flex justify-between items-center">
-                        <h2 className="text-[18px] font-semibold tracking-[-0.01em] text-black">
-                            Top débiteurs
-                        </h2>
-                        <Select value={limit} onValueChange={setLimit}>
-                            <SelectTrigger className="w-[180px] h-10 border-black/10">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="10">Top 10</SelectItem>
-                                <SelectItem value="20">Top 20</SelectItem>
-                                <SelectItem value="50">Top 50</SelectItem>
-                                <SelectItem value="100">Top 100</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
+                    <SectionTitle
+                        title="Top débiteurs"
+                        action={
+                            <Select value={limit} onValueChange={setLimit}>
+                                <SelectTrigger className="w-[180px] h-10 border-black/10">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="10">Top 10</SelectItem>
+                                    <SelectItem value="20">Top 20</SelectItem>
+                                    <SelectItem value="50">Top 50</SelectItem>
+                                    <SelectItem value="100">Top 100</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        }
+                    />
 
                     <div className="grid grid-cols-1 gap-4">
                         {debtors.map((debtor) => (

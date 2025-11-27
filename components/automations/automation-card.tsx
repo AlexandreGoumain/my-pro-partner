@@ -7,6 +7,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { InfoRow, InfoRowDivider, InfoRowGroup } from "@/components/ui/info-row";
 import { Switch } from "@/components/ui/switch";
 import type { Automation } from "@/hooks/use-automations";
 import {
@@ -63,38 +64,13 @@ export function AutomationCard({
                                 </p>
                             )}
 
-                            <div className="flex items-center gap-6 text-[13px] text-black/60">
-                                <div className="flex items-center gap-2">
-                                    <span className="font-medium text-black/80">
-                                        Déclencheur:
-                                    </span>
-                                    <span>
-                                        {TRIGGER_TYPE_LABELS[automation.triggerType] ||
-                                            automation.triggerType}
-                                    </span>
-                                </div>
-
-                                <div className="h-4 w-px bg-black/10" />
-
-                                <div className="flex items-center gap-2">
-                                    <span className="font-medium text-black/80">
-                                        Action:
-                                    </span>
-                                    <span>
-                                        {ACTION_TYPE_LABELS[automation.actionType] ||
-                                            automation.actionType}
-                                    </span>
-                                </div>
-
-                                <div className="h-4 w-px bg-black/10" />
-
-                                <div className="flex items-center gap-2">
-                                    <span className="font-medium text-black/80">
-                                        Exécutions:
-                                    </span>
-                                    <span>{automation.nombreExecutions}</span>
-                                </div>
-                            </div>
+                            <InfoRowGroup>
+                                <InfoRow label="Déclencheur" value={TRIGGER_TYPE_LABELS[automation.triggerType] || automation.triggerType} />
+                                <InfoRowDivider />
+                                <InfoRow label="Action" value={ACTION_TYPE_LABELS[automation.actionType] || automation.actionType} />
+                                <InfoRowDivider />
+                                <InfoRow label="Exécutions" value={automation.nombreExecutions} />
+                            </InfoRowGroup>
                         </div>
                     </div>
 

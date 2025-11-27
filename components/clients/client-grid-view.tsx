@@ -1,10 +1,8 @@
-import {
-    GridPagination,
-    PaginationInfo,
-} from "@/app/(dashboard)/dashboard/clients/_components/grid-pagination";
 import { ClientCard } from "@/components/clients/client-card";
 import { ArticleCardSkeleton } from "@/components/skeletons";
+import type { PaginationInfo } from "@/components/ui/data-table/pagination";
 import { EmptyState } from "@/components/ui/empty-state";
+import { GridPagination } from "@/components/ui/grid-pagination";
 import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { ResponsiveGrid } from "@/components/ui/responsive-grid";
 import type { Client } from "@/hooks/use-clients";
@@ -93,6 +91,7 @@ export function ClientGridView({
                     pagination={pagination}
                     onPageChange={onPageChange}
                     onPageSizeChange={onPageSizeChange}
+                    itemLabel="client(s)"
                 />
             )}
         </>

@@ -1,11 +1,10 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { DialogActionButtons } from "@/components/ui/dialog-action-buttons";
 import { DialogHeaderSection } from "@/components/ui/dialog-header-section";
 import { Form } from "@/components/ui/form";
 import { FormInput } from "@/components/ui/form-input";
-import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { Client, useUpdateClient } from "@/hooks/use-clients";
 import { useFormReset } from "@/hooks/use-form-reset";
 import { clientUpdateSchema, type ClientUpdateInput } from "@/lib/validation";
@@ -225,24 +224,12 @@ export function ClientEditDialog({
                             </p>
                         )}
 
-                        <DialogFooter>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => onOpenChange(false)}
-                                className="border-black/10 hover:bg-black/5 h-11 px-6 text-[14px] font-medium"
-                            >
-                                Annuler
-                            </Button>
-                            <PrimaryActionButton
-                                type="submit"
-                                disabled={updateClient.isPending}
-                            >
-                                {updateClient.isPending
-                                    ? "Modification..."
-                                    : "Modifier le client"}
-                            </PrimaryActionButton>
-                        </DialogFooter>
+                        <DialogActionButtons
+                            onCancel={() => onOpenChange(false)}
+                            submitLabel="Modifier le client"
+                            isLoading={updateClient.isPending}
+                            isEditing={true}
+                        />
                     </form>
                 </Form>
             </DialogContent>

@@ -5,8 +5,9 @@ import { RepairCreateDialog } from "@/components/reparations/repair-create-dialo
 import { RepairEmptyState } from "@/components/reparations/repair-empty-state";
 import { RepairFilters } from "@/components/reparations/repair-filters";
 import { RepairStatsCards } from "@/components/reparations/repair-stats-cards";
-import { Button } from "@/components/ui/button";
 import { RouteGuard } from "@/components/ui/route-guard";
+import { PageHeader } from "@/components/ui/page-header";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, Plus } from "lucide-react";
 import { useState } from "react";
@@ -71,24 +72,16 @@ export default function ReparationsPage() {
     return (
         <RouteGuard capability="atelier">
             <div className="space-y-6 p-8">
-                {/* Header */}
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-black">
-                            Réparations
-                        </h1>
-                        <p className="text-[14px] text-black/60 mt-1">
-                            Gestion et suivi des réparations d'appareils
-                        </p>
-                    </div>
-                    <Button
-                        onClick={() => setCreateDialogOpen(true)}
-                        className="bg-black hover:bg-black/90 text-white h-11 px-6"
-                    >
-                        <Plus className="h-4 w-4 mr-2" strokeWidth={2} />
-                        Nouvelle réparation
-                    </Button>
-                </div>
+                <PageHeader
+                    title="Réparations"
+                    description="Gestion et suivi des réparations d'appareils"
+                    actions={
+                        <PrimaryActionButton onClick={() => setCreateDialogOpen(true)}>
+                            <Plus className="h-4 w-4 mr-2" strokeWidth={2} />
+                            Nouvelle réparation
+                        </PrimaryActionButton>
+                    }
+                />
 
                 {/* Stats Cards */}
                 <RepairStatsCards stats={stats} />

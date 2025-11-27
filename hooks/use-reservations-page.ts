@@ -1,16 +1,25 @@
-import { useState, useMemo, useCallback } from "react";
-import { toast } from "sonner";
-import { Reservation, ReservationStats } from "@/lib/types/reservation";
 import {
-    useReservations,
-    useConfirmReservation,
     useCancelReservation,
+    useConfirmReservation,
+    useReservations,
+    useReservationsStats,
 } from "@/hooks/use-reservations";
+import { Reservation } from "@/lib/types/reservation";
+import { useCallback, useMemo, useState } from "react";
+import { toast } from "sonner";
+
+// Simple stats interface for the component
+export interface SimpleReservationStats {
+    total: number;
+    confirmees: number;
+    enAttente: number;
+    couverts: number;
+}
 
 export interface ReservationsPageHandlers {
     reservations: Reservation[];
     isLoading: boolean;
-    stats: ReservationStats;
+    stats: SimpleReservationStats;
 
     newReservationOpen: boolean;
     setNewReservationOpen: (open: boolean) => void;
@@ -25,23 +34,41 @@ export interface ReservationsPageHandlers {
 
 export function useReservationsPage(): ReservationsPageHandlers {
     const [newReservationOpen, setNewReservationOpen] = useState(false);
-    const [editingReservation, setEditingReservation] = useState<Reservation | null>(null);
+    const [editingReservation, setEditingReservation] =
+        useState<Reservation | null>(null);
 
-    const { data, isLoading } = useReservations();
+    // Get today's date for filtering
+    const today = new Date().toISOString().split("T")[0];
+
+    const { data, isLoading } = useReservations({ date: today });
+    const { data: statsData } = useReservationsStats();
     const confirmReservation = useConfirmReservation();
     const cancelReservation = useCancelReservation();
 
     const reservations = data?.data || [];
 
-    const stats = useMemo(
-        (): ReservationStats => ({
+    // Map API stats to simple format expected by component
+    // We use today's stats for a more relevant view
+    const stats = useMemo((): SimpleReservationStats => {
+        if (statsData) {
+            return {
+                total: statsData.aujourdhui.total,
+                confirmees: statsData.aujourdhui.confirmees,
+                enAttente: statsData.aujourdhui.enAttente,
+                couverts: statsData.aujourdhui.couverts,
+            };
+        }
+
+        // Fallback to computing from reservations if API stats not ready
+        return {
             total: reservations.length,
-            confirmees: reservations.filter((r) => r.statut === "CONFIRMEE").length,
-            enAttente: reservations.filter((r) => r.statut === "EN_ATTENTE").length,
+            confirmees: reservations.filter((r) => r.statut === "CONFIRMEE")
+                .length,
+            enAttente: reservations.filter((r) => r.statut === "EN_ATTENTE")
+                .length,
             couverts: reservations.reduce((sum, r) => sum + r.personnes, 0),
-        }),
-        [reservations]
-    );
+        };
+    }, [statsData, reservations]);
 
     const handleCreate = useCallback(() => {
         setEditingReservation(null);

@@ -15,6 +15,7 @@ export const CAPABILITIES = [
 
     // === POINT_DE_VENTE capabilities ===
     "pos", // Caisse / Point of Sale
+    "menu", // Menu & Carte (restaurant)
     "tables", // Gestion des tables (restaurant)
     "tickets", // Tickets/reçus rapides
     "commandes_rapides", // Commandes en mode rapide
@@ -39,6 +40,13 @@ export const CAPABILITIES = [
     "mandats", // Gestion des mandats
     "biens", // Gestion des biens immobiliers
     "visites", // Planification des visites
+
+    // === FITNESS capabilities ===
+    "abonnements_fitness", // Gestion des abonnements salle de sport
+    "cours_collectifs", // Cours collectifs (yoga, spinning, etc.)
+    "salles_fitness", // Gestion des salles/zones
+    "presences_fitness", // Check-in / présences des membres
+    "planning_fitness", // Planning des cours
 
     // === BASE capabilities (tous les business) ===
     "clients", // Gestion clients
@@ -70,6 +78,7 @@ export const CATEGORY_SPECIFIC_CAPABILITIES = {
     ] as Capability[],
     POINT_DE_VENTE: [
         "pos",
+        "menu",
         "tables",
         "tickets",
         "commandes_rapides",
@@ -87,6 +96,13 @@ export const CATEGORY_SPECIFIC_CAPABILITIES = {
     ] as Capability[],
     COMMERCE: ["catalogue", "stock", "ventes"] as Capability[],
     IMMOBILIER: ["mandats", "biens", "visites"] as Capability[],
+    FITNESS: [
+        "abonnements_fitness",
+        "cours_collectifs",
+        "salles_fitness",
+        "presences_fitness",
+        "planning_fitness",
+    ] as Capability[],
     GENERAL: [] as Capability[],
 } as const;
 
@@ -102,6 +118,7 @@ export const CAPABILITY_LABELS: Record<Capability, string> = {
     stock_camionnette: "Stock mobile/camionnette",
     // POINT_DE_VENTE
     pos: "Caisse / POS",
+    menu: "Menu & Carte",
     tables: "Gestion des tables",
     tickets: "Tickets rapides",
     commandes_rapides: "Commandes rapides",
@@ -122,6 +139,12 @@ export const CAPABILITY_LABELS: Record<Capability, string> = {
     mandats: "Gestion des mandats",
     biens: "Gestion des biens",
     visites: "Planification visites",
+    // FITNESS
+    abonnements_fitness: "Abonnements salle de sport",
+    cours_collectifs: "Cours collectifs",
+    salles_fitness: "Gestion des salles",
+    presences_fitness: "Check-in / Présences",
+    planning_fitness: "Planning des cours",
     // BASE
     clients: "Gestion clients",
     documents: "Devis & Factures",

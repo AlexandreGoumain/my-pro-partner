@@ -3,19 +3,13 @@
 import { EquipementCard } from "@/components/equipements/equipement-card";
 import { EquipementDialog } from "@/components/equipements/equipement-dialog";
 import { Button } from "@/components/ui/button";
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Input } from "@/components/ui/input";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { EmptyState } from "@/components/ui/empty-state";
+import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { RouteGuard } from "@/components/ui/route-guard";
+import { SearchBar } from "@/components/ui/search-bar";
 import {
     Select,
     SelectContent,
@@ -23,7 +17,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
 import { StatCard } from "@/components/ui/stat-card";
 import {
     useDeleteEquipement,
@@ -44,12 +37,10 @@ import {
 import {
     AlertCircle,
     AlertTriangle,
-    Calendar,
     CheckCircle,
     Filter,
     Package,
     Plus,
-    Search,
     Wrench,
     XCircle,
 } from "lucide-react";
@@ -149,13 +140,12 @@ export default function EquipementsPage() {
                     title="Parc Équipements"
                     description="Suivi du parc équipements installés chez vos clients"
                     actions={
-                        <Button
+                        <PrimaryActionButton
                             onClick={() => setDialogOpen(true)}
-                            className="bg-black hover:bg-black/90 text-white h-11 px-6 text-[14px] font-medium rounded-md shadow-sm"
                         >
                             <Plus className="w-4 h-4 mr-2" strokeWidth={2} />
                             Nouvel équipement
-                        </Button>
+                        </PrimaryActionButton>
                     }
                 />
 
@@ -181,7 +171,10 @@ export default function EquipementsPage() {
                     <StatCard
                         icon={AlertTriangle}
                         label="Contrôles urgents"
-                        value={(stats?.controlesAVenir ?? 0) + (stats?.controlesEnRetard ?? 0)}
+                        value={
+                            (stats?.controlesAVenir ?? 0) +
+                            (stats?.controlesEnRetard ?? 0)
+                        }
                         description={`dont ${stats?.controlesEnRetard ?? 0} en retard`}
                         badge={
                             (stats?.controlesEnRetard ?? 0) > 0
@@ -202,18 +195,12 @@ export default function EquipementsPage() {
 
                 {/* Filters */}
                 <div className="flex flex-col sm:flex-row gap-3">
-                    <div className="relative flex-1">
-                        <Search
-                            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-black/40"
-                            strokeWidth={2}
-                        />
-                        <Input
-                            placeholder="Rechercher par marque, modèle, client, ville..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-9 h-11 border-black/10 bg-white"
-                        />
-                    </div>
+                    <SearchBar
+                        value={searchQuery}
+                        onChange={setSearchQuery}
+                        placeholder="Rechercher par marque, modèle, client, ville..."
+                        className="flex-1"
+                    />
 
                     <Select
                         value={typeFilter}
@@ -228,7 +215,11 @@ export default function EquipementsPage() {
                             <SelectItem value="ALL">Tous les types</SelectItem>
                             {equipementTypes.map((type) => (
                                 <SelectItem key={type} value={type}>
-                                    {TYPE_EQUIPEMENT_LABELS[type as TypeEquipement]}
+                                    {
+                                        TYPE_EQUIPEMENT_LABELS[
+                                            type as TypeEquipement
+                                        ]
+                                    }
                                 </SelectItem>
                             ))}
                         </SelectContent>
@@ -244,7 +235,9 @@ export default function EquipementsPage() {
                             <SelectValue placeholder="Statut" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="ALL">Tous les statuts</SelectItem>
+                            <SelectItem value="ALL">
+                                Tous les statuts
+                            </SelectItem>
                             {STATUT_EQUIPEMENT.map((statut) => (
                                 <SelectItem key={statut} value={statut}>
                                     {STATUT_EQUIPEMENT_LABELS[statut]}
@@ -279,43 +272,37 @@ export default function EquipementsPage() {
                 {/* Equipements List */}
                 <div className="space-y-3">
                     {isLoading ? (
-                        <>
-                            {[...Array(5)].map((_, i) => (
-                                <Skeleton key={i} className="h-[160px] rounded-xl" />
-                            ))}
-                        </>
+                        <GridSkeleton
+                            itemCount={5}
+                            gridColumns={{ default: 1 }}
+                            gap={3}
+                            itemHeight="h-[160px]"
+                        />
                     ) : filteredEquipements.length === 0 ? (
-                        <div className="text-center py-16 bg-white rounded-xl border border-black/8">
-                            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-black/5 flex items-center justify-center">
-                                <Wrench
-                                    className="w-8 h-8 text-black/30"
-                                    strokeWidth={2}
-                                />
-                            </div>
-                            <h3 className="text-[16px] font-semibold text-black mb-1">
-                                Aucun équipement trouvé
-                            </h3>
-                            <p className="text-[14px] text-black/40 mb-4">
-                                {searchQuery ||
+                        <EmptyState
+                            icon={Wrench}
+                            title="Aucun équipement trouvé"
+                            description={
+                                searchQuery ||
                                 typeFilter !== "ALL" ||
                                 statutFilter !== "ALL" ||
                                 controleUrgent
                                     ? "Essayez de modifier vos filtres"
-                                    : "Commencez par enregistrer votre premier équipement"}
-                            </p>
-                            {!searchQuery &&
+                                    : "Commencez par enregistrer votre premier équipement"
+                            }
+                            action={
+                                !searchQuery &&
                                 typeFilter === "ALL" &&
                                 statutFilter === "ALL" &&
-                                !controleUrgent && (
-                                    <Button
-                                        onClick={() => setDialogOpen(true)}
-                                        className="bg-black hover:bg-black/90"
-                                    >
-                                        <Plus className="w-4 h-4 mr-2" strokeWidth={2} />
-                                        Ajouter un équipement
-                                    </Button>
-                                )}
-                        </div>
+                                !controleUrgent
+                                    ? {
+                                          label: "Ajouter un équipement",
+                                          onClick: () => setDialogOpen(true),
+                                          icon: Plus,
+                                      }
+                                    : undefined
+                            }
+                        />
                     ) : (
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                             {filteredEquipements.map((equipement) => (
@@ -341,35 +328,15 @@ export default function EquipementsPage() {
                 />
 
                 {/* Delete Confirmation Dialog */}
-                <AlertDialog
+                <ConfirmDialog
                     open={deleteDialogOpen}
                     onOpenChange={setDeleteDialogOpen}
-                >
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>Supprimer l'équipement</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                Êtes-vous sûr de vouloir supprimer cet équipement ?
-                                {equipementToDelete && (
-                                    <span className="block mt-2 font-medium text-black">
-                                        {TYPE_EQUIPEMENT_LABELS[equipementToDelete.type]} -{" "}
-                                        {equipementToDelete.marque}
-                                    </span>
-                                )}
-                                Cette action est irréversible.
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Annuler</AlertDialogCancel>
-                            <AlertDialogAction
-                                onClick={confirmDelete}
-                                className="bg-red-500 hover:bg-red-600"
-                            >
-                                Supprimer
-                            </AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
+                    onConfirm={confirmDelete}
+                    title="Supprimer l'équipement"
+                    description={`Êtes-vous sûr de vouloir supprimer cet équipement ?${equipementToDelete ? ` ${TYPE_EQUIPEMENT_LABELS[equipementToDelete.type]} - ${equipementToDelete.marque}` : ""} Cette action est irréversible.`}
+                    confirmLabel="Supprimer"
+                    isLoading={deleteEquipement.isPending}
+                />
             </div>
         </RouteGuard>
     );

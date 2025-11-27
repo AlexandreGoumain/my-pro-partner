@@ -1,8 +1,6 @@
-import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { DS } from "@/lib/constants/design-system";
-import { cn } from "@/lib/utils";
-import { Calendar, CheckCircle2 } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
+import { CheckCircle2 } from "lucide-react";
 import { TaskItem, TaskItemProps } from "./task-item";
 
 export interface TodayTasksCardProps {
@@ -18,7 +16,9 @@ export interface TodayTasksCardProps {
  */
 export function TodayTasksCard({ tasks, className }: TodayTasksCardProps) {
     return (
-        <Card className={`group relative p-6 overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500 ${className || ""}`}>
+        <Card
+            className={`group relative p-6 overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500 ${className || ""}`}
+        >
             {/* Subtle hover effect */}
             <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
@@ -55,17 +55,14 @@ export function TodayTasksCard({ tasks, className }: TodayTasksCardProps) {
                         ))}
                     </div>
                 ) : (
-                    <div className="text-center py-10">
-                        <div className="h-12 w-12 flex items-center justify-center mx-auto mb-3 rounded-full bg-black/5">
-                            <CheckCircle2 className="w-6 h-6 text-black/30" strokeWidth={2} />
-                        </div>
-                        <p className="text-[14px] font-medium text-black/60">
-                            Aucune action requise
-                        </p>
-                        <p className="text-[13px] text-black/40 mt-1">
-                            Tout est à jour
-                        </p>
-                    </div>
+                    <EmptyState
+                        icon={CheckCircle2}
+                        title="Aucune action requise"
+                        description="Tout est à jour"
+                        variant="minimal"
+                        iconSize="sm"
+                        textSize="sm"
+                    />
                 )}
             </div>
         </Card>

@@ -1,6 +1,6 @@
 "use client";
 
-import { AnalyticsKPICard } from "@/components/analytics/analytics-kpi-card";
+import { AnalyticsKPIGrid } from "@/components/analytics/analytics-kpi-grid";
 import { UnpaidInvoiceTable } from "@/components/analytics/unpaid-invoice-table";
 import { UnpaidInvoicesFilters } from "@/components/analytics/unpaid-invoices-filters";
 import { ConditionalSkeleton } from "@/components/ui/conditional-skeleton";
@@ -53,38 +53,41 @@ export default function UnpaidInvoicesPage() {
                     />
 
                     {/* KPI Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <AnalyticsKPICard
-                            title="Total impayé"
-                            value={formatAmount(summary.totalUnpaid)}
-                            subtitle={`${summary.totalInvoices} facture${pluralSuffix(summary.totalInvoices)}`}
-                            icon={Euro}
-                        />
-                        <AnalyticsKPICard
-                            title="Factures en retard"
-                            value={summary.overdueCount}
-                            subtitle={formatAmount(summary.totalOverdue)}
-                            icon={AlertCircle}
-                        />
-                        <AnalyticsKPICard
-                            title="Retard moyen"
-                            value={`${summary.averageOverdueDays} j`}
-                            subtitle={
-                                summary.overdueCount > 0
-                                    ? "Pour les factures en retard"
-                                    : "Aucune facture en retard"
-                            }
-                            icon={Clock}
-                        />
-                        <AnalyticsKPICard
-                            title="En attente"
-                            value={summary.totalInvoices - summary.overdueCount}
-                            subtitle={formatAmount(
-                                summary.totalUnpaid - summary.totalOverdue
-                            )}
-                            icon={FileText}
-                        />
-                    </div>
+                    <AnalyticsKPIGrid
+                        kpis={[
+                            {
+                                title: "Total impayé",
+                                value: formatAmount(summary.totalUnpaid),
+                                subtitle: `${summary.totalInvoices} facture${pluralSuffix(summary.totalInvoices)}`,
+                                icon: Euro,
+                            },
+                            {
+                                title: "Factures en retard",
+                                value: summary.overdueCount,
+                                subtitle: formatAmount(summary.totalOverdue),
+                                icon: AlertCircle,
+                            },
+                            {
+                                title: "Retard moyen",
+                                value: `${summary.averageOverdueDays} j`,
+                                subtitle:
+                                    summary.overdueCount > 0
+                                        ? "Pour les factures en retard"
+                                        : "Aucune facture en retard",
+                                icon: Clock,
+                            },
+                            {
+                                title: "En attente",
+                                value:
+                                    summary.totalInvoices -
+                                    summary.overdueCount,
+                                subtitle: formatAmount(
+                                    summary.totalUnpaid - summary.totalOverdue
+                                ),
+                                icon: FileText,
+                            },
+                        ]}
+                    />
 
                     {/* Filters */}
                     <UnpaidInvoicesFilters

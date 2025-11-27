@@ -1,6 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { MetadataField } from "@/components/ui/metadata-field";
 import { User, Mail, Phone, MapPin } from "lucide-react";
 import Link from "next/link";
 
@@ -35,60 +36,46 @@ export function RepairClientInfo({ client, technicien }: RepairClientInfoProps) 
         <CardContent className="space-y-3">
           {client ? (
             <>
-              <div>
-                <div className="text-[13px] font-medium text-black/40 mb-1">
-                  Nom
-                </div>
-                <Link
-                  href={`/dashboard/clients/${client.id}`}
-                  className="text-[14px] text-black hover:underline"
-                >
-                  {client.prenom
-                    ? `${client.prenom} ${client.nom}`
-                    : client.nom}
-                </Link>
-              </div>
-
-              {client.email && (
-                <div>
-                  <div className="text-[13px] font-medium text-black/40 mb-1 flex items-center gap-1">
-                    <Mail className="h-3 w-3" />
-                    Email
-                  </div>
-                  <a
-                    href={`mailto:${client.email}`}
+              <MetadataField
+                label="Nom"
+                value={
+                  <Link
+                    href={`/dashboard/clients/${client.id}`}
                     className="text-[14px] text-black hover:underline"
                   >
-                    {client.email}
-                  </a>
-                </div>
+                    {client.prenom
+                      ? `${client.prenom} ${client.nom}`
+                      : client.nom}
+                  </Link>
+                }
+              />
+
+              {client.email && (
+                <MetadataField
+                  label="Email"
+                  value={client.email}
+                  icon={Mail}
+                  href={client.email}
+                  linkType="mailto"
+                />
               )}
 
               {client.telephone && (
-                <div>
-                  <div className="text-[13px] font-medium text-black/40 mb-1 flex items-center gap-1">
-                    <Phone className="h-3 w-3" />
-                    Téléphone
-                  </div>
-                  <a
-                    href={`tel:${client.telephone}`}
-                    className="text-[14px] text-black hover:underline"
-                  >
-                    {client.telephone}
-                  </a>
-                </div>
+                <MetadataField
+                  label="Téléphone"
+                  value={client.telephone}
+                  icon={Phone}
+                  href={client.telephone}
+                  linkType="tel"
+                />
               )}
 
               {client.adresse && (
-                <div>
-                  <div className="text-[13px] font-medium text-black/40 mb-1 flex items-center gap-1">
-                    <MapPin className="h-3 w-3" />
-                    Adresse
-                  </div>
-                  <div className="text-[14px] text-black">
-                    {client.adresse}
-                  </div>
-                </div>
+                <MetadataField
+                  label="Adresse"
+                  value={client.adresse}
+                  icon={MapPin}
+                />
               )}
             </>
           ) : (
@@ -110,27 +97,18 @@ export function RepairClientInfo({ client, technicien }: RepairClientInfoProps) 
         <CardContent className="space-y-3">
           {technicien ? (
             <>
-              <div>
-                <div className="text-[13px] font-medium text-black/40 mb-1">
-                  Nom
-                </div>
-                <div className="text-[14px] text-black">
-                  {technicien.prenom} {technicien.nom}
-                </div>
-              </div>
+              <MetadataField
+                label="Nom"
+                value={`${technicien.prenom} ${technicien.nom}`}
+              />
 
-              <div>
-                <div className="text-[13px] font-medium text-black/40 mb-1 flex items-center gap-1">
-                  <Mail className="h-3 w-3" />
-                  Email
-                </div>
-                <a
-                  href={`mailto:${technicien.email}`}
-                  className="text-[14px] text-black hover:underline"
-                >
-                  {technicien.email}
-                </a>
-              </div>
+              <MetadataField
+                label="Email"
+                value={technicien.email}
+                icon={Mail}
+                href={technicien.email}
+                linkType="mailto"
+              />
             </>
           ) : (
             <div className="text-[14px] text-black/40">

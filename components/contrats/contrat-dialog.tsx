@@ -4,23 +4,21 @@ import { Button } from "@/components/ui/button";
 import {
     Dialog,
     DialogContent,
-    DialogFooter,
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import { DialogActionButtons } from "@/components/ui/dialog-action-buttons";
 import { Form } from "@/components/ui/form";
-import { PrimaryActionButton } from "@/components/ui/primary-action-button";
+import { StepperIndicator } from "@/components/ui/stepper-indicator";
 import { useClients, type Client } from "@/hooks/use-clients";
 import { useCreateContrat } from "@/hooks/use-contrats";
 import {
     type PeriodiciteContrat,
     type TypeContratEntretien,
 } from "@/lib/types/contrats";
-import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { addYears, format } from "date-fns";
 import {
-    CheckCircle2,
     ChevronLeft,
     ChevronRight,
     CreditCard,
@@ -122,7 +120,9 @@ export function ContratDialog({
     // Auto-fill address when client is selected
     useEffect(() => {
         if (selectedClientId) {
-            const client = clients.find((c: Client) => c.id === selectedClientId);
+            const client = clients.find(
+                (c: Client) => c.id === selectedClientId
+            );
             if (client) {
                 form.setValue("adresse", client.adresse || "");
                 form.setValue("codePostal", client.codePostal || "");
@@ -215,66 +215,7 @@ export function ContratDialog({
                     </DialogTitle>
                 </DialogHeader>
 
-                {/* Stepper */}
-                <div className="flex items-center justify-between px-2 py-4">
-                    {steps.map((step, index) => {
-                        const isActive = step.id === currentStep;
-                        const isCompleted = step.id < currentStep;
-                        const Icon = step.icon;
-
-                        return (
-                            <div
-                                key={step.id}
-                                className="flex items-center flex-1"
-                            >
-                                <div className="flex flex-col items-center gap-2">
-                                    <div
-                                        className={cn(
-                                            "w-10 h-10 rounded-full flex items-center justify-center transition-all",
-                                            isCompleted
-                                                ? "bg-black text-white"
-                                                : isActive
-                                                  ? "bg-black text-white"
-                                                  : "bg-black/5 text-black/40"
-                                        )}
-                                    >
-                                        {isCompleted ? (
-                                            <CheckCircle2
-                                                className="w-5 h-5"
-                                                strokeWidth={2}
-                                            />
-                                        ) : (
-                                            <Icon
-                                                className="w-5 h-5"
-                                                strokeWidth={2}
-                                            />
-                                        )}
-                                    </div>
-                                    <span
-                                        className={cn(
-                                            "text-[12px] font-medium",
-                                            isActive || isCompleted
-                                                ? "text-black"
-                                                : "text-black/40"
-                                        )}
-                                    >
-                                        {step.name}
-                                    </span>
-                                </div>
-                                {index < steps.length - 1 && (
-                                    <div
-                                        className={cn(
-                                            "flex-1 h-[2px] mx-4 mt-[-20px]",
-                                            isCompleted
-                                                ? "bg-black"
-                                                : "bg-black/10"
-                                        )}
-                                    />
-                                )}
-                            </div>
-                        );
-                    })}
-                </div>
+                <StepperIndicator steps={steps} currentStep={currentStep} />
 
                 <Form {...form}>
                     <form
@@ -292,49 +233,50 @@ export function ContratDialog({
                             )}
                         </div>
 
-                        <DialogFooter className="flex justify-between">
+                        <div className="flex justify-between pt-4">
                             <div>
                                 {currentStep > 1 && (
                                     <Button
                                         type="button"
                                         variant="outline"
                                         onClick={handlePrevious}
-                                        className="gap-2"
+                                        className="gap-2 h-11 px-6 text-[14px] border-black/10"
                                     >
                                         <ChevronLeft className="w-4 h-4" />
                                         Précédent
                                     </Button>
                                 )}
                             </div>
-                            <div className="flex gap-3">
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => onOpenChange(false)}
-                                >
-                                    Annuler
-                                </Button>
-                                {currentStep < 3 ? (
-                                    <PrimaryActionButton
+                            {currentStep < 3 ? (
+                                <div className="flex gap-3">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => onOpenChange(false)}
+                                        className="h-11 px-6 text-[14px] border-black/10"
+                                    >
+                                        Annuler
+                                    </Button>
+                                    <Button
                                         type="button"
                                         onClick={handleNext}
-                                        className="gap-2"
+                                        className="gap-2 h-11 px-6 text-[14px] bg-black hover:bg-black/90"
                                     >
                                         Suivant
                                         <ChevronRight className="w-4 h-4" />
-                                    </PrimaryActionButton>
-                                ) : (
-                                    <PrimaryActionButton
-                                        type="submit"
-                                        disabled={createContrat.isPending}
-                                    >
-                                        {createContrat.isPending
-                                            ? "Création..."
-                                            : "Créer le contrat"}
-                                    </PrimaryActionButton>
-                                )}
-                            </div>
-                        </DialogFooter>
+                                    </Button>
+                                </div>
+                            ) : (
+                                <div className="flex-1">
+                                    <DialogActionButtons
+                                        onCancel={() => onOpenChange(false)}
+                                        submitLabel="Créer le contrat"
+                                        isLoading={createContrat.isPending}
+                                        className="pt-0"
+                                    />
+                                </div>
+                            )}
+                        </div>
                     </form>
                 </Form>
             </DialogContent>

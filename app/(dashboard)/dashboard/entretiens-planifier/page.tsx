@@ -2,6 +2,8 @@
 
 import { EntretienPlanifierCard } from "@/components/equipements/entretien-planifier-card";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
 import { RouteGuard } from "@/components/ui/route-guard";
 import {
@@ -11,7 +13,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
 import { StatCard } from "@/components/ui/stat-card";
 import {
     useEntretiensAPlanifier,
@@ -255,30 +256,18 @@ export default function EntretiensPlanifierPage() {
 
                 {/* Entretiens List */}
                 {isLoading ? (
-                    <div className="space-y-3">
-                        {[...Array(5)].map((_, i) => (
-                            <Skeleton
-                                key={i}
-                                className="h-[120px] rounded-xl"
-                            />
-                        ))}
-                    </div>
+                    <GridSkeleton
+                        itemCount={5}
+                        gridColumns={{ default: 1 }}
+                        gap={3}
+                        itemHeight="h-[120px]"
+                    />
                 ) : filteredEntretiens.length === 0 ? (
-                    <div className="text-center py-16 bg-white rounded-xl border border-black/8">
-                        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-emerald-100 flex items-center justify-center">
-                            <CheckCircle
-                                className="w-8 h-8 text-emerald-500"
-                                strokeWidth={2}
-                            />
-                        </div>
-                        <h3 className="text-[16px] font-semibold text-black mb-1">
-                            Aucun entretien à planifier
-                        </h3>
-                        <p className="text-[14px] text-black/40">
-                            Tous vos équipements sont à jour pour la période
-                            sélectionnée
-                        </p>
-                    </div>
+                    <EmptyState
+                        icon={CheckCircle}
+                        title="Aucun entretien à planifier"
+                        description="Tous vos équipements sont à jour pour la période sélectionnée"
+                    />
                 ) : (
                     <div className="space-y-6">
                         {/* En retard */}

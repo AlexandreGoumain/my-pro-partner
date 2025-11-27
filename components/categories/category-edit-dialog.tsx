@@ -1,12 +1,7 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { ButtonWithSpinner } from "@/components/ui/button-with-spinner";
-import {
-    Dialog,
-    DialogContent,
-    DialogFooter,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { DialogActionButtons } from "@/components/ui/dialog-action-buttons";
 import { DialogHeaderSection } from "@/components/ui/dialog-header-section";
 import {
     Form,
@@ -31,11 +26,11 @@ import {
     type Categorie,
 } from "@/hooks/use-categories";
 import { useFormReset } from "@/hooks/use-form-reset";
+import { toastMessages } from "@/lib/utils/toast-messages";
 import {
     categorieUpdateSchema,
     type CategorieUpdateInput,
 } from "@/lib/validation";
-import { toastMessages } from "@/lib/utils/toast-messages";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMemo } from "react";
 import { useForm } from "react-hook-form";
@@ -222,22 +217,11 @@ export function CategoryEditDialog({
                             </p>
                         )}
 
-                        <DialogFooter>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => onOpenChange(false)}
-                                disabled={updateCategorie.isPending}
-                            >
-                                Annuler
-                            </Button>
-                            <ButtonWithSpinner
-                                type="submit"
-                                isLoading={updateCategorie.isPending}
-                            >
-                                Enregistrer
-                            </ButtonWithSpinner>
-                        </DialogFooter>
+                        <DialogActionButtons
+                            onCancel={() => onOpenChange(false)}
+                            isLoading={updateCategorie.isPending}
+                            isEditing={true}
+                        />
                     </form>
                 </Form>
             </DialogContent>

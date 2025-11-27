@@ -1,9 +1,16 @@
 import { StatConfig, StatisticsGrid } from "@/components/ui/statistics-grid";
-import { ReservationStats as ReservationStatsType } from "@/lib/types/reservation";
 import { Calendar, CheckCircle2, Clock, Users } from "lucide-react";
 
+// Simple stats interface for display
+export interface SimpleReservationStats {
+    total: number;
+    confirmees: number;
+    enAttente: number;
+    couverts: number;
+}
+
 export interface ReservationStatsProps {
-    stats: ReservationStatsType;
+    stats: SimpleReservationStats;
 }
 
 export function ReservationStats({ stats }: ReservationStatsProps) {

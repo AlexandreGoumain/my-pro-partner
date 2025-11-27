@@ -3,7 +3,8 @@
 import { DemontageDialog } from "@/components/atelier/demontage-dialog";
 import { DemontageList } from "@/components/atelier/demontage-list";
 import { PiecesStock } from "@/components/atelier/pieces-stock";
-import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/ui/page-header";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { RouteGuard } from "@/components/ui/route-guard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Package, Plus, Wrench } from "lucide-react";
@@ -16,25 +17,18 @@ export default function AtelierPage() {
     return (
         <RouteGuard capability="atelier">
             <div className="space-y-6 p-8">
-                {/* Header */}
-                <div className="flex items-center justify-between">
-                    <div>
-                        <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-black">
-                            Atelier
-                        </h1>
-                        <p className="text-[14px] text-black/60 mt-1">
-                            Démontage d&apos;articles et gestion des pièces
-                            détachées
-                        </p>
-                    </div>
-                    <Button
-                        onClick={() => setDialogOpen(true)}
-                        className="bg-black hover:bg-black/90 text-white h-11"
-                    >
-                        <Plus className="h-4 w-4 mr-2" strokeWidth={2} />
-                        Nouveau démontage
-                    </Button>
-                </div>
+                <PageHeader
+                    title="Atelier"
+                    description="Démontage d'articles et gestion des pièces détachées"
+                    actions={
+                        <PrimaryActionButton
+                            onClick={() => setDialogOpen(true)}
+                        >
+                            <Plus className="h-4 w-4 mr-2" strokeWidth={2} />
+                            Nouveau démontage
+                        </PrimaryActionButton>
+                    }
+                />
 
                 {/* Tabs */}
                 <Tabs

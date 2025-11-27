@@ -1,13 +1,12 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import {
     Dialog,
     DialogContent,
-    DialogFooter,
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import { DialogActionButtons } from "@/components/ui/dialog-action-buttons";
 import {
     Form,
     FormControl,
@@ -17,7 +16,6 @@ import {
     FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import {
     Select,
     SelectContent,
@@ -143,7 +141,9 @@ export function EntretienDialog({
             camionnetteId: data.camionnetteId,
             type: data.type as TypeEntretienVehicule,
             description: data.description || undefined,
-            kilometrage: data.kilometrage ? Number(data.kilometrage) : undefined,
+            kilometrage: data.kilometrage
+                ? Number(data.kilometrage)
+                : undefined,
             cout: data.cout ? Number(data.cout) : undefined,
             dateEntretien: data.dateEntretien,
             dateProchain: data.dateProchain || undefined,
@@ -158,7 +158,8 @@ export function EntretienDialog({
                 {
                     onSuccess: () => {
                         toast.success("Entretien modifié", {
-                            description: "L'entretien a été modifié avec succès",
+                            description:
+                                "L'entretien a été modifié avec succès",
                         });
                         form.reset();
                         onSuccess();
@@ -201,7 +202,9 @@ export function EntretienDialog({
             <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="text-[24px] font-semibold">
-                        {isEditing ? "Modifier l'entretien" : "Nouvel entretien"}
+                        {isEditing
+                            ? "Modifier l'entretien"
+                            : "Nouvel entretien"}
                     </DialogTitle>
                 </DialogHeader>
 
@@ -229,9 +232,13 @@ export function EntretienDialog({
                                         </FormControl>
                                         <SelectContent>
                                             {camionnettes.map((c) => (
-                                                <SelectItem key={c.id} value={c.id}>
+                                                <SelectItem
+                                                    key={c.id}
+                                                    value={c.id}
+                                                >
                                                     {c.immatriculation}
-                                                    {c.marque && ` - ${c.marque} ${c.modele || ""}`}
+                                                    {c.marque &&
+                                                        ` - ${c.marque} ${c.modele || ""}`}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -248,7 +255,9 @@ export function EntretienDialog({
                                 name="type"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Type d&apos;entretien</FormLabel>
+                                        <FormLabel>
+                                            Type d&apos;entretien
+                                        </FormLabel>
                                         <Select
                                             onValueChange={field.onChange}
                                             value={field.value}
@@ -259,13 +268,16 @@ export function EntretienDialog({
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                {Object.entries(TYPE_ENTRETIEN_LABELS).map(
-                                                    ([value, label]) => (
-                                                        <SelectItem key={value} value={value}>
-                                                            {label}
-                                                        </SelectItem>
-                                                    )
-                                                )}
+                                                {Object.entries(
+                                                    TYPE_ENTRETIEN_LABELS
+                                                ).map(([value, label]) => (
+                                                    <SelectItem
+                                                        key={value}
+                                                        value={value}
+                                                    >
+                                                        {label}
+                                                    </SelectItem>
+                                                ))}
                                             </SelectContent>
                                         </Select>
                                         <FormMessage />
@@ -398,9 +410,15 @@ export function EntretienDialog({
                             name="dateProchain"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Prochain entretien prévu</FormLabel>
+                                    <FormLabel>
+                                        Prochain entretien prévu
+                                    </FormLabel>
                                     <FormControl>
-                                        <Input type="date" className="h-11" {...field} />
+                                        <Input
+                                            type="date"
+                                            className="h-11"
+                                            {...field}
+                                        />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -426,24 +444,14 @@ export function EntretienDialog({
                             )}
                         />
 
-                        <DialogFooter>
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => onOpenChange(false)}
-                            >
-                                Annuler
-                            </Button>
-                            <PrimaryActionButton type="submit" disabled={isPending}>
-                                {isPending
-                                    ? isEditing
-                                        ? "Modification..."
-                                        : "Création..."
-                                    : isEditing
-                                      ? "Modifier"
-                                      : "Créer l'entretien"}
-                            </PrimaryActionButton>
-                        </DialogFooter>
+                        <DialogActionButtons
+                            onCancel={() => onOpenChange(false)}
+                            isLoading={isPending}
+                            isEditing={isEditing}
+                            submitLabel={
+                                isEditing ? "Modifier" : "Créer l'entretien"
+                            }
+                        />
                     </form>
                 </Form>
             </DialogContent>

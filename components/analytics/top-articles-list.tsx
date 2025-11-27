@@ -1,6 +1,7 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import { TrendingUp } from "lucide-react";
 
 export interface TopArticle {
@@ -29,14 +30,19 @@ export function TopArticlesList({
     };
 
     return (
-        <Card className={`group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500 ${className}`}>
+        <Card
+            className={`group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500 ${className}`}
+        >
             <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             <div className="relative p-6">
                 <div className="mb-6">
                     <div className="flex items-center gap-2 mb-1">
                         <div className="w-1 h-4 bg-gradient-to-b from-black to-black/40 rounded-full" />
                         <h3 className="text-[15px] font-semibold tracking-[-0.02em] text-black flex items-center gap-2">
-                            <TrendingUp className="h-4 w-4 text-black/60" strokeWidth={2} />
+                            <TrendingUp
+                                className="h-4 w-4 text-black/60"
+                                strokeWidth={2}
+                            />
                             {title}
                         </h3>
                     </div>
@@ -72,11 +78,10 @@ export function TopArticlesList({
                         ))}
                     </div>
                 ) : (
-                    <div className="text-center py-8">
-                        <p className="text-[14px] text-black/40">
-                            Aucun produit/service vendu
-                        </p>
-                    </div>
+                    <EmptyState
+                        title="Aucun produit/service vendu"
+                        variant="inline"
+                    />
                 )}
             </div>
         </Card>

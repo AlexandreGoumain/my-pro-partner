@@ -1,6 +1,6 @@
 "use client";
 
-import { AnalyticsKPICard } from "@/components/analytics/analytics-kpi-card";
+import { AnalyticsKPIGrid } from "@/components/analytics/analytics-kpi-grid";
 import { ConversionRateCard } from "@/components/analytics/conversion-rate-card";
 import { InvoiceStatusCard } from "@/components/analytics/invoice-status-card";
 import { OverdueInvoicesCard } from "@/components/analytics/overdue-invoices-card";
@@ -46,34 +46,37 @@ export default function AnalyticsPage() {
                     />
 
                     {/* Revenue cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <AnalyticsKPICard
-                            title="Chiffre d'affaires total"
-                            value={formatCurrency(analytics.totalRevenue)}
-                            icon={Euro}
-                        />
-
-                        <AnalyticsKPICard
-                            title="CA ce mois"
-                            value={formatCurrency(analytics.revenueThisMonth)}
-                            subtitle={`${formatTrendPercentage(trend)} vs mois dernier`}
-                            icon={trend.isPositive ? TrendingUp : TrendingDown}
-                        />
-
-                        <AnalyticsKPICard
-                            title="Devis"
-                            value={analytics.totalQuotes}
-                            subtitle={`Valeur moyenne: ${formatCurrency(analytics.averageQuoteValue)}`}
-                            icon={FileText}
-                        />
-
-                        <AnalyticsKPICard
-                            title="Factures"
-                            value={analytics.totalInvoices}
-                            subtitle={`Valeur moyenne: ${formatCurrency(analytics.averageInvoiceValue)}`}
-                            icon={Receipt}
-                        />
-                    </div>
+                    <AnalyticsKPIGrid
+                        kpis={[
+                            {
+                                title: "Chiffre d'affaires total",
+                                value: formatCurrency(analytics.totalRevenue),
+                                icon: Euro,
+                            },
+                            {
+                                title: "CA ce mois",
+                                value: formatCurrency(
+                                    analytics.revenueThisMonth
+                                ),
+                                subtitle: `${formatTrendPercentage(trend)} vs mois dernier`,
+                                icon: trend.isPositive
+                                    ? TrendingUp
+                                    : TrendingDown,
+                            },
+                            {
+                                title: "Devis",
+                                value: analytics.totalQuotes,
+                                subtitle: `Valeur moyenne: ${formatCurrency(analytics.averageQuoteValue)}`,
+                                icon: FileText,
+                            },
+                            {
+                                title: "Factures",
+                                value: analytics.totalInvoices,
+                                subtitle: `Valeur moyenne: ${formatCurrency(analytics.averageInvoiceValue)}`,
+                                icon: Receipt,
+                            },
+                        ]}
+                    />
 
                     {/* Detailed stats */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

@@ -12,6 +12,7 @@ import {
     CalendarClock,
     CalendarDays,
     Car,
+    ChefHat,
     CreditCard,
     Croissant,
     Dumbbell,
@@ -79,6 +80,7 @@ export const ICON_MAP: Record<string, LucideIcon> = {
     Calendar, // Planning
     CalendarClock, // Entretiens à planifier
     CalendarDays, // Reservations
+    ChefHat, // Menu & Carte (restaurant)
     Award, // Loyalty
     Mail, // Campaigns
     BarChart3, // Analytics

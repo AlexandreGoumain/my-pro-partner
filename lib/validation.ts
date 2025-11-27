@@ -1365,11 +1365,7 @@ export const employeeBaseSchema = z.object({
         .string()
         .max(100, "Le pays ne peut pas dépasser 100 caractères")
         .default("France"),
-    photoUrl: z
-        .string()
-        .url("URL invalide")
-        .optional()
-        .or(z.literal("")),
+    photoUrl: z.string().url("URL invalide").optional().or(z.literal("")),
     poste: z
         .string()
         .min(1, "Le poste est requis")
@@ -1379,8 +1375,12 @@ export const employeeBaseSchema = z.object({
         .max(100, "Le département ne peut pas dépasser 100 caractères")
         .optional()
         .or(z.literal("")),
-    statut: z.enum(["ACTIF", "CONGE", "MALADIE", "ABSENT", "INACTIF"]).default("ACTIF"),
-    typeContrat: z.enum(["CDI", "CDD", "INTERIM", "APPRENTI", "STAGE", "FREELANCE"]).default("CDI"),
+    statut: z
+        .enum(["ACTIF", "CONGE", "MALADIE", "ABSENT", "INACTIF"])
+        .default("ACTIF"),
+    typeContrat: z
+        .enum(["CDI", "CDD", "INTERIM", "APPRENTI", "STAGE", "FREELANCE"])
+        .default("CDI"),
     dateEmbauche: z.coerce.date({
         required_error: "La date d'embauche est requise",
     }),
@@ -1391,7 +1391,10 @@ export const employeeBaseSchema = z.object({
         })
         .min(0, "Le salaire ne peut pas être négatif")
         .max(999999.99, "Le salaire est trop élevé"),
-    devise: z.string().max(10, "La devise ne peut pas dépasser 10 caractères").default("EUR"),
+    devise: z
+        .string()
+        .max(10, "La devise ne peut pas dépasser 10 caractères")
+        .default("EUR"),
     heuresHebdo: z
         .number()
         .int("Les heures doivent être un nombre entier")
@@ -1438,3 +1441,144 @@ export const employeeUpdateSchema = employeeBaseSchema.partial();
 
 export type EmployeeCreateInput = z.infer<typeof employeeCreateSchema>;
 export type EmployeeUpdateInput = z.infer<typeof employeeUpdateSchema>;
+
+// ============================================
+// FITNESS - Types d'abonnements
+// ============================================
+
+export const typeAbonnementBaseSchema = z.object({
+    nom: z
+        .string()
+        .min(1, "Le nom est requis")
+        .max(100, "Le nom ne peut pas dépasser 100 caractères"),
+    description: z
+        .string()
+        .max(500, "La description ne peut pas dépasser 500 caractères")
+        .optional()
+        .or(z.literal("")),
+    prix: z
+        .number({
+            required_error: "Le prix est requis",
+            invalid_type_error: "Le prix doit être un nombre",
+        })
+        .min(0, "Le prix ne peut pas être négatif")
+        .max(99999.99, "Le prix est trop élevé"),
+    periodicite: z.enum(
+        [
+            "JOURNALIER",
+            "HEBDOMADAIRE",
+            "MENSUEL",
+            "TRIMESTRIEL",
+            "SEMESTRIEL",
+            "ANNUEL",
+            "ILLIMITE",
+        ],
+        {
+            required_error: "La périodicité est requise",
+        }
+    ),
+    dureeJours: z
+        .number()
+        .int("La durée doit être un nombre entier")
+        .min(0, "La durée ne peut pas être négative")
+        .optional()
+        .nullable(),
+    nombreSeances: z
+        .number()
+        .int("Le nombre de séances doit être un nombre entier")
+        .min(0, "Le nombre de séances ne peut pas être négatif")
+        .optional()
+        .nullable(),
+    accesIllimite: z.boolean().default(true),
+    nombreAccesSemaine: z
+        .number()
+        .int("Le nombre d'accès doit être un nombre entier")
+        .min(0, "Le nombre d'accès ne peut pas être négatif")
+        .optional()
+        .nullable(),
+    accesCours: z.boolean().default(true),
+    accesZonesPremium: z.boolean().default(false),
+    engagementMois: z
+        .number()
+        .int("L'engagement doit être un nombre entier")
+        .min(0, "L'engagement ne peut pas être négatif")
+        .max(60, "L'engagement ne peut pas dépasser 60 mois")
+        .default(0),
+    fraisInscription: z
+        .number()
+        .min(0, "Les frais ne peuvent pas être négatifs")
+        .max(9999.99, "Les frais sont trop élevés")
+        .default(0),
+    actif: z.boolean().default(true),
+    ordre: z.number().int().min(0).default(0),
+    couleur: z
+        .string()
+        .regex(/^#[0-9A-Fa-f]{6}$/, "Couleur invalide (format #RRGGBB)")
+        .optional()
+        .nullable()
+        .or(z.literal("")),
+});
+
+export const typeAbonnementCreateSchema = typeAbonnementBaseSchema;
+export const typeAbonnementUpdateSchema = typeAbonnementBaseSchema.partial();
+
+export type TypeAbonnementCreateInput = z.infer<
+    typeof typeAbonnementCreateSchema
+>;
+export type TypeAbonnementUpdateInput = z.infer<
+    typeof typeAbonnementUpdateSchema
+>;
+
+// ============================================
+// FITNESS - Abonnements
+// ============================================
+
+export const abonnementBaseSchema = z.object({
+    clientId: z.string().min(1, "Le client est requis"),
+    typeAbonnementId: z.string().min(1, "Le type d'abonnement est requis"),
+    dateDebut: z.coerce.date({
+        required_error: "La date de début est requise",
+    }),
+    dateFin: z.coerce.date().optional().nullable(),
+    statut: z
+        .enum(["ACTIF", "SUSPENDU", "EXPIRE", "RESILIE", "EN_ATTENTE"])
+        .default("ACTIF"),
+    seancesRestantes: z
+        .number()
+        .int("Le nombre de séances doit être un nombre entier")
+        .min(0, "Le nombre de séances ne peut pas être négatif")
+        .optional()
+        .nullable(),
+    montantPaye: z
+        .number()
+        .min(0, "Le montant ne peut pas être négatif")
+        .max(99999.99, "Le montant est trop élevé")
+        .default(0),
+    prochainPaiement: z.coerce.date().optional().nullable(),
+    modePaiement: z
+        .string()
+        .max(50, "Le mode de paiement ne peut pas dépasser 50 caractères")
+        .optional()
+        .or(z.literal("")),
+    numeroCarte: z
+        .string()
+        .max(50, "Le numéro de carte ne peut pas dépasser 50 caractères")
+        .optional()
+        .or(z.literal("")),
+    codeAcces: z
+        .string()
+        .max(20, "Le code d'accès ne peut pas dépasser 20 caractères")
+        .optional()
+        .or(z.literal("")),
+    notes: z
+        .string()
+        .max(1000, "Les notes ne peuvent pas dépasser 1000 caractères")
+        .optional()
+        .or(z.literal("")),
+});
+
+export const abonnementCreateSchema = abonnementBaseSchema;
+export const abonnementUpdateSchema = abonnementBaseSchema.partial();
+
+export type AbonnementCreateInput = z.infer<typeof abonnementCreateSchema>;
+export type AbonnementUpdateInput = z.infer<typeof abonnementUpdateSchema>;

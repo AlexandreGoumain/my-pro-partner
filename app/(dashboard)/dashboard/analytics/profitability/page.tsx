@@ -1,12 +1,13 @@
 "use client";
 
-import { AnalyticsKPICard } from "@/components/analytics/analytics-kpi-card";
+import { AnalyticsKPIGrid } from "@/components/analytics/analytics-kpi-grid";
 import { PeriodFilter } from "@/components/analytics/period-filter";
 import { RevenueBreakdown } from "@/components/analytics/revenue-breakdown";
 import { TopArticlesList } from "@/components/analytics/top-articles-list";
 import { ConditionalSkeleton } from "@/components/ui/conditional-skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/ui/page-header";
+import { SectionTitle } from "@/components/ui/section-title";
 import { useProfitabilityAnalytics } from "@/hooks/use-profitability-analytics";
 import {
     Euro,
@@ -69,32 +70,40 @@ export default function ProfitabilityPage() {
                     />
 
                     {/* KPI Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <AnalyticsKPICard
-                            title={`CA ${getPeriodLabel()}`}
-                            value={formatAmount(data.summary.totalRevenue)}
-                            subtitle={`${data.summary.totalInvoices} facture${data.summary.totalInvoices > 1 ? "s" : ""} payée${data.summary.totalInvoices > 1 ? "s" : ""}`}
-                            icon={Euro}
-                        />
-                        <AnalyticsKPICard
-                            title="Tendance"
-                            value={`${isTrendPositive ? "+" : ""}${data.trends.growth.toFixed(1)}%`}
-                            subtitle="vs période précédente"
-                            icon={isTrendPositive ? TrendingUp : TrendingDown}
-                        />
-                        <AnalyticsKPICard
-                            title="CA Produits"
-                            value={formatAmount(data.byType.PRODUIT.revenue)}
-                            subtitle={`${data.byType.PRODUIT.percentage.toFixed(1)}% du total`}
-                            icon={Package}
-                        />
-                        <AnalyticsKPICard
-                            title="CA Services"
-                            value={formatAmount(data.byType.SERVICE.revenue)}
-                            subtitle={`${data.byType.SERVICE.percentage.toFixed(1)}% du total`}
-                            icon={FileText}
-                        />
-                    </div>
+                    <AnalyticsKPIGrid
+                        kpis={[
+                            {
+                                title: `CA ${getPeriodLabel()}`,
+                                value: formatAmount(data.summary.totalRevenue),
+                                subtitle: `${data.summary.totalInvoices} facture${data.summary.totalInvoices > 1 ? "s" : ""} payée${data.summary.totalInvoices > 1 ? "s" : ""}`,
+                                icon: Euro,
+                            },
+                            {
+                                title: "Tendance",
+                                value: `${isTrendPositive ? "+" : ""}${data.trends.growth.toFixed(1)}%`,
+                                subtitle: "vs période précédente",
+                                icon: isTrendPositive
+                                    ? TrendingUp
+                                    : TrendingDown,
+                            },
+                            {
+                                title: "CA Produits",
+                                value: formatAmount(
+                                    data.byType.PRODUIT.revenue
+                                ),
+                                subtitle: `${data.byType.PRODUIT.percentage.toFixed(1)}% du total`,
+                                icon: Package,
+                            },
+                            {
+                                title: "CA Services",
+                                value: formatAmount(
+                                    data.byType.SERVICE.revenue
+                                ),
+                                subtitle: `${data.byType.SERVICE.percentage.toFixed(1)}% du total`,
+                                icon: FileText,
+                            },
+                        ]}
+                    />
 
                     {/* Revenue Breakdowns */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -115,9 +124,10 @@ export default function ProfitabilityPage() {
                     {/* Top Products by Category */}
                     {data.byCategory.length > 0 && (
                         <div className="space-y-6">
-                            <h2 className="text-[20px] font-semibold tracking-[-0.02em] text-black">
-                                Meilleurs produits/services par catégorie
-                            </h2>
+                            <SectionTitle
+                                title="Meilleurs produits/services par catégorie"
+                                size="lg"
+                            />
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                 {data.byCategory.slice(0, 6).map((category) => (
                                     <TopArticlesList

@@ -1,8 +1,8 @@
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Clock, Phone, Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Reservation, ReservationStatut } from "@/lib/types/reservation";
 import { cn } from "@/lib/utils";
+import { Calendar, Clock, Phone, Users } from "lucide-react";
 
 export interface ReservationCardProps {
     reservation: Reservation;
@@ -27,6 +27,21 @@ function getStatusConfig(statut: ReservationStatut) {
                 label: "Annulée",
                 className: "bg-black/5 text-black/40 border-black/5",
             };
+        case ReservationStatut.ARRIVEE:
+            return {
+                label: "Arrivée",
+                className: "bg-black/20 text-black border-black/20",
+            };
+        case ReservationStatut.TERMINEE:
+            return {
+                label: "Terminée",
+                className: "bg-black/5 text-black/40 border-black/5",
+            };
+        case ReservationStatut.NO_SHOW:
+            return {
+                label: "No-show",
+                className: "bg-black/5 text-black/30 border-black/5",
+            };
         default:
             return {
                 label: statut,
@@ -47,7 +62,7 @@ export function ReservationCard({
             <div className="flex-1 space-y-2">
                 <div className="flex items-center gap-3">
                     <p className="text-[15px] font-semibold tracking-[-0.01em] text-black">
-                        {reservation.client}
+                        {reservation.nomClient}
                     </p>
                     <Badge
                         variant="outline"
@@ -104,7 +119,7 @@ export function ReservationCard({
                             onClick={() =>
                                 onConfirm(
                                     String(reservation.id),
-                                    reservation.client
+                                    reservation.nomClient
                                 )
                             }
                             className="h-9 px-4 text-[13px] border-black/10 hover:bg-black/5"

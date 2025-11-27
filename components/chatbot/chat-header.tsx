@@ -2,6 +2,7 @@
 // CHAT HEADER COMPONENT
 // ============================================
 
+import { IconBox } from "@/components/ui/icon-box";
 import { MessageSquare, X } from "lucide-react";
 
 export interface ChatHeaderProps {
@@ -12,12 +13,13 @@ export function ChatHeader({ onClose }: ChatHeaderProps) {
     return (
         <div className="flex items-center justify-between px-4 py-3 border-b border-black/10">
             <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-black flex items-center justify-center">
-                    <MessageSquare
-                        className="w-4 h-4 text-white"
-                        strokeWidth={2}
-                    />
-                </div>
+                <IconBox
+                    icon={MessageSquare}
+                    size="sm"
+                    shape="circle"
+                    bgColor="bg-black"
+                    iconColor="text-white"
+                />
                 <div>
                     <h3 className="text-[14px] font-medium text-black">
                         Assistant IA

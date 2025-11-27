@@ -240,10 +240,9 @@ const RestaurantPreset: BusinessPreset = {
     features: [
         "dashboard",
         "pos",
+        "menu", // Menu & Carte (plats, boissons, etc.)
         "tables",
         "reservations",
-        "products", // Menu items
-        "inventory",
         "clients",
         "loyalty",
         "invoices",
@@ -253,11 +252,6 @@ const RestaurantPreset: BusinessPreset = {
     ],
 
     i18n: {
-        products: {
-            singular: "Plat",
-            plural: "Menu & Carte",
-            catalog: "Notre carte",
-        },
         invoices: {
             singular: "Note",
             plural: "Notes",
@@ -270,9 +264,10 @@ const RestaurantPreset: BusinessPreset = {
     },
 
     settings: {
-        products: {
+        menu: {
             showAllergens: true,
             showPreparationTime: true,
+            showCategories: true,
         },
         pos: {
             defaultView: "tables",
@@ -351,30 +346,34 @@ const CoiffurePreset: BusinessPreset = {
 
     features: [
         "dashboard",
-        "reservations",
+        "agenda", // Rendez-vous
+        "prestations", // Services proposés
+        "equipe", // Employés et disponibilités
         "clients",
         "loyalty",
-        "products", // Services & Products
         "invoices",
         "analytics",
-        "personnel",
         "campaigns",
         "settings",
     ],
 
     i18n: {
-        products: {
+        prestations: {
             singular: "Prestation",
-            plural: "Prestations & Produits",
+            plural: "Prestations",
         },
-        reservations: {
+        agenda: {
             singular: "Rendez-vous",
             plural: "Agenda",
+        },
+        equipe: {
+            singular: "Employé",
+            plural: "Équipe",
         },
     },
 
     settings: {
-        reservations: {
+        agenda: {
             defaultDuration: 60,
             enableSmsReminders: true,
         },
@@ -382,7 +381,7 @@ const CoiffurePreset: BusinessPreset = {
 
     quickActions: [
         {
-            feature: "reservations",
+            feature: "agenda",
             action: "new",
             label: "Nouveau RDV",
             icon: "CalendarDays",
@@ -393,6 +392,13 @@ const CoiffurePreset: BusinessPreset = {
             label: "Nouveau client",
             icon: "UserPlus",
         },
+    ],
+
+    dashboardWidgets: [
+        "rdv-today",
+        "rdv-upcoming",
+        "revenue-today",
+        "clients-new",
     ],
 };
 
@@ -405,27 +411,67 @@ const EsthetiquePreset: BusinessPreset = {
 
     features: [
         "dashboard",
-        "reservations",
+        "agenda", // Planning RDV
+        "prestations", // Soins proposés
+        "equipe", // Esthéticiennes/praticiens
+        "cabines", // Cabines et salles de soins
         "clients",
         "loyalty",
-        "products",
         "invoices",
         "analytics",
-        "personnel",
         "campaigns",
         "settings",
     ],
 
     i18n: {
-        products: {
+        prestations: {
             singular: "Soin",
-            plural: "Soins & Produits",
+            plural: "Soins",
         },
-        reservations: {
+        equipe: {
+            singular: "Praticien",
+            plural: "Équipe",
+        },
+        cabines: {
+            singular: "Cabine",
+            plural: "Cabines",
+        },
+        agenda: {
             singular: "Rendez-vous",
-            plural: "Planning",
+            plural: "Agenda",
         },
     },
+
+    settings: {
+        defaultAppointmentDuration: 60,
+        workingHours: {
+            start: "09:00",
+            end: "19:00",
+        },
+        allowOnlineBooking: true,
+    },
+
+    quickActions: [
+        {
+            id: "new-rdv",
+            label: "Nouveau RDV",
+            icon: "CalendarPlus",
+            href: "/dashboard/agenda",
+        },
+        {
+            id: "new-client",
+            label: "Nouveau client",
+            icon: "UserPlus",
+            href: "/dashboard/clients/new",
+        },
+    ],
+
+    dashboardWidgets: [
+        "rdv-today",
+        "rdv-upcoming",
+        "revenue-today",
+        "clients-new",
+    ],
 };
 
 const FitnessPreset: BusinessPreset = {
@@ -433,29 +479,57 @@ const FitnessPreset: BusinessPreset = {
     name: "Fitness / Sport",
     icon: "Dumbbell",
     color: "#059669",
-    description: "Salle de sport, coach sportif",
+    description: "Salle de sport, coach sportif, coaching personnel",
 
     features: [
         "dashboard",
-        "clients",
-        "reservations", // Cours collectifs
-        "products", // Abonnements & séances
-        "invoices",
-        "analytics",
-        "personnel",
+        "check-in", // Check-in des membres
+        "clients", // Gestion des membres
+        "abonnements-fitness", // Abonnements salle
+        "cours-fitness", // Cours collectifs
+        "salles-fitness", // Salles et zones
+        "coachs", // Équipe de coachs
+        "loyalty", // Programme de fidélité
+        "invoices", // Facturation
+        "analytics", // Statistiques
+        "campaigns", // Marketing
         "settings",
     ],
 
     i18n: {
-        products: {
-            singular: "Abonnement",
-            plural: "Abonnements & Cours",
-        },
-        reservations: {
-            singular: "Cours",
-            plural: "Planning des cours",
+        clients: {
+            singular: "Membre",
+            plural: "Membres",
         },
     },
+
+    quickActions: [
+        {
+            feature: "check-in",
+            action: "new",
+            label: "Check-in membre",
+            icon: "UserCheck",
+        },
+        {
+            feature: "abonnements-fitness",
+            action: "new",
+            label: "Nouvel abonnement",
+            icon: "CreditCard",
+        },
+        {
+            feature: "clients",
+            action: "new",
+            label: "Nouveau membre",
+            icon: "UserPlus",
+        },
+    ],
+
+    dashboardWidgets: [
+        "presences-today",
+        "abonnements-actifs",
+        "cours-today",
+        "revenue-month",
+    ],
 };
 
 // ============================================
