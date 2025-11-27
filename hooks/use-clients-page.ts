@@ -15,8 +15,8 @@ import { useSegment, useSegmentClients } from "@/hooks/use-segments";
 import type { Segment } from "@/lib/generated/prisma";
 import type { PlanType } from "@/lib/pricing-config";
 import { ColumnDef } from "@tanstack/react-table";
-import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 export interface ClientsPageHandlers {
@@ -97,6 +97,7 @@ export interface ClientsPageHandlers {
 
 export function useClientsPage(): ClientsPageHandlers {
     const router = useRouter();
+    const searchParams = useSearchParams();
 
     // Use URL filter for segment
     const { filterId: segmentId, clearFilter: clearSegmentFilter } =
@@ -130,6 +131,14 @@ export function useClientsPage(): ClientsPageHandlers {
     // Additional dialogs specific to clients page
     const [importDialogOpen, setImportDialogOpen] = useState(false);
     const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+
+    // Handle ?action=new from quick actions
+    useEffect(() => {
+        if (searchParams.get("action") === "new") {
+            setDialogs((prev) => ({ ...prev, create: true }));
+            router.replace("/dashboard/clients", { scroll: false });
+        }
+    }, [searchParams, router, setDialogs]);
 
     // Always use server-side pagination for better performance
     const { data: paginatedData, isLoading } = useClientsPaginated({

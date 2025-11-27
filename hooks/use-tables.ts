@@ -1,19 +1,20 @@
 import { api } from "@/lib/api/fetch-client";
+import { createResourceHooks } from "@/lib/hooks/create-resource-hooks";
 import type {
     Table,
     TableCreateInput,
     TableUpdateInput,
-    TablesStats,
     TablesPaginationParams,
+    TablesStats,
 } from "@/lib/types/table.types";
+import { TableStatus } from "@/lib/types/table.types";
 import type { PaginatedResponse } from "@/lib/utils/pagination";
-import { createResourceHooks } from "@/lib/hooks/create-resource-hooks";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 // Re-export types and enums for convenience
-export type { Table, TableCreateInput, TableUpdateInput, TablesStats };
-export type { TableZone } from "@/lib/types/table.types";
 export { TableStatus } from "@/lib/types/table.types";
+export type { TableZone } from "@/lib/types/table.types";
+export type { Table, TableCreateInput, TableUpdateInput, TablesStats };
 
 // Create base hooks using factory
 const tableHooks = createResourceHooks<Table>({
@@ -24,7 +25,8 @@ const tableHooks = createResourceHooks<Table>({
 // Extend query keys with custom pagination keys
 export const tableKeys = {
     ...tableHooks.keys,
-    list: (params: TablesPaginationParams) => ["tables", "list", params] as const,
+    list: (params: TablesPaginationParams) =>
+        ["tables", "list", params] as const,
 };
 
 // Export base hooks from factory
@@ -34,6 +36,28 @@ export const useTablesStats = () => tableHooks.useStats<TablesStats>();
 export const useCreateTable = () => tableHooks.useCreate<TableCreateInput>();
 export const useUpdateTable = () => tableHooks.useUpdate<TableUpdateInput>();
 export const useDeleteTable = tableHooks.useDelete;
+
+// Custom hook: Update table status (LIBRE, OCCUPEE, RESERVEE)
+export function useUpdateTableStatus() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({
+            id,
+            statut,
+        }: {
+            id: string;
+            statut: TableStatus;
+        }) => {
+            return api.post<{ table: Table }>(`/api/tables/${id}/statut`, {
+                statut,
+            });
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["tables"] });
+        },
+    });
+}
 
 // Custom hook: Server-side pagination with filters (zone, statut)
 export function useTablesPaginated(params?: TablesPaginationParams) {
@@ -49,7 +73,9 @@ export function useTablesPaginated(params?: TablesPaginationParams) {
             if (zone) searchParams.set("zone", zone);
             if (statut) searchParams.set("statut", statut);
 
-            return api.get<PaginatedResponse<Table>>(`/api/tables?${searchParams.toString()}`);
+            return api.get<PaginatedResponse<Table>>(
+                `/api/tables?${searchParams.toString()}`
+            );
         },
         enabled: !!params,
     });
