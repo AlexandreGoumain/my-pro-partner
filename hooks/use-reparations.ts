@@ -1,6 +1,16 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+/**
+ * Hook for managing Reparations (repair tickets)
+ *
+ * Optimized version using:
+ * - buildUrl utility for URL construction
+ * - useMutationWithInvalidation for mutations with toast
+ * - api client for standardized fetch
+ */
+
 import { api } from "@/lib/api/fetch-client";
-import { useToast } from "./use-toast";
+import { useMutationWithInvalidation } from "@/lib/hooks/mutation-helpers";
+import { buildUrl } from "@/lib/utils/query-params";
+import { useQuery } from "@tanstack/react-query";
 
 // Types
 export interface Reparation {
@@ -171,338 +181,177 @@ export const reparationKeys = {
     stats: () => [...reparationKeys.all, "stats"] as const,
 };
 
-// Build query params from filters
-function buildQueryParams(params?: ReparationFilters): string {
-    if (!params) return "";
-    const queryParams = new URLSearchParams();
-    if (params.page) queryParams.append("page", params.page.toString());
-    if (params.limit) queryParams.append("limit", params.limit.toString());
-    if (params.search) queryParams.append("search", params.search);
-    if (params.statut) queryParams.append("statut", params.statut);
-    if (params.priorite) queryParams.append("priorite", params.priorite);
-    if (params.clientId) queryParams.append("clientId", params.clientId);
-    if (params.technicienId)
-        queryParams.append("technicienId", params.technicienId);
-    if (params.storeId) queryParams.append("storeId", params.storeId);
-    return queryParams.toString();
-}
+// Common invalidation keys for mutations
+const baseInvalidateKeys = [
+    reparationKeys.all,
+    reparationKeys.lists(),
+    reparationKeys.stats(),
+];
 
-// Hook to fetch all reparations with pagination and filters
+// ============================================================================
+// QUERY HOOKS
+// ============================================================================
+
 export function useReparations(params?: ReparationFilters) {
     return useQuery({
         queryKey: reparationKeys.list(params),
-        queryFn: async () => {
-            const queryString = buildQueryParams(params);
-            return api.get<ReparationsListResponse>(
-                `/api/reparations${queryString ? `?${queryString}` : ""}`
-            );
-        },
+        queryFn: () =>
+            api.get<ReparationsListResponse>(
+                buildUrl("/api/reparations", params)
+            ),
     });
 }
 
-// Hook to fetch a single reparation by ID
 export function useReparation(id: string | null) {
     return useQuery({
         queryKey: reparationKeys.detail(id || ""),
-        queryFn: async () => {
-            if (!id) throw new Error("ID is required");
-            return api.get<Reparation>(`/api/reparations/${id}`);
-        },
+        queryFn: () => api.get<Reparation>(`/api/reparations/${id}`),
         enabled: !!id,
     });
 }
 
-// Hook to fetch reparation stats
 export function useReparationStats() {
     return useQuery({
         queryKey: reparationKeys.stats(),
-        queryFn: async () => {
-            return api.get<{
+        queryFn: () =>
+            api.get<{
                 total: number;
                 enCours: number;
                 enAttentePieces: number;
                 pretes: number;
                 urgentes: number;
-            }>("/api/reparations/stats");
-        },
+            }>("/api/reparations/stats"),
     });
 }
 
-// Hook to create a new reparation
+// ============================================================================
+// MUTATION HOOKS
+// ============================================================================
+
 export function useCreateReparation() {
-    const queryClient = useQueryClient();
-    const { toast } = useToast();
-
-    return useMutation({
-        mutationFn: async (data: ReparationCreateData) =>
-            api.post<Reparation>("/api/reparations", data),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: reparationKeys.lists() });
-            queryClient.invalidateQueries({ queryKey: reparationKeys.stats() });
-            toast({
-                title: "Réparation créée",
-                description: "La fiche de réparation a été créée avec succès.",
-            });
-        },
-        onError: (error: Error) => {
-            toast({
-                title: "Erreur",
-                description:
-                    error.message || "Impossible de créer la réparation",
-                variant: "destructive",
-            });
+    return useMutationWithInvalidation<Reparation, ReparationCreateData>({
+        mutationFn: (data) => api.post("/api/reparations", data),
+        invalidateKeys: baseInvalidateKeys,
+        messages: {
+            success: "Réparation créée",
+            successDescription:
+                "La fiche de réparation a été créée avec succès.",
         },
     });
 }
 
-// Hook to update a reparation
 export function useUpdateReparation() {
-    const queryClient = useQueryClient();
-    const { toast } = useToast();
-
-    return useMutation({
-        mutationFn: async ({
-            id,
-            data,
-        }: {
-            id: string;
-            data: ReparationUpdateData;
-        }) => api.put<Reparation>(`/api/reparations/${id}`, data),
-        onSuccess: (_, { id }) => {
-            queryClient.invalidateQueries({ queryKey: reparationKeys.lists() });
-            queryClient.invalidateQueries({
-                queryKey: reparationKeys.detail(id),
-            });
-            toast({
-                title: "Réparation mise à jour",
-                description: "Les modifications ont été enregistrées.",
-            });
-        },
-        onError: (error: Error) => {
-            toast({
-                title: "Erreur",
-                description:
-                    error.message || "Impossible de mettre à jour la réparation",
-                variant: "destructive",
-            });
+    return useMutationWithInvalidation<
+        Reparation,
+        { id: string; data: ReparationUpdateData }
+    >({
+        mutationFn: ({ id, data }) => api.put(`/api/reparations/${id}`, data),
+        invalidateKeys: baseInvalidateKeys,
+        messages: {
+            success: "Réparation mise à jour",
+            successDescription: "Les modifications ont été enregistrées.",
         },
     });
 }
 
-// Hook to update reparation status
 export function useUpdateReparationStatus() {
-    const queryClient = useQueryClient();
-    const { toast } = useToast();
-
-    return useMutation({
-        mutationFn: async ({
-            id,
-            statut,
-            notes,
-        }: {
-            id: string;
-            statut: ReparationStatut;
-            notes?: string;
-        }) =>
-            api.post<Reparation>(`/api/reparations/${id}/status`, {
-                statut,
-                notes,
-            }),
-        onSuccess: (_, { id }) => {
-            queryClient.invalidateQueries({ queryKey: reparationKeys.lists() });
-            queryClient.invalidateQueries({
-                queryKey: reparationKeys.detail(id),
-            });
-            queryClient.invalidateQueries({ queryKey: reparationKeys.stats() });
-            toast({
-                title: "Statut mis à jour",
-                description: "Le statut de la réparation a été modifié.",
-            });
-        },
-        onError: (error: Error) => {
-            toast({
-                title: "Erreur",
-                description:
-                    error.message || "Impossible de modifier le statut",
-                variant: "destructive",
-            });
+    return useMutationWithInvalidation<
+        Reparation,
+        { id: string; statut: ReparationStatut; notes?: string }
+    >({
+        mutationFn: ({ id, statut, notes }) =>
+            api.post(`/api/reparations/${id}/status`, { statut, notes }),
+        invalidateKeys: baseInvalidateKeys,
+        messages: {
+            success: "Statut mis à jour",
+            successDescription: "Le statut de la réparation a été modifié.",
         },
     });
 }
 
-// Hook to assign a technician
 export function useAssignTechnician() {
-    const queryClient = useQueryClient();
-    const { toast } = useToast();
-
-    return useMutation({
-        mutationFn: async ({
-            id,
-            technicienId,
-        }: {
-            id: string;
-            technicienId: string;
-        }) =>
-            api.post<Reparation>(`/api/reparations/${id}/assign`, {
-                technicienId,
-            }),
-        onSuccess: (_, { id }) => {
-            queryClient.invalidateQueries({ queryKey: reparationKeys.lists() });
-            queryClient.invalidateQueries({
-                queryKey: reparationKeys.detail(id),
-            });
-            toast({
-                title: "Technicien assigné",
-                description: "Le technicien a été assigné à la réparation.",
-            });
-        },
-        onError: (error: Error) => {
-            toast({
-                title: "Erreur",
-                description:
-                    error.message || "Impossible d'assigner le technicien",
-                variant: "destructive",
-            });
+    return useMutationWithInvalidation<
+        Reparation,
+        { id: string; technicienId: string }
+    >({
+        mutationFn: ({ id, technicienId }) =>
+            api.post(`/api/reparations/${id}/assign`, { technicienId }),
+        invalidateKeys: baseInvalidateKeys,
+        messages: {
+            success: "Technicien assigné",
+            successDescription: "Le technicien a été assigné à la réparation.",
         },
     });
 }
 
-// Hook to add diagnostic
 export function useAddDiagnostic() {
-    const queryClient = useQueryClient();
-    const { toast } = useToast();
-
-    return useMutation({
-        mutationFn: async ({
-            id,
-            diagnostic,
-            coutEstime,
-        }: {
-            id: string;
-            diagnostic: string;
-            coutEstime?: number;
-        }) =>
-            api.post<Reparation>(`/api/reparations/${id}/diagnostic`, {
+    return useMutationWithInvalidation<
+        Reparation,
+        { id: string; diagnostic: string; coutEstime?: number }
+    >({
+        mutationFn: ({ id, diagnostic, coutEstime }) =>
+            api.post(`/api/reparations/${id}/diagnostic`, {
                 diagnostic,
                 coutEstime,
             }),
-        onSuccess: (_, { id }) => {
-            queryClient.invalidateQueries({ queryKey: reparationKeys.lists() });
-            queryClient.invalidateQueries({
-                queryKey: reparationKeys.detail(id),
-            });
-            toast({
-                title: "Diagnostic enregistré",
-                description: "Le diagnostic a été ajouté à la réparation.",
-            });
-        },
-        onError: (error: Error) => {
-            toast({
-                title: "Erreur",
-                description:
-                    error.message || "Impossible d'enregistrer le diagnostic",
-                variant: "destructive",
-            });
+        invalidateKeys: baseInvalidateKeys,
+        messages: {
+            success: "Diagnostic enregistré",
+            successDescription: "Le diagnostic a été ajouté à la réparation.",
         },
     });
 }
 
-// Hook to delete a reparation
 export function useDeleteReparation() {
-    const queryClient = useQueryClient();
-    const { toast } = useToast();
-
-    return useMutation({
-        mutationFn: async (id: string) => api.delete(`/api/reparations/${id}`),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: reparationKeys.lists() });
-            queryClient.invalidateQueries({ queryKey: reparationKeys.stats() });
-            toast({
-                title: "Réparation supprimée",
-                description: "La réparation a été supprimée avec succès.",
-            });
-        },
-        onError: (error: Error) => {
-            toast({
-                title: "Erreur",
-                description:
-                    error.message || "Impossible de supprimer la réparation",
-                variant: "destructive",
-            });
+    return useMutationWithInvalidation<void, string>({
+        mutationFn: (id) => api.delete(`/api/reparations/${id}`),
+        invalidateKeys: baseInvalidateKeys,
+        messages: {
+            success: "Réparation supprimée",
+            successDescription: "La réparation a été supprimée avec succès.",
         },
     });
 }
 
-// Hook to manage pieces
-export function useAddPiece() {
-    const queryClient = useQueryClient();
-    const { toast } = useToast();
+// ============================================================================
+// PIECES MUTATION HOOKS
+// ============================================================================
 
-    return useMutation({
-        mutationFn: async ({
-            reparationId,
-            data,
-        }: {
-            reparationId: string;
-            data: {
-                articleId?: string;
-                ressourceAtelierId?: string;
-                designation: string;
-                quantite: number;
-                prixUnitaireHT: number;
-                tauxTVA: number;
-            };
-        }) =>
-            api.post<ReparationPiece>(
-                `/api/reparations/${reparationId}/pieces`,
-                data
-            ),
-        onSuccess: (_, { reparationId }) => {
-            queryClient.invalidateQueries({
-                queryKey: reparationKeys.detail(reparationId),
-            });
-            toast({
-                title: "Pièce ajoutée",
-                description: "La pièce a été ajoutée à la réparation.",
-            });
-        },
-        onError: (error: Error) => {
-            toast({
-                title: "Erreur",
-                description: error.message || "Impossible d'ajouter la pièce",
-                variant: "destructive",
-            });
+interface AddPieceData {
+    reparationId: string;
+    data: {
+        articleId?: string;
+        ressourceAtelierId?: string;
+        designation: string;
+        quantite: number;
+        prixUnitaireHT: number;
+        tauxTVA: number;
+    };
+}
+
+export function useAddPiece() {
+    return useMutationWithInvalidation<ReparationPiece, AddPieceData>({
+        mutationFn: ({ reparationId, data }) =>
+            api.post(`/api/reparations/${reparationId}/pieces`, data),
+        invalidateKeys: [reparationKeys.all],
+        messages: {
+            success: "Pièce ajoutée",
+            successDescription: "La pièce a été ajoutée à la réparation.",
         },
     });
 }
 
 export function useDeletePiece() {
-    const queryClient = useQueryClient();
-    const { toast } = useToast();
-
-    return useMutation({
-        mutationFn: async ({
-            reparationId,
-            pieceId,
-        }: {
-            reparationId: string;
-            pieceId: string;
-        }) => api.delete(`/api/reparations/${reparationId}/pieces/${pieceId}`),
-        onSuccess: (_, { reparationId }) => {
-            queryClient.invalidateQueries({
-                queryKey: reparationKeys.detail(reparationId),
-            });
-            toast({
-                title: "Pièce retirée",
-                description: "La pièce a été retirée de la réparation.",
-            });
-        },
-        onError: (error: Error) => {
-            toast({
-                title: "Erreur",
-                description: error.message || "Impossible de retirer la pièce",
-                variant: "destructive",
-            });
+    return useMutationWithInvalidation<
+        void,
+        { reparationId: string; pieceId: string }
+    >({
+        mutationFn: ({ reparationId, pieceId }) =>
+            api.delete(`/api/reparations/${reparationId}/pieces/${pieceId}`),
+        invalidateKeys: [reparationKeys.all],
+        messages: {
+            success: "Pièce retirée",
+            successDescription: "La pièce a été retirée de la réparation.",
         },
     });
 }

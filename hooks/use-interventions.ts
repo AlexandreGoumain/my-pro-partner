@@ -1,3 +1,14 @@
+/**
+ * Interventions hooks
+ *
+ * Optimized version using:
+ * - api client for standardized fetch
+ * - buildUrl utility for URL construction
+ * - useMutationWithInvalidation for mutations
+ */
+
+import { api } from "@/lib/api/fetch-client";
+import { useMutationWithInvalidation } from "@/lib/hooks/mutation-helpers";
 import type {
     Intervention,
     InterventionCreateInput,
@@ -6,7 +17,8 @@ import type {
     StatutIntervention,
     TypeIntervention,
 } from "@/lib/types/intervention";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { buildUrl } from "@/lib/utils/query-params";
+import { useQuery } from "@tanstack/react-query";
 
 // Planning types
 export interface PlombierPlanning {
@@ -29,7 +41,13 @@ export const interventionKeys = {
     planning: (date: string, plombierId?: string) =>
         [...interventionKeys.all, "planning", date, plombierId] as const,
     planningRange: (startDate: string, endDate: string, plombierId?: string) =>
-        [...interventionKeys.all, "planning-range", startDate, endDate, plombierId] as const,
+        [
+            ...interventionKeys.all,
+            "planning-range",
+            startDate,
+            endDate,
+            plombierId,
+        ] as const,
 };
 
 // Filter types
@@ -40,167 +58,139 @@ export interface InterventionFilters {
     search?: string;
 }
 
-// API functions
-async function fetchInterventions(
-    filters?: InterventionFilters
-): Promise<Intervention[]> {
-    const params = new URLSearchParams();
+// Common invalidation keys
+const baseInvalidateKeys = [interventionKeys.all];
 
-    if (filters?.statut && filters.statut !== "ALL") {
-        params.append("statut", filters.statut);
-    }
-    if (filters?.priorite && filters.priorite !== "ALL") {
-        params.append("priorite", filters.priorite);
-    }
-    if (filters?.type && filters.type !== "ALL") {
-        params.append("type", filters.type);
-    }
-    if (filters?.search) {
-        params.append("search", filters.search);
-    }
+// ============================================================================
+// QUERY HOOKS
+// ============================================================================
 
-    const response = await fetch(`/api/interventions?${params.toString()}`);
-    if (!response.ok) {
-        throw new Error("Failed to fetch interventions");
-    }
-
-    const data = await response.json();
-    return data.interventions || [];
-}
-
-async function fetchInterventionStats(): Promise<InterventionStats> {
-    const response = await fetch("/api/interventions/stats");
-    if (!response.ok) {
-        throw new Error("Failed to fetch intervention stats");
-    }
-    return response.json();
-}
-
-async function createIntervention(
-    input: InterventionCreateInput
-): Promise<Intervention> {
-    const response = await fetch("/api/interventions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(input),
-    });
-
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to create intervention");
-    }
-
-    const data = await response.json();
-    return data.intervention;
-}
-
-// Hooks
 export function useInterventions(filters?: InterventionFilters) {
+    // Filter out "ALL" values before building URL
+    const cleanFilters = filters
+        ? Object.fromEntries(
+              Object.entries(filters).filter(
+                  ([, v]) => v !== undefined && v !== "ALL"
+              )
+          )
+        : undefined;
+
     return useQuery({
         queryKey: interventionKeys.list(filters),
-        queryFn: () => fetchInterventions(filters),
+        queryFn: async () => {
+            const result = await api.get<{ interventions: Intervention[] }>(
+                buildUrl("/api/interventions", cleanFilters)
+            );
+            return result.interventions || [];
+        },
+    });
+}
+
+export function useIntervention(id: string | null) {
+    return useQuery({
+        queryKey: interventionKeys.detail(id || ""),
+        queryFn: async () => {
+            const result = await api.get<{ intervention: Intervention }>(
+                `/api/interventions/${id}`
+            );
+            return result.intervention;
+        },
+        enabled: !!id,
     });
 }
 
 export function useInterventionStats() {
     return useQuery({
         queryKey: interventionKeys.stats(),
-        queryFn: fetchInterventionStats,
+        queryFn: () => api.get<InterventionStats>("/api/interventions/stats"),
     });
 }
 
-export function useCreateIntervention() {
-    const queryClient = useQueryClient();
+export function usePlanning(date: string, plombierId?: string) {
+    const filters =
+        plombierId && plombierId !== "ALL" ? { date, plombierId } : { date };
 
-    return useMutation({
-        mutationFn: createIntervention,
-        onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: interventionKeys.all,
-            });
+    return useQuery({
+        queryKey: interventionKeys.planning(date, plombierId),
+        queryFn: async () => {
+            const result = await api.get<{ plombiers: PlombierPlanning[] }>(
+                buildUrl("/api/planning", filters)
+            );
+            return result.plombiers || [];
         },
     });
 }
 
-// Planning API
-async function fetchPlanning(
-    date: string,
-    plombierId?: string
-): Promise<PlombierPlanning[]> {
-    const params = new URLSearchParams({ date });
-    if (plombierId && plombierId !== "ALL") {
-        params.append("plombierId", plombierId);
-    }
-
-    const response = await fetch(`/api/planning?${params.toString()}`);
-    if (!response.ok) {
-        throw new Error("Failed to fetch planning");
-    }
-    const data = await response.json();
-    return data.plombiers || [];
-}
-
-async function fetchPlanningRange(
+export function usePlanningRange(
     startDate: string,
     endDate: string,
     plombierId?: string
-): Promise<PlombierPlanning[]> {
-    const params = new URLSearchParams({ startDate, endDate });
-    if (plombierId && plombierId !== "ALL") {
-        params.append("plombierId", plombierId);
-    }
+) {
+    const filters =
+        plombierId && plombierId !== "ALL"
+            ? { startDate, endDate, plombierId }
+            : { startDate, endDate };
 
-    const response = await fetch(`/api/planning?${params.toString()}`);
-    if (!response.ok) {
-        throw new Error("Failed to fetch planning");
-    }
-    const data = await response.json();
-    return data.plombiers || [];
-}
-
-async function updateIntervention(
-    id: string,
-    input: Partial<InterventionCreateInput> & { datePrevisionnelle?: string; plombierId?: string | null }
-): Promise<Intervention> {
-    const response = await fetch(`/api/interventions/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(input),
-    });
-
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Failed to update intervention");
-    }
-
-    const data = await response.json();
-    return data.intervention;
-}
-
-export function usePlanning(date: string, plombierId?: string) {
     return useQuery({
-        queryKey: interventionKeys.planning(date, plombierId),
-        queryFn: () => fetchPlanning(date, plombierId),
+        queryKey: interventionKeys.planningRange(
+            startDate,
+            endDate,
+            plombierId
+        ),
+        queryFn: async () => {
+            const result = await api.get<{ plombiers: PlombierPlanning[] }>(
+                buildUrl("/api/planning", filters)
+            );
+            return result.plombiers || [];
+        },
     });
 }
 
-export function usePlanningRange(startDate: string, endDate: string, plombierId?: string) {
-    return useQuery({
-        queryKey: interventionKeys.planningRange(startDate, endDate, plombierId),
-        queryFn: () => fetchPlanningRange(startDate, endDate, plombierId),
+// ============================================================================
+// MUTATION HOOKS
+// ============================================================================
+
+export function useCreateIntervention() {
+    return useMutationWithInvalidation<
+        { intervention: Intervention },
+        InterventionCreateInput
+    >({
+        mutationFn: (data) => api.post("/api/interventions", data),
+        invalidateKeys: baseInvalidateKeys,
+        messages: {
+            success: "Intervention créée",
+            successDescription: "L'intervention a été créée avec succès.",
+        },
     });
 }
 
 export function useUpdateIntervention() {
-    const queryClient = useQueryClient();
+    return useMutationWithInvalidation<
+        { intervention: Intervention },
+        {
+            id: string;
+            data: Partial<InterventionCreateInput> & {
+                datePrevisionnelle?: string;
+                plombierId?: string | null;
+            };
+        }
+    >({
+        mutationFn: ({ id, data }) => api.put(`/api/interventions/${id}`, data),
+        invalidateKeys: baseInvalidateKeys,
+        messages: {
+            success: "Intervention mise à jour",
+            successDescription: "Les modifications ont été enregistrées.",
+        },
+    });
+}
 
-    return useMutation({
-        mutationFn: ({ id, data }: { id: string; data: Partial<InterventionCreateInput> & { datePrevisionnelle?: string; plombierId?: string | null } }) =>
-            updateIntervention(id, data),
-        onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: interventionKeys.all,
-            });
+export function useDeleteIntervention() {
+    return useMutationWithInvalidation<void, string>({
+        mutationFn: (id) => api.delete(`/api/interventions/${id}`),
+        invalidateKeys: baseInvalidateKeys,
+        messages: {
+            success: "Intervention supprimée",
+            successDescription: "L'intervention a été supprimée.",
         },
     });
 }

@@ -1,6 +1,17 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+/**
+ * Documents hooks
+ *
+ * Optimized version using:
+ * - api client for standardized fetch
+ * - buildUrl utility for URL construction
+ * - useMutationWithInvalidation for mutations
+ */
+
 import { api } from "@/lib/api/fetch-client";
+import { useMutationWithInvalidation } from "@/lib/hooks/mutation-helpers";
 import type { Document, DocumentType } from "@/lib/types/document.types";
+import { buildUrl } from "@/lib/utils/query-params";
+import { useQuery } from "@tanstack/react-query";
 
 export type { Document, DocumentType };
 
@@ -9,9 +20,18 @@ export const documentKeys = {
     all: ["documents"] as const,
     lists: () => [...documentKeys.all, "list"] as const,
     list: (type: DocumentType) => [...documentKeys.lists(), type] as const,
+    listByClient: (clientId: string) =>
+        [...documentKeys.all, "client", clientId] as const,
     details: () => [...documentKeys.all, "detail"] as const,
     detail: (id: string) => [...documentKeys.details(), id] as const,
 };
+
+// Common invalidation keys
+const baseInvalidateKeys = [documentKeys.all];
+
+// ============================================================================
+// QUERY HOOKS
+// ============================================================================
 
 /**
  * Hook to fetch all documents of a specific type
@@ -20,7 +40,9 @@ export function useDocuments(type: DocumentType) {
     return useQuery({
         queryKey: documentKeys.list(type),
         queryFn: async () => {
-            const result = await api.get<{ documents: Document[] }>(`/api/documents?type=${type}`);
+            const result = await api.get<{ documents: Document[] }>(
+                buildUrl("/api/documents", { type })
+            );
             return result.documents || [];
         },
     });
@@ -31,9 +53,11 @@ export function useDocuments(type: DocumentType) {
  */
 export function useClientDocuments(clientId: string) {
     return useQuery({
-        queryKey: [...documentKeys.all, "client", clientId] as const,
+        queryKey: documentKeys.listByClient(clientId),
         queryFn: async () => {
-            const result = await api.get<{ documents: Document[] }>(`/api/documents?clientId=${clientId}`);
+            const result = await api.get<{ documents: Document[] }>(
+                buildUrl("/api/documents", { clientId })
+            );
             return result.documents || [];
         },
         enabled: !!clientId,
@@ -47,23 +71,29 @@ export function useDocument(id: string) {
     return useQuery({
         queryKey: documentKeys.detail(id),
         queryFn: async () => {
-            const result = await api.get<{ document: Document }>(`/api/documents/${id}`);
+            const result = await api.get<{ document: Document }>(
+                `/api/documents/${id}`
+            );
             return result.document;
         },
         enabled: !!id,
     });
 }
 
+// ============================================================================
+// MUTATION HOOKS
+// ============================================================================
+
 /**
  * Hook to delete a document
  */
 export function useDeleteDocument() {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: async (id: string) => api.delete(`/api/documents/${id}`),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: documentKeys.all });
+    return useMutationWithInvalidation<void, string>({
+        mutationFn: (id) => api.delete(`/api/documents/${id}`),
+        invalidateKeys: baseInvalidateKeys,
+        messages: {
+            success: "Document supprimé",
+            successDescription: "Le document a été supprimé avec succès.",
         },
     });
 }
@@ -72,15 +102,12 @@ export function useDeleteDocument() {
  * Hook to convert a quote to an invoice
  */
 export function useConvertQuoteToInvoice() {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: async (quoteId: string) => {
-            const result = await api.post<{ invoice: Document }>(`/api/documents/${quoteId}/convert`);
-            return result;
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: documentKeys.all });
+    return useMutationWithInvalidation<{ invoice: Document }, string>({
+        mutationFn: (quoteId) => api.post(`/api/documents/${quoteId}/convert`),
+        invalidateKeys: baseInvalidateKeys,
+        messages: {
+            success: "Devis converti",
+            successDescription: "Le devis a été converti en facture.",
         },
     });
 }

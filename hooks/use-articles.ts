@@ -1,12 +1,14 @@
 import { api } from "@/lib/api/fetch-client";
 import { createResourceHooks } from "@/lib/hooks/create-resource-hooks";
+import { useMutationWithInvalidation } from "@/lib/hooks/mutation-helpers";
 import {
     mapArticleToDisplay,
     type Article,
     type ArticleWithRelations,
 } from "@/lib/types/article";
+import { buildUrl } from "@/lib/utils/query-params";
 import type { ArticleCreateInput, ArticleUpdateInput } from "@/lib/validation";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
 // Article statistics type definition
 export interface ArticlesStats {
@@ -46,11 +48,9 @@ export const useDeleteArticle = articleHooks.useDelete;
 
 // Hook pour dupliquer un article
 export function useDuplicateArticle() {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: async (article: Article) =>
-            api.post<ArticleWithRelations>("/api/articles", {
+    return useMutationWithInvalidation<ArticleWithRelations, Article>({
+        mutationFn: (article) =>
+            api.post("/api/articles", {
                 reference: `${article.reference}-COPIE`,
                 nom: `${article.nom} (Copie)`,
                 description: article.description,
@@ -61,8 +61,10 @@ export function useDuplicateArticle() {
                 gestion_stock: true,
                 actif: true,
             }),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: articleKeys.all });
+        invalidateKeys: [articleKeys.all],
+        messages: {
+            success: "Article dupliqué",
+            successDescription: "L'article a été dupliqué avec succès.",
         },
     });
 }
@@ -71,10 +73,10 @@ export function useDuplicateArticle() {
 export function useNextArticleReference(type: "PRODUIT" | "SERVICE" | null) {
     return useQuery({
         queryKey: articleKeys.nextReference(type || "PRODUIT"),
-        queryFn: async () =>
+        queryFn: () =>
             api.get<{ reference: string; type: string }>(
-                `/api/articles/next-reference?type=${type}`
+                buildUrl("/api/articles/next-reference", { type })
             ),
-        enabled: !!type, // Ne lance la requête que si le type existe
+        enabled: !!type,
     });
 }

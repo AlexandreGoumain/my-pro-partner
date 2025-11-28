@@ -1,10 +1,20 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+/**
+ * Bank transactions hooks
+ *
+ * Optimized version using:
+ * - buildUrl utility for URL construction
+ * - useMutationWithInvalidation for mutations
+ */
+
 import { api } from "@/lib/api/fetch-client";
+import { useMutationWithInvalidation } from "@/lib/hooks/mutation-helpers";
 import type {
     BankReconciliationStats,
     BankTransaction,
     FilterType,
 } from "@/lib/types/bank-reconciliation";
+import { buildUrl } from "@/lib/utils/query-params";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 // Query Keys
 export const bankTransactionKeys = {
@@ -14,20 +24,25 @@ export const bankTransactionKeys = {
     stats: ["bank-transactions", "stats"] as const,
 };
 
-// Hook to fetch transactions by status
+// Common invalidation keys
+const baseInvalidateKeys = [bankTransactionKeys.all, bankTransactionKeys.stats];
+
+// ============================================================================
+// QUERY HOOKS
+// ============================================================================
+
 export function useBankTransactions(status: FilterType = "pending") {
     return useQuery({
         queryKey: bankTransactionKeys.list(status),
         queryFn: async (): Promise<BankTransaction[]> => {
             const response = await api.get<{ transactions: BankTransaction[] }>(
-                `/api/bank/transactions?status=${status}`
+                buildUrl("/api/bank/transactions", { status })
             );
             return response.transactions || [];
         },
     });
 }
 
-// Hook to fetch bank reconciliation stats
 export function useBankStats() {
     return useQuery({
         queryKey: bankTransactionKeys.stats,
@@ -40,7 +55,11 @@ export function useBankStats() {
     });
 }
 
-// Hook to import CSV file
+// ============================================================================
+// MUTATION HOOKS
+// ============================================================================
+
+// Hook to import CSV file (uses FormData, requires raw fetch)
 export function useImportBankTransactions() {
     const queryClient = useQueryClient();
 
@@ -62,7 +81,6 @@ export function useImportBankTransactions() {
             return response.json();
         },
         onSuccess: () => {
-            // Invalidate all transactions queries
             queryClient.invalidateQueries({
                 queryKey: bankTransactionKeys.all,
             });
@@ -75,40 +93,25 @@ export function useImportBankTransactions() {
 
 // Hook to trigger auto-matching
 export function useAutoMatch() {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: async () => {
-            return api.post("/api/bank/auto-match");
-        },
-        onSuccess: () => {
-            // Invalidate all transactions queries
-            queryClient.invalidateQueries({
-                queryKey: bankTransactionKeys.all,
-            });
-            queryClient.invalidateQueries({
-                queryKey: bankTransactionKeys.stats,
-            });
+    return useMutationWithInvalidation<unknown, void>({
+        mutationFn: () => api.post("/api/bank/auto-match"),
+        invalidateKeys: baseInvalidateKeys,
+        messages: {
+            success: "Rapprochement automatique terminé",
+            successDescription: "Les transactions ont été rapprochées.",
         },
     });
 }
 
 // Hook to ignore a transaction
 export function useIgnoreTransaction() {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: async (transactionId: string) => {
-            return api.post(`/api/bank/${transactionId}/ignore`);
-        },
-        onSuccess: () => {
-            // Invalidate all transactions queries
-            queryClient.invalidateQueries({
-                queryKey: bankTransactionKeys.all,
-            });
-            queryClient.invalidateQueries({
-                queryKey: bankTransactionKeys.stats,
-            });
+    return useMutationWithInvalidation<unknown, string>({
+        mutationFn: (transactionId) =>
+            api.post(`/api/bank/${transactionId}/ignore`),
+        invalidateKeys: baseInvalidateKeys,
+        messages: {
+            success: "Transaction ignorée",
+            successDescription: "La transaction a été marquée comme ignorée.",
         },
     });
 }

@@ -1,93 +1,111 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+/**
+ * Custom fields hooks
+ *
+ * Optimized version using:
+ * - useMutationWithInvalidation for mutations
+ */
+
 import { api } from "@/lib/api/fetch-client";
+import { useMutationWithInvalidation } from "@/lib/hooks/mutation-helpers";
 import {
     ChampPersonnalise,
     ChampPersonnaliseCreateInput,
     ChampPersonnaliseUpdateInput,
 } from "@/lib/types/custom-fields";
+import { useQuery } from "@tanstack/react-query";
 
-// Query Keys - Standardized pattern
+// Query Keys
 export const customFieldsKeys = {
     all: ["custom-fields"] as const,
-    byCategory: (categorieId: string) => ["custom-fields", categorieId] as const,
+    byCategory: (categorieId: string) =>
+        ["custom-fields", categorieId] as const,
 };
 
-// Hook pour récupérer les champs personnalisés d'une catégorie
-export function useCategoryCustomFields(categorieId: string | null | undefined) {
+// ============================================================================
+// QUERY HOOKS
+// ============================================================================
+
+export function useCategoryCustomFields(
+    categorieId: string | null | undefined
+) {
     return useQuery<ChampPersonnalise[]>({
-        queryKey: categorieId ? customFieldsKeys.byCategory(categorieId) : customFieldsKeys.all,
+        queryKey: categorieId
+            ? customFieldsKeys.byCategory(categorieId)
+            : customFieldsKeys.all,
         queryFn: async () => {
             if (!categorieId) return [];
-            return api.get<ChampPersonnalise[]>(`/api/categories/${categorieId}/champs`);
+            return api.get<ChampPersonnalise[]>(
+                `/api/categories/${categorieId}/champs`
+            );
         },
         enabled: !!categorieId,
     });
 }
 
-// Hook pour créer un champ personnalisé
+// ============================================================================
+// MUTATION HOOKS
+// ============================================================================
+
 export function useCreateCustomField(categorieId: string) {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: async (data: ChampPersonnaliseCreateInput) =>
-            api.post<ChampPersonnalise>(`/api/categories/${categorieId}/champs`, data),
-        onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: customFieldsKeys.byCategory(categorieId),
-            });
+    return useMutationWithInvalidation<
+        ChampPersonnalise,
+        ChampPersonnaliseCreateInput
+    >({
+        mutationFn: (data) =>
+            api.post(`/api/categories/${categorieId}/champs`, data),
+        invalidateKeys: [customFieldsKeys.byCategory(categorieId)],
+        messages: {
+            success: "Champ créé",
+            successDescription: "Le champ personnalisé a été créé.",
         },
     });
 }
 
-// Hook pour modifier un champ personnalisé
 export function useUpdateCustomField(categorieId: string, champId: string) {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: async (data: ChampPersonnaliseUpdateInput) =>
-            api.put<ChampPersonnalise>(`/api/categories/${categorieId}/champs/${champId}`, data),
-        onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: customFieldsKeys.byCategory(categorieId),
-            });
+    return useMutationWithInvalidation<
+        ChampPersonnalise,
+        ChampPersonnaliseUpdateInput
+    >({
+        mutationFn: (data) =>
+            api.put(`/api/categories/${categorieId}/champs/${champId}`, data),
+        invalidateKeys: [customFieldsKeys.byCategory(categorieId)],
+        messages: {
+            success: "Champ modifié",
+            successDescription: "Le champ personnalisé a été mis à jour.",
         },
     });
 }
 
-// Hook pour supprimer un champ personnalisé
 export function useDeleteCustomField(categorieId: string) {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: async (champId: string) =>
+    return useMutationWithInvalidation<void, string>({
+        mutationFn: (champId) =>
             api.delete(`/api/categories/${categorieId}/champs/${champId}`),
-        onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: customFieldsKeys.byCategory(categorieId),
-            });
+        invalidateKeys: [customFieldsKeys.byCategory(categorieId)],
+        messages: {
+            success: "Champ supprimé",
+            successDescription: "Le champ personnalisé a été supprimé.",
         },
     });
 }
 
-// Hook pour réorganiser les champs (batch update)
 export function useReorderCustomFields(categorieId: string) {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: async (
-            updates: Array<{ id: string; ordre: number }>
-        ) => {
+    return useMutationWithInvalidation<
+        boolean,
+        Array<{ id: string; ordre: number }>
+    >({
+        mutationFn: async (updates) => {
             const promises = updates.map((update) =>
-                api.put(`/api/categories/${categorieId}/champs/${update.id}`, { ordre: update.ordre })
+                api.put(`/api/categories/${categorieId}/champs/${update.id}`, {
+                    ordre: update.ordre,
+                })
             );
-
             await Promise.all(promises);
             return true;
         },
-        onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: customFieldsKeys.byCategory(categorieId),
-            });
+        invalidateKeys: [customFieldsKeys.byCategory(categorieId)],
+        messages: {
+            success: "Ordre modifié",
+            successDescription: "L'ordre des champs a été mis à jour.",
         },
     });
 }

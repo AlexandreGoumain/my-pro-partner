@@ -1,8 +1,8 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api/fetch-client";
-import type { ClientCreateInput, ClientUpdateInput } from "@/lib/validation";
 import type { Client as PrismaClient } from "@/lib/generated/prisma";
 import { createResourceHooks } from "@/lib/hooks/create-resource-hooks";
+import { useMutationWithInvalidation } from "@/lib/hooks/mutation-helpers";
+import type { ClientCreateInput, ClientUpdateInput } from "@/lib/validation";
 
 // Re-export Prisma Client type for consistency
 export type Client = PrismaClient;
@@ -62,17 +62,15 @@ export const useDeleteClient = clientHooks.useDelete;
 
 // Hook pour importer des clients en masse
 export function useImportClients() {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: async (clients: Record<string, unknown>[]) =>
-            api.post<{ message: string; count: number; total: number; skipped: number }>("/api/clients/import", {
-                clients,
-            }),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: clientKeys.all });
-            queryClient.invalidateQueries({ queryKey: ["clients", "list"] });
-            queryClient.invalidateQueries({ queryKey: clientKeys.stats });
+    return useMutationWithInvalidation<
+        { message: string; count: number; total: number; skipped: number },
+        Record<string, unknown>[]
+    >({
+        mutationFn: (clients) => api.post("/api/clients/import", { clients }),
+        invalidateKeys: [clientKeys.all, clientKeys.stats],
+        messages: {
+            success: "Import terminé",
+            successDescription: "Les clients ont été importés avec succès.",
         },
     });
 }
