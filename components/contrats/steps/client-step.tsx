@@ -23,9 +23,10 @@ import type { ContratFormValues } from "../contrat-dialog";
 interface ClientStepProps {
     form: UseFormReturn<ContratFormValues>;
     clients: Client[];
+    onClientChange?: (clientId: string) => void;
 }
 
-export function ClientStep({ form, clients }: ClientStepProps) {
+export function ClientStep({ form, clients, onClientChange }: ClientStepProps) {
     const [searchClient, setSearchClient] = useState("");
 
     const filteredClients = useMemo(() => {
@@ -60,7 +61,7 @@ export function ClientStep({ form, clients }: ClientStepProps) {
                     <FormItem>
                         <FormLabel>Client</FormLabel>
                         <Select
-                            onValueChange={field.onChange}
+                            onValueChange={onClientChange || field.onChange}
                             value={field.value}
                         >
                             <FormControl>
