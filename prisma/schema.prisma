@@ -123,6 +123,19 @@ model Entreprise {
   sallesFitness          SalleFitness[]          // Salles/zones de la salle de sport
   presencesFitness       PresenceFitness[]       // Check-ins des membres
 
+  // Relations pour système consulting / services intellectuels
+  missions     Mission[]     // Missions de consulting
+  entreesTemps EntreeTemps[] // Entrées de temps
+
+  // Relations pour système comptabilité
+  echeancesFiscales EcheanceFiscale[] // Échéances fiscales
+
+  // Relations pour système juridique (cabinets d'avocats)
+  affaires             Affaire[]             // Dossiers/affaires juridiques
+  partiesAdverses      PartieAdverse[]       // Parties adverses
+  echeancesProcedurales EcheanceProcedurale[] // Échéances procédurales
+  diligences           Diligence[]           // Diligences effectuées
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -570,6 +583,12 @@ model User {
   entretiensAssignes     EntretienPrevu[]
   certificatsRealises    CertificatEntretien[]   // Certificats réalisés par ce technicien
 
+  // Relations pour système consulting / services intellectuels
+  entreesTemps           EntreeTemps[]           // Entrées de temps sur missions
+
+  // Relations pour système juridique (cabinets d'avocats)
+  diligences             Diligence[]             // Diligences effectuées par cet avocat
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -799,6 +818,27 @@ model Client {
   reservationsCours   ReservationCours[]   // Réservations aux cours collectifs
   presencesFitness    PresenceFitness[]    // Historique des check-ins
 
+  // Relations pour système consulting / services intellectuels
+  missions Mission[] // Missions de consulting
+
+  // Relations pour système comptabilité
+  echeancesFiscales EcheanceFiscale[] // Échéances fiscales
+
+  // Relations pour système juridique (cabinets d'avocats)
+  affaires Affaire[] // Affaires juridiques
+
+  // Informations fiscales du client (pour cabinets comptables)
+  siret               String?           // Numéro SIRET
+  formeJuridique      FormeJuridique?   // Forme juridique (SARL, SAS, etc.)
+  regimeFiscal        RegimeFiscal?     // Régime fiscal (réel normal, simplifié, micro)
+  regimeTVA           RegimeTVA?        // Régime de TVA
+  typeImposition      TypeImposition?   // Type d'imposition (IS ou IR)
+  dateClotureExercice String?           // Date de clôture (format "MM-DD", ex: "12-31")
+  avecSalaries        Boolean?          // Le client a-t-il des salariés ?
+  effectif            Int?              // Nombre de salariés
+  codeAPE             String?           // Code APE/NAF
+  numTVAIntra         String?           // Numéro de TVA intracommunautaire
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -813,6 +853,7 @@ model Client {
   @@index([entrepriseId, pendingApproval])
   @@index([entrepriseId, niveauFideliteId])
   @@index([telephone])
+  @@index([siret])
 }
 
 // Tokens de réinitialisation de mot de passe pour le portail client
@@ -1239,6 +1280,10 @@ model Document {
   bankTransactions BankTransaction[] // Transactions bancaires rapprochées
   reparations      Reparation[] // Réparations liées à ce document
   interventions    Intervention[]    @relation("InterventionDocument") // Interventions plomberie liées
+
+  // Relations pour système consulting / services intellectuels
+  missionsDevis    Mission[] @relation("MissionDevis")    // Missions créées depuis ce devis
+  missionsFactures Mission[] @relation("MissionFactures") // Missions facturées via ce document
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -3806,4 +3851,619 @@ model PresenceFitness {
   @@index([salleId])
   @@index([entrepriseId, heureEntree])
   @@index([entrepriseId, clientId])
+}
+
+// ============================================
+// SERVICE INTELLECTUEL - CONSULTING
+// ============================================
+
+enum TypeFacturation {
+  FORFAIT // Fixed price for the mission
+  REGIE   // Time & materials (hourly billing)
+  MIXTE   // Fixed price + hourly overruns
+}
+
+enum StatutMission {
+  PROPOSITION // Quote sent, waiting for approval
+  VALIDEE     // Approved, not started yet
+  EN_COURS    // Work in progress
+  LIVREE      // Delivered, pending invoicing
+  FACTUREE    // Invoiced
+  CLOTUREE    // Closed/archived
+  ANNULEE     // Cancelled
+}
+
+// ============================================
+// SERVICE INTELLECTUEL - COMPTABILITE
+// ============================================
+
+// Type de dossier comptable
+enum TypeDossierComptable {
+  BILAN           // Bilan annuel
+  LIASSE_FISCALE  // Liasse fiscale
+  TVA             // Déclaration TVA
+  IS              // Impôt sur les sociétés
+  IR              // Impôt sur le revenu
+  PAIE            // Gestion de la paie
+  SOCIAL          // Déclarations sociales (URSSAF, etc.)
+  COMPTABILITE    // Tenue comptable courante
+  CONSEIL         // Mission de conseil
+  AUDIT           // Audit/révision des comptes
+  JURIDIQUE       // Missions juridiques (AG, statuts, etc.)
+  AUTRE           // Autre type de mission
+}
+
+// Périodicité des échéances
+enum PeriodiciteEcheance {
+  PONCTUEL      // Une seule fois
+  MENSUEL       // Chaque mois
+  TRIMESTRIEL   // Chaque trimestre
+  SEMESTRIEL    // Chaque semestre
+  ANNUEL        // Chaque année
+}
+
+// Statut d'une échéance fiscale
+enum StatutEcheance {
+  A_VENIR       // Échéance à venir
+  EN_COURS      // Travail en cours
+  PRET          // Prêt pour dépôt
+  DEPOSE        // Déposé/transmis
+  VALIDE        // Validé par l'administration
+  EN_RETARD     // En retard
+}
+
+// Régime fiscal de l'entreprise cliente
+enum RegimeFiscal {
+  REEL_NORMAL      // Réel normal
+  REEL_SIMPLIFIE   // Réel simplifié
+  MICRO            // Micro-entreprise / Auto-entrepreneur
+}
+
+// Régime de TVA
+enum RegimeTVA {
+  MENSUEL          // Déclaration mensuelle (CA3)
+  TRIMESTRIEL      // Déclaration trimestrielle
+  ANNUEL           // Déclaration annuelle (CA12)
+  FRANCHISE        // Franchise en base de TVA
+}
+
+// Forme juridique de l'entreprise cliente
+enum FormeJuridique {
+  SARL             // Société à responsabilité limitée
+  SAS              // Société par actions simplifiée
+  SA               // Société anonyme
+  EURL             // Entreprise unipersonnelle à responsabilité limitée
+  SASU             // Société par actions simplifiée unipersonnelle
+  EI               // Entreprise individuelle
+  EIRL             // Entreprise individuelle à responsabilité limitée
+  SCI              // Société civile immobilière
+  SNC              // Société en nom collectif
+  ASSOCIATION      // Association loi 1901
+  AUTRE            // Autre forme juridique
+}
+
+// Type d'imposition
+enum TypeImposition {
+  IS               // Impôt sur les sociétés
+  IR               // Impôt sur le revenu
+}
+
+// Mission (project for consultants / dossier for accountants)
+model Mission {
+  id          String   @id @default(cuid())
+  numero      String   // MISS-2024-001 or DOSS-2024-001
+  nom         String   // Mission title
+  description String?  @db.Text
+
+  // Client
+  clientId    String
+  client      Client   @relation(fields: [clientId], references: [id])
+
+  // Comptabilite specific (optional, for accounting firms)
+  typeDossier    TypeDossierComptable? // Type of accounting file
+  periodicite    PeriodiciteEcheance?  // Recurrence for recurring tasks
+  exerciceFiscal String?               // Fiscal year (e.g., "2024" or "2024-2025")
+  anneeReference Int?                  // Reference year for declarations
+
+  // Billing configuration
+  typeFact       TypeFacturation @default(REGIE)
+  montantForfait Decimal?        @db.Decimal(10, 2) // Fixed price (if FORFAIT or MIXTE)
+  tauxHoraire    Decimal?        @db.Decimal(10, 2) // Hourly rate (if REGIE or MIXTE)
+  budgetHeures   Int?            // Estimated hours in minutes
+
+  // Scheduling
+  dateDebut      DateTime?       @db.Date
+  dateFin        DateTime?       @db.Date
+  dateEcheance   DateTime?       @db.Date // Deadline
+
+  // Status
+  statut         StatutMission   @default(PROPOSITION)
+
+  // Calculated totals (updated on time entry changes)
+  totalHeures    Int             @default(0) // Total minutes tracked
+  totalFacturable Int            @default(0) // Billable minutes
+  totalMontant   Decimal         @default(0) @db.Decimal(10, 2) // Total amount
+
+  // Link to quote (if created from a quote)
+  devisId        String?
+  devis          Document?       @relation("MissionDevis", fields: [devisId], references: [id])
+
+  // Multi-tenant
+  entrepriseId   String
+  entreprise     Entreprise      @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+
+  // Creator
+  createdById    String?
+
+  // Relations
+  entreesTemps   EntreeTemps[]
+  factures       Document[]      @relation("MissionFactures")
+  echeances      EcheanceFiscale[] // Fiscal deadlines related to this mission
+
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@unique([entrepriseId, numero])
+  @@index([entrepriseId])
+  @@index([clientId])
+  @@index([statut])
+  @@index([dateDebut])
+  @@index([dateFin])
+  @@index([entrepriseId, statut])
+  @@index([entrepriseId, clientId])
+  @@index([typeDossier])
+}
+
+// Time entry for consulting missions
+model EntreeTemps {
+  id          String   @id @default(cuid())
+
+  // Mission
+  missionId   String
+  mission     Mission  @relation(fields: [missionId], references: [id], onDelete: Cascade)
+
+  // User who tracked time
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+
+  // Time data
+  date        DateTime @db.Date
+  duree       Int      // Duration in minutes
+  description String   @db.Text
+
+  // Billing
+  facturable  Boolean  @default(true)
+  tauxHoraire Decimal  @db.Decimal(10, 2) // Hourly rate applied
+  montant     Decimal  @db.Decimal(10, 2) // Calculated amount (duree/60 * tauxHoraire)
+
+  // Invoice link (when invoiced)
+  facturee    Boolean  @default(false)
+  factureId   String?  // Document ID when invoiced
+
+  // Timer support
+  timerStart  DateTime? // Start time if using timer
+  timerEnd    DateTime? // End time if using timer
+
+  // Multi-tenant
+  entrepriseId String
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([missionId])
+  @@index([userId])
+  @@index([date])
+  @@index([facturable])
+  @@index([facturee])
+  @@index([entrepriseId, date])
+  @@index([entrepriseId, userId])
+  @@index([missionId, facturee])
+}
+
+// ============================================================================
+// COMPTABILITE - Échéances fiscales
+// ============================================================================
+
+model EcheanceFiscale {
+  id          String   @id @default(cuid())
+
+  // Lien avec le dossier/mission
+  missionId   String
+  mission     Mission  @relation(fields: [missionId], references: [id], onDelete: Cascade)
+
+  // Lien direct avec le client (pour faciliter les requêtes)
+  clientId    String
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  // Type d'échéance
+  type        TypeDossierComptable
+  libelle     String                // Ex: "TVA CA3 Octobre 2024", "Bilan 2023"
+
+  // Dates
+  dateEcheance    DateTime          // Date limite légale
+  dateRealisation DateTime?         // Date de réalisation effective
+  dateDepot       DateTime?         // Date de dépôt aux impôts
+
+  // Statut et suivi
+  statut          StatutEcheance @default(A_VENIR)
+  periodicite     PeriodiciteEcheance @default(PONCTUEL)
+
+  // Informations complémentaires
+  exerciceFiscal  String?           // Ex: "2024", "2024-2025"
+  periodeDebut    DateTime?         // Début de la période concernée
+  periodeFin      DateTime?         // Fin de la période concernée
+  montant         Float?            // Montant déclaré (si applicable)
+  reference       String?           // Référence du dépôt / numéro de formulaire
+  notes           String?           // Notes internes
+
+  // Rappels
+  rappelEnvoye    Boolean  @default(false)
+  dateRappel      DateTime?
+
+  // Multi-tenant
+  entrepriseId String
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([missionId])
+  @@index([clientId])
+  @@index([dateEcheance])
+  @@index([statut])
+  @@index([type])
+  @@index([entrepriseId, dateEcheance])
+  @@index([entrepriseId, statut])
+  @@index([clientId, dateEcheance])
+}
+
+// ============================================================================
+// JURIDIQUE - Cabinets d'avocats et juristes
+// ============================================================================
+
+// Domaine de droit de l'affaire
+enum DomaineJuridique {
+  CIVIL                // Droit civil général
+  FAMILLE              // Droit de la famille (divorce, garde, succession)
+  PENAL                // Droit pénal
+  COMMERCIAL           // Droit commercial et des affaires
+  SOCIAL               // Droit du travail
+  IMMOBILIER           // Droit immobilier
+  ADMINISTRATIF        // Droit administratif
+  FISCAL               // Droit fiscal
+  PROPRIETE_INTELLECTUELLE  // Propriété intellectuelle, marques, brevets
+  CONSOMMATION         // Droit de la consommation
+  ASSURANCE            // Droit des assurances
+  BANCAIRE             // Droit bancaire
+  SOCIETES             // Droit des sociétés
+  CONSTRUCTION         // Droit de la construction
+  ENVIRONNEMENT        // Droit de l'environnement
+  NUMERIQUE            // Droit du numérique, RGPD
+  AUTRE                // Autre domaine
+}
+
+// Type de procédure
+enum TypeProcedure {
+  CONTENTIEUX          // Procédure contentieuse (litige)
+  AMIABLE              // Règlement amiable, médiation
+  CONSEIL              // Mission de conseil pure
+  REDACTION            // Rédaction d'actes
+  NEGOCIATION          // Négociation contractuelle
+  AUDIT                // Audit juridique
+  RECOUVREMENT         // Recouvrement de créances
+  EXECUTION            // Exécution de décision
+}
+
+// Juridiction compétente
+enum Juridiction {
+  // Juridictions civiles
+  TRIBUNAL_JUDICIAIRE       // TJ (ex-TGI)
+  TRIBUNAL_PROXIMITE        // Tribunal de proximité
+  TRIBUNAL_COMMERCE         // Tribunal de commerce
+  CONSEIL_PRUDHOMMES        // Conseil de prud'hommes
+
+  // Juridictions pénales
+  TRIBUNAL_POLICE           // Tribunal de police (contraventions)
+  TRIBUNAL_CORRECTIONNEL    // Tribunal correctionnel (délits)
+  COUR_ASSISES              // Cour d'assises (crimes)
+  JUGE_INSTRUCTION          // Cabinet d'instruction
+
+  // Cours d'appel et cassation
+  COUR_APPEL                // Cour d'appel
+  COUR_CASSATION            // Cour de cassation
+
+  // Juridictions administratives
+  TRIBUNAL_ADMINISTRATIF    // Tribunal administratif
+  COUR_ADMINISTRATIVE_APPEL // Cour administrative d'appel
+  CONSEIL_ETAT              // Conseil d'État
+
+  // Autres
+  MEDIATEUR                 // Médiateur
+  ARBITRAGE                 // Tribunal arbitral
+  JAF                       // Juge aux affaires familiales
+  JEX                       // Juge de l'exécution
+  AUTRE                     // Autre juridiction
+}
+
+// Statut d'une affaire juridique
+enum StatutAffaire {
+  ETUDE              // En cours d'étude / prise en charge
+  INSTRUCTION        // Phase d'instruction
+  MISE_EN_ETAT       // Mise en état
+  AUDIENCE           // Audience fixée
+  DELIBERE           // En délibéré
+  DECISION           // Décision rendue
+  APPEL              // En appel
+  EXECUTEE           // Exécution en cours
+  CLOTUREE           // Affaire clôturée
+  ARCHIVEE           // Affaire archivée
+}
+
+// Type d'échéance procédurale
+enum TypeEcheanceProcedurale {
+  AUDIENCE           // Date d'audience
+  CONCLUSIONS        // Dépôt de conclusions
+  PIECES             // Communication de pièces
+  RECOURS            // Délai de recours (appel, cassation)
+  SIGNIFICATION      // Signification d'acte
+  EXECUTION          // Délai d'exécution
+  PRESCRIPTION       // Délai de prescription
+  MEDIATION          // Séance de médiation
+  EXPERTISE          // Opérations d'expertise
+  COMPARUTION        // Comparution
+  DELIBERE           // Délibéré
+  DECISION           // Date de décision
+  AUTRE              // Autre échéance
+}
+
+// Statut d'une échéance procédurale
+enum StatutEcheanceProcedurale {
+  A_VENIR            // Échéance à venir
+  EN_PREPARATION     // En cours de préparation
+  PRET               // Documents prêts
+  EFFECTUEE          // Échéance effectuée
+  REPORTEE           // Reportée
+  ANNULEE            // Annulée
+}
+
+// Type d'honoraires
+enum TypeHonoraires {
+  TEMPS_PASSE        // Facturation au temps passé
+  FORFAIT            // Honoraires forfaitaires
+  RESULTAT           // Honoraires de résultat
+  MIXTE              // Forfait + temps passé ou résultat
+  AIDE_JURIDICTIONNELLE  // Aide juridictionnelle
+}
+
+// Qualité d'une partie
+enum QualitePartie {
+  DEMANDEUR          // Demandeur (qui introduit l'action)
+  DEFENDEUR          // Défendeur
+  PARTIE_CIVILE      // Partie civile (pénal)
+  PREVENU            // Prévenu (pénal)
+  ACCUSE             // Accusé (assises)
+  APPELANT           // Appelant
+  INTIME             // Intimé (appel)
+  INTERVENANT        // Intervenant volontaire/forcé
+  TIERS              // Tiers
+}
+
+// Type de diligence (action effectuée)
+enum TypeDiligence {
+  CONSULTATION       // Consultation client
+  RECHERCHE          // Recherches juridiques
+  REDACTION          // Rédaction d'actes/conclusions
+  AUDIENCE           // Présence à l'audience
+  NEGOCIATION        // Négociation
+  CORRESPONDANCE     // Courriers, emails
+  TELEPHONE          // Appels téléphoniques
+  REUNION            // Réunion
+  DEPLACEMENT        // Déplacement
+  EXPERTISE          // Participation expertise
+  ADMINISTRATIF      // Formalités administratives
+  AUTRE              // Autre diligence
+}
+
+// Affaire juridique (dossier client)
+model Affaire {
+  id            String   @id @default(cuid())
+  reference     String   // Référence interne: AFF-2024-001
+  intitule      String   // Intitulé de l'affaire
+  description   String?  @db.Text
+
+  // Client
+  clientId      String
+  client        Client   @relation(fields: [clientId], references: [id])
+  qualiteClient QualitePartie @default(DEMANDEUR)
+
+  // Classification
+  domaine       DomaineJuridique
+  typeProcedure TypeProcedure @default(CONTENTIEUX)
+  juridiction   Juridiction?
+  chambre       String?       // Chambre du tribunal
+
+  // Numéros de procédure
+  numeroRG      String?       // Numéro de rôle général
+  numeroParquet String?       // Numéro parquet (pénal)
+
+  // Dates clés
+  dateOuverture   DateTime @default(now())
+  dateFaits       DateTime?     // Date des faits litigieux
+  dateCloture     DateTime?
+
+  // Parties adverses
+  parties         PartieAdverse[]
+
+  // Honoraires
+  typeHonoraires    TypeHonoraires @default(TEMPS_PASSE)
+  tauxHoraire       Decimal?       @db.Decimal(10, 2)
+  montantForfait    Decimal?       @db.Decimal(10, 2)
+  provision         Decimal?       @db.Decimal(10, 2)  // Provision versée
+  montantAJ         Decimal?       @db.Decimal(10, 2)  // Montant aide juridictionnelle
+
+  // Enjeu financier
+  enjeuFinancier    Decimal?       @db.Decimal(12, 2)
+
+  // Statut
+  statut          StatutAffaire @default(ETUDE)
+
+  // Relations
+  echeances       EcheanceProcedurale[]
+  diligences      Diligence[]  // Temps passé et actions sur l'affaire
+
+  // Avocat en charge (si plusieurs dans le cabinet)
+  responsableId   String?
+
+  // Documents liés (via Document existant)
+  devisId         String?       // Convention d'honoraires
+
+  // Conflit d'intérêts vérifié
+  conflitVerifie  Boolean @default(false)
+  dateVerifConflit DateTime?
+
+  // Multi-tenant
+  entrepriseId String
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Index pour performances
+  @@index([entrepriseId])
+  @@index([clientId])
+  @@index([statut])
+  @@index([domaine])
+  @@index([juridiction])
+  @@index([dateOuverture])
+  @@index([entrepriseId, statut])
+  @@index([entrepriseId, domaine])
+  @@index([numeroRG])
+}
+
+// Partie adverse dans une affaire
+model PartieAdverse {
+  id            String   @id @default(cuid())
+
+  affaireId     String
+  affaire       Affaire  @relation(fields: [affaireId], references: [id], onDelete: Cascade)
+
+  // Identification
+  nom           String
+  prenom        String?
+  raisonSociale String?       // Si personne morale
+  qualite       QualitePartie
+
+  // Contact
+  adresse       String?
+  email         String?
+  telephone     String?
+
+  // Représentation
+  avocat        String?       // Nom de l'avocat adverse
+  avocatBarreau String?       // Barreau de l'avocat adverse
+  avocatEmail   String?
+  avocatTelephone String?
+
+  // Multi-tenant
+  entrepriseId String
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([affaireId])
+  @@index([entrepriseId])
+  @@index([nom])
+}
+
+// Échéance procédurale
+model EcheanceProcedurale {
+  id            String   @id @default(cuid())
+
+  affaireId     String
+  affaire       Affaire  @relation(fields: [affaireId], references: [id], onDelete: Cascade)
+
+  // Type et libellé
+  type          TypeEcheanceProcedurale
+  libelle       String   // Ex: "Audience de plaidoirie", "Dépôt conclusions n°2"
+  description   String?  @db.Text
+
+  // Dates
+  dateEcheance  DateTime
+  heureDebut    String?  // Format "HH:MM"
+  heureFin      String?
+
+  // Lieu (si audience/expertise)
+  lieu          String?  // Salle d'audience, adresse expertise
+
+  // Statut
+  statut        StatutEcheanceProcedurale @default(A_VENIR)
+
+  // Résultat (après l'échéance)
+  resultat      String?  @db.Text  // Notes sur ce qui s'est passé
+
+  // Rappels
+  rappel1Envoye Boolean  @default(false)  // Rappel 7 jours avant
+  rappel2Envoye Boolean  @default(false)  // Rappel 1 jour avant
+
+  // Multi-tenant
+  entrepriseId String
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([affaireId])
+  @@index([entrepriseId])
+  @@index([dateEcheance])
+  @@index([type])
+  @@index([statut])
+  @@index([entrepriseId, dateEcheance])
+}
+
+// Diligence (action effectuée sur un dossier)
+model Diligence {
+  id            String   @id @default(cuid())
+
+  affaireId     String
+  affaire       Affaire  @relation(fields: [affaireId], references: [id], onDelete: Cascade)
+
+  // Type et description
+  type          TypeDiligence
+  description   String   @db.Text
+
+  // Date et durée
+  date          DateTime
+  duree         Int      // Durée en minutes
+
+  // Facturation
+  facturable    Boolean  @default(true)
+  tauxHoraire   Decimal  @db.Decimal(10, 2)
+  montant       Decimal  @db.Decimal(10, 2)  // Calculé ou override
+
+  // Facturé ?
+  facturee      Boolean  @default(false)
+  factureId     String?
+
+  // Utilisateur qui a effectué la diligence
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+
+  // Multi-tenant
+  entrepriseId String
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([affaireId])
+  @@index([entrepriseId])
+  @@index([userId])
+  @@index([date])
+  @@index([type])
+  @@index([facturee])
+  @@index([entrepriseId, date])
 }
