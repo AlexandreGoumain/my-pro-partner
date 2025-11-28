@@ -2,18 +2,11 @@
 
 import { MenuCard, MenuDialog, MenuStatsGrid } from "@/components/menu";
 import { CardSection } from "@/components/ui/card-section";
+import { FilterBar } from "@/components/ui/filter-bar";
 import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
 import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { RouteGuard } from "@/components/ui/route-guard";
-import { SearchBar } from "@/components/ui/search-bar";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 import { SuspensePage } from "@/components/ui/suspense-page";
 import { MENU_CATEGORIES, type MenuCategory } from "@/hooks/use-menu";
 import { useMenuPage } from "@/hooks/use-menu-page";
@@ -59,53 +52,43 @@ function MenuContent() {
             <MenuStatsGrid stats={stats} />
 
             {/* Filters */}
-            <div className="flex gap-3 flex-wrap">
-                <SearchBar
-                    value={searchTerm}
-                    onChange={setSearchTerm}
-                    placeholder="Rechercher un plat..."
-                    className="max-w-md"
-                />
-                <Select
-                    value={categoryFilter}
-                    onValueChange={(value) =>
-                        setCategoryFilter(value as MenuCategory | "all")
-                    }
-                >
-                    <SelectTrigger className="w-[200px] h-11 text-[14px] border-black/10">
-                        <SelectValue placeholder="Catégorie" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">
-                            Toutes les catégories
-                        </SelectItem>
-                        {MENU_CATEGORIES.map((cat) => (
-                            <SelectItem key={cat} value={cat}>
-                                {cat}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-                <Select
-                    value={availabilityFilter}
-                    onValueChange={(value) =>
-                        setAvailabilityFilter(
-                            value as "all" | "available" | "unavailable"
-                        )
-                    }
-                >
-                    <SelectTrigger className="w-[200px] h-11 text-[14px] border-black/10">
-                        <SelectValue placeholder="Disponibilité" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">Tous</SelectItem>
-                        <SelectItem value="available">Disponibles</SelectItem>
-                        <SelectItem value="unavailable">
-                            Indisponibles
-                        </SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
+            <FilterBar
+                filters={[
+                    {
+                        type: "search",
+                        value: searchTerm,
+                        onChange: setSearchTerm,
+                        placeholder: "Rechercher un plat...",
+                        className: "max-w-md",
+                    },
+                    {
+                        type: "select",
+                        value: categoryFilter,
+                        onChange: (value) => setCategoryFilter(value as MenuCategory | "all"),
+                        placeholder: "Catégorie",
+                        options: [
+                            { value: "all", label: "Toutes les catégories" },
+                            ...MENU_CATEGORIES.map((cat) => ({
+                                value: cat,
+                                label: cat,
+                            })),
+                        ],
+                        className: "w-[200px]",
+                    },
+                    {
+                        type: "select",
+                        value: availabilityFilter,
+                        onChange: (value) => setAvailabilityFilter(value as "all" | "available" | "unavailable"),
+                        placeholder: "Disponibilité",
+                        options: [
+                            { value: "all", label: "Tous" },
+                            { value: "available", label: "Disponibles" },
+                            { value: "unavailable", label: "Indisponibles" },
+                        ],
+                        className: "w-[200px]",
+                    },
+                ]}
+            />
 
             {/* Menu Items Grid */}
             {isLoading ? (

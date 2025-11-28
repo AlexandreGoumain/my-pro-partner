@@ -1,20 +1,13 @@
 "use client";
 
 import { AgendaHeader, RdvCard, RdvDialog } from "@/components/agenda";
-import { CardSection } from "@/components/ui/card-section";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { EmptyState } from "@/components/ui/empty-state";
+import { FilterBar } from "@/components/ui/filter-bar";
 import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
 import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { RouteGuard } from "@/components/ui/route-guard";
-import { SearchBar } from "@/components/ui/search-bar";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 import { SuspensePage } from "@/components/ui/suspense-page";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAgendaPage, type ViewMode } from "@/hooks/use-agenda-page";
@@ -100,48 +93,45 @@ function AgendaContent() {
             </div>
 
             {/* Filters */}
-            <div className="flex gap-3 flex-wrap">
-                <SearchBar
-                    value={searchTerm}
-                    onChange={setSearchTerm}
-                    placeholder="Rechercher un client..."
-                    className="max-w-md"
-                />
-                <Select
-                    value={statutFilter}
-                    onValueChange={(value) =>
-                        setStatutFilter(value as RendezVousStatut | "all")
-                    }
-                >
-                    <SelectTrigger className="w-[180px] h-11 text-[14px] border-black/10">
-                        <SelectValue placeholder="Statut" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">Tous les statuts</SelectItem>
-                        {RENDEZ_VOUS_STATUTS.map((statut) => (
-                            <SelectItem key={statut.value} value={statut.value}>
-                                {statut.label}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-                <Select
-                    value={employeFilter}
-                    onValueChange={(value) => setEmployeFilter(value)}
-                >
-                    <SelectTrigger className="w-[200px] h-11 text-[14px] border-black/10">
-                        <SelectValue placeholder="Employé" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">Tous les employés</SelectItem>
-                        {employes.map((employe) => (
-                            <SelectItem key={employe.id} value={employe.id}>
-                                {employe.prenom} {employe.nom}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-            </div>
+            <FilterBar
+                filters={[
+                    {
+                        type: "search",
+                        value: searchTerm,
+                        onChange: setSearchTerm,
+                        placeholder: "Rechercher un client...",
+                        className: "max-w-md",
+                    },
+                    {
+                        type: "select",
+                        value: statutFilter,
+                        onChange: (value) => setStatutFilter(value as RendezVousStatut | "all"),
+                        placeholder: "Statut",
+                        options: [
+                            { value: "all", label: "Tous les statuts" },
+                            ...RENDEZ_VOUS_STATUTS.map((statut) => ({
+                                value: statut.value,
+                                label: statut.label,
+                            })),
+                        ],
+                        className: "w-[180px]",
+                    },
+                    {
+                        type: "select",
+                        value: employeFilter,
+                        onChange: setEmployeFilter,
+                        placeholder: "Employé",
+                        options: [
+                            { value: "all", label: "Tous les employés" },
+                            ...employes.map((employe) => ({
+                                value: employe.id,
+                                label: `${employe.prenom} ${employe.nom}`,
+                            })),
+                        ],
+                        className: "w-[200px]",
+                    },
+                ]}
+            />
 
             {/* RDV List */}
             {isLoading ? (
@@ -152,23 +142,17 @@ function AgendaContent() {
                     itemHeight="h-[120px]"
                 />
             ) : rendezVous.length === 0 ? (
-                <CardSection
-                    title="Rendez-vous"
-                    className="border-black/8 shadow-sm"
-                    titleClassName="text-[20px] tracking-[-0.02em]"
-                >
-                    <div className="flex flex-col items-center justify-center py-12">
-                        <div className="w-12 h-12 rounded-full bg-black/5 flex items-center justify-center mb-4">
-                            <Calendar className="w-6 h-6 text-black/40" />
-                        </div>
-                        <p className="text-[14px] text-black/40 mb-4">
-                            Aucun rendez-vous pour cette période
-                        </p>
-                        <PrimaryActionButton icon={Plus} onClick={handleCreate}>
-                            Ajouter un rendez-vous
-                        </PrimaryActionButton>
-                    </div>
-                </CardSection>
+                <EmptyState
+                    icon={Calendar}
+                    title="Aucun rendez-vous"
+                    description="Aucun rendez-vous pour cette période"
+                    action={{
+                        label: "Ajouter un rendez-vous",
+                        onClick: handleCreate,
+                        icon: Plus,
+                    }}
+                    variant="dashed"
+                />
             ) : (
                 <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-2">
                     {rendezVous.map((rdv) => (

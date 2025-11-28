@@ -40,7 +40,7 @@ import {
     Plus,
     User,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 // Labels dynamiques selon le type de business
 const PLANNING_LABELS = {
@@ -70,9 +70,6 @@ export default function PlanningPage() {
     const [selectedPlombier, setSelectedPlombier] = useState<string>("ALL");
     const [dialogOpen, setDialogOpen] = useState(false);
     const [view, setView] = useState<CalendarView>("day");
-    const [plombiersForDialog, setPlombiersForDialog] = useState<
-        { id: string; name: string | null }[]
-    >([]);
 
     // Calculate date range based on view
     const dateRange = useMemo(() => {
@@ -105,14 +102,11 @@ export default function PlanningPage() {
         selectedPlombier !== "ALL" ? selectedPlombier : undefined
     );
 
-    // Extract plombiers list for dialog
-    useEffect(() => {
-        if (plombiers.length > 0) {
-            setPlombiersForDialog(
-                plombiers.map((p) => ({ id: p.id, name: p.name }))
-            );
-        }
-    }, [plombiers]);
+    // Extract plombiers list for dialog using useMemo
+    const plombiersForDialog = useMemo(
+        () => plombiers.map((p) => ({ id: p.id, name: p.name })),
+        [plombiers]
+    );
 
     const navigate = (direction: "prev" | "next") => {
         if (view === "day") {

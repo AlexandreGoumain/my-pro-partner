@@ -7,12 +7,17 @@ import { PageHeader } from "@/components/ui/page-header";
 import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { RouteGuard } from "@/components/ui/route-guard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAtelierPage } from "@/hooks/use-atelier-page";
 import { Package, Plus, Wrench } from "lucide-react";
-import { useState } from "react";
 
 export default function AtelierPage() {
-    const [dialogOpen, setDialogOpen] = useState(false);
-    const [activeTab, setActiveTab] = useState("demontages");
+    const {
+        dialogOpen,
+        setDialogOpen,
+        handleDialogSuccess,
+        activeTab,
+        setActiveTab,
+    } = useAtelierPage();
 
     return (
         <RouteGuard capability="atelier">
@@ -65,10 +70,7 @@ export default function AtelierPage() {
                 <DemontageDialog
                     open={dialogOpen}
                     onOpenChange={setDialogOpen}
-                    onSuccess={() => {
-                        setDialogOpen(false);
-                        // Refresh list
-                    }}
+                    onSuccess={handleDialogSuccess}
                 />
             </div>
         </RouteGuard>

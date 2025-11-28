@@ -3,16 +3,11 @@
 import { EntretienPlanifierCard } from "@/components/equipements/entretien-planifier-card";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { FilterBar } from "@/components/ui/filter-bar";
 import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
+import { PriorityGroupSection } from "@/components/ui/priority-group-section";
 import { RouteGuard } from "@/components/ui/route-guard";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 import { StatCard } from "@/components/ui/stat-card";
 import {
     useEntretiensAPlanifier,
@@ -25,7 +20,6 @@ import {
     CalendarDays,
     CheckCircle,
     Clock,
-    Filter,
     RefreshCw,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -160,99 +154,60 @@ export default function EntretiensPlanifierPage() {
                 </div>
 
                 {/* Filters */}
-                <div className="flex flex-wrap items-center gap-3">
-                    <Select
-                        value={String(joursFilter)}
-                        onValueChange={(value) =>
-                            setJoursFilter(parseInt(value))
-                        }
-                    >
-                        <SelectTrigger className="w-[180px] h-11 border-black/10 bg-white">
-                            <SelectValue placeholder="Période" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="7">7 prochains jours</SelectItem>
-                            <SelectItem value="14">
-                                14 prochains jours
-                            </SelectItem>
-                            <SelectItem value="30">
-                                30 prochains jours
-                            </SelectItem>
-                            <SelectItem value="60">
-                                60 prochains jours
-                            </SelectItem>
-                            <SelectItem value="90">
-                                90 prochains jours
-                            </SelectItem>
-                        </SelectContent>
-                    </Select>
-
-                    <Select
-                        value={typeFilter}
-                        onValueChange={(value) =>
-                            setTypeFilter(value as TypeFilter)
-                        }
-                    >
-                        <SelectTrigger className="w-[180px] h-11 border-black/10 bg-white">
-                            <SelectValue placeholder="Type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="ALL">Tous les types</SelectItem>
-                            <SelectItem value="CONTROLE_ANNUEL">
-                                Contrôle annuel
-                            </SelectItem>
-                            <SelectItem value="ENTRETIEN">Entretien</SelectItem>
-                            <SelectItem value="GARANTIE_EXPIRE">
-                                Garantie expire
-                            </SelectItem>
-                        </SelectContent>
-                    </Select>
-
-                    <Select
-                        value={prioriteFilter}
-                        onValueChange={(value) =>
-                            setPrioriteFilter(value as PrioriteFilter)
-                        }
-                    >
-                        <SelectTrigger className="w-[160px] h-11 border-black/10 bg-white">
-                            <SelectValue placeholder="Priorité" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="ALL">
-                                Toutes priorités
-                            </SelectItem>
-                            <SelectItem value="critique">Critique</SelectItem>
-                            <SelectItem value="haute">Haute</SelectItem>
-                            <SelectItem value="normale">Normale</SelectItem>
-                            <SelectItem value="basse">Basse</SelectItem>
-                        </SelectContent>
-                    </Select>
-
-                    <Button
-                        variant={includeRetard ? "default" : "outline"}
-                        className={
-                            includeRetard
-                                ? "h-11 px-4 bg-red-500 hover:bg-red-600"
-                                : "h-11 px-4 border-black/10 hover:bg-black/5"
-                        }
-                        onClick={() => setIncludeRetard(!includeRetard)}
-                    >
-                        <AlertTriangle
-                            className="w-4 h-4 mr-2"
-                            strokeWidth={2}
-                        />
-                        Inclure retards
-                    </Button>
-
-                    <Button
-                        variant="outline"
-                        className="h-11 px-6 border-black/10 hover:bg-black/5"
-                        onClick={resetFilters}
-                    >
-                        <Filter className="w-4 h-4 mr-2" strokeWidth={2} />
-                        Réinitialiser
-                    </Button>
-                </div>
+                <FilterBar
+                    filters={[
+                        {
+                            type: "select",
+                            value: String(joursFilter),
+                            onChange: (value) => setJoursFilter(parseInt(value)),
+                            placeholder: "Période",
+                            options: [
+                                { value: "7", label: "7 prochains jours" },
+                                { value: "14", label: "14 prochains jours" },
+                                { value: "30", label: "30 prochains jours" },
+                                { value: "60", label: "60 prochains jours" },
+                                { value: "90", label: "90 prochains jours" },
+                            ],
+                            className: "w-[180px]",
+                        },
+                        {
+                            type: "select",
+                            value: typeFilter,
+                            onChange: (value) => setTypeFilter(value as TypeFilter),
+                            placeholder: "Type",
+                            options: [
+                                { value: "ALL", label: "Tous les types" },
+                                { value: "CONTROLE_ANNUEL", label: "Contrôle annuel" },
+                                { value: "ENTRETIEN", label: "Entretien" },
+                                { value: "GARANTIE_EXPIRE", label: "Garantie expire" },
+                            ],
+                            className: "w-[180px]",
+                        },
+                        {
+                            type: "select",
+                            value: prioriteFilter,
+                            onChange: (value) => setPrioriteFilter(value as PrioriteFilter),
+                            placeholder: "Priorité",
+                            options: [
+                                { value: "ALL", label: "Toutes priorités" },
+                                { value: "critique", label: "Critique" },
+                                { value: "haute", label: "Haute" },
+                                { value: "normale", label: "Normale" },
+                                { value: "basse", label: "Basse" },
+                            ],
+                            className: "w-[160px]",
+                        },
+                        {
+                            type: "action",
+                            label: "Inclure retards",
+                            icon: AlertTriangle,
+                            onClick: () => setIncludeRetard(!includeRetard),
+                            active: includeRetard,
+                            activeClassName: "bg-red-500 hover:bg-red-600",
+                        },
+                    ]}
+                    onReset={resetFilters}
+                />
 
                 {/* Entretiens List */}
                 {isLoading ? (
@@ -270,150 +225,80 @@ export default function EntretiensPlanifierPage() {
                     />
                 ) : (
                     <div className="space-y-6">
-                        {/* En retard */}
-                        {groupedEntretiens.enRetard.length > 0 && (
-                            <section>
-                                <div className="flex items-center gap-2 mb-3">
-                                    <AlertTriangle
-                                        className="w-4 h-4 text-red-500"
-                                        strokeWidth={2}
-                                    />
-                                    <h2 className="text-[14px] font-semibold text-red-600">
-                                        En retard (
-                                        {groupedEntretiens.enRetard.length})
-                                    </h2>
-                                </div>
-                                <div className="space-y-3">
-                                    {groupedEntretiens.enRetard.map(
-                                        (entretien) => (
-                                            <EntretienPlanifierCard
-                                                key={entretien.id}
-                                                entretien={entretien}
-                                                onPlanifier={() =>
-                                                    handlePlanifier(entretien)
-                                                }
-                                            />
-                                        )
-                                    )}
-                                </div>
-                            </section>
-                        )}
+                        <PriorityGroupSection
+                            title="En retard"
+                            count={groupedEntretiens.enRetard.length}
+                            icon={AlertTriangle}
+                            iconClassName="text-red-500"
+                            titleClassName="text-red-600"
+                            items={groupedEntretiens.enRetard}
+                            renderItem={(entretien) => (
+                                <EntretienPlanifierCard
+                                    entretien={entretien}
+                                    onPlanifier={() => handlePlanifier(entretien)}
+                                />
+                            )}
+                        />
 
-                        {/* Critique */}
-                        {groupedEntretiens.critique.length > 0 && (
-                            <section>
-                                <div className="flex items-center gap-2 mb-3">
-                                    <Clock
-                                        className="w-4 h-4 text-red-500"
-                                        strokeWidth={2}
-                                    />
-                                    <h2 className="text-[14px] font-semibold text-red-600">
-                                        Critique (
-                                        {groupedEntretiens.critique.length})
-                                    </h2>
-                                </div>
-                                <div className="space-y-3">
-                                    {groupedEntretiens.critique.map(
-                                        (entretien) => (
-                                            <EntretienPlanifierCard
-                                                key={entretien.id}
-                                                entretien={entretien}
-                                                onPlanifier={() =>
-                                                    handlePlanifier(entretien)
-                                                }
-                                            />
-                                        )
-                                    )}
-                                </div>
-                            </section>
-                        )}
+                        <PriorityGroupSection
+                            title="Critique"
+                            count={groupedEntretiens.critique.length}
+                            icon={Clock}
+                            iconClassName="text-red-500"
+                            titleClassName="text-red-600"
+                            items={groupedEntretiens.critique}
+                            renderItem={(entretien) => (
+                                <EntretienPlanifierCard
+                                    entretien={entretien}
+                                    onPlanifier={() => handlePlanifier(entretien)}
+                                />
+                            )}
+                        />
 
-                        {/* Haute priorité */}
-                        {groupedEntretiens.haute.length > 0 && (
-                            <section>
-                                <div className="flex items-center gap-2 mb-3">
-                                    <Calendar
-                                        className="w-4 h-4 text-orange-500"
-                                        strokeWidth={2}
-                                    />
-                                    <h2 className="text-[14px] font-semibold text-orange-600">
-                                        Priorité haute (
-                                        {groupedEntretiens.haute.length})
-                                    </h2>
-                                </div>
-                                <div className="space-y-3">
-                                    {groupedEntretiens.haute.map(
-                                        (entretien) => (
-                                            <EntretienPlanifierCard
-                                                key={entretien.id}
-                                                entretien={entretien}
-                                                onPlanifier={() =>
-                                                    handlePlanifier(entretien)
-                                                }
-                                            />
-                                        )
-                                    )}
-                                </div>
-                            </section>
-                        )}
+                        <PriorityGroupSection
+                            title="Priorité haute"
+                            count={groupedEntretiens.haute.length}
+                            icon={Calendar}
+                            iconClassName="text-orange-500"
+                            titleClassName="text-orange-600"
+                            items={groupedEntretiens.haute}
+                            renderItem={(entretien) => (
+                                <EntretienPlanifierCard
+                                    entretien={entretien}
+                                    onPlanifier={() => handlePlanifier(entretien)}
+                                />
+                            )}
+                        />
 
-                        {/* Priorité normale */}
-                        {groupedEntretiens.normale.length > 0 && (
-                            <section>
-                                <div className="flex items-center gap-2 mb-3">
-                                    <Calendar
-                                        className="w-4 h-4 text-black/40"
-                                        strokeWidth={2}
-                                    />
-                                    <h2 className="text-[14px] font-semibold text-black/70">
-                                        Priorité normale (
-                                        {groupedEntretiens.normale.length})
-                                    </h2>
-                                </div>
-                                <div className="space-y-3">
-                                    {groupedEntretiens.normale.map(
-                                        (entretien) => (
-                                            <EntretienPlanifierCard
-                                                key={entretien.id}
-                                                entretien={entretien}
-                                                onPlanifier={() =>
-                                                    handlePlanifier(entretien)
-                                                }
-                                            />
-                                        )
-                                    )}
-                                </div>
-                            </section>
-                        )}
+                        <PriorityGroupSection
+                            title="Priorité normale"
+                            count={groupedEntretiens.normale.length}
+                            icon={Calendar}
+                            iconClassName="text-black/40"
+                            titleClassName="text-black/70"
+                            items={groupedEntretiens.normale}
+                            renderItem={(entretien) => (
+                                <EntretienPlanifierCard
+                                    entretien={entretien}
+                                    onPlanifier={() => handlePlanifier(entretien)}
+                                />
+                            )}
+                        />
 
-                        {/* Basse priorité */}
-                        {groupedEntretiens.basse.length > 0 && (
-                            <section>
-                                <div className="flex items-center gap-2 mb-3">
-                                    <Calendar
-                                        className="w-4 h-4 text-black/30"
-                                        strokeWidth={2}
-                                    />
-                                    <h2 className="text-[14px] font-semibold text-black/50">
-                                        Basse priorité (
-                                        {groupedEntretiens.basse.length})
-                                    </h2>
-                                </div>
-                                <div className="space-y-3">
-                                    {groupedEntretiens.basse.map(
-                                        (entretien) => (
-                                            <EntretienPlanifierCard
-                                                key={entretien.id}
-                                                entretien={entretien}
-                                                onPlanifier={() =>
-                                                    handlePlanifier(entretien)
-                                                }
-                                            />
-                                        )
-                                    )}
-                                </div>
-                            </section>
-                        )}
+                        <PriorityGroupSection
+                            title="Basse priorité"
+                            count={groupedEntretiens.basse.length}
+                            icon={Calendar}
+                            iconClassName="text-black/30"
+                            titleClassName="text-black/50"
+                            items={groupedEntretiens.basse}
+                            renderItem={(entretien) => (
+                                <EntretienPlanifierCard
+                                    entretien={entretien}
+                                    onPlanifier={() => handlePlanifier(entretien)}
+                                />
+                            )}
+                        />
                     </div>
                 )}
             </div>

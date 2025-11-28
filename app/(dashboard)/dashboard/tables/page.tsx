@@ -4,20 +4,13 @@ import { TableCard } from "@/components/tables/table-card";
 import { TableDialog } from "@/components/tables/table-dialog";
 import { TableStatsGrid } from "@/components/tables/table-stats-grid";
 import { CardSection } from "@/components/ui/card-section";
+import { EmptyState } from "@/components/ui/empty-state";
+import { FilterBar } from "@/components/ui/filter-bar";
 import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
 import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { RouteGuard } from "@/components/ui/route-guard";
-import { SearchBar } from "@/components/ui/search-bar";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 import { SuspensePage } from "@/components/ui/suspense-page";
-import { EmptyState } from "@/components/ui/empty-state";
 import { useTablesPage } from "@/hooks/use-tables-page";
 import { TableStatus } from "@/lib/types/table.types";
 import { Plus } from "lucide-react";
@@ -67,52 +60,42 @@ function TablesContent() {
             />
 
             {/* Filters */}
-            <div className="flex gap-3 flex-wrap">
-                <SearchBar
-                    value={searchTerm}
-                    onChange={setSearchTerm}
-                    placeholder="Rechercher une table..."
-                    className="max-w-md"
-                />
-                <Select
-                    value={zoneFilter}
-                    onValueChange={(value) =>
-                        setZoneFilter(value as typeof zoneFilter)
-                    }
-                >
-                    <SelectTrigger className="w-[200px] h-11 text-[14px] border-black/10">
-                        <SelectValue placeholder="Zone" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">Toutes les zones</SelectItem>
-                        {availableZones.map((zone) => (
-                            <SelectItem key={zone} value={zone}>
-                                {zone}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-                <Select
-                    value={statusFilter}
-                    onValueChange={(value) =>
-                        setStatusFilter(value as typeof statusFilter)
-                    }
-                >
-                    <SelectTrigger className="w-[200px] h-11 text-[14px] border-black/10">
-                        <SelectValue placeholder="Statut" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="all">Tous les statuts</SelectItem>
-                        <SelectItem value={TableStatus.LIBRE}>Libre</SelectItem>
-                        <SelectItem value={TableStatus.OCCUPEE}>
-                            Occupée
-                        </SelectItem>
-                        <SelectItem value={TableStatus.RESERVEE}>
-                            Réservée
-                        </SelectItem>
-                    </SelectContent>
-                </Select>
-            </div>
+            <FilterBar
+                filters={[
+                    {
+                        type: "search",
+                        value: searchTerm,
+                        onChange: setSearchTerm,
+                        placeholder: "Rechercher une table...",
+                        className: "max-w-md",
+                    },
+                    {
+                        type: "select",
+                        value: zoneFilter,
+                        onChange: (value) => setZoneFilter(value as typeof zoneFilter),
+                        placeholder: "Zone",
+                        options: [
+                            { value: "all", label: "Toutes les zones" },
+                            ...availableZones.map((zone) => ({
+                                value: zone,
+                                label: zone,
+                            })),
+                        ],
+                    },
+                    {
+                        type: "select",
+                        value: statusFilter,
+                        onChange: (value) => setStatusFilter(value as typeof statusFilter),
+                        placeholder: "Statut",
+                        options: [
+                            { value: "all", label: "Tous les statuts" },
+                            { value: TableStatus.LIBRE, label: "Libre" },
+                            { value: TableStatus.OCCUPEE, label: "Occupée" },
+                            { value: TableStatus.RESERVEE, label: "Réservée" },
+                        ],
+                    },
+                ]}
+            />
 
             {/* Tables Grid */}
             <CardSection

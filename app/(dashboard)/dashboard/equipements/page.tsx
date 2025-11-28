@@ -2,21 +2,13 @@
 
 import { EquipementCard } from "@/components/equipements/equipement-card";
 import { EquipementDialog } from "@/components/equipements/equipement-dialog";
-import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
+import { FilterBar } from "@/components/ui/filter-bar";
 import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
 import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { RouteGuard } from "@/components/ui/route-guard";
-import { SearchBar } from "@/components/ui/search-bar";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 import { StatCard } from "@/components/ui/stat-card";
 import {
     useDeleteEquipement,
@@ -38,7 +30,6 @@ import {
     AlertCircle,
     AlertTriangle,
     CheckCircle,
-    Filter,
     Package,
     Plus,
     Wrench,
@@ -194,80 +185,54 @@ export default function EquipementsPage() {
                 </div>
 
                 {/* Filters */}
-                <div className="flex flex-col sm:flex-row gap-3">
-                    <SearchBar
-                        value={searchQuery}
-                        onChange={setSearchQuery}
-                        placeholder="Rechercher par marque, modèle, client, ville..."
-                        className="flex-1"
-                    />
-
-                    <Select
-                        value={typeFilter}
-                        onValueChange={(value) =>
-                            setTypeFilter(value as TypeEquipement | "ALL")
-                        }
-                    >
-                        <SelectTrigger className="w-[200px] h-11 border-black/10 bg-white">
-                            <SelectValue placeholder="Type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="ALL">Tous les types</SelectItem>
-                            {equipementTypes.map((type) => (
-                                <SelectItem key={type} value={type}>
-                                    {
-                                        TYPE_EQUIPEMENT_LABELS[
-                                            type as TypeEquipement
-                                        ]
-                                    }
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-
-                    <Select
-                        value={statutFilter}
-                        onValueChange={(value) =>
-                            setStatutFilter(value as StatutEquipement | "ALL")
-                        }
-                    >
-                        <SelectTrigger className="w-[180px] h-11 border-black/10 bg-white">
-                            <SelectValue placeholder="Statut" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="ALL">
-                                Tous les statuts
-                            </SelectItem>
-                            {STATUT_EQUIPEMENT.map((statut) => (
-                                <SelectItem key={statut} value={statut}>
-                                    {STATUT_EQUIPEMENT_LABELS[statut]}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-
-                    <Button
-                        variant={controleUrgent ? "default" : "outline"}
-                        className={
-                            controleUrgent
-                                ? "h-11 px-4 bg-orange-500 hover:bg-orange-600"
-                                : "h-11 px-4 border-black/10 hover:bg-black/5"
-                        }
-                        onClick={() => setControleUrgent(!controleUrgent)}
-                    >
-                        <AlertCircle className="w-4 h-4 mr-2" strokeWidth={2} />
-                        Contrôles urgents
-                    </Button>
-
-                    <Button
-                        variant="outline"
-                        className="h-11 px-6 border-black/10 hover:bg-black/5"
-                        onClick={resetFilters}
-                    >
-                        <Filter className="w-4 h-4 mr-2" strokeWidth={2} />
-                        Réinitialiser
-                    </Button>
-                </div>
+                <FilterBar
+                    filters={[
+                        {
+                            type: "search",
+                            value: searchQuery,
+                            onChange: setSearchQuery,
+                            placeholder: "Rechercher par marque, modèle, client, ville...",
+                            className: "flex-1",
+                        },
+                        {
+                            type: "select",
+                            value: typeFilter,
+                            onChange: (value) => setTypeFilter(value as TypeEquipement | "ALL"),
+                            placeholder: "Type",
+                            options: [
+                                { value: "ALL", label: "Tous les types" },
+                                ...equipementTypes.map((type) => ({
+                                    value: type,
+                                    label: TYPE_EQUIPEMENT_LABELS[type as TypeEquipement],
+                                })),
+                            ],
+                            className: "w-[200px]",
+                        },
+                        {
+                            type: "select",
+                            value: statutFilter,
+                            onChange: (value) => setStatutFilter(value as StatutEquipement | "ALL"),
+                            placeholder: "Statut",
+                            options: [
+                                { value: "ALL", label: "Tous les statuts" },
+                                ...STATUT_EQUIPEMENT.map((statut) => ({
+                                    value: statut,
+                                    label: STATUT_EQUIPEMENT_LABELS[statut],
+                                })),
+                            ],
+                            className: "w-[180px]",
+                        },
+                        {
+                            type: "action",
+                            label: "Contrôles urgents",
+                            icon: AlertCircle,
+                            onClick: () => setControleUrgent(!controleUrgent),
+                            active: controleUrgent,
+                            activeClassName: "bg-orange-500 hover:bg-orange-600",
+                        },
+                    ]}
+                    onReset={resetFilters}
+                />
 
                 {/* Equipements List */}
                 <div className="space-y-3">
