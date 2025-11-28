@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useCapabilities } from "@/hooks/use-capabilities";
-import { useCreateIntervention } from "@/hooks/use-interventions";
+import { useInterventionDialog } from "@/hooks/use-intervention-dialog";
 import {
     EQUIPEMENTS_PAR_METIER,
     INTERVENTIONS_PAR_METIER,
@@ -38,10 +38,7 @@ import {
     type TypeIntervention,
 } from "@/lib/types/intervention";
 import { cn } from "@/lib/utils";
-import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, MapPin, UserPlus, Users } from "lucide-react";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
 
 interface InterventionDialogProps {
     open: boolean;
@@ -49,195 +46,32 @@ interface InterventionDialogProps {
     onSuccess: () => void;
 }
 
-interface Client {
-    id: string;
-    nom: string;
-    prenom?: string | null;
-    telephone?: string | null;
-    adresse?: string | null;
-    codePostal?: string | null;
-    ville?: string | null;
-}
-
-type ClientMode = "existing" | "new";
-
 export function InterventionDialog({
     open,
     onOpenChange,
     onSuccess,
 }: InterventionDialogProps) {
-    // Get business type for filtering
     const { businessType } = useCapabilities();
 
-    // Client mode
-    const [clientMode, setClientMode] = useState<ClientMode>("existing");
-
-    // Existing client
-    const [clientId, setClientId] = useState("");
-
-    // New client info
-    const [newClientNom, setNewClientNom] = useState("");
-    const [newClientPrenom, setNewClientPrenom] = useState("");
-    const [newClientTelephone, setNewClientTelephone] = useState("");
-
-    // Form state
-    const [typeIntervention, setTypeIntervention] = useState<
-        TypeIntervention | ""
-    >("");
-    const [priorite, setPriorite] = useState<PrioriteIntervention>("NORMALE");
-    const [description, setDescription] = useState("");
-
-    // Address
-    const [adresse, setAdresse] = useState("");
-    const [codePostal, setCodePostal] = useState("");
-    const [ville, setVille] = useState("");
-
-    // Optional details
-    const [showDetails, setShowDetails] = useState(false);
-    const [equipement, setEquipement] = useState<TypeEquipement | "">("");
-    const [marqueEquipement, setMarqueEquipement] = useState("");
-    const [datePrevisionnelle, setDatePrevisionnelle] = useState("");
-
-    // Fetch clients
-    const { data: clientsData } = useQuery({
-        queryKey: ["clients", "list", { limit: 100 }],
-        queryFn: async () => {
-            const response = await fetch("/api/clients?limit=100");
-            if (!response.ok) throw new Error("Failed to fetch clients");
-            return response.json();
-        },
-        enabled: open,
+    const {
+        form,
+        formKey,
+        clients,
+        selectedClient,
+        isLoading,
+        updateField,
+        handleOpenChange,
+        handleSubmit,
+        setShowDetails,
+    } = useInterventionDialog({
+        open,
+        onOpenChange,
+        onSuccess,
+        businessType,
     });
 
-    const clients: Client[] = clientsData?.items || clientsData?.clients || [];
-    const selectedClient = clients.find((c) => c.id === clientId);
-
-    // Reset form when dialog closes
-    useEffect(() => {
-        if (!open) {
-            setClientMode("existing");
-            setClientId("");
-            setNewClientNom("");
-            setNewClientPrenom("");
-            setNewClientTelephone("");
-            setTypeIntervention("");
-            setPriorite("NORMALE");
-            setDescription("");
-            setAdresse("");
-            setCodePostal("");
-            setVille("");
-            setShowDetails(false);
-            setEquipement("");
-            setMarqueEquipement("");
-            setDatePrevisionnelle("");
-        }
-    }, [open]);
-
-    // Auto-fill address when existing client changes
-    useEffect(() => {
-        if (clientMode === "existing" && selectedClient) {
-            setAdresse(selectedClient.adresse || "");
-            setCodePostal(selectedClient.codePostal || "");
-            setVille(selectedClient.ville || "");
-        }
-    }, [selectedClient, clientMode]);
-
-    // Clear address when switching to new client
-    useEffect(() => {
-        if (clientMode === "new") {
-            setAdresse("");
-            setCodePostal("");
-            setVille("");
-        }
-    }, [clientMode]);
-
-    const createIntervention = useCreateIntervention();
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-
-        // Validate client
-        if (clientMode === "existing" && !clientId) {
-            toast.error("Veuillez sélectionner un client");
-            return;
-        }
-
-        if (clientMode === "new") {
-            if (!newClientNom.trim()) {
-                toast.error("Le nom du client est requis");
-                return;
-            }
-            if (!newClientTelephone.trim()) {
-                toast.error("Le téléphone du client est requis");
-                return;
-            }
-        }
-
-        if (!typeIntervention || !description) {
-            toast.error("Veuillez remplir les champs obligatoires");
-            return;
-        }
-
-        if (description.length < 10) {
-            toast.error("La description doit faire au moins 10 caractères");
-            return;
-        }
-
-        if (!adresse || !codePostal || !ville) {
-            toast.error("L'adresse est incomplète");
-            return;
-        }
-
-        if (!/^\d{5}$/.test(codePostal)) {
-            toast.error("Code postal invalide");
-            return;
-        }
-
-        const payload = {
-            // Client info
-            ...(clientMode === "existing"
-                ? { clientId }
-                : {
-                      newClient: {
-                          nom: newClientNom.trim(),
-                          prenom: newClientPrenom.trim() || undefined,
-                          telephone: newClientTelephone.trim(),
-                      },
-                  }),
-            typeIntervention,
-            priorite,
-            description,
-            adresse,
-            codePostal,
-            ville,
-            equipement: equipement || undefined,
-            marqueEquipement: marqueEquipement || undefined,
-            datePrevisionnelle: datePrevisionnelle || undefined,
-        };
-
-        createIntervention.mutate(payload, {
-            onSuccess: () => {
-                toast.success(
-                    clientMode === "new"
-                        ? "Intervention créée et client ajouté"
-                        : "Intervention créée"
-                );
-                onSuccess();
-            },
-            onError: (error) => {
-                toast.error(
-                    error instanceof Error
-                        ? error.message
-                        : "Erreur lors de la création"
-                );
-            },
-        });
-    };
-
-    const isLoading = createIntervention.isPending;
-
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogContent className="max-w-lg">
                 <DialogHeader>
                     <DialogTitle className="text-[20px] font-semibold tracking-[-0.02em]">
@@ -248,15 +82,21 @@ export function InterventionDialog({
                     </DialogDescription>
                 </DialogHeader>
 
-                <form onSubmit={handleSubmit} className="space-y-4 mt-2">
+                <form
+                    key={formKey}
+                    onSubmit={handleSubmit}
+                    className="space-y-4 mt-2"
+                >
                     {/* Client Mode Toggle */}
                     <div className="flex gap-2 p-1 bg-black/[0.03] rounded-lg">
                         <button
                             type="button"
-                            onClick={() => setClientMode("existing")}
+                            onClick={() =>
+                                updateField("clientMode", "existing")
+                            }
                             className={cn(
                                 "flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-[13px] font-medium transition-all",
-                                clientMode === "existing"
+                                form.clientMode === "existing"
                                     ? "bg-white text-black shadow-sm"
                                     : "text-black/50 hover:text-black/70"
                             )}
@@ -266,10 +106,10 @@ export function InterventionDialog({
                         </button>
                         <button
                             type="button"
-                            onClick={() => setClientMode("new")}
+                            onClick={() => updateField("clientMode", "new")}
                             className={cn(
                                 "flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-[13px] font-medium transition-all",
-                                clientMode === "new"
+                                form.clientMode === "new"
                                     ? "bg-white text-black shadow-sm"
                                     : "text-black/50 hover:text-black/70"
                             )}
@@ -280,14 +120,16 @@ export function InterventionDialog({
                     </div>
 
                     {/* Existing Client Select */}
-                    {clientMode === "existing" && (
+                    {form.clientMode === "existing" && (
                         <div className="space-y-2">
                             <Label className="text-[13px] font-medium">
                                 Client <span className="text-red-500">*</span>
                             </Label>
                             <Select
-                                value={clientId}
-                                onValueChange={setClientId}
+                                value={form.clientId}
+                                onValueChange={(v) =>
+                                    updateField("clientId", v)
+                                }
                             >
                                 <SelectTrigger className="h-11 border-black/10">
                                     <SelectValue placeholder="Sélectionner un client" />
@@ -324,7 +166,7 @@ export function InterventionDialog({
                     )}
 
                     {/* New Client Form */}
-                    {clientMode === "new" && (
+                    {form.clientMode === "new" && (
                         <div className="space-y-3 p-3 rounded-lg bg-black/[0.02] border border-black/8">
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="space-y-1.5">
@@ -332,9 +174,12 @@ export function InterventionDialog({
                                         Prénom
                                     </Label>
                                     <Input
-                                        value={newClientPrenom}
+                                        value={form.newClientPrenom}
                                         onChange={(e) =>
-                                            setNewClientPrenom(e.target.value)
+                                            updateField(
+                                                "newClientPrenom",
+                                                e.target.value
+                                            )
                                         }
                                         placeholder="Prénom"
                                         className="h-10 border-black/10 text-[13px]"
@@ -346,9 +191,12 @@ export function InterventionDialog({
                                         <span className="text-red-500">*</span>
                                     </Label>
                                     <Input
-                                        value={newClientNom}
+                                        value={form.newClientNom}
                                         onChange={(e) =>
-                                            setNewClientNom(e.target.value)
+                                            updateField(
+                                                "newClientNom",
+                                                e.target.value
+                                            )
                                         }
                                         placeholder="Nom"
                                         className="h-10 border-black/10 text-[13px]"
@@ -361,9 +209,12 @@ export function InterventionDialog({
                                     <span className="text-red-500">*</span>
                                 </Label>
                                 <Input
-                                    value={newClientTelephone}
+                                    value={form.newClientTelephone}
                                     onChange={(e) =>
-                                        setNewClientTelephone(e.target.value)
+                                        updateField(
+                                            "newClientTelephone",
+                                            e.target.value
+                                        )
                                     }
                                     placeholder="06 12 34 56 78"
                                     className="h-10 border-black/10 text-[13px]"
@@ -379,9 +230,12 @@ export function InterventionDialog({
                                 Type <span className="text-red-500">*</span>
                             </Label>
                             <Select
-                                value={typeIntervention}
+                                value={form.typeIntervention}
                                 onValueChange={(v) =>
-                                    setTypeIntervention(v as TypeIntervention)
+                                    updateField(
+                                        "typeIntervention",
+                                        v as TypeIntervention
+                                    )
                                 }
                             >
                                 <SelectTrigger className="h-11 border-black/10">
@@ -410,9 +264,12 @@ export function InterventionDialog({
                                 Priorité
                             </Label>
                             <Select
-                                value={priorite}
+                                value={form.priorite}
                                 onValueChange={(v) =>
-                                    setPriorite(v as PrioriteIntervention)
+                                    updateField(
+                                        "priorite",
+                                        v as PrioriteIntervention
+                                    )
                                 }
                             >
                                 <SelectTrigger className="h-11 border-black/10">
@@ -435,39 +292,48 @@ export function InterventionDialog({
                             Description <span className="text-red-500">*</span>
                         </Label>
                         <Textarea
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
+                            value={form.description}
+                            onChange={(e) =>
+                                updateField("description", e.target.value)
+                            }
                             placeholder="Décrivez brièvement le problème..."
                             className="min-h-[80px] border-black/10 resize-none"
                         />
                     </div>
 
                     {/* Address - Always visible for new client, collapsible for existing */}
-                    {clientMode === "new" ? (
+                    {form.clientMode === "new" ? (
                         <div className="space-y-3">
                             <Label className="text-[13px] font-medium">
                                 Adresse d'intervention{" "}
                                 <span className="text-red-500">*</span>
                             </Label>
                             <Input
-                                value={adresse}
-                                onChange={(e) => setAdresse(e.target.value)}
+                                value={form.adresse}
+                                onChange={(e) =>
+                                    updateField("adresse", e.target.value)
+                                }
                                 placeholder="Adresse"
                                 className="h-11 border-black/10"
                             />
                             <div className="grid grid-cols-2 gap-3">
                                 <Input
-                                    value={codePostal}
+                                    value={form.codePostal}
                                     onChange={(e) =>
-                                        setCodePostal(e.target.value)
+                                        updateField(
+                                            "codePostal",
+                                            e.target.value
+                                        )
                                     }
                                     placeholder="Code postal"
                                     maxLength={5}
                                     className="h-11 border-black/10"
                                 />
                                 <Input
-                                    value={ville}
-                                    onChange={(e) => setVille(e.target.value)}
+                                    value={form.ville}
+                                    onChange={(e) =>
+                                        updateField("ville", e.target.value)
+                                    }
                                     placeholder="Ville"
                                     className="h-11 border-black/10"
                                 />
@@ -476,7 +342,7 @@ export function InterventionDialog({
                     ) : (
                         /* Collapsible Details for existing client */
                         <Collapsible
-                            open={showDetails}
+                            open={form.showDetails}
                             onOpenChange={setShowDetails}
                         >
                             <CollapsibleTrigger asChild>
@@ -487,11 +353,11 @@ export function InterventionDialog({
                                     <ChevronDown
                                         className={cn(
                                             "w-4 h-4 transition-transform",
-                                            showDetails && "rotate-180"
+                                            form.showDetails && "rotate-180"
                                         )}
                                         strokeWidth={2}
                                     />
-                                    {showDetails
+                                    {form.showDetails
                                         ? "Masquer les détails"
                                         : "Plus de détails"}
                                 </button>
@@ -503,27 +369,36 @@ export function InterventionDialog({
                                         Adresse d'intervention
                                     </Label>
                                     <Input
-                                        value={adresse}
+                                        value={form.adresse}
                                         onChange={(e) =>
-                                            setAdresse(e.target.value)
+                                            updateField(
+                                                "adresse",
+                                                e.target.value
+                                            )
                                         }
                                         placeholder="Adresse"
                                         className="h-10 border-black/10 text-[13px]"
                                     />
                                     <div className="grid grid-cols-2 gap-2">
                                         <Input
-                                            value={codePostal}
+                                            value={form.codePostal}
                                             onChange={(e) =>
-                                                setCodePostal(e.target.value)
+                                                updateField(
+                                                    "codePostal",
+                                                    e.target.value
+                                                )
                                             }
                                             placeholder="Code postal"
                                             maxLength={5}
                                             className="h-10 border-black/10 text-[13px]"
                                         />
                                         <Input
-                                            value={ville}
+                                            value={form.ville}
                                             onChange={(e) =>
-                                                setVille(e.target.value)
+                                                updateField(
+                                                    "ville",
+                                                    e.target.value
+                                                )
                                             }
                                             placeholder="Ville"
                                             className="h-10 border-black/10 text-[13px]"
@@ -538,11 +413,9 @@ export function InterventionDialog({
                                             Équipement
                                         </Label>
                                         <Select
-                                            value={equipement}
+                                            value={form.equipement}
                                             onValueChange={(v) =>
-                                                setEquipement(
-                                                    v as TypeEquipement
-                                                )
+                                                updateField("equipement", v)
                                             }
                                         >
                                             <SelectTrigger className="h-10 border-black/10 text-[13px]">
@@ -583,9 +456,10 @@ export function InterventionDialog({
                                             Marque
                                         </Label>
                                         <Input
-                                            value={marqueEquipement}
+                                            value={form.marqueEquipement}
                                             onChange={(e) =>
-                                                setMarqueEquipement(
+                                                updateField(
+                                                    "marqueEquipement",
                                                     e.target.value
                                                 )
                                             }
@@ -602,9 +476,10 @@ export function InterventionDialog({
                                     </Label>
                                     <Input
                                         type="datetime-local"
-                                        value={datePrevisionnelle}
+                                        value={form.datePrevisionnelle}
                                         onChange={(e) =>
-                                            setDatePrevisionnelle(
+                                            updateField(
+                                                "datePrevisionnelle",
                                                 e.target.value
                                             )
                                         }
@@ -617,7 +492,7 @@ export function InterventionDialog({
 
                     {/* Actions */}
                     <DialogActionButtons
-                        onCancel={() => onOpenChange(false)}
+                        onCancel={() => handleOpenChange(false)}
                         submitLabel="Créer"
                         isLoading={isLoading}
                         className="pt-2"

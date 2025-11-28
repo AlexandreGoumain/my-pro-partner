@@ -1,6 +1,6 @@
 "use client";
 
-import { InterventionDialog } from "@/components/interventions/intervention-dialog";
+import { InterventionCard, InterventionDialog } from "@/components/interventions";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FilterBar } from "@/components/ui/filter-bar";
 import { GridSkeleton } from "@/components/ui/grid-skeleton";
@@ -8,101 +8,39 @@ import { PageHeader } from "@/components/ui/page-header";
 import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { RouteGuard } from "@/components/ui/route-guard";
 import { StatCard } from "@/components/ui/stat-card";
-import { useCapabilities } from "@/hooks/use-capabilities";
+import { useInterventionsPage } from "@/hooks/use-interventions-page";
 import {
-    useInterventions,
-    useInterventionStats,
-    type InterventionFilters,
-} from "@/hooks/use-interventions";
-import { BUSINESS_TYPE_CONFIGS } from "@/lib/config/business-hierarchy.config";
-import {
-    INTERVENTIONS_PAR_METIER,
     PRIORITE_LABELS,
     STATUT_LABELS,
-    TYPE_INTERVENTION_ICONS,
     TYPE_INTERVENTION_LABELS,
     type PrioriteIntervention,
     type StatutIntervention,
     type TypeIntervention,
 } from "@/lib/types/intervention";
 import { AlertCircle, ClipboardList, Clock, MapPin, Plus } from "lucide-react";
-import { useMemo, useState } from "react";
 
 export default function InterventionsPage() {
-    const { businessType } = useCapabilities();
-    const [dialogOpen, setDialogOpen] = useState(false);
-    const [searchQuery, setSearchQuery] = useState("");
-    const [statutFilter, setStatutFilter] = useState<
-        StatutIntervention | "ALL"
-    >("ALL");
-    const [prioriteFilter, setPrioriteFilter] = useState<
-        PrioriteIntervention | "ALL"
-    >("ALL");
-    const [typeFilter, setTypeFilter] = useState<TypeIntervention | "ALL">(
-        "ALL"
-    );
-
-    // Get business config for dynamic labels
-    const businessConfig = BUSINESS_TYPE_CONFIGS[businessType];
-    const businessLabel = businessConfig?.label || "Intervention";
-
-    // Get filtered intervention types for this business
-    const availableInterventionTypes = useMemo(() => {
-        return (
-            INTERVENTIONS_PAR_METIER[
-                businessType as keyof typeof INTERVENTIONS_PAR_METIER
-            ] || Object.keys(TYPE_INTERVENTION_LABELS)
-        );
-    }, [businessType]);
-
-    // Build filters object
-    const filters: InterventionFilters = useMemo(
-        () => ({
-            statut: statutFilter,
-            priorite: prioriteFilter,
-            type: typeFilter,
-            search: searchQuery || undefined,
-        }),
-        [statutFilter, prioriteFilter, typeFilter, searchQuery]
-    );
-
-    // Fetch data with TanStack Query
-    const { data: interventions = [], isLoading } = useInterventions(filters);
-    const { data: stats } = useInterventionStats();
-
-    const getPriorityBadgeColor = (priorite: PrioriteIntervention) => {
-        switch (priorite) {
-            case "CRITIQUE":
-                return "bg-red-100 text-red-800 border-red-200";
-            case "URGENTE":
-                return "bg-orange-100 text-orange-800 border-orange-200";
-            case "NORMALE":
-                return "bg-gray-100 text-gray-800 border-gray-200";
-        }
-    };
-
-    const getStatutBadgeColor = (statut: StatutIntervention) => {
-        switch (statut) {
-            case "DEMANDE":
-                return "bg-blue-100 text-blue-800";
-            case "PLANIFIEE":
-                return "bg-purple-100 text-purple-800";
-            case "EN_ROUTE":
-                return "bg-yellow-100 text-yellow-800";
-            case "SUR_PLACE":
-                return "bg-cyan-100 text-cyan-800";
-            case "EN_COURS":
-                return "bg-orange-100 text-orange-800";
-            case "TERMINEE":
-                return "bg-green-100 text-green-800";
-            case "FACTUREE":
-                return "bg-emerald-100 text-emerald-800";
-            case "ANNULEE":
-                return "bg-gray-100 text-gray-800";
-            default:
-                return "bg-gray-100 text-gray-800";
-        }
-    };
+    const {
+        dialogOpen,
+        setDialogOpen,
+        handleDialogSuccess,
+        searchQuery,
+        setSearchQuery,
+        statutFilter,
+        setStatutFilter,
+        prioriteFilter,
+        setPrioriteFilter,
+        typeFilter,
+        setTypeFilter,
+        handleResetFilters,
+        interventions,
+        isLoading,
+        stats,
+        businessLabel,
+        availableInterventionTypes,
+        getPriorityBadgeColor,
+        getStatutBadgeColor,
+    } = useInterventionsPage();
 
     return (
         <RouteGuard anyCapability={["domicile", "atelier"]}>
@@ -210,7 +148,7 @@ export default function InterventionsPage() {
                                 ...Object.entries(STATUT_LABELS).map(
                                     ([value, label]) => ({
                                         value,
-                                        label,
+                                        label: label as string,
                                     })
                                 ),
                             ],
@@ -218,12 +156,7 @@ export default function InterventionsPage() {
                         {
                             type: "action",
                             label: "Réinitialiser",
-                            onClick: () => {
-                                setSearchQuery("");
-                                setTypeFilter("ALL");
-                                setPrioriteFilter("ALL");
-                                setStatutFilter("ALL");
-                            },
+                            onClick: handleResetFilters,
                             variant: "outline",
                             className: "border-black/10 hover:bg-black/5",
                         },
@@ -253,86 +186,12 @@ export default function InterventionsPage() {
                         />
                     ) : (
                         interventions.map((intervention) => (
-                            <div
+                            <InterventionCard
                                 key={intervention.id}
-                                className="p-5 rounded-xl bg-white border border-black/8 shadow-sm hover:border-black/20 hover:shadow-md transition-all duration-200 cursor-pointer"
-                            >
-                                <div className="flex items-start justify-between mb-3">
-                                    <div className="flex items-center gap-3">
-                                        <div className="text-[24px]">
-                                            {
-                                                TYPE_INTERVENTION_ICONS[
-                                                    intervention
-                                                        .typeIntervention
-                                                ]
-                                            }
-                                        </div>
-                                        <div>
-                                            <div className="flex items-center gap-2">
-                                                <h3 className="text-[16px] font-semibold text-black">
-                                                    {intervention.numero}
-                                                </h3>
-                                                <span
-                                                    className={`px-2 py-0.5 rounded-md text-[11px] font-medium border ${getPriorityBadgeColor(intervention.priorite)}`}
-                                                >
-                                                    {
-                                                        PRIORITE_LABELS[
-                                                            intervention
-                                                                .priorite
-                                                        ]
-                                                    }
-                                                </span>
-                                            </div>
-                                            <p className="text-[13px] text-black/60 mt-0.5">
-                                                {intervention.client.prenom}{" "}
-                                                {intervention.client.nom}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <span
-                                        className={`px-3 py-1 rounded-lg text-[12px] font-medium ${getStatutBadgeColor(intervention.statut)}`}
-                                    >
-                                        {STATUT_LABELS[intervention.statut]}
-                                    </span>
-                                </div>
-
-                                <p className="text-[14px] text-black/70 mb-3 line-clamp-2">
-                                    {intervention.description}
-                                </p>
-
-                                <div className="flex items-center justify-between text-[13px] text-black/50">
-                                    <div className="flex items-center gap-4">
-                                        <div className="flex items-center gap-1.5">
-                                            <MapPin
-                                                className="w-3.5 h-3.5"
-                                                strokeWidth={2}
-                                            />
-                                            <span>{intervention.ville}</span>
-                                        </div>
-                                        {intervention.plombier && (
-                                            <div className="flex items-center gap-1.5">
-                                                <span>👤</span>
-                                                <span>
-                                                    {intervention.plombier.name}
-                                                </span>
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        {intervention.datePrevisionnelle && (
-                                            <span>
-                                                {new Date(
-                                                    intervention.datePrevisionnelle
-                                                ).toLocaleDateString("fr-FR")}
-                                            </span>
-                                        )}
-                                        <span className="font-semibold text-black">
-                                            {intervention.coutTotal.toFixed(2)}{" "}
-                                            €
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
+                                intervention={intervention}
+                                getPriorityBadgeColor={getPriorityBadgeColor}
+                                getStatutBadgeColor={getStatutBadgeColor}
+                            />
                         ))
                     )}
                 </div>
@@ -341,7 +200,7 @@ export default function InterventionsPage() {
                 <InterventionDialog
                     open={dialogOpen}
                     onOpenChange={setDialogOpen}
-                    onSuccess={() => setDialogOpen(false)}
+                    onSuccess={handleDialogSuccess}
                 />
             </div>
         </RouteGuard>
