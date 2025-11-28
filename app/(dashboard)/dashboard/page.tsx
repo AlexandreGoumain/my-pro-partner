@@ -2,6 +2,7 @@
 
 import { ActivityTimelineCard } from "@/components/dashboard/activity-timeline-card";
 import { BusinessHealthScore } from "@/components/dashboard/business-health-score";
+import { ConsultingDashboardSection } from "@/components/dashboard/consulting-dashboard-section";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { DashboardSkeleton } from "@/components/dashboard/dashboard-skeleton";
 import { DocumentPipelineCard } from "@/components/dashboard/document-pipeline-card";
@@ -15,31 +16,24 @@ import { SmartInsightsCard } from "@/components/dashboard/smart-insights-card";
 import { TodayTasksCard } from "@/components/dashboard/today-tasks-card";
 import { TopPerformersCard } from "@/components/dashboard/top-performers-card";
 import { Button } from "@/components/ui/button";
-import { useDashboardData } from "@/hooks/use-dashboard-data";
-import { useDashboardOverview } from "@/hooks/use-dashboard-overview";
+import { useDashboardPage } from "@/hooks/use-dashboard-page";
 import { CreditCard, FileText, Package, Users } from "lucide-react";
-import { useState } from "react";
 
 export default function Dashboard() {
-    // Period state
-    const [selectedPeriod, setSelectedPeriod] = useState(30);
-
-    // Old dashboard data (for header and quick actions)
-    const { greeting, userName, dateLabel, todayTasks, quickActions } =
-        useDashboardData();
-
-    // New comprehensive dashboard data
-    const { data, isLoading, error, refresh } = useDashboardOverview({
-        period: selectedPeriod,
-    });
-
-    const handleRefresh = async () => {
-        await refresh();
-    };
-
-    const handlePeriodChange = (period: number) => {
-        setSelectedPeriod(period);
-    };
+    const {
+        selectedPeriod,
+        handlePeriodChange,
+        isServiceIntellectuel,
+        greeting,
+        userName,
+        dateLabel,
+        todayTasks,
+        quickActions,
+        data,
+        isLoading,
+        error,
+        handleRefresh,
+    } = useDashboardPage();
 
     return (
         <div className="space-y-6">
@@ -58,6 +52,11 @@ export default function Dashboard() {
                     />
                 </div>
             </div>
+
+            {/* Consulting Section - For SERVICE_INTELLECTUEL businesses */}
+            {isServiceIntellectuel && (
+                <ConsultingDashboardSection period={selectedPeriod} />
+            )}
 
             {/* Loading State */}
             {isLoading && !data && <DashboardSkeleton />}
