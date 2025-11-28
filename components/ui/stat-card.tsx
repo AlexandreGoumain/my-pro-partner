@@ -18,6 +18,9 @@ export interface StatCardProps {
     className?: string;
     onClick?: () => void;
     size?: "sm" | "md" | "lg";
+    iconBgClassName?: string;
+    iconClassName?: string;
+    valueClassName?: string;
 }
 
 /**
@@ -36,6 +39,9 @@ export function StatCard({
     className,
     onClick,
     size = "md",
+    iconBgClassName,
+    iconClassName,
+    valueClassName,
 }: StatCardProps) {
     const sizeStyles = {
         sm: {
@@ -88,18 +94,20 @@ export function StatCard({
                         <div
                             className={cn(
                                 "flex items-center justify-center rounded-lg bg-black/5",
-                                styles.iconContainer
+                                styles.iconContainer,
+                                iconBgClassName
                             )}
                         >
                             <Icon
-                                className={cn("text-black/60", styles.icon)}
+                                className={cn("text-black/60", styles.icon, iconClassName)}
                                 strokeWidth={2}
                             />
                         </div>
                         <p
                             className={cn(
                                 "font-bold tracking-[-0.03em] text-black",
-                                styles.value
+                                styles.value,
+                                valueClassName
                             )}
                         >
                             {value}

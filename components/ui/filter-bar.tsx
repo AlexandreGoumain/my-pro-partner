@@ -6,7 +6,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { LayoutGrid, List, LucideIcon } from "lucide-react";
+import { Filter, LayoutGrid, List, LucideIcon } from "lucide-react";
 import { ReactNode } from "react";
 import { Button } from "./button";
 import { Card, CardContent } from "./card";
@@ -44,6 +44,10 @@ export type FilterConfig =
           icon?: LucideIcon;
           variant?: "default" | "outline" | "ghost";
           className?: string;
+          /** For toggle buttons - whether it's currently active */
+          active?: boolean;
+          /** Custom class when active (e.g., "bg-orange-500 hover:bg-orange-600") */
+          activeClassName?: string;
       }
     | {
           type: "custom";
@@ -58,6 +62,10 @@ export interface FilterBarProps {
     variant?: "none" | "card" | "muted";
     /** Grouper les filtres en début et fin */
     layout?: "default" | "space-between";
+    /** Reset callback - adds a reset button at the end */
+    onReset?: () => void;
+    /** Label for the reset button */
+    resetLabel?: string;
 }
 
 export function FilterBar({
@@ -65,6 +73,8 @@ export function FilterBar({
     className,
     variant = "none",
     layout = "default",
+    onReset,
+    resetLabel = "Réinitialiser",
 }: FilterBarProps) {
     const renderFilter = (filter: FilterConfig, index: number) => {
         if (filter.type === "search") {
@@ -155,15 +165,19 @@ export function FilterBar({
 
         if (filter.type === "action") {
             const Icon = filter.icon;
+            const isActive = filter.active ?? false;
             return (
                 <Button
                     key={index}
                     onClick={filter.onClick}
-                    variant={filter.variant || "default"}
+                    variant={isActive ? "default" : (filter.variant || "outline")}
                     className={cn(
-                        "h-11 px-6 text-[14px] font-medium",
-                        filter.variant === "default" &&
-                            "bg-black hover:bg-black/90 text-white shadow-sm",
+                        "h-11 px-4 text-[14px] font-medium",
+                        isActive && filter.activeClassName
+                            ? filter.activeClassName
+                            : isActive
+                              ? "bg-black hover:bg-black/90 text-white shadow-sm"
+                              : "border-black/10 hover:bg-black/5",
                         filter.className
                     )}
                 >
@@ -196,6 +210,16 @@ export function FilterBar({
             )}
         >
             {filters.map((filter, index) => renderFilter(filter, index))}
+            {onReset && (
+                <Button
+                    variant="outline"
+                    className="h-11 px-6 border-black/10 hover:bg-black/5 text-[14px] font-medium"
+                    onClick={onReset}
+                >
+                    <Filter className="w-4 h-4 mr-2" strokeWidth={2} />
+                    {resetLabel}
+                </Button>
+            )}
         </div>
     );
 
