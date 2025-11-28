@@ -36,7 +36,7 @@ import type {
 import { TYPE_ENTRETIEN_LABELS } from "@/lib/types/flotte";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { useEffect } from "react";
+import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -97,41 +97,50 @@ export function EntretienDialog({
         },
     });
 
-    // Reset form when entretien changes
-    useEffect(() => {
-        if (entretien) {
-            form.reset({
-                camionnetteId: entretien.camionnetteId,
-                type: entretien.type,
-                description: entretien.description || "",
-                kilometrage: entretien.kilometrage || "",
-                cout: entretien.cout || "",
-                dateEntretien: format(
-                    new Date(entretien.dateEntretien),
-                    "yyyy-MM-dd"
-                ),
-                dateProchain: entretien.dateProchain
-                    ? format(new Date(entretien.dateProchain), "yyyy-MM-dd")
-                    : "",
-                prestataire: entretien.prestataire || "",
-                numeroFacture: entretien.numeroFacture || "",
-                notes: entretien.notes || "",
-            });
-        } else {
-            form.reset({
-                camionnetteId: "",
-                type: "REVISION",
-                description: "",
-                kilometrage: "",
-                cout: "",
-                dateEntretien: format(new Date(), "yyyy-MM-dd"),
-                dateProchain: "",
-                prestataire: "",
-                numeroFacture: "",
-                notes: "",
-            });
-        }
-    }, [entretien, form]);
+    const [formKey, setFormKey] = useState(0);
+
+    // Handle dialog open/close - reset form when opening
+    const handleOpenChange = useCallback(
+        (newOpen: boolean) => {
+            if (newOpen) {
+                if (entretien) {
+                    form.reset({
+                        camionnetteId: entretien.camionnetteId,
+                        type: entretien.type,
+                        description: entretien.description || "",
+                        kilometrage: entretien.kilometrage || "",
+                        cout: entretien.cout || "",
+                        dateEntretien: format(
+                            new Date(entretien.dateEntretien),
+                            "yyyy-MM-dd"
+                        ),
+                        dateProchain: entretien.dateProchain
+                            ? format(new Date(entretien.dateProchain), "yyyy-MM-dd")
+                            : "",
+                        prestataire: entretien.prestataire || "",
+                        numeroFacture: entretien.numeroFacture || "",
+                        notes: entretien.notes || "",
+                    });
+                } else {
+                    form.reset({
+                        camionnetteId: "",
+                        type: "REVISION",
+                        description: "",
+                        kilometrage: "",
+                        cout: "",
+                        dateEntretien: format(new Date(), "yyyy-MM-dd"),
+                        dateProchain: "",
+                        prestataire: "",
+                        numeroFacture: "",
+                        notes: "",
+                    });
+                }
+                setFormKey((k) => k + 1);
+            }
+            onOpenChange(newOpen);
+        },
+        [entretien, form, onOpenChange]
+    );
 
     const createEntretien = useCreateEntretienVehicule();
     const updateEntretien = useUpdateEntretienVehicule();
@@ -198,7 +207,7 @@ export function EntretienDialog({
     const isPending = createEntretien.isPending || updateEntretien.isPending;
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="text-[24px] font-semibold">
@@ -212,6 +221,7 @@ export function EntretienDialog({
                     <form
                         onSubmit={form.handleSubmit(onSubmit)}
                         className="space-y-5"
+                        key={formKey}
                     >
                         {/* Véhicule */}
                         <FormField
@@ -445,7 +455,7 @@ export function EntretienDialog({
                         />
 
                         <DialogActionButtons
-                            onCancel={() => onOpenChange(false)}
+                            onCancel={() => handleOpenChange(false)}
                             isLoading={isPending}
                             isEditing={isEditing}
                             submitLabel={
