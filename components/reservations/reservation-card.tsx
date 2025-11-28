@@ -1,7 +1,12 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Reservation, ReservationStatut } from "@/lib/types/reservation";
+import {
+    Reservation,
+    ReservationStatut,
+    getReservationStatutLabel,
+} from "@/lib/types/reservation";
 import { cn } from "@/lib/utils";
+import { getReservationStatusColor } from "@/lib/utils/badge-colors";
 import { Calendar, Clock, Phone, Users } from "lucide-react";
 
 export interface ReservationCardProps {
@@ -10,53 +15,11 @@ export interface ReservationCardProps {
     onEdit?: (reservation: Reservation) => void;
 }
 
-function getStatusConfig(statut: ReservationStatut) {
-    switch (statut) {
-        case ReservationStatut.CONFIRMEE:
-            return {
-                label: "Confirmée",
-                className: "bg-black/10 text-black/80 border-black/10",
-            };
-        case ReservationStatut.EN_ATTENTE:
-            return {
-                label: "En attente",
-                className: "bg-black/5 text-black/60 border-black/8",
-            };
-        case ReservationStatut.ANNULEE:
-            return {
-                label: "Annulée",
-                className: "bg-black/5 text-black/40 border-black/5",
-            };
-        case ReservationStatut.ARRIVEE:
-            return {
-                label: "Arrivée",
-                className: "bg-black/20 text-black border-black/20",
-            };
-        case ReservationStatut.TERMINEE:
-            return {
-                label: "Terminée",
-                className: "bg-black/5 text-black/40 border-black/5",
-            };
-        case ReservationStatut.NO_SHOW:
-            return {
-                label: "No-show",
-                className: "bg-black/5 text-black/30 border-black/5",
-            };
-        default:
-            return {
-                label: statut,
-                className: "bg-black/5 text-black/60 border-black/8",
-            };
-    }
-}
-
 export function ReservationCard({
     reservation,
     onConfirm,
     onEdit,
 }: ReservationCardProps) {
-    const statusConfig = getStatusConfig(reservation.statut);
-
     return (
         <div className="flex items-center justify-between p-4 border border-black/8 rounded-lg hover:bg-black/2 transition-all duration-200">
             <div className="flex-1 space-y-2">
@@ -68,10 +31,10 @@ export function ReservationCard({
                         variant="outline"
                         className={cn(
                             "text-[11px] px-2 py-0.5",
-                            statusConfig.className
+                            getReservationStatusColor(reservation.statut)
                         )}
                     >
-                        {statusConfig.label}
+                        {getReservationStatutLabel(reservation.statut)}
                     </Badge>
                 </div>
 

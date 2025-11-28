@@ -36,7 +36,7 @@ import {
     type MenuItem,
 } from "@/hooks/use-menu";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
+import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -83,30 +83,39 @@ export function MenuDialog({
         },
     });
 
-    // Reset form when item changes
-    useEffect(() => {
-        if (item) {
-            form.reset({
-                nom: item.nom,
-                description: item.description || "",
-                prix: item.prix,
-                categorie: item.categorie,
-                allergenes: item.allergenes || [],
-                tempsPreparation: item.tempsPreparation,
-                disponible: item.disponible,
-            });
-        } else {
-            form.reset({
-                nom: "",
-                description: "",
-                prix: 0,
-                categorie: "Plats",
-                allergenes: [],
-                tempsPreparation: undefined,
-                disponible: true,
-            });
-        }
-    }, [item, form]);
+    const [formKey, setFormKey] = useState(0);
+
+    // Handle dialog open/close - reset form when opening
+    const handleOpenChange = useCallback(
+        (newOpen: boolean) => {
+            if (newOpen) {
+                if (item) {
+                    form.reset({
+                        nom: item.nom,
+                        description: item.description || "",
+                        prix: item.prix,
+                        categorie: item.categorie,
+                        allergenes: item.allergenes || [],
+                        tempsPreparation: item.tempsPreparation,
+                        disponible: item.disponible,
+                    });
+                } else {
+                    form.reset({
+                        nom: "",
+                        description: "",
+                        prix: 0,
+                        categorie: "Plats",
+                        allergenes: [],
+                        tempsPreparation: undefined,
+                        disponible: true,
+                    });
+                }
+                setFormKey((k) => k + 1);
+            }
+            onOpenChange(newOpen);
+        },
+        [item, form, onOpenChange]
+    );
 
     const createItem = useCreateMenuItem();
     const updateItem = useUpdateMenuItem();
@@ -168,7 +177,7 @@ export function MenuDialog({
     const isPending = createItem.isPending || updateItem.isPending;
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="text-[24px] font-semibold">
@@ -180,6 +189,7 @@ export function MenuDialog({
                     <form
                         onSubmit={form.handleSubmit(onSubmit)}
                         className="space-y-6"
+                        key={formKey}
                     >
                         {/* Nom */}
                         <FormField
@@ -377,7 +387,7 @@ export function MenuDialog({
                         />
 
                         <DialogActionButtons
-                            onCancel={() => onOpenChange(false)}
+                            onCancel={() => handleOpenChange(false)}
                             isLoading={isPending}
                             isEditing={isEditing}
                             submitLabel={

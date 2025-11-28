@@ -27,7 +27,7 @@ import {
     TYPE_CONTRAT_LABELS,
 } from "@/lib/types/personnel.types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
+import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -113,55 +113,63 @@ export function EmployeeDialog({
         defaultValues,
     });
 
+    const [formKey, setFormKey] = useState(0);
     const isEditMode = !!employee;
 
-    // Reset form when employee changes or dialog opens
-    useEffect(() => {
-        if (employee) {
-            form.reset({
-                prenom: employee.prenom,
-                nom: employee.nom,
-                email: employee.email,
-                telephone: employee.telephone || "",
-                dateNaissance: employee.dateNaissance
-                    ? new Date(employee.dateNaissance)
-                          .toISOString()
-                          .split("T")[0]
-                    : "",
-                adresse: employee.adresse || "",
-                ville: employee.ville || "",
-                codePostal: employee.codePostal || "",
-                pays: employee.pays || "France",
-                poste: employee.poste,
-                departement: employee.departement || "",
-                statut: employee.statut,
-                typeContrat: employee.typeContrat,
-                dateEmbauche: new Date(employee.dateEmbauche)
-                    .toISOString()
-                    .split("T")[0],
-                dateFin: employee.dateFin
-                    ? new Date(employee.dateFin).toISOString().split("T")[0]
-                    : "",
-                salaireBrut: Number(employee.salaireBrut),
-                devise: employee.devise || "EUR",
-                heuresHebdo: employee.heuresHebdo || 35,
-                joursTravail: employee.joursTravail || "",
-                notes: employee.notes || "",
-                competences: employee.competences || "",
-                congesRestants: employee.congesRestants || 25,
-                congesPris: employee.congesPris || 0,
-            });
-        } else {
-            form.reset(defaultValues);
-        }
-    }, [employee, form]);
+    // Handle dialog open/close - reset form when opening
+    const handleOpenChange = useCallback(
+        (newOpen: boolean) => {
+            if (newOpen) {
+                if (employee) {
+                    form.reset({
+                        prenom: employee.prenom,
+                        nom: employee.nom,
+                        email: employee.email,
+                        telephone: employee.telephone || "",
+                        dateNaissance: employee.dateNaissance
+                            ? new Date(employee.dateNaissance)
+                                  .toISOString()
+                                  .split("T")[0]
+                            : "",
+                        adresse: employee.adresse || "",
+                        ville: employee.ville || "",
+                        codePostal: employee.codePostal || "",
+                        pays: employee.pays || "France",
+                        poste: employee.poste,
+                        departement: employee.departement || "",
+                        statut: employee.statut,
+                        typeContrat: employee.typeContrat,
+                        dateEmbauche: new Date(employee.dateEmbauche)
+                            .toISOString()
+                            .split("T")[0],
+                        dateFin: employee.dateFin
+                            ? new Date(employee.dateFin).toISOString().split("T")[0]
+                            : "",
+                        salaireBrut: Number(employee.salaireBrut),
+                        devise: employee.devise || "EUR",
+                        heuresHebdo: employee.heuresHebdo || 35,
+                        joursTravail: employee.joursTravail || "",
+                        notes: employee.notes || "",
+                        competences: employee.competences || "",
+                        congesRestants: employee.congesRestants || 25,
+                        congesPris: employee.congesPris || 0,
+                    });
+                } else {
+                    form.reset(defaultValues);
+                }
+                setFormKey((k) => k + 1);
+            }
+            onOpenChange(newOpen);
+        },
+        [employee, form, onOpenChange]
+    );
 
     const handleSubmit = (data: EmployeeFormData) => {
         onSubmit(data);
     };
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white">
                 <DialogHeaderSection
                     title={isEditMode ? "Modifier l'employé" : "Nouvel employé"}
@@ -178,6 +186,7 @@ export function EmployeeDialog({
                     <form
                         onSubmit={form.handleSubmit(handleSubmit)}
                         className="space-y-6"
+                        key={formKey}
                     >
                         {/* Informations personnelles */}
                         <div className="space-y-4">
@@ -800,7 +809,7 @@ export function EmployeeDialog({
                         </div>
 
                         <DialogActionButtons
-                            onCancel={() => onOpenChange(false)}
+                            onCancel={() => handleOpenChange(false)}
                             submitLabel={
                                 isEditMode ? "Enregistrer" : "Ajouter l'employé"
                             }

@@ -8,17 +8,8 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { PrimaryActionButton } from "@/components/ui/primary-action-button";
-import { useClients } from "@/hooks/use-clients";
-import {
-    useCreateEquipement,
-    useUpdateEquipement,
-} from "@/hooks/use-equipements";
-import {
-    EQUIPEMENTS_CONTROLE_OBLIGATOIRE,
-    type EquipementClient,
-    type EquipementCreateInput,
-} from "@/lib/types/equipement";
-import type { TypeEquipement } from "@/lib/types/intervention";
+import { useEquipementDialog } from "@/hooks/use-equipement-dialog";
+import type { EquipementClient } from "@/lib/types/equipement";
 import { cn } from "@/lib/utils";
 import {
     CheckCircle2,
@@ -28,13 +19,15 @@ import {
     Settings,
     User,
 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
 import { CaracteristiquesStep } from "./steps/caracteristiques-step";
 import { ClientTypeStep } from "./steps/client-type-step";
 import { LocalisationStep } from "./steps/localisation-step";
 
-type Step = 1 | 2 | 3;
+const steps = [
+    { id: 1, name: "Client & Type", icon: User },
+    { id: 2, name: "Caractéristiques", icon: Settings },
+    { id: 3, name: "Localisation", icon: MapPin },
+];
 
 interface EquipementDialogProps {
     open: boolean;
@@ -44,12 +37,6 @@ interface EquipementDialogProps {
     preselectedClientId?: string;
 }
 
-const steps = [
-    { id: 1, name: "Client & Type", icon: User },
-    { id: 2, name: "Caractéristiques", icon: Settings },
-    { id: 3, name: "Localisation", icon: MapPin },
-];
-
 export function EquipementDialog({
     open,
     onOpenChange,
@@ -57,157 +44,28 @@ export function EquipementDialog({
     equipement,
     preselectedClientId,
 }: EquipementDialogProps) {
-    const { data: clients = [] } = useClients();
-    const createEquipement = useCreateEquipement();
-    const updateEquipement = useUpdateEquipement();
-
-    const isEdit = !!equipement;
-    const [currentStep, setCurrentStep] = useState<Step>(1);
-
-    const [formData, setFormData] = useState<Partial<EquipementCreateInput>>({
-        clientId: preselectedClientId || "",
-        type: "CHAUDIERE_GAZ",
-        marque: "",
-        modele: "",
-        numeroSerie: "",
-        puissanceKw: undefined,
-        typeEnergie: undefined,
-        dateInstallation: "",
-        dateMiseEnService: "",
-        installePar: "",
-        garantieJusquau: "",
-        emplacement: "",
-        adresse: "",
-        codePostal: "",
-        ville: "",
-        accessibilite: "",
-        controleObligatoire: false,
-        frequenceControleAnnuel: 12,
-        notes: "",
+    const {
+        formKey,
+        currentStep,
+        formData,
+        clients,
+        isEdit,
+        isLoading,
+        setFormData,
+        handleOpenChange,
+        handleNext,
+        handlePrevious,
+        handleSubmit,
+    } = useEquipementDialog({
+        open,
+        onOpenChange,
+        onSuccess,
+        equipement,
+        preselectedClientId,
     });
 
-    // Reset form when dialog opens/closes or equipement changes
-    useEffect(() => {
-        if (open) {
-            setCurrentStep(1);
-            if (equipement) {
-                setFormData({
-                    clientId: equipement.clientId,
-                    type: equipement.type,
-                    marque: equipement.marque,
-                    modele: equipement.modele || "",
-                    numeroSerie: equipement.numeroSerie || "",
-                    puissanceKw: equipement.puissanceKw || undefined,
-                    typeEnergie: equipement.typeEnergie || undefined,
-                    dateInstallation:
-                        equipement.dateInstallation?.split("T")[0] || "",
-                    dateMiseEnService:
-                        equipement.dateMiseEnService?.split("T")[0] || "",
-                    installePar: equipement.installePar || "",
-                    garantieJusquau:
-                        equipement.garantieJusquau?.split("T")[0] || "",
-                    emplacement: equipement.emplacement || "",
-                    adresse: equipement.adresse || "",
-                    codePostal: equipement.codePostal || "",
-                    ville: equipement.ville || "",
-                    accessibilite: equipement.accessibilite || "",
-                    controleObligatoire: equipement.controleObligatoire,
-                    frequenceControleAnnuel: equipement.frequenceControleAnnuel,
-                    notes: equipement.notes || "",
-                });
-            } else {
-                setFormData({
-                    clientId: preselectedClientId || "",
-                    type: "CHAUDIERE_GAZ",
-                    marque: "",
-                    modele: "",
-                    numeroSerie: "",
-                    puissanceKw: undefined,
-                    typeEnergie: undefined,
-                    dateInstallation: "",
-                    dateMiseEnService: "",
-                    installePar: "",
-                    garantieJusquau: "",
-                    emplacement: "",
-                    adresse: "",
-                    codePostal: "",
-                    ville: "",
-                    accessibilite: "",
-                    controleObligatoire: false,
-                    frequenceControleAnnuel: 12,
-                    notes: "",
-                });
-            }
-        }
-    }, [open, equipement, preselectedClientId]);
-
-    // Auto-detect if equipment requires mandatory inspection
-    useEffect(() => {
-        if (formData.type) {
-            const requiresControl = EQUIPEMENTS_CONTROLE_OBLIGATOIRE.includes(
-                formData.type as TypeEquipement
-            );
-            if (requiresControl && !formData.controleObligatoire) {
-                setFormData((prev) => ({
-                    ...prev,
-                    controleObligatoire: true,
-                }));
-            }
-        }
-    }, [formData.type, formData.controleObligatoire]);
-
-    const handleNext = () => {
-        if (currentStep === 1) {
-            if (!formData.clientId || !formData.type || !formData.marque) {
-                toast.error("Veuillez remplir les champs obligatoires");
-                return;
-            }
-        }
-        if (currentStep < 3) {
-            setCurrentStep((prev) => (prev + 1) as Step);
-        }
-    };
-
-    const handlePrevious = () => {
-        if (currentStep > 1) {
-            setCurrentStep((prev) => (prev - 1) as Step);
-        }
-    };
-
-    const handleSubmit = async () => {
-        if (!formData.clientId || !formData.type || !formData.marque) {
-            toast.error("Veuillez remplir les champs obligatoires");
-            return;
-        }
-
-        try {
-            if (isEdit && equipement) {
-                await updateEquipement.mutateAsync({
-                    id: equipement.id,
-                    data: formData,
-                });
-                toast.success("Équipement mis à jour");
-            } else {
-                await createEquipement.mutateAsync(
-                    formData as EquipementCreateInput
-                );
-                toast.success("Équipement créé");
-            }
-            onOpenChange(false);
-            onSuccess?.();
-        } catch (error) {
-            toast.error(
-                isEdit
-                    ? "Erreur lors de la mise à jour"
-                    : "Erreur lors de la création"
-            );
-        }
-    };
-
-    const isLoading = createEquipement.isPending || updateEquipement.isPending;
-
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogContent className="max-w-xl">
                 <DialogHeader>
                     <DialogTitle className="text-[20px] font-semibold tracking-[-0.02em]">
@@ -276,8 +134,8 @@ export function EquipementDialog({
                     })}
                 </div>
 
-                {/* Step Content */}
-                <div className="min-h-[350px]">
+                {/* Step Content - use key to force re-render on form reset */}
+                <div key={formKey} className="min-h-[350px]">
                     {currentStep === 1 && (
                         <ClientTypeStep
                             formData={formData}
@@ -319,7 +177,7 @@ export function EquipementDialog({
                         <Button
                             type="button"
                             variant="outline"
-                            onClick={() => onOpenChange(false)}
+                            onClick={() => handleOpenChange(false)}
                         >
                             Annuler
                         </Button>

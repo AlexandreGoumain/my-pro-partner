@@ -38,7 +38,7 @@ import {
 } from "@/lib/validation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, ChevronsUpDown, CreditCard, User } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 
 interface CreateAbonnementDialogProps {
@@ -92,21 +92,31 @@ export function CreateAbonnementDialog({
         defaultValues,
     });
 
-    // Reset form when dialog opens
-    useEffect(() => {
-        if (open) {
-            form.reset(defaultValues);
-            setSelectedClient(null);
-            setClientSearch("");
-        }
-    }, [open, form]);
+    const [formKey, setFormKey] = useState(0);
 
-    // Sync selectedClient with form
-    useEffect(() => {
-        if (selectedClient) {
-            form.setValue("clientId", selectedClient.id);
-        }
-    }, [selectedClient, form]);
+    // Handle dialog open/close - reset form when opening
+    const handleOpenChange = useCallback(
+        (newOpen: boolean) => {
+            if (newOpen) {
+                form.reset(defaultValues);
+                setSelectedClient(null);
+                setClientSearch("");
+                setFormKey((k) => k + 1);
+            }
+            onOpenChange(newOpen);
+        },
+        [form, onOpenChange]
+    );
+
+    // Handle client selection - sync with form directly
+    const handleClientSelect = useCallback(
+        (client: Client) => {
+            setSelectedClient(client);
+            form.setValue("clientId", client.id);
+            setClientOpen(false);
+        },
+        [form]
+    );
 
     const typeAbonnementId = form.watch("typeAbonnementId");
     const selectedType = typesAbonnements?.find(
@@ -145,7 +155,7 @@ export function CreateAbonnementDialog({
     }
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeaderSection
                     title="Nouvel abonnement"
@@ -158,6 +168,7 @@ export function CreateAbonnementDialog({
                     <form
                         onSubmit={form.handleSubmit(onSubmit)}
                         className="space-y-5"
+                        key={formKey}
                     >
                         {/* Sélection du client (Combobox custom) */}
                         <FormField
@@ -231,14 +242,11 @@ export function CreateAbonnementDialog({
                                                                     value={
                                                                         client.id
                                                                     }
-                                                                    onSelect={() => {
-                                                                        setSelectedClient(
+                                                                    onSelect={() =>
+                                                                        handleClientSelect(
                                                                             client
-                                                                        );
-                                                                        setClientOpen(
-                                                                            false
-                                                                        );
-                                                                    }}
+                                                                        )
+                                                                    }
                                                                 >
                                                                     <Check
                                                                         className={cn(
@@ -378,7 +386,7 @@ export function CreateAbonnementDialog({
                         )}
 
                         <DialogActionButtons
-                            onCancel={() => onOpenChange(false)}
+                            onCancel={() => handleOpenChange(false)}
                             submitLabel="Créer l'abonnement"
                             isLoading={createAbonnement.isPending}
                         />

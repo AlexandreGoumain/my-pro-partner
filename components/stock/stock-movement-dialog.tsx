@@ -32,7 +32,7 @@ import {
     type MouvementStockCreateInput,
 } from "@/lib/validation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 
 interface StockMovementDialogProps {
@@ -75,25 +75,30 @@ export function StockMovementDialog({
     // Reset form when dialog opens using custom hook
     useFormReset(form, open, formValues);
 
-    // Reset selectedArticle when dialog opens
-    useEffect(() => {
-        if (open) {
-            setSelectedArticle(null);
-        }
-    }, [open]);
+    // Handle dialog open/close - reset selectedArticle when opening
+    const handleOpenChange = useCallback(
+        (newOpen: boolean) => {
+            if (newOpen) {
+                setSelectedArticle(null);
+            }
+            onOpenChange(newOpen);
+        },
+        [onOpenChange]
+    );
 
-    // eslint-disable-next-line react-hooks/incompatible-library
-    const watchedArticleId = form.watch("articleId");
-
-    // Mettre à jour l'article sélectionné quand l'ID change
-    useEffect(() => {
-        if (watchedArticleId && articlesData) {
-            const article = articlesData.find((a) => a.id === watchedArticleId);
-            setSelectedArticle(article || null);
-        } else {
-            setSelectedArticle(null);
-        }
-    }, [watchedArticleId, articlesData]);
+    // Handle article selection - sync selected article directly (no useEffect needed)
+    const handleArticleChange = useCallback(
+        (articleId: string) => {
+            form.setValue("articleId", articleId);
+            if (articleId && articlesData) {
+                const article = articlesData.find((a) => a.id === articleId);
+                setSelectedArticle(article || null);
+            } else {
+                setSelectedArticle(null);
+            }
+        },
+        [articlesData, form]
+    );
 
     // Filtrer les articles avec gestion de stock activée
     const stockEnabledArticles =
@@ -113,7 +118,7 @@ export function StockMovementDialog({
     }
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeaderSection
                     title="Créer un mouvement de stock"
@@ -133,7 +138,7 @@ export function StockMovementDialog({
                                 <FormItem>
                                     <FormLabel>Article *</FormLabel>
                                     <Select
-                                        onValueChange={field.onChange}
+                                        onValueChange={handleArticleChange}
                                         value={field.value}
                                         disabled={
                                             loadingArticles ||
@@ -280,7 +285,7 @@ export function StockMovementDialog({
                         )}
 
                         <DialogActionButtons
-                            onCancel={() => onOpenChange(false)}
+                            onCancel={() => handleOpenChange(false)}
                             isLoading={createMouvement.isPending}
                             submitLabel="Créer le mouvement"
                         />

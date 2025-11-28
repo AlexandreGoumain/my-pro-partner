@@ -32,7 +32,7 @@ import {
     type Prestation,
 } from "@/hooks/use-prestations";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
+import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -76,30 +76,37 @@ export function PrestationDialog({
         },
     });
 
-    // Reset form when dialog opens/closes or prestation changes
-    useEffect(() => {
-        if (open) {
-            if (prestation) {
-                form.reset({
-                    nom: prestation.nom,
-                    description: prestation.description || "",
-                    duree: prestation.duree,
-                    prix: prestation.prix,
-                    categorie: prestation.categorie || "",
-                    actif: prestation.actif,
-                });
-            } else {
-                form.reset({
-                    nom: "",
-                    description: "",
-                    duree: 60,
-                    prix: 0,
-                    categorie: "",
-                    actif: true,
-                });
+    const [formKey, setFormKey] = useState(0);
+
+    // Handle dialog open/close - reset form when opening
+    const handleOpenChange = useCallback(
+        (newOpen: boolean) => {
+            if (newOpen) {
+                if (prestation) {
+                    form.reset({
+                        nom: prestation.nom,
+                        description: prestation.description || "",
+                        duree: prestation.duree,
+                        prix: prestation.prix,
+                        categorie: prestation.categorie || "",
+                        actif: prestation.actif,
+                    });
+                } else {
+                    form.reset({
+                        nom: "",
+                        description: "",
+                        duree: 60,
+                        prix: 0,
+                        categorie: "",
+                        actif: true,
+                    });
+                }
+                setFormKey((k) => k + 1);
             }
-        }
-    }, [open, prestation, form]);
+            onOpenChange(newOpen);
+        },
+        [prestation, form, onOpenChange]
+    );
 
     const onSubmit = async (values: PrestationFormValues) => {
         try {
@@ -120,7 +127,7 @@ export function PrestationDialog({
     const isPending = createPrestation.isPending || updatePrestation.isPending;
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
                     <DialogTitle className="text-[20px] font-semibold tracking-[-0.02em]">
@@ -134,6 +141,7 @@ export function PrestationDialog({
                     <form
                         onSubmit={form.handleSubmit(onSubmit)}
                         className="space-y-4 mt-4"
+                        key={formKey}
                     >
                         <FormField
                             control={form.control}
@@ -282,7 +290,7 @@ export function PrestationDialog({
                         />
 
                         <DialogActionButtons
-                            onCancel={() => onOpenChange(false)}
+                            onCancel={() => handleOpenChange(false)}
                             isLoading={isPending}
                             isEditing={isEditing}
                         />

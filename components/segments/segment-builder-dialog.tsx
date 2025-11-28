@@ -2,15 +2,12 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { Card } from "@/components/ui/card";
-import {
-    Dialog,
-    DialogContent,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { DialogHeaderSection } from "@/components/ui/dialog-header-section";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import {
     Select,
     SelectContent,
@@ -18,27 +15,17 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { useClients } from "@/hooks/use-clients";
-import { useCreateSegment, useUpdateSegment } from "@/hooks/use-segments";
-import {
-    CreateSegmentForm,
-    Segment,
-    SegmentCriterion,
-    SegmentField,
-    SegmentOperator,
-} from "@/lib/types";
-import { applySegmentCriteria } from "@/lib/utils/segment-filters";
-import { Plus, Trash2, Users } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
+import { Textarea } from "@/components/ui/textarea";
+import { useSegmentBuilderDialog } from "@/hooks/use-segment-builder-dialog";
+import { Segment, SegmentField, SegmentOperator } from "@/lib/types";
+import { Plus, Trash2, Users } from "lucide-react";
 
 interface SegmentBuilderDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onSuccess?: () => void;
-    segment?: Segment | null; // Segment to edit (null for create mode)
+    segment?: Segment | null;
 }
 
 const FIELD_OPTIONS: { value: SegmentField; label: string }[] = [
@@ -78,148 +65,55 @@ const OPERATOR_OPTIONS: {
 
 const NUMBER_FIELDS: SegmentField[] = ["points_solde"];
 
+const getFieldType = (field: SegmentField): "string" | "number" => {
+    return NUMBER_FIELDS.includes(field) ? "number" : "string";
+};
+
+const getAvailableOperators = (field: SegmentField) => {
+    const fieldType = getFieldType(field);
+    return OPERATOR_OPTIONS.filter((op) => op.types.includes(fieldType));
+};
+
+const needsValue = (operator: SegmentOperator) => {
+    return !["exists", "notExists"].includes(operator);
+};
+
 export function SegmentBuilderDialog({
     open,
     onOpenChange,
     onSuccess,
     segment,
 }: SegmentBuilderDialogProps) {
-    const createMutation = useCreateSegment();
-    const updateMutation = useUpdateSegment();
-    const { data: clients = [] } = useClients();
-
-    const isEditMode = !!segment;
-
-    const [nom, setNom] = useState("");
-    const [description, setDescription] = useState("");
-    const [conditions, setConditions] = useState<SegmentCriterion[]>([
-        { field: "email", operator: "exists" },
-    ]);
-    const [logic, setLogic] = useState<"AND" | "OR">("AND");
-
-    // Initialize form with segment data when in edit mode
-    useEffect(() => {
-        setTimeout(() => {
-            if (segment && open) {
-                setNom(segment.nom);
-                setDescription(segment.description || "");
-                const criteriaData = segment.criteres as { conditions?: SegmentCriterion[]; logic?: "AND" | "OR" } | null | undefined;
-                if (criteriaData?.conditions) {
-                    setConditions(criteriaData.conditions);
-                }
-                if (criteriaData?.logic) {
-                    setLogic(criteriaData.logic);
-                }
-            } else if (!open) {
-                // Reset form when dialog closes
-                setNom("");
-                setDescription("");
-                setConditions([{ field: "email", operator: "exists" }]);
-                setLogic("AND");
-            }
-        }, 0);
-    }, [segment, open]);
-
-    // Preview matching clients
-    const matchingClients = useMemo(() => {
-        try {
-            return applySegmentCriteria(clients, { conditions, logic });
-        } catch {
-            return [];
-        }
-    }, [clients, conditions, logic]);
-
-    const handleAddCondition = useCallback(() => {
-        setConditions((prev) => [
-            ...prev,
-            { field: "email", operator: "exists" },
-        ]);
-    }, []);
-
-    const handleRemoveCondition = useCallback((index: number) => {
-        setConditions((prev) => prev.filter((_, i) => i !== index));
-    }, []);
-
-    const handleUpdateCondition = useCallback(
-        (index: number, updates: Partial<SegmentCriterion>) => {
-            setConditions((prev) =>
-                prev.map((cond, i) =>
-                    i === index ? { ...cond, ...updates } : cond
-                )
-            );
-        },
-        []
-    );
-
-    const getFieldType = (field: SegmentField): "string" | "number" => {
-        return NUMBER_FIELDS.includes(field) ? "number" : "string";
-    };
-
-    const getAvailableOperators = (field: SegmentField) => {
-        const fieldType = getFieldType(field);
-        return OPERATOR_OPTIONS.filter((op) => op.types.includes(fieldType));
-    };
-
-    const needsValue = (operator: SegmentOperator) => {
-        return !["exists", "notExists"].includes(operator);
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (!nom.trim()) {
-            toast.error("Le nom du segment est requis");
-            return;
-        }
-
-        if (conditions.length === 0) {
-            toast.error("Ajoutez au moins un critère");
-            return;
-        }
-
-        const data: CreateSegmentForm = {
-            nom,
-            description: description || undefined,
-            icone: segment?.icone || "Filter",
-            couleur: segment?.couleur || "#f3f4f6",
-            criteres: {
-                conditions,
-                logic,
-            },
-        };
-
-        try {
-            if (isEditMode && segment) {
-                await updateMutation.mutateAsync({
-                    id: segment.id,
-                    data,
-                });
-                toast.success("Segment modifié avec succès");
-            } else {
-                await createMutation.mutateAsync(data);
-                toast.success("Segment créé avec succès");
-            }
-            onSuccess?.();
-            handleClose();
-        } catch (error: unknown) {
-            const errorMessage = error instanceof Error ? error.message : `Erreur lors de ${isEditMode ? "la modification" : "la création"} du segment`;
-            toast.error(errorMessage);
-        }
-    };
-
-    const handleClose = () => {
-        setNom("");
-        setDescription("");
-        setConditions([{ field: "email", operator: "exists" }]);
-        setLogic("AND");
-        onOpenChange(false);
-    };
+    const {
+        form,
+        formKey,
+        updateField,
+        addCondition,
+        removeCondition,
+        updateCondition,
+        clients,
+        matchingClients,
+        isPending,
+        isEditMode,
+        handleOpenChange,
+        handleSubmit,
+        handleClose,
+    } = useSegmentBuilderDialog({
+        open,
+        onOpenChange,
+        onSuccess,
+        segment,
+    });
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                 <DialogHeaderSection
-                    title={isEditMode ? "Modifier le segment" : "Créer un segment personnalisé"}
+                    title={
+                        isEditMode
+                            ? "Modifier le segment"
+                            : "Créer un segment personnalisé"
+                    }
                     description="Définissez des critères pour segmenter automatiquement vos clients"
                     titleClassName="text-[20px] font-semibold tracking-[-0.01em]"
                     descriptionClassName="text-[14px] text-black/60"
@@ -227,7 +121,7 @@ export function SegmentBuilderDialog({
 
                 <form onSubmit={handleSubmit} className="space-y-6 mt-4">
                     {/* Basic Info */}
-                    <div className="space-y-4">
+                    <div key={formKey} className="space-y-4">
                         <div>
                             <Label
                                 htmlFor="nom"
@@ -237,8 +131,10 @@ export function SegmentBuilderDialog({
                             </Label>
                             <Input
                                 id="nom"
-                                value={nom}
-                                onChange={(e) => setNom(e.target.value)}
+                                value={form.nom}
+                                onChange={(e) =>
+                                    updateField("nom", e.target.value)
+                                }
                                 placeholder="Ex: Clients VIP de Paris"
                                 className="h-11 border-black/10 text-[14px]"
                             />
@@ -253,8 +149,10 @@ export function SegmentBuilderDialog({
                             </Label>
                             <Textarea
                                 id="description"
-                                value={description}
-                                onChange={(e) => setDescription(e.target.value)}
+                                value={form.description}
+                                onChange={(e) =>
+                                    updateField("description", e.target.value)
+                                }
                                 placeholder="Décrivez ce segment..."
                                 className="min-h-[80px] border-black/10 text-[14px]"
                             />
@@ -268,23 +166,23 @@ export function SegmentBuilderDialog({
                                 Critères de filtrage *
                             </Label>
                             <Select
-                                value={logic}
-                                onValueChange={(v: "AND" | "OR") => setLogic(v)}
+                                value={form.logic}
+                                onValueChange={(v: "AND" | "OR") =>
+                                    updateField("logic", v)
+                                }
                             >
                                 <SelectTrigger className="w-32 h-9 border-black/10 text-[13px]">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="AND">
-                                        ET (AND)
-                                    </SelectItem>
+                                    <SelectItem value="AND">ET (AND)</SelectItem>
                                     <SelectItem value="OR">OU (OR)</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
 
                         <div className="space-y-3">
-                            {conditions.map((condition, index) => (
+                            {form.conditions.map((condition, index) => (
                                 <Card
                                     key={index}
                                     className="p-4 border-black/10"
@@ -301,15 +199,11 @@ export function SegmentBuilderDialog({
                                                     onValueChange={(
                                                         value: SegmentField
                                                     ) => {
-                                                        handleUpdateCondition(
-                                                            index,
-                                                            {
-                                                                field: value,
-                                                                operator:
-                                                                    "exists",
-                                                                value: undefined,
-                                                            }
-                                                        );
+                                                        updateCondition(index, {
+                                                            field: value,
+                                                            operator: "exists",
+                                                            value: undefined,
+                                                        });
                                                     }}
                                                 >
                                                     <SelectTrigger className="h-10 border-black/10 text-[13px]">
@@ -346,12 +240,9 @@ export function SegmentBuilderDialog({
                                                     onValueChange={(
                                                         value: SegmentOperator
                                                     ) =>
-                                                        handleUpdateCondition(
-                                                            index,
-                                                            {
-                                                                operator: value,
-                                                            }
-                                                        )
+                                                        updateCondition(index, {
+                                                            operator: value,
+                                                        })
                                                     }
                                                 >
                                                     <SelectTrigger className="h-10 border-black/10 text-[13px]">
@@ -391,7 +282,7 @@ export function SegmentBuilderDialog({
                                                             ""
                                                         }
                                                         onChange={(e) =>
-                                                            handleUpdateCondition(
+                                                            updateCondition(
                                                                 index,
                                                                 {
                                                                     value:
@@ -417,13 +308,13 @@ export function SegmentBuilderDialog({
                                             )}
                                         </div>
 
-                                        {conditions.length > 1 && (
+                                        {form.conditions.length > 1 && (
                                             <Button
                                                 type="button"
                                                 variant="ghost"
                                                 size="icon"
                                                 onClick={() =>
-                                                    handleRemoveCondition(index)
+                                                    removeCondition(index)
                                                 }
                                                 className="mt-6 h-10 w-10 hover:bg-black/5"
                                             >
@@ -441,7 +332,7 @@ export function SegmentBuilderDialog({
                         <Button
                             type="button"
                             variant="outline"
-                            onClick={handleAddCondition}
+                            onClick={addCondition}
                             className="w-full h-10 border-dashed border-black/20 hover:bg-black/5 text-[13px]"
                         >
                             <Plus className="h-4 w-4 mr-2" strokeWidth={2} />
@@ -463,9 +354,7 @@ export function SegmentBuilderDialog({
                                     </p>
                                     <p className="text-[13px] text-black/60">
                                         {matchingClients.length} client
-                                        {matchingClients.length > 1
-                                            ? "s"
-                                            : ""}{" "}
+                                        {matchingClients.length > 1 ? "s" : ""}{" "}
                                         correspondent
                                         {clients.length > 0 &&
                                             ` (${(
@@ -491,24 +380,16 @@ export function SegmentBuilderDialog({
                             type="button"
                             variant="outline"
                             onClick={handleClose}
-                            disabled={
-                                createMutation.isPending ||
-                                updateMutation.isPending
-                            }
+                            disabled={isPending}
                             className="h-11 px-5 text-[14px] border-black/10 hover:bg-black/5"
                         >
                             Annuler
                         </Button>
                         <PrimaryActionButton
                             type="submit"
-                            disabled={
-                                createMutation.isPending ||
-                                updateMutation.isPending ||
-                                !nom.trim()
-                            }
+                            disabled={isPending || !form.nom.trim()}
                         >
-                            {createMutation.isPending ||
-                            updateMutation.isPending ? (
+                            {isPending ? (
                                 <>
                                     <Spinner className="w-4 h-4 mr-2" />
                                     {isEditMode

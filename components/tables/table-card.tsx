@@ -1,8 +1,12 @@
-import { Users, Clock, MapPin } from "lucide-react";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { Card } from "@/components/ui/card";
 import type { Table, TableStatus } from "@/lib/types/table.types";
+import { cn } from "@/lib/utils";
+import {
+    getTableStatusBadgeColor,
+    getTableStatusCardColor,
+} from "@/lib/utils/badge-colors";
+import { Clock, MapPin, Users } from "lucide-react";
 
 export interface TableCardProps {
     table: Table;
@@ -10,44 +14,18 @@ export interface TableCardProps {
     className?: string;
 }
 
-// Status configuration using Apple-style colors (black/white/gray only)
-const getStatusConfig = (statut: TableStatus) => {
-    switch (statut) {
-        case "LIBRE":
-            return {
-                badgeClassName: "bg-black/5 text-black/60 border-black/10",
-                cardClassName: "border-black/8 hover:border-black/20",
-                label: "Libre",
-            };
-        case "OCCUPEE":
-            return {
-                badgeClassName: "bg-black/10 text-black/80 border-black/20",
-                cardClassName: "border-black/20 hover:border-black/30",
-                label: "Occupée",
-            };
-        case "RESERVEE":
-            return {
-                badgeClassName: "bg-black/8 text-black/70 border-black/15",
-                cardClassName: "border-black/12 hover:border-black/25",
-                label: "Réservée",
-            };
-        default:
-            return {
-                badgeClassName: "bg-black/5 text-black/40 border-black/8",
-                cardClassName: "border-black/8 hover:border-black/20",
-                label: statut,
-            };
-    }
+const TABLE_STATUS_LABELS: Record<TableStatus, string> = {
+    LIBRE: "Libre",
+    OCCUPEE: "Occupée",
+    RESERVEE: "Réservée",
 };
 
 export function TableCard({ table, onClick, className }: TableCardProps) {
-    const statusConfig = getStatusConfig(table.statut);
-
     return (
         <Card
             className={cn(
                 "border shadow-sm transition-all duration-200",
-                statusConfig.cardClassName,
+                getTableStatusCardColor(table.statut),
                 onClick && "cursor-pointer",
                 className
             )}
@@ -67,8 +45,13 @@ export function TableCard({ table, onClick, className }: TableCardProps) {
 
                 {/* Zone */}
                 <div className="flex items-center gap-1.5 mb-3">
-                    <MapPin className="h-3.5 w-3.5 text-black/40" strokeWidth={2} />
-                    <span className="text-[13px] text-black/60">{table.zone}</span>
+                    <MapPin
+                        className="h-3.5 w-3.5 text-black/40"
+                        strokeWidth={2}
+                    />
+                    <span className="text-[13px] text-black/60">
+                        {table.zone}
+                    </span>
                 </div>
 
                 {/* Status Badge */}
@@ -76,10 +59,10 @@ export function TableCard({ table, onClick, className }: TableCardProps) {
                     variant="outline"
                     className={cn(
                         "text-[12px] font-medium border",
-                        statusConfig.badgeClassName
+                        getTableStatusBadgeColor(table.statut)
                     )}
                 >
-                    {statusConfig.label}
+                    {TABLE_STATUS_LABELS[table.statut]}
                 </Badge>
 
                 {/* Client info (if occupied or reserved) */}
@@ -90,7 +73,10 @@ export function TableCard({ table, onClick, className }: TableCardProps) {
                         </p>
                         {table.depuis && (
                             <div className="flex items-center gap-1.5">
-                                <Clock className="h-3.5 w-3.5 text-black/40" strokeWidth={2} />
+                                <Clock
+                                    className="h-3.5 w-3.5 text-black/40"
+                                    strokeWidth={2}
+                                />
                                 <span className="text-[13px] text-black/60">
                                     Depuis {table.depuis}
                                 </span>
@@ -98,7 +84,10 @@ export function TableCard({ table, onClick, className }: TableCardProps) {
                         )}
                         {table.heure && (
                             <div className="flex items-center gap-1.5">
-                                <Clock className="h-3.5 w-3.5 text-black/40" strokeWidth={2} />
+                                <Clock
+                                    className="h-3.5 w-3.5 text-black/40"
+                                    strokeWidth={2}
+                                />
                                 <span className="text-[13px] text-black/60">
                                     À {table.heure}
                                 </span>

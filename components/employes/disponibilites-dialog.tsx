@@ -19,7 +19,7 @@ import {
     type Employe,
 } from "@/hooks/use-employes";
 import { Plus, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 interface DisponibilitesDialogProps {
     open: boolean;
@@ -35,10 +35,31 @@ interface DaySchedule {
 
 type WeekSchedule = Record<number, DaySchedule>;
 
-const DEFAULT_SCHEDULE: DaySchedule = {
-    enabled: false,
-    slots: [],
-};
+// Helper to build schedule from disponibilites data
+function buildScheduleFromData(
+    disponibilites: Array<{
+        jourSemaine: number;
+        heureDebut: string;
+        heureFin: string;
+        pause: boolean;
+    }>
+): WeekSchedule {
+    const newSchedule: WeekSchedule = {};
+    // Initialize all days
+    for (let i = 0; i < 7; i++) {
+        newSchedule[i] = { enabled: false, slots: [] };
+    }
+    // Fill with existing data
+    for (const dispo of disponibilites) {
+        newSchedule[dispo.jourSemaine].enabled = true;
+        newSchedule[dispo.jourSemaine].slots.push({
+            heureDebut: dispo.heureDebut,
+            heureFin: dispo.heureFin,
+            pause: dispo.pause,
+        });
+    }
+    return newSchedule;
+}
 
 export function DisponibilitesDialog({
     open,
@@ -47,38 +68,37 @@ export function DisponibilitesDialog({
     employe,
 }: DisponibilitesDialogProps) {
     const [schedule, setSchedule] = useState<WeekSchedule>({});
+    const [lastDataKey, setLastDataKey] = useState<string | null>(null);
 
     const { data: disponibilites } = useEmployeDisponibilites(
         employe?.id || ""
     );
     const updateDisponibilites = useUpdateEmployeDisponibilites();
 
-    // Initialize schedule from disponibilites
-    useEffect(() => {
-        if (disponibilites && open) {
-            const newSchedule: WeekSchedule = {};
-            // Initialize all days
-            for (let i = 0; i < 7; i++) {
-                newSchedule[i] = { enabled: false, slots: [] };
+    // Compute a stable key for the current disponibilites data
+    const dataKey = disponibilites ? JSON.stringify(disponibilites) : null;
+
+    // Handle dialog open/close
+    const handleOpenChange = useCallback(
+        (newOpen: boolean) => {
+            if (newOpen && disponibilites) {
+                setSchedule(buildScheduleFromData(disponibilites));
+                setLastDataKey(dataKey);
+            } else if (!newOpen) {
+                // Reset tracking when closing so we re-initialize on next open
+                setLastDataKey(null);
             }
-            // Fill with existing data
-            for (const dispo of disponibilites) {
-                if (!newSchedule[dispo.jourSemaine]) {
-                    newSchedule[dispo.jourSemaine] = {
-                        enabled: true,
-                        slots: [],
-                    };
-                }
-                newSchedule[dispo.jourSemaine].enabled = true;
-                newSchedule[dispo.jourSemaine].slots.push({
-                    heureDebut: dispo.heureDebut,
-                    heureFin: dispo.heureFin,
-                    pause: dispo.pause,
-                });
-            }
-            setSchedule(newSchedule);
-        }
-    }, [disponibilites, open]);
+            onOpenChange(newOpen);
+        },
+        [disponibilites, dataKey, onOpenChange]
+    );
+
+    // Initialize schedule when data arrives while dialog is already open
+    // This is needed because disponibilites loads async
+    if (open && disponibilites && dataKey !== lastDataKey) {
+        setSchedule(buildScheduleFromData(disponibilites));
+        setLastDataKey(dataKey);
+    }
 
     const toggleDay = (day: number) => {
         setSchedule((prev) => ({
@@ -169,7 +189,7 @@ export function DisponibilitesDialog({
     const isPending = updateDisponibilites.isPending;
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="text-[20px] font-semibold tracking-[-0.02em]">
@@ -285,7 +305,7 @@ export function DisponibilitesDialog({
                 </div>
 
                 <DialogActionButtons
-                    onCancel={() => onOpenChange(false)}
+                    onCancel={() => handleOpenChange(false)}
                     onSubmit={handleSave}
                     isLoading={isPending}
                     submitLabel="Enregistrer"
