@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -106,13 +106,13 @@ export function RachatCreateDialog({
 
   useFormReset(form, open, defaultValues);
 
-  useEffect(() => {
-    if (open) {
-      setTimeout(() => {
-        setCurrentStep(1);
-      }, 0);
+  // Handle dialog open change - reset step when opening
+  const handleOpenChange = (newOpen: boolean) => {
+    if (newOpen) {
+      setCurrentStep(1);
     }
-  }, [open]);
+    onOpenChange(newOpen);
+  };
 
   const steps = [
     { id: 1, name: "Client", icon: User },
@@ -202,7 +202,7 @@ export function RachatCreateDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-4xl w-[90vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-[24px] font-semibold text-black tracking-[-0.02em]">
