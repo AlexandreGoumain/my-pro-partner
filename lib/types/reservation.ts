@@ -101,15 +101,5 @@ export function getReservationStatutLabel(statut: ReservationStatut): string {
     return labels[statut] || statut;
 }
 
-// Helper to get status color class
-export function getReservationStatutColor(statut: ReservationStatut): string {
-    const colors: Record<ReservationStatut, string> = {
-        [ReservationStatut.EN_ATTENTE]: "bg-black/5 text-black/60",
-        [ReservationStatut.CONFIRMEE]: "bg-black/10 text-black/80",
-        [ReservationStatut.ARRIVEE]: "bg-black/20 text-black",
-        [ReservationStatut.TERMINEE]: "bg-black/5 text-black/40",
-        [ReservationStatut.ANNULEE]: "bg-black/5 text-black/30",
-        [ReservationStatut.NO_SHOW]: "bg-black/5 text-black/30",
-    };
-    return colors[statut] || "bg-black/5 text-black/60";
-}
+// Re-export from centralized badge-colors for backward compatibility
+export { getReservationStatusColor as getReservationStatutColor } from "@/lib/utils/badge-colors";

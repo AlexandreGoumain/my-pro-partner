@@ -98,3 +98,41 @@ export type {
     ResourceByIdRouteHandlers,
     TenantResource,
 } from "./crud";
+
+// Re-export Mission types (Consulting / SERVICE_INTELLECTUEL)
+export type {
+    ConsultingDashboardData,
+    ConsultingStats,
+    EntreeTemps,
+    EntreeTempsCreateInput,
+    EntreeTempsFilters,
+    EntreeTempsUpdateInput,
+    Mission,
+    MissionCreateInput,
+    MissionFilters,
+    MissionStats,
+    MissionUpdateInput,
+    MissionWithDetails,
+    StatutMission,
+    TimerStartInput,
+    TimerStopInput,
+    TimesheetDay,
+    TimesheetWeek,
+    TypeFacturation,
+} from "./mission";
+
+export {
+    calculateBudgetProgress,
+    canTransitionTo,
+    formatDuree,
+    formatDureeDecimal,
+    minutesToHHMM,
+    parseHHMMToMinutes,
+    STATUT_MISSION,
+    STATUT_MISSION_COLORS,
+    STATUT_MISSION_LABELS,
+    STATUT_MISSION_TRANSITIONS,
+    TYPE_FACTURATION,
+    TYPE_FACTURATION_DESCRIPTIONS,
+    TYPE_FACTURATION_LABELS,
+} from "./mission";

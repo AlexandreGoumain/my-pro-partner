@@ -628,7 +628,8 @@ const ConsultingPreset: BusinessPreset = {
     features: [
         "dashboard",
         "clients",
-        "products", // Missions & formations
+        "missions", // Gestion des missions de consulting
+        "timesheet", // Suivi du temps passé
         "quotes",
         "invoices",
         "analytics",
@@ -636,53 +637,56 @@ const ConsultingPreset: BusinessPreset = {
     ],
 
     i18n: {
-        products: {
-            singular: "Prestation",
-            plural: "Missions & Formations",
+        missions: {
+            singular: "Mission",
+            plural: "Missions",
+        },
+        timesheet: {
+            singular: "Entrée",
+            plural: "Temps passé",
+        },
+        clients: {
+            singular: "Client",
+            plural: "Clients",
         },
     },
+
+    quickActions: [
+        {
+            feature: "missions",
+            action: "new",
+            label: "Nouvelle mission",
+            icon: "Briefcase",
+        },
+        {
+            feature: "timesheet",
+            action: "new",
+            label: "Saisir du temps",
+            icon: "Clock",
+        },
+    ],
+
+    dashboardWidgets: [
+        "missions-en-cours",
+        "heures-semaine",
+        "a-facturer",
+        "taux-utilisation",
+    ],
 };
 
 const ComptabilitePreset: BusinessPreset = {
     id: "COMPTABILITE" as BusinessType,
-    name: "Comptabilité",
+    name: "Cabinet comptable",
     icon: "Calculator",
     color: "#166534",
-    description: "Expert-comptable",
+    description: "Expert-comptable, gestion comptable",
 
     features: [
         "dashboard",
         "clients",
-        "products", // Prestations comptables
-        "invoices",
-        "analytics",
-        "bank-reconciliation",
-        "settings",
-    ],
-
-    i18n: {
-        products: {
-            singular: "Prestation",
-            plural: "Prestations comptables",
-        },
-        clients: {
-            singular: "Dossier",
-            plural: "Dossiers clients",
-        },
-    },
-};
-
-const JuridiquePreset: BusinessPreset = {
-    id: "JURIDIQUE" as BusinessType,
-    name: "Juridique",
-    icon: "Scale",
-    color: "#1E40AF",
-    description: "Avocat, notaire",
-
-    features: [
-        "dashboard",
-        "clients",
-        "products", // Actes & consultations
+        "missions", // Dossiers clients (réutilise missions avec i18n)
+        "timesheet", // Suivi du temps passé
+        "echeances", // Échéances fiscales
         "quotes",
         "invoices",
         "analytics",
@@ -690,11 +694,117 @@ const JuridiquePreset: BusinessPreset = {
     ],
 
     i18n: {
-        products: {
-            singular: "Prestation",
-            plural: "Actes & Consultations",
+        missions: {
+            singular: "Dossier",
+            plural: "Dossiers",
+        },
+        timesheet: {
+            singular: "Entrée",
+            plural: "Temps passé",
+        },
+        clients: {
+            singular: "Client",
+            plural: "Clients",
+        },
+        echeances: {
+            singular: "Échéance",
+            plural: "Échéances fiscales",
         },
     },
+
+    quickActions: [
+        {
+            feature: "missions",
+            action: "new",
+            label: "Nouveau dossier",
+            icon: "FolderPlus",
+        },
+        {
+            feature: "timesheet",
+            action: "new",
+            label: "Saisir du temps",
+            icon: "Clock",
+        },
+    ],
+
+    dashboardWidgets: [
+        "echeances-proches",
+        "dossiers-actifs",
+        "heures-semaine",
+        "a-facturer",
+    ],
+};
+
+const JuridiquePreset: BusinessPreset = {
+    id: "JURIDIQUE" as BusinessType,
+    name: "Cabinet juridique",
+    icon: "Scale",
+    color: "#1E40AF",
+    description: "Avocat, juriste, notaire",
+
+    features: [
+        "dashboard",
+        "clients",
+        "affaires", // Dossiers/affaires juridiques
+        "diligences", // Temps passé et actions
+        "echeances-proc", // Échéances procédurales (audiences, délais)
+        "quotes", // Conventions d'honoraires
+        "invoices",
+        "analytics",
+        "settings",
+    ],
+
+    i18n: {
+        affaires: {
+            singular: "Affaire",
+            plural: "Affaires",
+        },
+        diligences: {
+            singular: "Diligence",
+            plural: "Diligences",
+        },
+        clients: {
+            singular: "Client",
+            plural: "Clients",
+        },
+        "echeances-proc": {
+            singular: "Échéance",
+            plural: "Échéances procédurales",
+        },
+        quotes: {
+            singular: "Convention",
+            plural: "Conventions d'honoraires",
+        },
+    },
+
+    quickActions: [
+        {
+            feature: "affaires",
+            action: "new",
+            label: "Nouvelle affaire",
+            icon: "FolderPlus",
+        },
+        {
+            feature: "diligences",
+            action: "new",
+            label: "Saisir une diligence",
+            icon: "Clock",
+        },
+        {
+            feature: "echeances-proc",
+            action: "new",
+            label: "Ajouter échéance",
+            icon: "Calendar",
+        },
+    ],
+
+    dashboardWidgets: [
+        "audiences-proches",
+        "affaires-actives",
+        "diligences-semaine",
+        "a-facturer",
+        "delais-proches",
+    ],
 };
 
 // ============================================

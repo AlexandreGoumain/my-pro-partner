@@ -988,6 +988,99 @@ export const EntretiensPlanifierFeature: FeatureModule = {
 };
 
 // ============================================
+// CONSULTING / SERVICE INTELLECTUEL SPECIFIC
+// ============================================
+
+export const MissionsFeature: FeatureModule = {
+    id: "missions",
+    name: "Missions",
+    navigation: {
+        main: {
+            icon: "Briefcase",
+            label: "Missions",
+            href: "/dashboard/missions",
+            order: 15,
+        },
+        subItems: [
+            {
+                label: "Toutes les missions",
+                href: "/dashboard/missions",
+                order: 0,
+            },
+            {
+                label: "En cours",
+                href: "/dashboard/missions?statut=EN_COURS",
+                order: 1,
+            },
+            {
+                label: "À facturer",
+                href: "/dashboard/missions?statut=LIVREE",
+                order: 2,
+            },
+        ],
+        quickActions: [
+            {
+                label: "Nouvelle mission",
+                icon: "Plus",
+                href: "/dashboard/missions?action=new",
+                order: 1,
+            },
+        ],
+    },
+    routes: [
+        "/dashboard/missions",
+        "/dashboard/missions/new",
+        "/dashboard/missions/[id]",
+    ],
+    dependencies: ["clients"],
+    i18n: {
+        singular: "Mission",
+        plural: "Missions",
+    },
+    permissions: ["canViewProjects"],
+};
+
+export const TimesheetFeature: FeatureModule = {
+    id: "timesheet",
+    name: "Suivi du temps",
+    navigation: {
+        main: {
+            icon: "Clock",
+            label: "Temps",
+            href: "/dashboard/temps",
+            order: 16,
+        },
+        subItems: [
+            {
+                label: "Timesheet",
+                href: "/dashboard/temps",
+                order: 0,
+            },
+            {
+                label: "Statistiques",
+                href: "/dashboard/temps/stats",
+                order: 1,
+            },
+        ],
+        quickActions: [
+            {
+                label: "Saisir du temps",
+                icon: "Plus",
+                href: "/dashboard/temps?action=new",
+                order: 2,
+            },
+        ],
+    },
+    routes: ["/dashboard/temps", "/dashboard/temps/stats"],
+    dependencies: ["missions"],
+    i18n: {
+        singular: "Entrée de temps",
+        plural: "Suivi du temps",
+    },
+    permissions: ["canViewTimeTracking"],
+};
+
+// ============================================
 // FITNESS / GYM SPECIFIC
 // ============================================
 
@@ -1158,6 +1251,198 @@ export const CoachsFeature: FeatureModule = {
 };
 
 // ============================================
+// ACCOUNTING / COMPTABILITE SPECIFIC
+// ============================================
+
+export const EcheancesFeature: FeatureModule = {
+    id: "echeances",
+    name: "Échéances fiscales",
+    navigation: {
+        main: {
+            icon: "CalendarClock",
+            label: "Échéances",
+            href: "/dashboard/echeances",
+            order: 17,
+        },
+        subItems: [
+            {
+                label: "Toutes les échéances",
+                href: "/dashboard/echeances",
+                order: 0,
+            },
+            {
+                label: "À venir",
+                href: "/dashboard/echeances?periode=avenir",
+                order: 1,
+            },
+            {
+                label: "En retard",
+                href: "/dashboard/echeances?periode=retard",
+                order: 2,
+            },
+        ],
+        quickActions: [
+            {
+                label: "Nouvelle échéance",
+                icon: "Plus",
+                href: "/dashboard/echeances?action=new",
+                order: 3,
+            },
+        ],
+    },
+    routes: ["/dashboard/echeances", "/dashboard/echeances/[id]"],
+    dependencies: ["missions"],
+    i18n: {
+        singular: "Échéance",
+        plural: "Échéances fiscales",
+    },
+    permissions: ["canViewProjects"],
+};
+
+// ============================================
+// JURIDIQUE / LAW FIRM SPECIFIC
+// ============================================
+
+export const AffairesFeature: FeatureModule = {
+    id: "affaires",
+    name: "Affaires",
+    navigation: {
+        main: {
+            icon: "Scale",
+            label: "Affaires",
+            href: "/dashboard/affaires",
+            order: 15,
+        },
+        subItems: [
+            {
+                label: "Toutes les affaires",
+                href: "/dashboard/affaires",
+                order: 0,
+            },
+            {
+                label: "En cours",
+                href: "/dashboard/affaires?statut=EN_COURS",
+                order: 1,
+            },
+            {
+                label: "Audiences à venir",
+                href: "/dashboard/affaires?filtre=audiences",
+                order: 2,
+            },
+        ],
+        quickActions: [
+            {
+                label: "Nouvelle affaire",
+                icon: "Plus",
+                href: "/dashboard/affaires?action=new",
+                order: 1,
+            },
+        ],
+    },
+    routes: [
+        "/dashboard/affaires",
+        "/dashboard/affaires/new",
+        "/dashboard/affaires/[id]",
+    ],
+    dependencies: ["clients"],
+    i18n: {
+        singular: "Affaire",
+        plural: "Affaires",
+    },
+    permissions: ["canViewProjects"],
+};
+
+export const DiligencesFeature: FeatureModule = {
+    id: "diligences",
+    name: "Diligences",
+    navigation: {
+        main: {
+            icon: "Clock",
+            label: "Diligences",
+            href: "/dashboard/diligences",
+            order: 16,
+        },
+        subItems: [
+            {
+                label: "Toutes les diligences",
+                href: "/dashboard/diligences",
+                order: 0,
+            },
+            {
+                label: "À facturer",
+                href: "/dashboard/diligences?statut=a-facturer",
+                order: 1,
+            },
+            {
+                label: "Statistiques",
+                href: "/dashboard/diligences/stats",
+                order: 2,
+            },
+        ],
+        quickActions: [
+            {
+                label: "Saisir une diligence",
+                icon: "Plus",
+                href: "/dashboard/diligences?action=new",
+                order: 2,
+            },
+        ],
+    },
+    routes: ["/dashboard/diligences", "/dashboard/diligences/stats"],
+    dependencies: ["affaires"],
+    i18n: {
+        singular: "Diligence",
+        plural: "Diligences",
+    },
+    permissions: ["canViewTimeTracking"],
+};
+
+export const EcheancesProcFeature: FeatureModule = {
+    id: "echeances-proc",
+    name: "Échéances procédurales",
+    navigation: {
+        main: {
+            icon: "CalendarClock",
+            label: "Échéances",
+            href: "/dashboard/echeances-proc",
+            order: 17,
+        },
+        subItems: [
+            {
+                label: "Calendrier",
+                href: "/dashboard/echeances-proc",
+                order: 0,
+            },
+            {
+                label: "Audiences",
+                href: "/dashboard/echeances-proc?type=AUDIENCE",
+                order: 1,
+            },
+            {
+                label: "Délais",
+                href: "/dashboard/echeances-proc?type=delais",
+                order: 2,
+            },
+        ],
+        quickActions: [
+            {
+                label: "Nouvelle échéance",
+                icon: "Plus",
+                href: "/dashboard/echeances-proc?action=new",
+                order: 3,
+            },
+        ],
+    },
+    routes: ["/dashboard/echeances-proc", "/dashboard/echeances-proc/[id]"],
+    dependencies: ["affaires"],
+    i18n: {
+        singular: "Échéance",
+        plural: "Échéances procédurales",
+    },
+    permissions: ["canViewProjects"],
+};
+
+// ============================================
 // FEATURE CATALOG
 // ============================================
 
@@ -1225,6 +1510,18 @@ export const FEATURE_CATALOG: Record<string, FeatureModule> = {
     "salles-fitness": SallesFitnessFeature,
     "check-in": CheckInFeature,
     coachs: CoachsFeature,
+
+    // Consulting / Service intellectuel specific
+    missions: MissionsFeature,
+    timesheet: TimesheetFeature,
+
+    // Accounting / Comptabilite specific
+    echeances: EcheancesFeature,
+
+    // Juridique / Law firm specific
+    affaires: AffairesFeature,
+    diligences: DiligencesFeature,
+    "echeances-proc": EcheancesProcFeature,
 
     // Finance
     payments: PaymentsFeature,
