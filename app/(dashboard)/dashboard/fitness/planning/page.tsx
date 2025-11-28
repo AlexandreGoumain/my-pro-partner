@@ -19,8 +19,8 @@ import {
     STATUT_SEANCE_LABELS,
     type SalleFitness,
     type SeanceCours,
-    type StatutSeanceCours,
 } from "@/lib/types/fitness";
+import { getSeanceStatusColor } from "@/lib/utils/badge-colors";
 import {
     addWeeks,
     eachDayOfInterval,
@@ -57,17 +57,6 @@ export default function PlanningPage() {
     const seances = seancesData?.data || [];
 
     const { data: salles } = useSallesFitness({ actif: true });
-
-    const getStatutColor = (statut: StatutSeanceCours) => {
-        const colors: Record<StatutSeanceCours, string> = {
-            PLANIFIEE: "bg-black/5 text-black/60",
-            EN_COURS: "bg-green-100 text-green-800",
-            TERMINEE: "bg-black/5 text-black/40",
-            ANNULEE: "bg-red-100 text-red-800",
-            COMPLETE: "bg-yellow-100 text-yellow-800",
-        };
-        return colors[statut];
-    };
 
     // Group séances by day
     const seancesByDay = useMemo(() => {
@@ -126,7 +115,7 @@ export default function PlanningPage() {
                             className="h-10 border-black/10"
                             onClick={() => setCurrentWeek(new Date())}
                         >
-                            Aujourd'hui
+                            Aujourd&apos;hui
                         </Button>
                         <h2 className="text-[16px] font-medium text-black ml-2">
                             {format(weekStart, "d MMMM", { locale: fr })} -{" "}
@@ -226,7 +215,7 @@ export default function PlanningPage() {
                                                                     )}
                                                                 </span>
                                                                 <Badge
-                                                                    className={`text-[9px] px-1.5 py-0 ${getStatutColor(seance.statut)}`}
+                                                                    className={`text-[9px] px-1.5 py-0 ${getSeanceStatusColor(seance.statut)}`}
                                                                 >
                                                                     {
                                                                         STATUT_SEANCE_LABELS[

@@ -22,6 +22,7 @@ import {
     NIVEAU_COURS_LABELS,
     type NiveauCours,
 } from "@/lib/types/fitness";
+import { getNiveauCoursColor } from "@/lib/utils/badge-colors";
 import { Clock, DoorOpen, Dumbbell, Plus, User, Users } from "lucide-react";
 import { useState } from "react";
 
@@ -39,16 +40,6 @@ export default function CoursPage() {
         niveau: niveauFilter === "ALL" ? undefined : niveauFilter,
         actif: true,
     });
-
-    const getNiveauColor = (niveau: NiveauCours) => {
-        const colors: Record<NiveauCours, string> = {
-            DEBUTANT: "bg-green-100 text-green-800",
-            INTERMEDIAIRE: "bg-yellow-100 text-yellow-800",
-            AVANCE: "bg-red-100 text-red-800",
-            TOUS_NIVEAUX: "bg-black/5 text-black/60",
-        };
-        return colors[niveau];
-    };
 
     return (
         <RouteGuard capability="cours_collectifs">
@@ -160,7 +151,7 @@ export default function CoursPage() {
                                             {item.nom}
                                         </h3>
                                         <Badge
-                                            className={getNiveauColor(
+                                            className={getNiveauCoursColor(
                                                 item.niveau
                                             )}
                                         >

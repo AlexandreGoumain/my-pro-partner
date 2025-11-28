@@ -23,6 +23,7 @@ import {
     STATUT_ABONNEMENT_LABELS,
     type StatutAbonnementFitness,
 } from "@/lib/types/fitness";
+import { getAbonnementFitnessStatusColor } from "@/lib/utils/badge-colors";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
@@ -50,17 +51,6 @@ export default function AbonnementsPage() {
         search: searchQuery,
         statut: statutFilter === "ALL" ? undefined : statutFilter,
     });
-
-    const getStatutBadgeColor = (statut: StatutAbonnementFitness) => {
-        const colors: Record<StatutAbonnementFitness, string> = {
-            ACTIF: "bg-green-100 text-green-800",
-            SUSPENDU: "bg-yellow-100 text-yellow-800",
-            EXPIRE: "bg-red-100 text-red-800",
-            RESILIE: "bg-gray-100 text-gray-800",
-            EN_ATTENTE: "bg-blue-100 text-blue-800",
-        };
-        return colors[statut];
-    };
 
     return (
         <RouteGuard capability="abonnements_fitness">
@@ -162,7 +152,7 @@ export default function AbonnementsPage() {
                                                     {abonnement.client?.nom}
                                                 </h3>
                                                 <Badge
-                                                    className={getStatutBadgeColor(
+                                                    className={getAbonnementFitnessStatusColor(
                                                         abonnement.statut
                                                     )}
                                                 >
