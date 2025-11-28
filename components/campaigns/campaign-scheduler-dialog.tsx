@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import {
     Dialog,
     DialogContent,
@@ -10,11 +9,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover";
 import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import {
     Select,
@@ -24,18 +18,11 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import {
-    Campaign,
-    useCreateCampaign,
-    useScheduleCampaign,
-    useUpdateCampaign,
-} from "@/hooks/use-campaigns";
-import { useSegments } from "@/hooks/use-segments";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
-import { Calendar as CalendarIcon, Clock, Send } from "lucide-react";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import type { Campaign } from "@/hooks/use-campaigns";
+import { useCampaignSchedulerDialog } from "@/hooks/use-campaign-scheduler-dialog";
+import { Send } from "lucide-react";
+import { CampaignContentSection } from "./campaign-content-section";
+import { CampaignScheduleSection } from "./campaign-schedule-section";
 
 interface CampaignSchedulerDialogProps {
     open: boolean;
@@ -48,155 +35,35 @@ export function CampaignSchedulerDialog({
     onOpenChange,
     campaign,
 }: CampaignSchedulerDialogProps) {
-    const [nom, setNom] = useState("");
-    const [description, setDescription] = useState("");
-    const [type, setType] = useState<"EMAIL" | "SMS" | "NOTIFICATION">("EMAIL");
-    const [segmentId, setSegmentId] = useState<string>("");
-    const [subject, setSubject] = useState("");
-    const [body, setBody] = useState("");
-    const [scheduledDate, setScheduledDate] = useState<Date | undefined>(
-        undefined
-    );
-    const [scheduledTime, setScheduledTime] = useState("09:00");
-
-    const { data: segmentsData } = useSegments({ actif: true });
-    const segments = segmentsData?.data || [];
-
-    const createCampaign = useCreateCampaign();
-    const updateCampaign = useUpdateCampaign();
-    const scheduleCampaign = useScheduleCampaign();
-
-    useEffect(() => {
-        setTimeout(() => {
-            if (campaign) {
-                setNom(campaign.nom);
-                setDescription(campaign.description || "");
-                setType(campaign.type);
-                setSegmentId(campaign.segmentId || "");
-                setSubject(campaign.subject || "");
-                setBody(campaign.body || "");
-
-                if (campaign.scheduledAt) {
-                    const date = new Date(campaign.scheduledAt);
-                    setScheduledDate(date);
-                    setScheduledTime(format(date, "HH:mm"));
-                } else {
-                    setScheduledDate(undefined);
-                    setScheduledTime("09:00");
-                }
-            } else {
-                setNom("");
-                setDescription("");
-                setType("EMAIL");
-                setSegmentId("");
-                setSubject("");
-                setBody("");
-                setScheduledDate(undefined);
-                setScheduledTime("09:00");
-            }
-        }, 0);
-    }, [campaign, open]);
-
-    const selectedSegment = segments.find((s) => s.id === segmentId);
-
-    const handleSaveDraft = async () => {
-        if (!nom) {
-            toast.error("Veuillez saisir un nom");
-            return;
-        }
-
-        try {
-            const data = {
-                nom,
-                description,
-                type,
-                segmentId: segmentId || undefined,
-                subject: type === "EMAIL" ? subject : undefined,
-                body,
-            };
-
-            if (campaign) {
-                await updateCampaign.mutateAsync({ id: campaign.id, data });
-                toast.success("Campagne mise à jour");
-            } else {
-                await createCampaign.mutateAsync(data);
-                toast.success("Campagne sauvegardée en brouillon");
-            }
-
-            onOpenChange(false);
-        } catch (error: unknown) {
-            const errorMessage =
-                error instanceof Error
-                    ? error.message
-                    : "Erreur lors de la sauvegarde";
-            toast.error(errorMessage);
-        }
-    };
-
-    const handleSchedule = async () => {
-        if (!nom || !subject || !body) {
-            toast.error("Veuillez remplir tous les champs requis");
-            return;
-        }
-
-        if (!scheduledDate) {
-            toast.error("Veuillez sélectionner une date");
-            return;
-        }
-
-        try {
-            // Combine date and time
-            const [hours, minutes] = scheduledTime.split(":");
-            const scheduledAt = new Date(scheduledDate);
-            scheduledAt.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-
-            const data = {
-                nom,
-                description,
-                type,
-                segmentId: segmentId || undefined,
-                subject: type === "EMAIL" ? subject : undefined,
-                body,
-                scheduledAt: new Date(scheduledAt.toISOString()),
-            };
-
-            if (campaign) {
-                // Update existing campaign
-                await updateCampaign.mutateAsync({ id: campaign.id, data });
-                // Then schedule it
-                await scheduleCampaign.mutateAsync({
-                    id: campaign.id,
-                    scheduledAt: new Date(scheduledAt.toISOString()),
-                });
-                toast.success("Campagne planifiée");
-            } else {
-                // Create new campaign with schedule
-                await createCampaign.mutateAsync(data);
-                toast.success("Campagne créée et planifiée");
-            }
-
-            onOpenChange(false);
-        } catch (error: unknown) {
-            const errorMessage =
-                error instanceof Error
-                    ? error.message
-                    : "Erreur lors de la planification";
-            toast.error(errorMessage);
-        }
-    };
+    const {
+        form,
+        formKey,
+        updateField,
+        segments,
+        selectedSegment,
+        isPending,
+        isEditing,
+        handleOpenChange,
+        handleSaveDraft,
+        handleSchedule,
+    } = useCampaignSchedulerDialog({
+        open,
+        onOpenChange,
+        campaign,
+    });
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="text-[20px] font-semibold tracking-[-0.01em]">
-                        {campaign
+                        {isEditing
                             ? "Modifier la campagne"
                             : "Nouvelle campagne"}
                     </DialogTitle>
                 </DialogHeader>
 
-                <div className="space-y-6 py-4">
+                <div key={formKey} className="space-y-6 py-4">
                     {/* Basic Info */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
@@ -204,8 +71,10 @@ export function CampaignSchedulerDialog({
                                 Nom de la campagne *
                             </Label>
                             <Input
-                                value={nom}
-                                onChange={(e) => setNom(e.target.value)}
+                                value={form.nom}
+                                onChange={(e) =>
+                                    updateField("nom", e.target.value)
+                                }
                                 className="h-11 border-black/10 text-[14px]"
                                 placeholder="Ex: Promotion Printemps 2025"
                             />
@@ -216,10 +85,10 @@ export function CampaignSchedulerDialog({
                                 Type de campagne *
                             </Label>
                             <Select
-                                value={type}
+                                value={form.type}
                                 onValueChange={(
                                     v: "EMAIL" | "SMS" | "NOTIFICATION"
-                                ) => setType(v)}
+                                ) => updateField("type", v)}
                             >
                                 <SelectTrigger className="h-11 border-black/10 text-[14px]">
                                     <SelectValue />
@@ -240,8 +109,10 @@ export function CampaignSchedulerDialog({
                             Description
                         </Label>
                         <Textarea
-                            value={description}
-                            onChange={(e) => setDescription(e.target.value)}
+                            value={form.description}
+                            onChange={(e) =>
+                                updateField("description", e.target.value)
+                            }
                             className="min-h-[60px] border-black/10 text-[14px]"
                             placeholder="Description de la campagne"
                         />
@@ -253,9 +124,12 @@ export function CampaignSchedulerDialog({
                             Segment cible
                         </Label>
                         <Select
-                            value={segmentId || "__all__"}
+                            value={form.segmentId || "__all__"}
                             onValueChange={(val) =>
-                                setSegmentId(val === "__all__" ? "" : val)
+                                updateField(
+                                    "segmentId",
+                                    val === "__all__" ? "" : val
+                                )
                             }
                         >
                             <SelectTrigger className="h-11 border-black/10 text-[14px]">
@@ -287,195 +161,29 @@ export function CampaignSchedulerDialog({
                         )}
                     </div>
 
-                    {/* Email Content */}
-                    {type === "EMAIL" && (
-                        <div className="space-y-4 p-6 border border-black/10 rounded-lg bg-black/2">
-                            <div className="space-y-2">
-                                <Label className="text-[13px] font-medium text-black/80">
-                                    Sujet de l&apos;email *
-                                </Label>
-                                <Input
-                                    value={subject}
-                                    onChange={(e) => setSubject(e.target.value)}
-                                    className="h-11 border-black/10 text-[14px] bg-white"
-                                    placeholder="Ex: Découvrez nos nouveautés printemps"
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label className="text-[13px] font-medium text-black/80">
-                                    Corps de l&apos;email *
-                                </Label>
-                                <Textarea
-                                    value={body}
-                                    onChange={(e) => setBody(e.target.value)}
-                                    className="min-h-[200px] border-black/10 text-[14px] bg-white"
-                                    placeholder="Bonjour {prenom},&#10;&#10;Nous sommes ravis de vous présenter..."
-                                />
-                                <p className="text-[12px] text-black/60">
-                                    Variables disponibles: {"{nom}"},{" "}
-                                    {"{prenom}"}, {"{email}"}
-                                </p>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* SMS Content */}
-                    {type === "SMS" && (
-                        <div className="space-y-4 p-6 border border-black/10 rounded-lg bg-black/2">
-                            <div className="space-y-2">
-                                <Label className="text-[13px] font-medium text-black/80">
-                                    Message SMS *
-                                </Label>
-                                <Textarea
-                                    value={body}
-                                    onChange={(e) => setBody(e.target.value)}
-                                    className="min-h-[120px] border-black/10 text-[14px] bg-white"
-                                    placeholder="Bonjour {prenom}, découvrez nos offres..."
-                                    maxLength={160}
-                                />
-                                <div className="flex justify-between items-center">
-                                    <p className="text-[12px] text-black/60">
-                                        Variables: {"{nom}"}, {"{prenom}"}
-                                    </p>
-                                    <p className="text-[12px] text-black/60">
-                                        {body.length}/160 caractères
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Push Notification Content */}
-                    {type === "PUSH" && (
-                        <div className="space-y-4 p-6 border border-black/10 rounded-lg bg-black/2">
-                            <div className="space-y-2">
-                                <Label className="text-[13px] font-medium text-black/80">
-                                    Titre de la notification *
-                                </Label>
-                                <Input
-                                    value={subject}
-                                    onChange={(e) => setSubject(e.target.value)}
-                                    className="h-11 border-black/10 text-[14px] bg-white"
-                                    placeholder="Ex: Nouvelle offre disponible"
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label className="text-[13px] font-medium text-black/80">
-                                    Message *
-                                </Label>
-                                <Textarea
-                                    value={body}
-                                    onChange={(e) => setBody(e.target.value)}
-                                    className="min-h-[100px] border-black/10 text-[14px] bg-white"
-                                    placeholder="Découvrez nos nouveautés..."
-                                    maxLength={200}
-                                />
-                                <p className="text-[12px] text-black/60">
-                                    {body.length}/200 caractères
-                                </p>
-                            </div>
-                        </div>
-                    )}
+                    {/* Content */}
+                    <CampaignContentSection
+                        type={form.type}
+                        subject={form.subject}
+                        setSubject={(v) => updateField("subject", v)}
+                        body={form.body}
+                        setBody={(v) => updateField("body", v)}
+                    />
 
                     {/* Scheduling */}
-                    <div className="space-y-4 p-6 border border-black/10 rounded-lg bg-black/2">
-                        <div className="flex items-center gap-2 mb-2">
-                            <CalendarIcon
-                                className="h-5 w-5 text-black/60"
-                                strokeWidth={2}
-                            />
-                            <h3 className="text-[15px] font-medium text-black">
-                                Planification
-                            </h3>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label className="text-[13px] font-medium text-black/80">
-                                    Date d&apos;envoi
-                                </Label>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                        <Button
-                                            variant="outline"
-                                            className="w-full h-11 justify-start text-left font-normal border-black/10 bg-white"
-                                        >
-                                            <CalendarIcon
-                                                className="mr-2 h-4 w-4 text-black/60"
-                                                strokeWidth={2}
-                                            />
-                                            {scheduledDate ? (
-                                                format(
-                                                    scheduledDate,
-                                                    "dd MMMM yyyy",
-                                                    { locale: fr }
-                                                )
-                                            ) : (
-                                                <span className="text-black/40">
-                                                    Sélectionner une date
-                                                </span>
-                                            )}
-                                        </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent
-                                        className="w-auto p-0"
-                                        align="start"
-                                    >
-                                        <Calendar
-                                            mode="single"
-                                            selected={scheduledDate}
-                                            onSelect={setScheduledDate}
-                                            disabled={(date) =>
-                                                date < new Date()
-                                            }
-                                            initialFocus
-                                        />
-                                    </PopoverContent>
-                                </Popover>
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label className="text-[13px] font-medium text-black/80">
-                                    Heure d&apos;envoi
-                                </Label>
-                                <Input
-                                    type="time"
-                                    value={scheduledTime}
-                                    onChange={(e) =>
-                                        setScheduledTime(e.target.value)
-                                    }
-                                    className="h-11 border-black/10 text-[14px] bg-white"
-                                />
-                            </div>
-                        </div>
-
-                        {scheduledDate && (
-                            <div className="p-3 rounded-md bg-blue-500/10 border border-blue-500/20">
-                                <p className="text-[13px] text-blue-900">
-                                    <Clock
-                                        className="inline h-4 w-4 mr-1"
-                                        strokeWidth={2}
-                                    />
-                                    La campagne sera envoyée le{" "}
-                                    <strong>
-                                        {format(scheduledDate, "dd MMMM yyyy", {
-                                            locale: fr,
-                                        })}
-                                    </strong>{" "}
-                                    à <strong>{scheduledTime}</strong>
-                                </p>
-                            </div>
-                        )}
-                    </div>
+                    <CampaignScheduleSection
+                        scheduledDate={form.scheduledDate}
+                        setScheduledDate={(v) => updateField("scheduledDate", v)}
+                        scheduledTime={form.scheduledTime}
+                        setScheduledTime={(v) => updateField("scheduledTime", v)}
+                    />
                 </div>
 
                 {/* Footer */}
                 <div className="flex justify-between items-center pt-4 border-t border-black/10">
                     <Button
                         variant="outline"
-                        onClick={() => onOpenChange(false)}
+                        onClick={() => handleOpenChange(false)}
                         className="h-11 px-6 text-[14px] border-black/10 hover:bg-black/5"
                     >
                         Annuler
@@ -485,10 +193,7 @@ export function CampaignSchedulerDialog({
                         <Button
                             variant="outline"
                             onClick={handleSaveDraft}
-                            disabled={
-                                createCampaign.isPending ||
-                                updateCampaign.isPending
-                            }
+                            disabled={isPending}
                             className="h-11 px-6 text-[14px] border-black/10 hover:bg-black/5"
                         >
                             Sauvegarder en brouillon
@@ -496,14 +201,12 @@ export function CampaignSchedulerDialog({
 
                         <PrimaryActionButton
                             onClick={handleSchedule}
-                            disabled={
-                                createCampaign.isPending ||
-                                updateCampaign.isPending ||
-                                scheduleCampaign.isPending
-                            }
+                            disabled={isPending}
                         >
                             <Send className="h-4 w-4 mr-2" strokeWidth={2} />
-                            {scheduledDate ? "Planifier" : "Envoyer maintenant"}
+                            {form.scheduledDate
+                                ? "Planifier"
+                                : "Envoyer maintenant"}
                         </PrimaryActionButton>
                     </div>
                 </div>
