@@ -838,32 +838,281 @@ const CommerceDetailPreset: BusinessPreset = {
     },
 };
 
-const ImmobilierPreset: BusinessPreset = {
-    id: "IMMOBILIER" as BusinessType,
-    name: "Immobilier",
-    icon: "Home",
+// ============================================
+// IMMOBILIER - 3 TYPES SPÉCIALISÉS
+// ============================================
+
+const AgentImmobilierPreset: BusinessPreset = {
+    id: "AGENT_IMMOBILIER" as BusinessType,
+    name: "Agent immobilier",
+    icon: "Key",
     color: "#0284C7",
-    description: "Agence immobilière",
+    description: "Agent immobilier, mandataire (carte T)",
 
     features: [
         "dashboard",
-        "clients",
-        "products", // Biens immobiliers
-        "invoices",
+        "clients", // Acquéreurs, Vendeurs
+        "biens-immo", // Portefeuille de biens
+        "mandats", // Gestion des mandats
+        "visites", // Planification des visites
+        "estimations", // Estimations de biens
+        "matching", // Matching acquéreurs/biens
+        "diffusion", // Multi-diffusion annonces (SeLoger, LeBonCoin, etc.)
+        "pipeline", // Pipeline transaction (mandat → compromis → acte)
+        "agenda", // Planning des RDV
+        "invoices", // Honoraires
         "analytics",
         "settings",
     ],
 
     i18n: {
-        products: {
-            singular: "Bien",
-            plural: "Biens immobiliers",
-        },
         clients: {
             singular: "Contact",
             plural: "Contacts",
         },
+        "biens-immo": {
+            singular: "Bien",
+            plural: "Biens immobiliers",
+        },
+        mandats: {
+            singular: "Mandat",
+            plural: "Mandats",
+        },
+        visites: {
+            singular: "Visite",
+            plural: "Visites",
+        },
+        estimations: {
+            singular: "Estimation",
+            plural: "Estimations",
+        },
+        matching: {
+            singular: "Recherche",
+            plural: "Matching acquéreurs",
+        },
+        diffusion: {
+            singular: "Annonce",
+            plural: "Diffusion annonces",
+        },
+        pipeline: {
+            singular: "Transaction",
+            plural: "Pipeline",
+        },
+        invoices: {
+            singular: "Honoraire",
+            plural: "Honoraires",
+        },
     },
+
+    quickActions: [
+        {
+            feature: "biens-immo",
+            action: "new",
+            label: "Nouveau bien",
+            icon: "Home",
+        },
+        {
+            feature: "mandats",
+            action: "new",
+            label: "Nouveau mandat",
+            icon: "FileSignature",
+        },
+        {
+            feature: "visites",
+            action: "new",
+            label: "Planifier visite",
+            icon: "Calendar",
+        },
+        {
+            feature: "estimations",
+            action: "new",
+            label: "Nouvelle estimation",
+            icon: "Calculator",
+        },
+    ],
+
+    dashboardWidgets: [
+        "mandats-actifs",
+        "visites-today",
+        "leads-nouveaux",
+        "pipeline-stats",
+        "diffusion-stats",
+    ],
+};
+
+const GestionLocativePreset: BusinessPreset = {
+    id: "GESTION_LOCATIVE" as BusinessType,
+    name: "Gestion locative",
+    icon: "Building",
+    color: "#059669",
+    description: "Administrateur de biens, gestionnaire locatif (carte G)",
+
+    features: [
+        "dashboard",
+        "clients", // Propriétaires et Locataires
+        "biens-immo", // Biens gérés
+        "baux", // Gestion des baux
+        "loyers", // Appels de loyers et quittances
+        "impayes", // Suivi des impayés et relances
+        "etats-lieux", // États des lieux entrée/sortie
+        "travaux-locatifs", // Travaux et incidents
+        "invoices", // Honoraires de gestion
+        "analytics",
+        "settings",
+    ],
+
+    i18n: {
+        clients: {
+            singular: "Contact",
+            plural: "Propriétaires & Locataires",
+        },
+        "biens-immo": {
+            singular: "Bien",
+            plural: "Biens gérés",
+        },
+        baux: {
+            singular: "Bail",
+            plural: "Baux",
+        },
+        loyers: {
+            singular: "Loyer",
+            plural: "Loyers & Quittances",
+        },
+        impayes: {
+            singular: "Impayé",
+            plural: "Impayés",
+        },
+        "etats-lieux": {
+            singular: "État des lieux",
+            plural: "États des lieux",
+        },
+        "travaux-locatifs": {
+            singular: "Incident",
+            plural: "Travaux & Incidents",
+        },
+    },
+
+    quickActions: [
+        {
+            feature: "baux",
+            action: "new",
+            label: "Nouveau bail",
+            icon: "FileSignature",
+        },
+        {
+            feature: "loyers",
+            action: "generate",
+            label: "Générer appels",
+            icon: "Receipt",
+        },
+        {
+            feature: "etats-lieux",
+            action: "new",
+            label: "État des lieux",
+            icon: "ClipboardCheck",
+        },
+        {
+            feature: "travaux-locatifs",
+            action: "new",
+            label: "Signaler incident",
+            icon: "AlertTriangle",
+        },
+    ],
+
+    dashboardWidgets: [
+        "loyers-a-percevoir",
+        "impayes-encours",
+        "baux-a-renouveler",
+        "etats-lieux-planifies",
+        "incidents-ouverts",
+    ],
+};
+
+const SyndicCoproprietePreset: BusinessPreset = {
+    id: "SYNDIC_COPROPRIETE" as BusinessType,
+    name: "Syndic de copropriété",
+    icon: "Building2",
+    color: "#7C3AED",
+    description: "Syndic de copropriété, gestion d'immeubles",
+
+    features: [
+        "dashboard",
+        "clients", // Copropriétaires
+        "coproprietes", // Gestion des immeubles
+        "lots", // Lots et tantièmes
+        "charges", // Appels de charges
+        "ag", // Assemblées générales
+        "travaux-copro", // Travaux collectifs
+        "compta-copro", // Comptabilité copropriété
+        "conseil-syndical", // Conseil syndical
+        "invoices", // Honoraires syndic
+        "analytics",
+        "settings",
+    ],
+
+    i18n: {
+        clients: {
+            singular: "Copropriétaire",
+            plural: "Copropriétaires",
+        },
+        coproprietes: {
+            singular: "Copropriété",
+            plural: "Copropriétés",
+        },
+        lots: {
+            singular: "Lot",
+            plural: "Lots & Tantièmes",
+        },
+        charges: {
+            singular: "Appel",
+            plural: "Appels de charges",
+        },
+        ag: {
+            singular: "AG",
+            plural: "Assemblées générales",
+        },
+        "travaux-copro": {
+            singular: "Travaux",
+            plural: "Travaux collectifs",
+        },
+        "compta-copro": {
+            singular: "Écriture",
+            plural: "Comptabilité",
+        },
+        "conseil-syndical": {
+            singular: "Membre",
+            plural: "Conseil syndical",
+        },
+    },
+
+    quickActions: [
+        {
+            feature: "charges",
+            action: "generate",
+            label: "Appel de charges",
+            icon: "Receipt",
+        },
+        {
+            feature: "ag",
+            action: "new",
+            label: "Convoquer AG",
+            icon: "Users",
+        },
+        {
+            feature: "travaux-copro",
+            action: "new",
+            label: "Nouveau chantier",
+            icon: "HardHat",
+        },
+    ],
+
+    dashboardWidgets: [
+        "charges-a-percevoir",
+        "ag-prochaines",
+        "travaux-en-cours",
+        "impayes-copro",
+        "comptes-copro",
+    ],
 };
 
 // ============================================
@@ -934,9 +1183,13 @@ export const BUSINESS_PRESETS: Record<BusinessType, BusinessPreset> = {
     COMPTABILITE: ComptabilitePreset,
     JURIDIQUE: JuridiquePreset,
 
-    // Commerce & Immobilier
+    // Commerce
     COMMERCE_DETAIL: CommerceDetailPreset,
-    IMMOBILIER: ImmobilierPreset,
+
+    // Immobilier - 3 types spécialisés
+    AGENT_IMMOBILIER: AgentImmobilierPreset,
+    GESTION_LOCATIVE: GestionLocativePreset,
+    SYNDIC_COPROPRIETE: SyndicCoproprietePreset,
 
     // Santé
     SANTE: SantePreset,

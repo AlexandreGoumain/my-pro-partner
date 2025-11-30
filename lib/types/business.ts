@@ -27,7 +27,10 @@ export const BUSINESS_TYPES = [
     "INFORMATIQUE",
     "CONSULTING",
     "COMMERCE_DETAIL",
-    "IMMOBILIER",
+    // Immobilier - 3 types spécialisés
+    "AGENT_IMMOBILIER", // Agent immobilier, mandataire (carte T)
+    "GESTION_LOCATIVE", // Administrateur de biens (carte G)
+    "SYNDIC_COPROPRIETE", // Syndic de copropriété
     "SANTE",
     "JURIDIQUE",
     "COMPTABILITE",

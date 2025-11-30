@@ -810,25 +810,90 @@ export class BusinessTemplateService {
             ],
         },
 
-        IMMOBILIER: {
-            type: "IMMOBILIER",
-            label: "Immobilier",
+        AGENT_IMMOBILIER: {
+            type: "AGENT_IMMOBILIER",
+            label: "Agent immobilier",
             icon: "Home",
-            description: "Agence immobilière",
+            description: "Transaction immobilière, mandats de vente et location",
             color: "#0284C7",
             categories: [
                 {
-                    nom: "Location",
-                    description: "Gestion locative",
+                    nom: "Mandats vente",
+                    description: "Mandats exclusifs et simples de vente",
                 },
                 {
-                    nom: "Vente",
-                    description: "Transactions immobilières",
+                    nom: "Mandats location",
+                    description: "Mandats de recherche locataire",
                 },
                 {
-                    nom: "Gestion de biens",
-                    description: "Syndic, copropriété",
+                    nom: "Honoraires",
+                    description: "Frais d'agence et commissions",
                 },
+            ],
+            features: [
+                "Gestion des mandats",
+                "Diffusion multi-portails",
+                "Matching acquéreurs",
+                "Pipeline transactions",
+                "Estimations",
+            ],
+        },
+
+        GESTION_LOCATIVE: {
+            type: "GESTION_LOCATIVE",
+            label: "Gestion locative",
+            icon: "Building2",
+            description: "Administration de biens, gestion des baux et loyers",
+            color: "#059669",
+            categories: [
+                {
+                    nom: "Loyers",
+                    description: "Appels et encaissement des loyers",
+                },
+                {
+                    nom: "Charges locatives",
+                    description: "Régularisation des charges",
+                },
+                {
+                    nom: "Travaux",
+                    description: "Interventions et maintenance",
+                },
+            ],
+            features: [
+                "Gestion des baux",
+                "Appels de loyers automatiques",
+                "Suivi des impayés",
+                "États des lieux",
+                "Révision IRL",
+            ],
+        },
+
+        SYNDIC_COPROPRIETE: {
+            type: "SYNDIC_COPROPRIETE",
+            label: "Syndic de copropriété",
+            icon: "Landmark",
+            description: "Gestion de copropriétés, assemblées générales",
+            color: "#7C3AED",
+            categories: [
+                {
+                    nom: "Charges copropriété",
+                    description: "Appels de fonds et charges",
+                },
+                {
+                    nom: "Travaux collectifs",
+                    description: "Gros travaux et entretien",
+                },
+                {
+                    nom: "Comptabilité syndic",
+                    description: "Comptes de la copropriété",
+                },
+            ],
+            features: [
+                "Gestion des copropriétés",
+                "Assemblées générales",
+                "Appels de charges",
+                "Comptabilité copro",
+                "Conseil syndical",
             ],
         },
 

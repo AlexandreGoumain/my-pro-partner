@@ -275,14 +275,32 @@ export const BUSINESS_TYPE_CONFIGS: Record<BusinessType, BusinessTypeConfig> = {
     },
 
     // === IMMOBILIER ===
-    IMMOBILIER: {
-        type: "IMMOBILIER",
+    AGENT_IMMOBILIER: {
+        type: "AGENT_IMMOBILIER",
         category: "IMMOBILIER",
-        defaultCapabilities: BUSINESS_TYPE_DEFAULT_CAPABILITIES.IMMOBILIER,
-        label: "Immobilier",
+        defaultCapabilities: BUSINESS_TYPE_DEFAULT_CAPABILITIES.AGENT_IMMOBILIER,
+        label: "Agent immobilier",
         icon: "Home",
-        description: "Agent immobilier, gestion locative",
-        color: "#0EA5E9",
+        description: "Transaction immobilière, mandats de vente et location",
+        color: "#0284C7",
+    },
+    GESTION_LOCATIVE: {
+        type: "GESTION_LOCATIVE",
+        category: "IMMOBILIER",
+        defaultCapabilities: BUSINESS_TYPE_DEFAULT_CAPABILITIES.GESTION_LOCATIVE,
+        label: "Gestion locative",
+        icon: "Building2",
+        description: "Administration de biens, gestion des baux et loyers",
+        color: "#059669",
+    },
+    SYNDIC_COPROPRIETE: {
+        type: "SYNDIC_COPROPRIETE",
+        category: "IMMOBILIER",
+        defaultCapabilities: BUSINESS_TYPE_DEFAULT_CAPABILITIES.SYNDIC_COPROPRIETE,
+        label: "Syndic de copropriété",
+        icon: "Landmark",
+        description: "Gestion de copropriétés, assemblées générales",
+        color: "#7C3AED",
     },
 
     // === GENERAL ===

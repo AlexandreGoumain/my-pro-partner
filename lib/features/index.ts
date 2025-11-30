@@ -1443,6 +1443,460 @@ export const EcheancesProcFeature: FeatureModule = {
 };
 
 // ============================================
+// IMMOBILIER - AGENT IMMOBILIER
+// ============================================
+
+export const BiensImmoFeature: FeatureModule = {
+    id: "biens-immo",
+    name: "Biens immobiliers",
+    navigation: {
+        main: {
+            icon: "Home",
+            label: "Biens",
+            href: "/dashboard/biens-immo",
+            order: 11,
+        },
+        quickActions: [
+            {
+                label: "Nouveau bien",
+                icon: "Plus",
+                href: "/dashboard/biens-immo?action=new",
+                order: 1,
+            },
+        ],
+    },
+    routes: ["/dashboard/biens-immo", "/dashboard/biens-immo/[id]"],
+    i18n: {
+        singular: "Bien",
+        plural: "Biens immobiliers",
+    },
+    permissions: ["canViewProducts"],
+};
+
+export const MandatsFeature: FeatureModule = {
+    id: "mandats",
+    name: "Mandats",
+    navigation: {
+        main: {
+            icon: "FileSignature",
+            label: "Mandats",
+            href: "/dashboard/mandats",
+            order: 12,
+        },
+        quickActions: [
+            {
+                label: "Nouveau mandat",
+                icon: "Plus",
+                href: "/dashboard/mandats?action=new",
+                order: 2,
+            },
+        ],
+    },
+    routes: ["/dashboard/mandats", "/dashboard/mandats/[id]"],
+    dependencies: ["biens-immo"],
+    i18n: {
+        singular: "Mandat",
+        plural: "Mandats",
+    },
+    permissions: ["canViewProducts"],
+};
+
+export const VisitesImmoFeature: FeatureModule = {
+    id: "visites",
+    name: "Visites",
+    navigation: {
+        main: {
+            icon: "Calendar",
+            label: "Visites",
+            href: "/dashboard/visites",
+            order: 13,
+        },
+        quickActions: [
+            {
+                label: "Planifier visite",
+                icon: "Plus",
+                href: "/dashboard/visites?action=new",
+                order: 3,
+            },
+        ],
+    },
+    routes: ["/dashboard/visites", "/dashboard/visites/[id]"],
+    dependencies: ["biens-immo"],
+    i18n: {
+        singular: "Visite",
+        plural: "Visites",
+    },
+    permissions: ["canViewProducts"],
+};
+
+export const EstimationsFeature: FeatureModule = {
+    id: "estimations",
+    name: "Estimations",
+    navigation: {
+        main: {
+            icon: "Calculator",
+            label: "Estimations",
+            href: "/dashboard/estimations",
+            order: 14,
+        },
+    },
+    routes: ["/dashboard/estimations", "/dashboard/estimations/[id]"],
+    dependencies: ["biens-immo"],
+    i18n: {
+        singular: "Estimation",
+        plural: "Estimations",
+    },
+    permissions: ["canViewProducts"],
+};
+
+export const MatchingFeature: FeatureModule = {
+    id: "matching",
+    name: "Matching acquéreurs",
+    navigation: {
+        main: {
+            icon: "Users",
+            label: "Matching",
+            href: "/dashboard/matching",
+            order: 15,
+        },
+    },
+    routes: ["/dashboard/matching"],
+    dependencies: ["biens-immo", "clients"],
+    i18n: {
+        singular: "Recherche",
+        plural: "Matching acquéreurs",
+    },
+    permissions: ["canViewClients"],
+};
+
+export const DiffusionFeature: FeatureModule = {
+    id: "diffusion",
+    name: "Diffusion annonces",
+    navigation: {
+        main: {
+            icon: "Share2",
+            label: "Diffusion",
+            href: "/dashboard/diffusion",
+            order: 16,
+        },
+    },
+    routes: ["/dashboard/diffusion"],
+    dependencies: ["biens-immo"],
+    i18n: {
+        singular: "Annonce",
+        plural: "Diffusion annonces",
+    },
+    permissions: ["canViewProducts"],
+};
+
+export const PipelineFeature: FeatureModule = {
+    id: "pipeline",
+    name: "Pipeline transactions",
+    navigation: {
+        main: {
+            icon: "GitBranch",
+            label: "Pipeline",
+            href: "/dashboard/pipeline",
+            order: 17,
+        },
+    },
+    routes: ["/dashboard/pipeline"],
+    dependencies: ["mandats"],
+    i18n: {
+        singular: "Transaction",
+        plural: "Pipeline",
+    },
+    permissions: ["canViewProducts"],
+};
+
+// ============================================
+// IMMOBILIER - GESTION LOCATIVE
+// ============================================
+
+export const BauxFeature: FeatureModule = {
+    id: "baux",
+    name: "Baux",
+    navigation: {
+        main: {
+            icon: "FileText",
+            label: "Baux",
+            href: "/dashboard/baux",
+            order: 12,
+        },
+        quickActions: [
+            {
+                label: "Nouveau bail",
+                icon: "Plus",
+                href: "/dashboard/baux?action=new",
+                order: 1,
+            },
+        ],
+    },
+    routes: ["/dashboard/baux", "/dashboard/baux/[id]"],
+    dependencies: ["biens-immo"],
+    i18n: {
+        singular: "Bail",
+        plural: "Baux",
+    },
+    permissions: ["canViewProducts"],
+};
+
+export const LoyersFeature: FeatureModule = {
+    id: "loyers",
+    name: "Loyers",
+    navigation: {
+        main: {
+            icon: "Receipt",
+            label: "Loyers",
+            href: "/dashboard/loyers",
+            order: 13,
+        },
+        quickActions: [
+            {
+                label: "Générer appels",
+                icon: "Plus",
+                href: "/dashboard/loyers?action=generate",
+                order: 2,
+            },
+        ],
+    },
+    routes: ["/dashboard/loyers", "/dashboard/loyers/[id]"],
+    dependencies: ["baux"],
+    i18n: {
+        singular: "Loyer",
+        plural: "Loyers & Quittances",
+    },
+    permissions: ["canViewProducts"],
+};
+
+export const ImpayesFeature: FeatureModule = {
+    id: "impayes",
+    name: "Impayés",
+    navigation: {
+        main: {
+            icon: "AlertCircle",
+            label: "Impayés",
+            href: "/dashboard/impayes",
+            order: 14,
+        },
+    },
+    routes: ["/dashboard/impayes"],
+    dependencies: ["loyers"],
+    i18n: {
+        singular: "Impayé",
+        plural: "Impayés",
+    },
+    permissions: ["canViewProducts"],
+};
+
+export const EtatsLieuxFeature: FeatureModule = {
+    id: "etats-lieux",
+    name: "États des lieux",
+    navigation: {
+        main: {
+            icon: "ClipboardCheck",
+            label: "États des lieux",
+            href: "/dashboard/etats-lieux",
+            order: 15,
+        },
+    },
+    routes: ["/dashboard/etats-lieux", "/dashboard/etats-lieux/[id]"],
+    dependencies: ["baux"],
+    i18n: {
+        singular: "État des lieux",
+        plural: "États des lieux",
+    },
+    permissions: ["canViewProducts"],
+};
+
+export const TravauxLocatifsFeature: FeatureModule = {
+    id: "travaux-locatifs",
+    name: "Travaux & Incidents",
+    navigation: {
+        main: {
+            icon: "Wrench",
+            label: "Travaux",
+            href: "/dashboard/travaux-locatifs",
+            order: 16,
+        },
+    },
+    routes: ["/dashboard/travaux-locatifs", "/dashboard/travaux-locatifs/[id]"],
+    dependencies: ["biens-immo"],
+    i18n: {
+        singular: "Incident",
+        plural: "Travaux & Incidents",
+    },
+    permissions: ["canViewProducts"],
+};
+
+// ============================================
+// IMMOBILIER - SYNDIC
+// ============================================
+
+export const CoproprietesFeature: FeatureModule = {
+    id: "coproprietes",
+    name: "Copropriétés",
+    navigation: {
+        main: {
+            icon: "Building2",
+            label: "Copropriétés",
+            href: "/dashboard/coproprietes",
+            order: 11,
+        },
+        quickActions: [
+            {
+                label: "Nouvelle copropriété",
+                icon: "Plus",
+                href: "/dashboard/coproprietes?action=new",
+                order: 1,
+            },
+        ],
+    },
+    routes: ["/dashboard/coproprietes", "/dashboard/coproprietes/[id]"],
+    i18n: {
+        singular: "Copropriété",
+        plural: "Copropriétés",
+    },
+    permissions: ["canViewProducts"],
+};
+
+export const LotsFeature: FeatureModule = {
+    id: "lots",
+    name: "Lots",
+    navigation: {
+        main: {
+            icon: "Grid3x3",
+            label: "Lots",
+            href: "/dashboard/lots",
+            order: 12,
+        },
+    },
+    routes: ["/dashboard/lots", "/dashboard/lots/[id]"],
+    dependencies: ["coproprietes"],
+    i18n: {
+        singular: "Lot",
+        plural: "Lots & Tantièmes",
+    },
+    permissions: ["canViewProducts"],
+};
+
+export const ChargesFeature: FeatureModule = {
+    id: "charges",
+    name: "Charges",
+    navigation: {
+        main: {
+            icon: "Receipt",
+            label: "Charges",
+            href: "/dashboard/charges",
+            order: 13,
+        },
+        quickActions: [
+            {
+                label: "Appel de charges",
+                icon: "Plus",
+                href: "/dashboard/charges?action=new",
+                order: 2,
+            },
+        ],
+    },
+    routes: ["/dashboard/charges", "/dashboard/charges/[id]"],
+    dependencies: ["coproprietes"],
+    i18n: {
+        singular: "Appel",
+        plural: "Appels de charges",
+    },
+    permissions: ["canViewProducts"],
+};
+
+export const AGFeature: FeatureModule = {
+    id: "ag",
+    name: "Assemblées générales",
+    navigation: {
+        main: {
+            icon: "Users",
+            label: "AG",
+            href: "/dashboard/ag",
+            order: 14,
+        },
+        quickActions: [
+            {
+                label: "Convoquer AG",
+                icon: "Plus",
+                href: "/dashboard/ag?action=new",
+                order: 3,
+            },
+        ],
+    },
+    routes: ["/dashboard/ag", "/dashboard/ag/[id]"],
+    dependencies: ["coproprietes"],
+    i18n: {
+        singular: "AG",
+        plural: "Assemblées générales",
+    },
+    permissions: ["canViewProducts"],
+};
+
+export const TravauxCoproFeature: FeatureModule = {
+    id: "travaux-copro",
+    name: "Travaux collectifs",
+    navigation: {
+        main: {
+            icon: "HardHat",
+            label: "Travaux",
+            href: "/dashboard/travaux-copro",
+            order: 15,
+        },
+    },
+    routes: ["/dashboard/travaux-copro", "/dashboard/travaux-copro/[id]"],
+    dependencies: ["coproprietes"],
+    i18n: {
+        singular: "Travaux",
+        plural: "Travaux collectifs",
+    },
+    permissions: ["canViewProducts"],
+};
+
+export const ComptaCoproFeature: FeatureModule = {
+    id: "compta-copro",
+    name: "Comptabilité copropriété",
+    navigation: {
+        main: {
+            icon: "Calculator",
+            label: "Comptabilité",
+            href: "/dashboard/compta-copro",
+            order: 16,
+        },
+    },
+    routes: ["/dashboard/compta-copro"],
+    dependencies: ["coproprietes"],
+    i18n: {
+        singular: "Écriture",
+        plural: "Comptabilité",
+    },
+    permissions: ["canViewProducts"],
+};
+
+export const ConseilSyndicalFeature: FeatureModule = {
+    id: "conseil-syndical",
+    name: "Conseil syndical",
+    navigation: {
+        main: {
+            icon: "Users",
+            label: "Conseil syndical",
+            href: "/dashboard/conseil-syndical",
+            order: 17,
+        },
+    },
+    routes: ["/dashboard/conseil-syndical"],
+    dependencies: ["coproprietes"],
+    i18n: {
+        singular: "Membre",
+        plural: "Conseil syndical",
+    },
+    permissions: ["canViewProducts"],
+};
+
+// ============================================
 // FEATURE CATALOG
 // ============================================
 
@@ -1522,6 +1976,31 @@ export const FEATURE_CATALOG: Record<string, FeatureModule> = {
     affaires: AffairesFeature,
     diligences: DiligencesFeature,
     "echeances-proc": EcheancesProcFeature,
+
+    // Immobilier - Agent Immobilier
+    "biens-immo": BiensImmoFeature,
+    mandats: MandatsFeature,
+    visites: VisitesImmoFeature,
+    estimations: EstimationsFeature,
+    matching: MatchingFeature,
+    diffusion: DiffusionFeature,
+    pipeline: PipelineFeature,
+
+    // Immobilier - Gestion Locative
+    baux: BauxFeature,
+    loyers: LoyersFeature,
+    impayes: ImpayesFeature,
+    "etats-lieux": EtatsLieuxFeature,
+    "travaux-locatifs": TravauxLocatifsFeature,
+
+    // Immobilier - Syndic
+    coproprietes: CoproprietesFeature,
+    lots: LotsFeature,
+    charges: ChargesFeature,
+    ag: AGFeature,
+    "travaux-copro": TravauxCoproFeature,
+    "compta-copro": ComptaCoproFeature,
+    "conseil-syndical": ConseilSyndicalFeature,
 
     // Finance
     payments: PaymentsFeature,

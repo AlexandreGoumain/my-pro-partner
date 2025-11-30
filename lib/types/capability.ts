@@ -36,10 +36,33 @@ export const CAPABILITIES = [
     "stock", // Gestion des stocks
     "ventes", // Suivi des ventes
 
-    // === IMMOBILIER capabilities ===
-    "mandats", // Gestion des mandats
-    "biens", // Gestion des biens immobiliers
-    "visites", // Planification des visites
+    // === AGENT_IMMOBILIER capabilities ===
+    "mandats_immo", // Gestion des mandats (vente, location, exclusif, simple)
+    "biens_immo", // Portefeuille de biens immobiliers
+    "visites_immo", // Planification et suivi des visites
+    "estimation_immo", // Estimation de biens
+    "matching_immo", // Matching acquéreurs/biens
+    "diffusion_annonces", // Multidiffusion (SeLoger, LeBonCoin...)
+    "pipeline_transaction", // Pipeline de vente (mandat → compromis → acte)
+    "honoraires_immo", // Gestion des honoraires et commissions
+
+    // === GESTION_LOCATIVE capabilities ===
+    "baux_locatifs", // Gestion des baux et contrats
+    "loyers", // Appels de loyers et quittances
+    "impayes_locatifs", // Suivi des impayés et relances
+    "etats_lieux", // États des lieux entrée/sortie
+    "travaux_locatifs", // Gestion des travaux et incidents
+    "revision_loyers", // Révision annuelle des loyers
+    "caf_apl", // Gestion APL/CAF
+
+    // === SYNDIC_COPROPRIETE capabilities ===
+    "coproprietes", // Gestion des copropriétés
+    "lots_copro", // Gestion des lots et tantièmes
+    "charges_copro", // Appels de charges
+    "assemblees_generales", // AG et votes
+    "travaux_copro", // Travaux collectifs
+    "comptabilite_copro", // Comptabilité de copropriété
+    "conseil_syndical", // Conseil syndical
 
     // === FITNESS capabilities ===
     "abonnements_fitness", // Gestion des abonnements salle de sport
@@ -95,7 +118,33 @@ export const CATEGORY_SPECIFIC_CAPABILITIES = {
         "facturation_horaire",
     ] as Capability[],
     COMMERCE: ["catalogue", "stock", "ventes"] as Capability[],
-    IMMOBILIER: ["mandats", "biens", "visites"] as Capability[],
+    IMMOBILIER: [
+        // Agent Immobilier
+        "mandats_immo",
+        "biens_immo",
+        "visites_immo",
+        "estimation_immo",
+        "matching_immo",
+        "diffusion_annonces",
+        "pipeline_transaction",
+        "honoraires_immo",
+        // Gestion Locative
+        "baux_locatifs",
+        "loyers",
+        "impayes_locatifs",
+        "etats_lieux",
+        "travaux_locatifs",
+        "revision_loyers",
+        "caf_apl",
+        // Syndic Copropriété
+        "coproprietes",
+        "lots_copro",
+        "charges_copro",
+        "assemblees_generales",
+        "travaux_copro",
+        "comptabilite_copro",
+        "conseil_syndical",
+    ] as Capability[],
     FITNESS: [
         "abonnements_fitness",
         "cours_collectifs",
@@ -135,10 +184,31 @@ export const CAPABILITY_LABELS: Record<Capability, string> = {
     catalogue: "Catalogue produits",
     stock: "Gestion des stocks",
     ventes: "Suivi des ventes",
-    // IMMOBILIER
-    mandats: "Gestion des mandats",
-    biens: "Gestion des biens",
-    visites: "Planification visites",
+    // AGENT_IMMOBILIER
+    mandats_immo: "Gestion des mandats",
+    biens_immo: "Portefeuille de biens",
+    visites_immo: "Planification des visites",
+    estimation_immo: "Estimations de biens",
+    matching_immo: "Matching acquéreurs",
+    diffusion_annonces: "Multidiffusion annonces",
+    pipeline_transaction: "Pipeline de vente",
+    honoraires_immo: "Honoraires & commissions",
+    // GESTION_LOCATIVE
+    baux_locatifs: "Gestion des baux",
+    loyers: "Appels de loyers",
+    impayes_locatifs: "Suivi des impayés",
+    etats_lieux: "États des lieux",
+    travaux_locatifs: "Travaux & incidents",
+    revision_loyers: "Révision des loyers",
+    caf_apl: "Gestion APL/CAF",
+    // SYNDIC_COPROPRIETE
+    coproprietes: "Gestion des copropriétés",
+    lots_copro: "Lots & tantièmes",
+    charges_copro: "Appels de charges",
+    assemblees_generales: "Assemblées générales",
+    travaux_copro: "Travaux collectifs",
+    comptabilite_copro: "Comptabilité copropriété",
+    conseil_syndical: "Conseil syndical",
     // FITNESS
     abonnements_fitness: "Abonnements salle de sport",
     cours_collectifs: "Cours collectifs",

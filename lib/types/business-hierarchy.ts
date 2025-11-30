@@ -60,8 +60,10 @@ export const BUSINESS_TYPE_TO_CATEGORY: Record<BusinessType, BusinessCategory> =
         JURIDIQUE: "SERVICE_INTELLECTUEL",
         // COMMERCE
         COMMERCE_DETAIL: "COMMERCE",
-        // IMMOBILIER
-        IMMOBILIER: "IMMOBILIER",
+        // IMMOBILIER - 3 types spécialisés
+        AGENT_IMMOBILIER: "IMMOBILIER",
+        GESTION_LOCATIVE: "IMMOBILIER",
+        SYNDIC_COPROPRIETE: "IMMOBILIER",
         // GENERAL
         GENERAL: "GENERAL",
     };
@@ -87,7 +89,7 @@ export const CATEGORY_TO_BUSINESS_TYPES: Record<
     RENDEZ_VOUS: ["COIFFURE", "ESTHETIQUE", "FITNESS", "SANTE"],
     SERVICE_INTELLECTUEL: ["CONSULTING", "COMPTABILITE", "JURIDIQUE"],
     COMMERCE: ["COMMERCE_DETAIL"],
-    IMMOBILIER: ["IMMOBILIER"],
+    IMMOBILIER: ["AGENT_IMMOBILIER", "GESTION_LOCATIVE", "SYNDIC_COPROPRIETE"],
     GENERAL: ["GENERAL"],
 };
 
@@ -295,11 +297,46 @@ export const BUSINESS_TYPE_DEFAULT_CAPABILITIES: Record<
         "fidelite",
     ],
 
-    // === IMMOBILIER ===
-    IMMOBILIER: [
-        "mandats",
-        "biens",
-        "visites",
+    // === IMMOBILIER - Agent Immobilier ===
+    AGENT_IMMOBILIER: [
+        "mandats_immo",
+        "biens_immo",
+        "visites_immo",
+        "estimation_immo",
+        "matching_immo",
+        "diffusion_annonces",
+        "pipeline_transaction",
+        "honoraires_immo",
+        "agenda",
+        "clients",
+        "documents",
+        "analytics",
+    ],
+
+    // === IMMOBILIER - Gestion Locative ===
+    GESTION_LOCATIVE: [
+        "biens_immo",
+        "baux_locatifs",
+        "loyers",
+        "impayes_locatifs",
+        "etats_lieux",
+        "travaux_locatifs",
+        "revision_loyers",
+        "caf_apl",
+        "clients",
+        "documents",
+        "analytics",
+    ],
+
+    // === IMMOBILIER - Syndic Copropriété ===
+    SYNDIC_COPROPRIETE: [
+        "coproprietes",
+        "lots_copro",
+        "charges_copro",
+        "assemblees_generales",
+        "travaux_copro",
+        "comptabilite_copro",
+        "conseil_syndical",
         "clients",
         "documents",
         "analytics",
