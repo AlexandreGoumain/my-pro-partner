@@ -33,7 +33,10 @@ enum BusinessType {
   INFORMATIQUE // Services informatiques
   CONSULTING // Conseil, formation
   COMMERCE_DETAIL // Commerce de détail
-  IMMOBILIER // Agence immobilière
+  // Immobilier - 3 types spécialisés
+  AGENT_IMMOBILIER // Agent immobilier, mandataire (carte T)
+  GESTION_LOCATIVE // Administrateur de biens (carte G)
+  SYNDIC_COPROPRIETE // Syndic de copropriété
   SANTE // Professions médicales/paramédicales
   JURIDIQUE // Avocat, notaire
   COMPTABILITE // Expert-comptable
@@ -92,49 +95,77 @@ model Entreprise {
   reparations       Reparation[] // Réparations d'appareils
 
   // Gestion du personnel
-  employees         Employee[] // Employés de l'entreprise
+  employees Employee[] // Employés de l'entreprise
 
   // Relations pour système plomberie
-  interventions       Intervention[]       // Interventions plomberie
-  camionnettes        Camionnette[]        // Véhicules/camionnettes
-  stocksCamionnette   StockCamionnette[]   // Stocks mobiles
-  contratsEntretien   ContratEntretien[]   // Contrats d'entretien
-  entretiensVehicule  EntretienVehicule[]  // Entretiens véhicules
-  equipementsClients  EquipementClient[]   // Parc équipements clients
+  interventions        Intervention[] // Interventions plomberie
+  camionnettes         Camionnette[] // Véhicules/camionnettes
+  stocksCamionnette    StockCamionnette[] // Stocks mobiles
+  contratsEntretien    ContratEntretien[] // Contrats d'entretien
+  entretiensVehicule   EntretienVehicule[] // Entretiens véhicules
+  equipementsClients   EquipementClient[] // Parc équipements clients
   certificatsEntretien CertificatEntretien[] // Certificats d'entretien
 
   // Relations pour système restauration
-  tablesRestaurant  TableRestaurant[] // Tables du restaurant
-  reservations      Reservation[]     // Réservations
-  menuItems         MenuItem[]        // Plats et boissons du menu
+  tablesRestaurant TableRestaurant[] // Tables du restaurant
+  reservations     Reservation[] // Réservations
+  menuItems        MenuItem[] // Plats et boissons du menu
 
   // Relations pour système coiffure / rendez-vous / esthétique
   prestations Prestation[] // Services proposés (coupe, couleur, soin, etc.)
-  employes    Employe[]    // Employés (coiffeurs, esthéticiennes, etc.)
+  employes    Employe[] // Employés (coiffeurs, esthéticiennes, etc.)
   rendezVous  RendezVous[] // Rendez-vous clients
-  cabines     Cabine[]     // Cabines/salles de soins (esthétique, spa)
+  cabines     Cabine[] // Cabines/salles de soins (esthétique, spa)
 
   // Relations pour système fitness / salle de sport
   typesAbonnementFitness TypeAbonnementFitness[] // Types d'abonnements (mensuel, annuel, etc.)
-  abonnementsFitness     AbonnementFitness[]     // Abonnements clients
-  coursFitness           CoursCollectif[]        // Cours collectifs (yoga, spinning, etc.)
-  seancesCours           SeanceCours[]           // Séances de cours planifiées
-  reservationsCours      ReservationCours[]      // Réservations aux cours
-  sallesFitness          SalleFitness[]          // Salles/zones de la salle de sport
-  presencesFitness       PresenceFitness[]       // Check-ins des membres
+  abonnementsFitness     AbonnementFitness[] // Abonnements clients
+  coursFitness           CoursCollectif[] // Cours collectifs (yoga, spinning, etc.)
+  seancesCours           SeanceCours[] // Séances de cours planifiées
+  reservationsCours      ReservationCours[] // Réservations aux cours
+  sallesFitness          SalleFitness[] // Salles/zones de la salle de sport
+  presencesFitness       PresenceFitness[] // Check-ins des membres
 
   // Relations pour système consulting / services intellectuels
-  missions     Mission[]     // Missions de consulting
+  missions     Mission[] // Missions de consulting
   entreesTemps EntreeTemps[] // Entrées de temps
 
   // Relations pour système comptabilité
   echeancesFiscales EcheanceFiscale[] // Échéances fiscales
 
   // Relations pour système juridique (cabinets d'avocats)
-  affaires             Affaire[]             // Dossiers/affaires juridiques
-  partiesAdverses      PartieAdverse[]       // Parties adverses
+  affaires              Affaire[] // Dossiers/affaires juridiques
+  partiesAdverses       PartieAdverse[] // Parties adverses
   echeancesProcedurales EcheanceProcedurale[] // Échéances procédurales
-  diligences           Diligence[]           // Diligences effectuées
+  diligences            Diligence[] // Diligences effectuées
+
+  // Relations pour système immobilier
+  biensImmobiliers     BienImmobilier[] // Portefeuille de biens
+  mandatsImmobiliers   MandatImmobilier[] // Mandats de vente/location
+  visitesImmobiliers   VisiteImmobilier[] // Visites planifiées
+  estimationsBiens     EstimationBien[] // Estimations réalisées
+  offresAchat          OffreAchat[] // Offres d'achat
+  configsPortails      ConfigurationPortail[] // Config portails diffusion
+  diffusionsAnnonces   DiffusionAnnonce[] // Diffusions vers portails
+  leadsPortails        LeadPortail[] // Leads des portails
+  recherchesAcquereurs RechercheAcquereur[] // Recherches acquéreurs
+
+  // Relations pour gestion locative
+  bailsLocatifs     BailLocatif[] // Baux locatifs
+  appelsLoyers      AppelLoyer[] // Appels de loyers
+  etatsLieux        EtatDesLieux[] // États des lieux
+  incidentsLocatifs IncidentLocatif[] // Incidents/travaux
+
+  // Relations pour syndic copropriété
+  coproprietes           Copropriete[] // Copropriétés gérées
+  lotsCopropriete        LotCopropriete[] // Lots de copropriété
+  appelsCharges          AppelCharges[] // Appels de charges
+  lignesAppelsCharges    LigneAppelCharges[] // Lignes d'appels
+  assembleesGenerales    AssembleeGenerale[] // Assemblées générales
+  resolutionsAG          ResolutionAG[] // Résolutions AG
+  travauxCopropriete     TravauxCopropriete[] // Travaux copropriété
+  comptesCopropriete     CompteCopropriete[] // Comptabilité copro
+  membresConseilSyndical MembreConseilSyndical[] // Membres conseil
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -577,17 +608,17 @@ model User {
   employee             Employee? // Lien optionnel avec le profil employé
 
   // Relations pour système plomberie/chauffage
-  interventionsPlombier  Intervention[]          @relation("InterventionPlombier")
-  interventionsTime      InterventionTimeLog[]   @relation("InterventionPlombierTime")
-  camionnettes           Camionnette[]           // Camionnettes dont ce user est plombier principal
-  entretiensAssignes     EntretienPrevu[]
-  certificatsRealises    CertificatEntretien[]   // Certificats réalisés par ce technicien
+  interventionsPlombier Intervention[]        @relation("InterventionPlombier")
+  interventionsTime     InterventionTimeLog[] @relation("InterventionPlombierTime")
+  camionnettes          Camionnette[] // Camionnettes dont ce user est plombier principal
+  entretiensAssignes    EntretienPrevu[]
+  certificatsRealises   CertificatEntretien[] // Certificats réalisés par ce technicien
 
   // Relations pour système consulting / services intellectuels
-  entreesTemps           EntreeTemps[]           // Entrées de temps sur missions
+  entreesTemps EntreeTemps[] // Entrées de temps sur missions
 
   // Relations pour système juridique (cabinets d'avocats)
-  diligences             Diligence[]             // Diligences effectuées par cet avocat
+  diligences Diligence[] // Diligences effectuées par cet avocat
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -803,9 +834,9 @@ model Client {
   reparations Reparation[] // Réparations pour ce client
 
   // Relations pour système plomberie/chauffage
-  interventions     Intervention[]       // Interventions pour ce client
-  contratsEntretien ContratEntretien[]   // Contrats d'entretien
-  equipements       EquipementClient[]   // Parc équipements installés
+  interventions     Intervention[] // Interventions pour ce client
+  contratsEntretien ContratEntretien[] // Contrats d'entretien
+  equipements       EquipementClient[] // Parc équipements installés
 
   // Relations pour système restauration
   reservations Reservation[] // Réservations au restaurant
@@ -814,9 +845,9 @@ model Client {
   rendezVous RendezVous[] // Rendez-vous chez le prestataire
 
   // Relations pour système fitness
-  abonnementsFitness  AbonnementFitness[]  // Abonnements salle de sport
-  reservationsCours   ReservationCours[]   // Réservations aux cours collectifs
-  presencesFitness    PresenceFitness[]    // Historique des check-ins
+  abonnementsFitness AbonnementFitness[] // Abonnements salle de sport
+  reservationsCours  ReservationCours[] // Réservations aux cours collectifs
+  presencesFitness   PresenceFitness[] // Historique des check-ins
 
   // Relations pour système consulting / services intellectuels
   missions Mission[] // Missions de consulting
@@ -828,16 +859,29 @@ model Client {
   affaires Affaire[] // Affaires juridiques
 
   // Informations fiscales du client (pour cabinets comptables)
-  siret               String?           // Numéro SIRET
-  formeJuridique      FormeJuridique?   // Forme juridique (SARL, SAS, etc.)
-  regimeFiscal        RegimeFiscal?     // Régime fiscal (réel normal, simplifié, micro)
-  regimeTVA           RegimeTVA?        // Régime de TVA
-  typeImposition      TypeImposition?   // Type d'imposition (IS ou IR)
-  dateClotureExercice String?           // Date de clôture (format "MM-DD", ex: "12-31")
-  avecSalaries        Boolean?          // Le client a-t-il des salariés ?
-  effectif            Int?              // Nombre de salariés
-  codeAPE             String?           // Code APE/NAF
-  numTVAIntra         String?           // Numéro de TVA intracommunautaire
+  siret               String? // Numéro SIRET
+  formeJuridique      FormeJuridique? // Forme juridique (SARL, SAS, etc.)
+  regimeFiscal        RegimeFiscal? // Régime fiscal (réel normal, simplifié, micro)
+  regimeTVA           RegimeTVA? // Régime de TVA
+  typeImposition      TypeImposition? // Type d'imposition (IS ou IR)
+  dateClotureExercice String? // Date de clôture (format "MM-DD", ex: "12-31")
+  avecSalaries        Boolean? // Le client a-t-il des salariés ?
+  effectif            Int? // Nombre de salariés
+  codeAPE             String? // Code APE/NAF
+  numTVAIntra         String? // Numéro de TVA intracommunautaire
+
+  // Relations pour système immobilier
+  biensProprietaire      BienImmobilier[]        @relation("BiensProprietaire")
+  mandatsClient          MandatImmobilier[]      @relation("MandatsClient")
+  visitesAcquereur       VisiteImmobilier[]      @relation("VisitesAcquereur")
+  offresAcquereur        OffreAchat[]            @relation("OffresAcquereur")
+  recherchesAcquereur    RechercheAcquereur[]    @relation("RecherchesAcquereur")
+  leadsConvertis         LeadPortail[]           @relation("LeadsConvertis")
+  bauxLocataire          BailLocatif[]           @relation("BauxLocataire")
+  bauxProprietaire       BailLocatif[]           @relation("BauxProprietaire")
+  lotsCoproprietaire     LotCopropriete[]        @relation("LotsCoproprietaire")
+  lotsLocataire          LotCopropriete[]        @relation("LotsLocataire")
+  membresConseilSyndical MembreConseilSyndical[] @relation("MembresConseilSyndical")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1033,10 +1077,10 @@ model Article {
 
   // Champs spécifiques pour type PIECE (pièces détachées)
   typePiece        TypeRessource? // Type de pièce (ECRAN, BATTERIE, etc.)
-  etatPiece        EtatOccasion?  // État de la pièce (COMME_NEUF, BON, etc.)
-  marque           String?        // Compatibilité marque
-  modele           String?        // Compatibilité modèle
-  articleOrigineId String?        // Article source si issu d'un démontage
+  etatPiece        EtatOccasion? // État de la pièce (COMME_NEUF, BON, etc.)
+  marque           String? // Compatibilité marque
+  modele           String? // Compatibilité modèle
+  articleOrigineId String? // Article source si issu d'un démontage
   valeurEstimee    Decimal?       @db.Decimal(10, 2) // Valeur estimée pour calcul marge
 
   // Multi-tenant
@@ -1056,13 +1100,13 @@ model Article {
   piecesRecuperees RessourceAtelier[] @relation("PieceOrigine") // Pièces récupérées de cet article
 
   // Relations pour les pièces détachées (type PIECE)
-  articleOrigine   Article?  @relation("PiecesDetachees", fields: [articleOrigineId], references: [id], onDelete: SetNull)
-  piecesDetachees  Article[] @relation("PiecesDetachees") // Pièces issues du démontage de cet article
+  articleOrigine   Article?               @relation("PiecesDetachees", fields: [articleOrigineId], references: [id], onDelete: SetNull)
+  piecesDetachees  Article[]              @relation("PiecesDetachees") // Pièces issues du démontage de cet article
   lignesReparation ReparationLignePiece[] // Utilisations dans des réparations
 
   // Relations pour système plomberie
   interventionsMateriel InterventionMateriel[] // Matériel utilisé dans interventions
-  stockCamionnettes     StockCamionnette[]     // Stock dans les camionnettes
+  stockCamionnettes     StockCamionnette[] // Stock dans les camionnettes
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1282,7 +1326,7 @@ model Document {
   interventions    Intervention[]    @relation("InterventionDocument") // Interventions plomberie liées
 
   // Relations pour système consulting / services intellectuels
-  missionsDevis    Mission[] @relation("MissionDevis")    // Missions créées depuis ce devis
+  missionsDevis    Mission[] @relation("MissionDevis") // Missions créées depuis ce devis
   missionsFactures Mission[] @relation("MissionFactures") // Missions facturées via ce document
 
   createdAt DateTime @default(now())
@@ -1441,14 +1485,14 @@ model ParametresEntreprise {
   prochain_numero_facture Int    @default(1)
 
   // Configuration références articles/services
-  prefixe_produit         String @default("PRD")
-  prefixe_service         String @default("SRV")
-  prefixe_occasion        String @default("OCC")
-  prefixe_piece           String @default("PCE")
-  prochain_numero_produit Int    @default(1)
-  prochain_numero_service Int    @default(1)
-  prochain_numero_occasion Int   @default(1)
-  prochain_numero_piece   Int    @default(1)
+  prefixe_produit          String @default("PRD")
+  prefixe_service          String @default("SRV")
+  prefixe_occasion         String @default("OCC")
+  prefixe_piece            String @default("PCE")
+  prochain_numero_produit  Int    @default(1)
+  prochain_numero_service  Int    @default(1)
+  prochain_numero_occasion Int    @default(1)
+  prochain_numero_piece    Int    @default(1)
 
   // Configuration références réparations (boutiques informatique)
   prefixe_reparation         String @default("REP")
@@ -1948,15 +1992,15 @@ enum ReconciliationStatus {
 // ============================================
 
 enum StatutReparation {
-  DEPOSE          // Appareil déposé, en attente de diagnostic
-  DIAGNOSTIC      // En cours de diagnostic
-  DEVIS_ENVOYE    // Devis envoyé au client
-  ATTENTE_PIECES  // En attente de pièces
-  EN_COURS        // Réparation en cours
-  PRETE           // Prête à être récupérée
-  LIVREE          // Livrée au client
-  ANNULEE         // Annulée
-  ABANDONNEE      // Abandonnée (client n'est pas venu)
+  DEPOSE // Appareil déposé, en attente de diagnostic
+  DIAGNOSTIC // En cours de diagnostic
+  DEVIS_ENVOYE // Devis envoyé au client
+  ATTENTE_PIECES // En attente de pièces
+  EN_COURS // Réparation en cours
+  PRETE // Prête à être récupérée
+  LIVREE // Livrée au client
+  ANNULEE // Annulée
+  ABANDONNEE // Abandonnée (client n'est pas venu)
 }
 
 enum PrioriteReparation {
@@ -1978,20 +2022,20 @@ enum TypeAppareil {
 }
 
 model Reparation {
-  id        String   @id @default(cuid())
-  numero    String   @unique // REP-001, REP-002, etc.
-  reference String?  // Référence client optionnelle
+  id        String  @id @default(cuid())
+  numero    String  @unique // REP-001, REP-002, etc.
+  reference String? // Référence client optionnelle
 
   // Client information
   client   Client @relation(fields: [clientId], references: [id])
   clientId String
 
   // Device information
-  typeAppareil         TypeAppareil
-  marque               String?      // Brand (Apple, Dell, HP, etc.)
-  modele               String?      // Model
-  numeroSerie          String?      // Serial number
-  motAuthentification  String?      @db.Text // Device password/PIN if needed
+  typeAppareil        TypeAppareil
+  marque              String? // Brand (Apple, Dell, HP, etc.)
+  modele              String? // Model
+  numeroSerie         String? // Serial number
+  motAuthentification String?      @db.Text // Device password/PIN if needed
 
   // Reported issue
   panne       String  @db.Text // Customer complaint/issue description
@@ -2002,18 +2046,18 @@ model Reparation {
   diagnosticEffectue Boolean   @default(false)
   diagnosticDetail   String?   @db.Text
   diagnosticDate     DateTime?
-  diagnosticParId    String?   // User ID who performed diagnostic
+  diagnosticParId    String? // User ID who performed diagnostic
 
   // Priority and deadlines
   priorite          PrioriteReparation @default(NORMALE)
   dateDepot         DateTime           @default(now())
   dateEstimeeRetour DateTime?
   dateRetourReel    DateTime?
-  delaiReparation   Int?               // Estimated repair time in hours
+  delaiReparation   Int? // Estimated repair time in hours
 
   // Status and workflow
   statut           StatutReparation @default(DEPOSE)
-  statutChangeLogs Json?            // History of status changes [{statut, date, userId}]
+  statutChangeLogs Json? // History of status changes [{statut, date, userId}]
 
   // Technician assignment
   technicien   User?   @relation("ReparationTechnicien", fields: [technicienId], references: [id])
@@ -2024,13 +2068,13 @@ model Reparation {
   storeId String? // Store where repair was received
 
   register   Register? @relation(fields: [registerId], references: [id])
-  registerId String?   // Register where repair was created
+  registerId String? // Register where repair was created
 
   // Costs and billing
-  devisEstime  Decimal @default(0) @db.Decimal(10, 2) // Estimated cost
-  coutMain     Decimal @default(0) @db.Decimal(10, 2) // Labor cost
-  coutPieces   Decimal @default(0) @db.Decimal(10, 2) // Parts cost (auto-calculated)
-  coutTotal    Decimal @default(0) @db.Decimal(10, 2) // Total cost
+  devisEstime Decimal @default(0) @db.Decimal(10, 2) // Estimated cost
+  coutMain    Decimal @default(0) @db.Decimal(10, 2) // Labor cost
+  coutPieces  Decimal @default(0) @db.Decimal(10, 2) // Parts cost (auto-calculated)
+  coutTotal   Decimal @default(0) @db.Decimal(10, 2) // Total cost
 
   // Linked document (quote or invoice)
   document   Document? @relation(fields: [documentId], references: [id])
@@ -2052,10 +2096,10 @@ model Reparation {
   entrepriseId String
 
   // Relations
-  lignesPieces  ReparationLignePiece[]  // Parts used
+  lignesPieces  ReparationLignePiece[] // Parts used
   interventions ReparationIntervention[] // Intervention logs
-  photos        ReparationPhoto[]        // Photos (optional)
-  historique    ReparationHistorique[]   // Complete history log
+  photos        ReparationPhoto[] // Photos (optional)
+  historique    ReparationHistorique[] // Complete history log
 
   createdBy String? // User ID who created the repair ticket
   createdAt DateTime @default(now())
@@ -2152,7 +2196,7 @@ model ReparationHistorique {
 
   action      String // "STATUS_CHANGE", "PIECE_ADDED", "NOTE_ADDED", "ASSIGNED", etc.
   description String @db.Text
-  metadata    Json?  // Additional data (old/new values)
+  metadata    Json? // Additional data (old/new values)
 
   createdBy String? // User ID
   createdAt DateTime @default(now())
@@ -2191,60 +2235,66 @@ model Employee {
   entrepriseId String
 
   // Informations personnelles
-  prenom       String
-  nom          String
-  email        String
-  telephone    String?
+  prenom        String
+  nom           String
+  email         String
+  telephone     String?
   dateNaissance DateTime?
-  adresse      String?
-  ville        String?
-  codePostal   String?
-  pays         String?  @default("France")
+  adresse       String?
+  ville         String?
+  codePostal    String?
+  pays          String?   @default("France")
 
   // Photo de profil
-  photoUrl     String?
+  photoUrl String?
 
   // Informations professionnelles
-  poste        String // Titre du poste (ex: Technicien, Vendeur, Manager)
-  departement  String? // Département ou service
-  statut       StatutEmploye @default(ACTIF)
-  typeContrat  TypeContrat   @default(CDI)
+  poste       String // Titre du poste (ex: Technicien, Vendeur, Manager)
+  departement String? // Département ou service
+  statut      StatutEmploye @default(ACTIF)
+  typeContrat TypeContrat   @default(CDI)
 
   // Dates importantes
   dateEmbauche DateTime
   dateFin      DateTime? // Date de fin si contrat CDD ou départ
 
   // Salaire et compensation
-  salaireBrut  Decimal @db.Decimal(10, 2)
-  devise       String  @default("EUR")
+  salaireBrut Decimal @db.Decimal(10, 2)
+  devise      String  @default("EUR")
 
   // Horaires et planning
   heuresHebdo  Int?    @default(35) // Heures de travail par semaine
   joursTravail String? // Jours de travail (ex: "Lun-Ven")
 
   // Documents et notes
-  notes        String? @db.Text
+  notes String? @db.Text
 
   // Compétences et qualifications
-  competences  String? @db.Text // JSON array de compétences
+  competences String? @db.Text // JSON array de compétences
 
   // Congés
   congesRestants Int @default(25) // Jours de congés restants
-  congesPris     Int @default(0)  // Jours de congés pris cette année
+  congesPris     Int @default(0) // Jours de congés pris cette année
 
   // Relation avec User (optionnel - si l'employé a un compte utilisateur)
-  user         User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
-  userId       String? @unique
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId String? @unique
+
+  // Relations pour système immobilier
+  mandatsImmo     MandatImmobilier[] @relation("MandatAgent")
+  visitesImmo     VisiteImmobilier[] @relation("VisiteAgent")
+  estimationsImmo EstimationBien[]   @relation("EstimationAgent")
+  leadsImmo       LeadPortail[]      @relation("LeadAgentResponsable")
 
   // Timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([entrepriseId, email])
   @@index([entrepriseId])
   @@index([email])
   @@index([statut])
   @@index([dateEmbauche])
-  @@unique([entrepriseId, email])
 }
 
 // ============================================
@@ -2292,190 +2342,190 @@ model ContactMessage {
 // Type d'intervention (tous métiers)
 enum TypeIntervention {
   // === PLOMBERIE / CHAUFFAGE ===
-  FUITE             // Leak/emergency (plomberie)
-  DEPANNAGE         // Repair (tous)
-  INSTALLATION      // Installation (tous)
-  ENTRETIEN         // Maintenance (tous)
-  DIAGNOSTIC        // Diagnostic visit (tous)
-  DEBOUCHAGE        // Unclogging (plomberie)
-  REMPLACEMENT      // Replacement (tous)
-  RENOVATION        // Renovation work (tous)
-  MISE_EN_SERVICE   // Commissioning (chauffage, électricité)
-  RAMONAGE          // Chimney sweeping (chauffage)
-  CONTROLE_ANNUEL   // Annual inspection (chauffage - obligatoire)
+  FUITE // Leak/emergency (plomberie)
+  DEPANNAGE // Repair (tous)
+  INSTALLATION // Installation (tous)
+  ENTRETIEN // Maintenance (tous)
+  DIAGNOSTIC // Diagnostic visit (tous)
+  DEBOUCHAGE // Unclogging (plomberie)
+  REMPLACEMENT // Replacement (tous)
+  RENOVATION // Renovation work (tous)
+  MISE_EN_SERVICE // Commissioning (chauffage, électricité)
+  RAMONAGE // Chimney sweeping (chauffage)
+  CONTROLE_ANNUEL // Annual inspection (chauffage - obligatoire)
   // === MENUISERIE ===
-  POSE              // Installation/fitting (menuiserie)
-  FABRICATION       // Manufacturing (menuiserie)
-  REPARATION        // Repair (menuiserie)
-  AJUSTEMENT        // Adjustment (menuiserie)
-  FINITION          // Finishing (menuiserie)
-  RESTAURATION      // Restoration (menuiserie)
-  PRISE_COTES       // Taking measurements (menuiserie)
-  DEPOSE            // Removal (menuiserie)
+  POSE // Installation/fitting (menuiserie)
+  FABRICATION // Manufacturing (menuiserie)
+  REPARATION // Repair (menuiserie)
+  AJUSTEMENT // Adjustment (menuiserie)
+  FINITION // Finishing (menuiserie)
+  RESTAURATION // Restoration (menuiserie)
+  PRISE_COTES // Taking measurements (menuiserie)
+  DEPOSE // Removal (menuiserie)
   // === PEINTURE ===
-  PREPARATION_SURFACES  // Surface preparation (peinture)
-  PEINTURE_INTERIEURE   // Interior painting (peinture)
-  PEINTURE_EXTERIEURE   // Exterior painting (peinture)
-  RAVALEMENT            // Facade renovation (peinture)
-  ENDUIT                // Rendering/plastering (peinture)
-  PAPIER_PEINT          // Wallpaper (peinture)
-  LASURE_VERNIS         // Stain/varnish (peinture)
-  DECORATION            // Decorative painting (peinture)
-  TRAITEMENT_SURFACES   // Surface treatment (peinture)
+  PREPARATION_SURFACES // Surface preparation (peinture)
+  PEINTURE_INTERIEURE // Interior painting (peinture)
+  PEINTURE_EXTERIEURE // Exterior painting (peinture)
+  RAVALEMENT // Facade renovation (peinture)
+  ENDUIT // Rendering/plastering (peinture)
+  PAPIER_PEINT // Wallpaper (peinture)
+  LASURE_VERNIS // Stain/varnish (peinture)
+  DECORATION // Decorative painting (peinture)
+  TRAITEMENT_SURFACES // Surface treatment (peinture)
   // === GARAGE / AUTOMOBILE ===
-  REVISION              // Periodic maintenance
-  VIDANGE               // Oil change
-  FREINAGE              // Brake repair/service
-  PNEUMATIQUES          // Tire service
-  EMBRAYAGE             // Clutch replacement
-  DISTRIBUTION          // Timing belt service
-  ECHAPPEMENT           // Exhaust repair
-  SUSPENSION            // Suspension work
-  DIRECTION             // Steering repair
-  DEMARRAGE             // Starting system repair
-  CARROSSERIE           // Body repair
+  REVISION // Periodic maintenance
+  VIDANGE // Oil change
+  FREINAGE // Brake repair/service
+  PNEUMATIQUES // Tire service
+  EMBRAYAGE // Clutch replacement
+  DISTRIBUTION // Timing belt service
+  ECHAPPEMENT // Exhaust repair
+  SUSPENSION // Suspension work
+  DIRECTION // Steering repair
+  DEMARRAGE // Starting system repair
+  CARROSSERIE // Body repair
 }
 
 // Statut d'intervention
 enum StatutIntervention {
-  DEMANDE           // Request received
-  PLANIFIEE         // Scheduled
-  EN_ROUTE          // Technician on the way
-  SUR_PLACE         // On site
-  DIAGNOSTIC_FAIT   // Diagnostic completed
-  DEVIS_ENVOYE      // Quote sent
-  DEVIS_ACCEPTE     // Quote accepted
-  EN_COURS          // Work in progress
-  TERMINEE          // Completed
-  FACTUREE          // Invoiced
-  ANNULEE           // Cancelled
+  DEMANDE // Request received
+  PLANIFIEE // Scheduled
+  EN_ROUTE // Technician on the way
+  SUR_PLACE // On site
+  DIAGNOSTIC_FAIT // Diagnostic completed
+  DEVIS_ENVOYE // Quote sent
+  DEVIS_ACCEPTE // Quote accepted
+  EN_COURS // Work in progress
+  TERMINEE // Completed
+  FACTUREE // Invoiced
+  ANNULEE // Cancelled
 }
 
 // Priorité d'intervention
 enum PrioriteIntervention {
-  NORMALE   // Normal
-  URGENTE   // Urgent (leak, no heating)
-  CRITIQUE  // Critical (flooding, gas leak, safety issue)
+  NORMALE // Normal
+  URGENTE // Urgent (leak, no heating)
+  CRITIQUE // Critical (flooding, gas leak, safety issue)
 }
 
 // Type d'équipement (tous métiers intervention)
 enum TypeEquipement {
   // === PLOMBERIE ===
-  ROBINETTERIE       // Faucets
-  SANITAIRES         // Toilets, sinks
-  TUYAUTERIE         // Piping
-  EVACUATION         // Drainage
-  ADOUCISSEUR        // Water softener
-  BALLON_EAU_CHAUDE  // Hot water tank
+  ROBINETTERIE // Faucets
+  SANITAIRES // Toilets, sinks
+  TUYAUTERIE // Piping
+  EVACUATION // Drainage
+  ADOUCISSEUR // Water softener
+  BALLON_EAU_CHAUDE // Hot water tank
 
   // === CHAUFFAGE ===
-  CHAUDIERE_GAZ      // Gas boiler
-  CHAUDIERE_FIOUL    // Oil boiler
-  CHAUDIERE_BOIS     // Wood boiler
+  CHAUDIERE_GAZ // Gas boiler
+  CHAUDIERE_FIOUL // Oil boiler
+  CHAUDIERE_BOIS // Wood boiler
   CHAUDIERE_ELECTRIQUE // Electric boiler
-  POMPE_A_CHALEUR    // Heat pump (generic)
-  PAC_AIR_AIR        // Air-to-air heat pump
-  PAC_AIR_EAU        // Air-to-water heat pump
-  PAC_GEOTHERMIQUE   // Geothermal heat pump
-  CLIMATISATION      // Air conditioning
-  RADIATEUR          // Radiator
+  POMPE_A_CHALEUR // Heat pump (generic)
+  PAC_AIR_AIR // Air-to-air heat pump
+  PAC_AIR_EAU // Air-to-water heat pump
+  PAC_GEOTHERMIQUE // Geothermal heat pump
+  CLIMATISATION // Air conditioning
+  RADIATEUR // Radiator
   PLANCHER_CHAUFFANT // Underfloor heating
-  CHAUFFE_EAU        // Water heater (gas/electric)
+  CHAUFFE_EAU // Water heater (gas/electric)
   BALLON_THERMODYNAMIQUE // Thermodynamic water heater
-  THERMOSTAT         // Thermostat/smart thermostat
-  VASE_EXPANSION     // Expansion vessel
-  CIRCULATEUR        // Circulation pump
+  THERMOSTAT // Thermostat/smart thermostat
+  VASE_EXPANSION // Expansion vessel
+  CIRCULATEUR // Circulation pump
 
   // === MENUISERIE ===
-  FENETRE            // Window
-  PORTE_INTERIEURE   // Interior door
-  PORTE_ENTREE       // Entry door
-  PORTE_GARAGE       // Garage door
-  PORTE_BLINDEE      // Armored/security door
-  VOLET_ROULANT      // Roller shutter
-  VOLET_BATTANT      // Hinged shutter
-  PERSIENNE          // Louvered shutter
-  VELUX              // Roof window (skylight)
-  BAIE_VITREE        // Sliding glass door
-  PARQUET            // Hardwood floor
-  ESCALIER           // Staircase
-  MEUBLE_SUR_MESURE  // Custom furniture
-  CUISINE            // Kitchen
-  PLAN_TRAVAIL       // Countertop/worktop
-  DRESSING           // Walk-in closet
-  PLACARD            // Closet/cabinet
-  BIBLIOTHEQUE       // Bookcase
-  LAMBRIS            // Wall/ceiling paneling
-  GARDE_CORPS        // Railing/balustrade
-  PORTAIL            // Gate
-  CLOTURE_BOIS       // Wooden fence
-  PERGOLA            // Pergola
-  TERRASSE_BOIS      // Wooden deck
-  BARDAGE            // Cladding
-  CHARPENTE          // Roof frame
-  OSSATURE_BOIS      // Timber frame
-  VERANDA            // Conservatory
-  STORE              // Awning/blind
+  FENETRE // Window
+  PORTE_INTERIEURE // Interior door
+  PORTE_ENTREE // Entry door
+  PORTE_GARAGE // Garage door
+  PORTE_BLINDEE // Armored/security door
+  VOLET_ROULANT // Roller shutter
+  VOLET_BATTANT // Hinged shutter
+  PERSIENNE // Louvered shutter
+  VELUX // Roof window (skylight)
+  BAIE_VITREE // Sliding glass door
+  PARQUET // Hardwood floor
+  ESCALIER // Staircase
+  MEUBLE_SUR_MESURE // Custom furniture
+  CUISINE // Kitchen
+  PLAN_TRAVAIL // Countertop/worktop
+  DRESSING // Walk-in closet
+  PLACARD // Closet/cabinet
+  BIBLIOTHEQUE // Bookcase
+  LAMBRIS // Wall/ceiling paneling
+  GARDE_CORPS // Railing/balustrade
+  PORTAIL // Gate
+  CLOTURE_BOIS // Wooden fence
+  PERGOLA // Pergola
+  TERRASSE_BOIS // Wooden deck
+  BARDAGE // Cladding
+  CHARPENTE // Roof frame
+  OSSATURE_BOIS // Timber frame
+  VERANDA // Conservatory
+  STORE // Awning/blind
 
   // === PEINTURE (surfaces) ===
-  MUR_INTERIEUR      // Interior wall
-  MUR_EXTERIEUR      // Exterior wall
-  PLAFOND            // Ceiling
-  FACADE             // Facade
-  BOISERIE           // Woodwork
-  FERRONNERIE        // Ironwork
-  SOL                // Floor
-  CAGE_ESCALIER      // Stairwell
+  MUR_INTERIEUR // Interior wall
+  MUR_EXTERIEUR // Exterior wall
+  PLAFOND // Ceiling
+  FACADE // Facade
+  BOISERIE // Woodwork
+  FERRONNERIE // Ironwork
+  SOL // Floor
+  CAGE_ESCALIER // Stairwell
 
   // === GARAGE / AUTOMOBILE ===
-  MOTEUR             // Engine
-  BOITE_VITESSE      // Gearbox/transmission
-  EMBRAYAGE_KIT      // Clutch kit
-  TURBO              // Turbocharger
+  MOTEUR // Engine
+  BOITE_VITESSE // Gearbox/transmission
+  EMBRAYAGE_KIT // Clutch kit
+  TURBO // Turbocharger
   COURROIE_DISTRIBUTION // Timing belt
-  PLAQUETTES_FREIN   // Brake pads
-  DISQUES_FREIN      // Brake discs
-  LIQUIDE_FREIN      // Brake fluid
-  ETRIER_FREIN       // Brake caliper
-  AMORTISSEUR        // Shock absorber
+  PLAQUETTES_FREIN // Brake pads
+  DISQUES_FREIN // Brake discs
+  LIQUIDE_FREIN // Brake fluid
+  ETRIER_FREIN // Brake caliper
+  AMORTISSEUR // Shock absorber
   RESSORT_SUSPENSION // Suspension spring
-  ROTULE             // Ball joint
-  BIELLETTE          // Tie rod
-  SILENT_BLOC        // Silent block/bushing
-  PNEU               // Tire
-  JANTE              // Wheel rim
-  BATTERIE           // Battery
-  ALTERNATEUR        // Alternator
-  DEMARREUR          // Starter motor
-  BOUGIE             // Spark plug
-  POT_ECHAPPEMENT    // Exhaust/muffler
-  CATALYSEUR         // Catalytic converter
-  SILENCIEUX         // Silencer
+  ROTULE // Ball joint
+  BIELLETTE // Tie rod
+  SILENT_BLOC // Silent block/bushing
+  PNEU // Tire
+  JANTE // Wheel rim
+  BATTERIE // Battery
+  ALTERNATEUR // Alternator
+  DEMARREUR // Starter motor
+  BOUGIE // Spark plug
+  POT_ECHAPPEMENT // Exhaust/muffler
+  CATALYSEUR // Catalytic converter
+  SILENCIEUX // Silencer
   CLIMATISATION_AUTO // Car AC system
-  RADIATEUR_AUTO     // Car radiator
-  POMPE_EAU          // Water pump
-  THERMOSTAT_AUTO    // Thermostat (auto)
-  FILTRE_HUILE       // Oil filter
-  FILTRE_AIR         // Air filter
-  FILTRE_HABITACLE   // Cabin filter
-  FILTRE_CARBURANT   // Fuel filter
-  HUILE_MOTEUR       // Engine oil
-  PARE_BRISE         // Windshield
-  PHARE              // Headlight
-  RETROVISEUR        // Mirror
+  RADIATEUR_AUTO // Car radiator
+  POMPE_EAU // Water pump
+  THERMOSTAT_AUTO // Thermostat (auto)
+  FILTRE_HUILE // Oil filter
+  FILTRE_AIR // Air filter
+  FILTRE_HABITACLE // Cabin filter
+  FILTRE_CARBURANT // Fuel filter
+  HUILE_MOTEUR // Engine oil
+  PARE_BRISE // Windshield
+  PHARE // Headlight
+  RETROVISEUR // Mirror
 
   // === COMMUN ===
-  POMPE              // Pump (generic)
-  CONDUIT_FUMEE      // Flue/chimney
-  VENTILATION        // Ventilation system (VMC)
-  AUTRE              // Other
+  POMPE // Pump (generic)
+  CONDUIT_FUMEE // Flue/chimney
+  VENTILATION // Ventilation system (VMC)
+  AUTRE // Other
 }
 
 // Model Intervention (core business for plumbers)
 model Intervention {
-  id        String   @id @default(cuid())
-  numero    String   @unique // INT-001, INT-002, etc.
-  reference String?  // Optional client reference
+  id        String  @id @default(cuid())
+  numero    String  @unique // INT-001, INT-002, etc.
+  reference String? // Optional client reference
 
   // Client information
   client   Client @relation(fields: [clientId], references: [id])
@@ -2486,38 +2536,38 @@ model Intervention {
   priorite         PrioriteIntervention @default(NORMALE)
 
   // Location (geocoding for route optimization)
-  adresse         String
-  codePostal      String
-  ville           String
+  adresse           String
+  codePostal        String
+  ville             String
   complementAdresse String? // Apartment number, building, etc.
-  latitude        Float?
-  longitude       Float?
+  latitude          Float?
+  longitude         Float?
 
   // Issue description
-  description     String  @db.Text // Customer complaint
-  equipement      TypeEquipement?
+  description      String          @db.Text // Customer complaint
+  equipement       TypeEquipement?
   marqueEquipement String? // Equipment brand
   modeleEquipement String? // Equipment model
-  anneeInstall    Int?    // Installation year
+  anneeInstall     Int? // Installation year
 
   // Diagnostic
   diagnosticEffectue Boolean   @default(false)
   diagnosticDetail   String?   @db.Text
   diagnosticDate     DateTime?
-  diagnosticParId    String?   // User ID who performed diagnostic
-  photosAvant        Json?     // Array of photo URLs taken before work
+  diagnosticParId    String? // User ID who performed diagnostic
+  photosAvant        Json? // Array of photo URLs taken before work
 
   // Scheduling
-  dateDemande       DateTime           @default(now())
-  datePrevisionnelle DateTime?         // Expected date/time
-  dateDebut         DateTime?          // Actual start
-  dateFin           DateTime?          // Actual completion
-  dureeEstimeeH     Float?             // Estimated duration in hours
-  dureeReelleH      Float?             // Actual duration in hours
+  dateDemande        DateTime  @default(now())
+  datePrevisionnelle DateTime? // Expected date/time
+  dateDebut          DateTime? // Actual start
+  dateFin            DateTime? // Actual completion
+  dureeEstimeeH      Float? // Estimated duration in hours
+  dureeReelleH       Float? // Actual duration in hours
 
   // Status and workflow
   statut           StatutIntervention @default(DEMANDE)
-  statutChangeLogs Json?              // History of status changes
+  statutChangeLogs Json? // History of status changes
 
   // Plumber assignment
   plombier   User?   @relation("InterventionPlombier", fields: [plombierId], references: [id])
@@ -2528,10 +2578,10 @@ model Intervention {
   camionnetteId String?
 
   // Costs and billing
-  devisEstime  Decimal @default(0) @db.Decimal(10, 2) // Estimated cost
-  coutMain     Decimal @default(0) @db.Decimal(10, 2) // Labor cost
-  coutMateriel Decimal @default(0) @db.Decimal(10, 2) // Materials cost (auto-calculated)
-  coutTotal    Decimal @default(0) @db.Decimal(10, 2) // Total cost
+  devisEstime     Decimal @default(0) @db.Decimal(10, 2) // Estimated cost
+  coutMain        Decimal @default(0) @db.Decimal(10, 2) // Labor cost
+  coutMateriel    Decimal @default(0) @db.Decimal(10, 2) // Materials cost (auto-calculated)
+  coutTotal       Decimal @default(0) @db.Decimal(10, 2) // Total cost
   coutDeplacement Decimal @default(0) @db.Decimal(10, 2) // Travel cost
 
   // Linked document (quote or invoice)
@@ -2543,17 +2593,17 @@ model Intervention {
   contratId String?
 
   // Internal notes
-  notesInternes   String? @db.Text
-  notesPlombier   String? @db.Text
-  photosApres     Json?   // Array of photo URLs taken after work
+  notesInternes String? @db.Text
+  notesPlombier String? @db.Text
+  photosApres   Json? // Array of photo URLs taken after work
 
   // Payment on site
-  payeSurPlace Boolean   @default(false)
+  payeSurPlace  Boolean        @default(false)
   moyenPaiement MoyenPaiement?
-  datePaiement DateTime?
+  datePaiement  DateTime?
 
   // Warranty
-  garantieMois    Int?      // Warranty period in months
+  garantieMois    Int? // Warranty period in months
   dateFinGarantie DateTime? // Warranty end date
 
   // Real-time notifications
@@ -2565,7 +2615,7 @@ model Intervention {
 
   // Relations
   materielUtilise InterventionMateriel[] // Materials used
-  timeLogs        InterventionTimeLog[]  // Time tracking per plumber
+  timeLogs        InterventionTimeLog[] // Time tracking per plumber
   historique      InterventionHistorique[] // Complete history log
 
   createdBy String? // User ID who created the intervention
@@ -2628,14 +2678,14 @@ model InterventionTimeLog {
   dateFin      DateTime?
   dureeMinutes Int? // Auto-calculated duration
 
-  description String  @db.Text
-  type        String  @default("TRAVAUX") // DEPLACEMENT, DIAGNOSTIC, TRAVAUX, TEST
+  description String @db.Text
+  type        String @default("TRAVAUX") // DEPLACEMENT, DIAGNOSTIC, TRAVAUX, TEST
 
   // Location tracking (optional)
-  latitudeDebut   Float?
-  longitudeDebut  Float?
-  latitudeFin     Float?
-  longitudeFin    Float?
+  latitudeDebut  Float?
+  longitudeDebut Float?
+  latitudeFin    Float?
+  longitudeFin   Float?
 
   createdAt DateTime @default(now())
 
@@ -2653,7 +2703,7 @@ model InterventionHistorique {
 
   action      String // "STATUS_CHANGE", "MATERIEL_ADDED", "NOTE_ADDED", "ASSIGNED", etc.
   description String @db.Text
-  metadata    Json?  // Additional data (old/new values)
+  metadata    Json? // Additional data (old/new values)
 
   createdBy String? // User ID
   createdAt DateTime @default(now())
@@ -2665,12 +2715,12 @@ model InterventionHistorique {
 
 // Camionnette (van/vehicle for mobile stock)
 model Camionnette {
-  id           String  @id @default(cuid())
-  nom          String? // Name (optional, generated from immatriculation if not provided)
-  immatriculation String @unique
-  marque       String? // Brand (Renault, Peugeot, etc.)
-  modele       String? // Model
-  annee        Int?    // Year
+  id              String  @id @default(cuid())
+  nom             String? // Name (optional, generated from immatriculation if not provided)
+  immatriculation String  @unique
+  marque          String? // Brand (Renault, Peugeot, etc.)
+  modele          String? // Model
+  annee           Int? // Year
 
   // Assignment
   plombierPrincipal   User?   @relation(fields: [plombierPrincipalId], references: [id])
@@ -2680,10 +2730,10 @@ model Camionnette {
   actif Boolean @default(true)
 
   // Tracking
-  dernierePosition Json? // { latitude, longitude, timestamp }
-  dernierEntretien DateTime?
+  dernierePosition  Json? // { latitude, longitude, timestamp }
+  dernierEntretien  DateTime?
   prochainEntretien DateTime?
-  kilometres Int @default(0)
+  kilometres        Int       @default(0)
 
   // Multi-tenant
   entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
@@ -2715,20 +2765,20 @@ model EntretienVehicule {
   type TypeEntretienVehicule
 
   // Détails
-  description     String?  @db.Text
-  kilometrage     Int?     // Kilométrage au moment de l'entretien
-  cout            Decimal? @db.Decimal(10, 2)
+  description String?  @db.Text
+  kilometrage Int? // Kilométrage au moment de l'entretien
+  cout        Decimal? @db.Decimal(10, 2)
 
   // Dates
-  dateEntretien   DateTime
-  dateProchain    DateTime? // Prochaine date d'entretien recommandée
+  dateEntretien DateTime
+  dateProchain  DateTime? // Prochaine date d'entretien recommandée
 
   // Prestataire
-  prestataire     String?  // Nom du garage/prestataire
-  numeroFacture   String?
+  prestataire   String? // Nom du garage/prestataire
+  numeroFacture String?
 
   // Notes
-  notes           String?  @db.Text
+  notes String? @db.Text
 
   // Multi-tenant
   entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
@@ -2769,21 +2819,21 @@ model StockCamionnette {
   categorie   String? // VANNE, TUYAU, JOINT, RACCORD, etc.
 
   // Stock levels
-  quantite    Int
-  seuilAlerte Int     @default(2) // Alert when below this quantity
+  quantite     Int
+  seuilAlerte  Int     @default(2) // Alert when below this quantity
   prixUnitaire Decimal @db.Decimal(10, 2)
 
   // Specifications (for plumbing parts)
-  diametre  String? // Diameter (12mm, 15/21, etc.)
-  materiau  String? // Material (cuivre, PER, PVC, laiton)
-  longueur  Float?  // Length if applicable (meters)
+  diametre String? // Diameter (12mm, 15/21, etc.)
+  materiau String? // Material (cuivre, PER, PVC, laiton)
+  longueur Float? // Length if applicable (meters)
 
   // Multi-tenant (inherited from camionnette, but useful for queries)
   entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
   entrepriseId String
 
   // Relations
-  mouvements           MouvementStockCamionnette[]
+  mouvements            MouvementStockCamionnette[]
   interventionsMateriel InterventionMateriel[]
 
   createdAt DateTime @default(now())
@@ -2798,12 +2848,12 @@ model StockCamionnette {
 
 // Stock movements for van inventory
 enum TypeMouvementCamionnette {
-  CHARGEMENT     // Loading from depot
-  UTILISATION    // Used in intervention
-  RETOUR_DEPOT   // Return to depot
-  AJUSTEMENT     // Adjustment/correction
-  TRANSFERT      // Transfer between vans
-  PERTE          // Lost/damaged
+  CHARGEMENT // Loading from depot
+  UTILISATION // Used in intervention
+  RETOUR_DEPOT // Return to depot
+  AJUSTEMENT // Adjustment/correction
+  TRANSFERT // Transfer between vans
+  PERTE // Lost/damaged
 }
 
 model MouvementStockCamionnette {
@@ -2812,12 +2862,12 @@ model MouvementStockCamionnette {
   stockCamionnette   StockCamionnette @relation(fields: [stockCamionnetteId], references: [id], onDelete: Cascade)
   stockCamionnetteId String
 
-  type        TypeMouvementCamionnette
-  quantite    Int
-  stockAvant  Int
-  stockApres  Int
-  motif       String?
-  reference   String? // Intervention number if used in intervention
+  type       TypeMouvementCamionnette
+  quantite   Int
+  stockAvant Int
+  stockApres Int
+  motif      String?
+  reference  String? // Intervention number if used in intervention
 
   // User who performed the movement
   createdBy String? // User ID
@@ -2831,88 +2881,88 @@ model MouvementStockCamionnette {
 // Maintenance contracts (recurring revenue)
 enum TypeContratEntretien {
   // Chauffage
-  CHAUDIERE_GAZ      // Gas boiler maintenance
-  CHAUDIERE_FIOUL    // Oil boiler maintenance
-  POMPE_A_CHALEUR    // Heat pump maintenance
-  CLIMATISATION      // AC maintenance
+  CHAUDIERE_GAZ // Gas boiler maintenance
+  CHAUDIERE_FIOUL // Oil boiler maintenance
+  POMPE_A_CHALEUR // Heat pump maintenance
+  CLIMATISATION // AC maintenance
   PLANCHER_CHAUFFANT // Underfloor heating maintenance
   // Plomberie
-  ADOUCISSEUR        // Water softener maintenance
-  PLOMBERIE_GENERAL  // General plumbing (X interventions/year)
+  ADOUCISSEUR // Water softener maintenance
+  PLOMBERIE_GENERAL // General plumbing (X interventions/year)
   // Commun
-  MULTI_EQUIPEMENTS  // Multiple equipment package
-  PERSONNALISE       // Custom contract
+  MULTI_EQUIPEMENTS // Multiple equipment package
+  PERSONNALISE // Custom contract
 }
 
 enum StatutContrat {
-  ACTIF       // Active
-  EXPIRE      // Expired
-  RESILIE     // Terminated
-  EN_ATTENTE  // Pending (not yet started)
-  SUSPENDU    // Suspended
+  ACTIF // Active
+  EXPIRE // Expired
+  RESILIE // Terminated
+  EN_ATTENTE // Pending (not yet started)
+  SUSPENDU // Suspended
 }
 
 enum PeriodiciteContrat {
-  MENSUEL     // Monthly
+  MENSUEL // Monthly
   TRIMESTRIEL // Quarterly
-  SEMESTRIEL  // Semi-annual
-  ANNUEL      // Annual
+  SEMESTRIEL // Semi-annual
+  ANNUEL // Annual
 }
 
 model ContratEntretien {
-  id          String  @id @default(cuid())
-  numero      String  @unique // CONT-001, CONT-002, etc.
-  reference   String? // Optional client reference
+  id        String  @id @default(cuid())
+  numero    String  @unique // CONT-001, CONT-002, etc.
+  reference String? // Optional client reference
 
   // Client
   client   Client @relation(fields: [clientId], references: [id])
   clientId String
 
   // Contract details
-  typeContrat  TypeContratEntretien
-  nom          String  // Contract name
-  description  String? @db.Text
+  typeContrat TypeContratEntretien
+  nom         String // Contract name
+  description String?              @db.Text
 
   // Equipment covered
-  equipements  Json    // Array of equipment with details
-  adresse      String
-  codePostal   String
-  ville        String
+  equipements Json // Array of equipment with details
+  adresse     String
+  codePostal  String
+  ville       String
 
   // Contract terms
-  dateDebut       DateTime
-  dateFin         DateTime
-  dureeAnnees     Int      @default(1)
-  statut          StatutContrat @default(ACTIF)
+  dateDebut   DateTime
+  dateFin     DateTime
+  dureeAnnees Int           @default(1)
+  statut      StatutContrat @default(ACTIF)
 
   // Pricing
-  montantHT       Decimal @db.Decimal(10, 2)
-  montantTTC      Decimal @db.Decimal(10, 2)
-  periodicite     PeriodiciteContrat @default(ANNUEL)
+  montantHT        Decimal            @db.Decimal(10, 2)
+  montantTTC       Decimal            @db.Decimal(10, 2)
+  periodicite      PeriodiciteContrat @default(ANNUEL)
   prochainPaiement DateTime?
 
   // Recurring billing
   facturationAuto Boolean @default(false)
-  jourFacturation Int?    // Day of month for billing
+  jourFacturation Int? // Day of month for billing
 
   // Included services
-  nombreRevisionsAn   Int @default(1) // Number of annual reviews
-  interventionsIncluses Int @default(0) // Included interventions per year
-  interventionsUtilisees Int @default(0) // Used interventions
-  tarifHoraire        Decimal? @db.Decimal(10, 2) // Hourly rate for extra work
-  remisePieces        Decimal  @default(0) @db.Decimal(5, 2) // Discount on parts
+  nombreRevisionsAn      Int      @default(1) // Number of annual reviews
+  interventionsIncluses  Int      @default(0) // Included interventions per year
+  interventionsUtilisees Int      @default(0) // Used interventions
+  tarifHoraire           Decimal? @db.Decimal(10, 2) // Hourly rate for extra work
+  remisePieces           Decimal  @default(0) @db.Decimal(5, 2) // Discount on parts
 
   // Notifications and reminders
-  rappelAvantJours Int @default(30) // Remind client X days before
-  derniereRevision DateTime?
+  rappelAvantJours  Int       @default(30) // Remind client X days before
+  derniereRevision  DateTime?
   prochaineRevision DateTime?
 
   // Notes
-  notes          String? @db.Text
+  notes                String? @db.Text
   clausesParticulieres String? @db.Text
 
   // Renewal
-  renouvellementAuto Boolean @default(true)
+  renouvellementAuto Boolean   @default(true)
   dateResiliation    DateTime?
   motifResiliation   String?
 
@@ -2921,7 +2971,7 @@ model ContratEntretien {
   entrepriseId String
 
   // Relations
-  interventions   Intervention[]      // Linked interventions
+  interventions     Intervention[] // Linked interventions
   entretiensEnCours EntretienPrevu[] // Scheduled maintenances
 
   createdBy String? // User ID
@@ -2940,12 +2990,12 @@ model ContratEntretien {
 
 // Scheduled maintenance from contracts
 enum StatutEntretien {
-  PLANIFIE   // Scheduled
-  CONFIRME   // Confirmed by client
-  EN_COURS   // In progress
-  TERMINE    // Completed
-  REPORTE    // Postponed
-  ANNULE     // Cancelled
+  PLANIFIE // Scheduled
+  CONFIRME // Confirmed by client
+  EN_COURS // In progress
+  TERMINE // Completed
+  REPORTE // Postponed
+  ANNULE // Cancelled
 }
 
 model EntretienPrevu {
@@ -2955,9 +3005,9 @@ model EntretienPrevu {
   contratId String
 
   // Scheduling
-  datePrevue   DateTime
+  datePrevue    DateTime
   dateEffectuee DateTime?
-  statut       StatutEntretien @default(PLANIFIE)
+  statut        StatutEntretien @default(PLANIFIE)
 
   // Assignment
   plombier   User?   @relation(fields: [plombierId], references: [id])
@@ -2970,15 +3020,15 @@ model EntretienPrevu {
   compteRendu        String? @db.Text
   anomaliesDetectees String? @db.Text
   recommandations    String? @db.Text
-  photos             Json?   // Array of photo URLs
+  photos             Json? // Array of photo URLs
 
   // Next maintenance
   prochaineDate DateTime?
 
   // Notifications
-  rappelEnvoye    Boolean   @default(false)
-  dateRappel      DateTime?
-  confirmationClient Boolean @default(false)
+  rappelEnvoye       Boolean   @default(false)
+  dateRappel         DateTime?
+  confirmationClient Boolean   @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -3008,10 +3058,10 @@ enum TypeEnergie {
 
 // Statut de l'équipement
 enum StatutEquipement {
-  EN_SERVICE       // Operational
-  EN_PANNE         // Broken down
-  A_REMPLACER      // Needs replacement
-  HORS_SERVICE     // Out of service
+  EN_SERVICE // Operational
+  EN_PANNE // Broken down
+  A_REMPLACER // Needs replacement
+  HORS_SERVICE // Out of service
   EN_ATTENTE_PIECE // Waiting for parts
 }
 
@@ -3024,53 +3074,53 @@ model EquipementClient {
   clientId String
 
   // Equipment identification
-  type           TypeEquipement
-  marque         String
-  modele         String?
-  numeroSerie    String?
-  puissanceKw    Decimal?    @db.Decimal(10, 2) // Power in kW
-  typeEnergie    TypeEnergie?
+  type        TypeEquipement
+  marque      String
+  modele      String?
+  numeroSerie String?
+  puissanceKw Decimal?       @db.Decimal(10, 2) // Power in kW
+  typeEnergie TypeEnergie?
 
   // Installation details
-  dateInstallation   DateTime?
-  dateMiseEnService  DateTime?
-  installePar        String?   // Company name or "Nous"
-  garantieJusquau    DateTime?
+  dateInstallation  DateTime?
+  dateMiseEnService DateTime?
+  installePar       String? // Company name or "Nous"
+  garantieJusquau   DateTime?
 
   // Location at client's premises
-  emplacement    String?   // "Garage", "Sous-sol", "Combles"...
-  adresse        String?   // If different from client address
-  codePostal     String?
-  ville          String?
-  accessibilite  String?   // Access notes for technician
+  emplacement   String? // "Garage", "Sous-sol", "Combles"...
+  adresse       String? // If different from client address
+  codePostal    String?
+  ville         String?
+  accessibilite String? // Access notes for technician
 
   // Current status
-  statut             StatutEquipement @default(EN_SERVICE)
-  dernierEntretien   DateTime?
-  prochainEntretien  DateTime?        // Next scheduled maintenance
+  statut            StatutEquipement @default(EN_SERVICE)
+  dernierEntretien  DateTime?
+  prochainEntretien DateTime? // Next scheduled maintenance
 
   // Regulatory compliance (for boilers, etc.)
-  controleObligatoire    Boolean @default(false)
-  frequenceControleAnnuel Int     @default(1)  // Number of mandatory checks per year
-  dernierControleAnnuel  DateTime?
-  prochainControleAnnuel DateTime?
-  certificatValide       Boolean @default(false)
+  controleObligatoire     Boolean   @default(false)
+  frequenceControleAnnuel Int       @default(1) // Number of mandatory checks per year
+  dernierControleAnnuel   DateTime?
+  prochainControleAnnuel  DateTime?
+  certificatValide        Boolean   @default(false)
 
   // Performance tracking
-  rendementPourcent  Decimal?  @db.Decimal(5, 2)  // Efficiency %
-  emissionsCO        Decimal?  @db.Decimal(10, 2) // CO emissions (ppm)
-  dateReleve         DateTime?
+  rendementPourcent Decimal?  @db.Decimal(5, 2) // Efficiency %
+  emissionsCO       Decimal?  @db.Decimal(10, 2) // CO emissions (ppm)
+  dateReleve        DateTime?
 
   // Notes
-  notes              String? @db.Text
-  documentsUrls      Json?   // Array of document URLs (manuals, certificates)
+  notes         String? @db.Text
+  documentsUrls Json? // Array of document URLs (manuals, certificates)
 
   // Multi-tenant
   entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
   entrepriseId String
 
   // Relations
-  certificats     CertificatEntretien[]
+  certificats             CertificatEntretien[]
   historiqueInterventions Json? // Snapshot of intervention IDs for this equipment
 
   createdAt DateTime @default(now())
@@ -3095,54 +3145,54 @@ model CertificatEntretien {
   equipementId String
 
   // Certificate details
-  numero            String   @unique
-  dateIntervention  DateTime
-  dateValidite      DateTime // Usually 1 year after intervention
+  numero           String   @unique
+  dateIntervention DateTime
+  dateValidite     DateTime // Usually 1 year after intervention
 
   // Technician
-  technicien   User?   @relation(fields: [technicienId], references: [id])
-  technicienId String?
-  nomTechnicien    String  // Stored for PDF even if user deleted
+  technicien    User?   @relation(fields: [technicienId], references: [id])
+  technicienId  String?
+  nomTechnicien String // Stored for PDF even if user deleted
 
   // Equipment state at time of maintenance
-  typeEquipement   String
-  marque           String
-  modele           String?
-  numeroSerie      String?
-  puissanceKw      Decimal? @db.Decimal(10, 2)
-  typeEnergie      String?
+  typeEquipement    String
+  marque            String
+  modele            String?
+  numeroSerie       String?
+  puissanceKw       Decimal? @db.Decimal(10, 2)
+  typeEnergie       String?
   anneeInstallation Int?
 
   // Measurements & checks (for official certificate)
-  temperatureFumees     Decimal? @db.Decimal(5, 1)  // °C
-  temperatureAmbiante   Decimal? @db.Decimal(5, 1)  // °C
-  tauxCO                Decimal? @db.Decimal(10, 2) // ppm
-  tauxCO2               Decimal? @db.Decimal(5, 2)  // %
-  rendementCombustion   Decimal? @db.Decimal(5, 2)  // %
-  tirage                Decimal? @db.Decimal(5, 2)  // Pa
-  pressionGaz           Decimal? @db.Decimal(5, 2)  // mbar
-  debitGaz              Decimal? @db.Decimal(10, 2) // m³/h
+  temperatureFumees   Decimal? @db.Decimal(5, 1) // °C
+  temperatureAmbiante Decimal? @db.Decimal(5, 1) // °C
+  tauxCO              Decimal? @db.Decimal(10, 2) // ppm
+  tauxCO2             Decimal? @db.Decimal(5, 2) // %
+  rendementCombustion Decimal? @db.Decimal(5, 2) // %
+  tirage              Decimal? @db.Decimal(5, 2) // Pa
+  pressionGaz         Decimal? @db.Decimal(5, 2) // mbar
+  debitGaz            Decimal? @db.Decimal(10, 2) // m³/h
 
   // Checklist items
-  verificationBruleur       Boolean @default(false)
-  verificationVeilleuse     Boolean @default(false)
-  nettoyageCorpChauffe      Boolean @default(false)
-  verificationEtancheite    Boolean @default(false)
-  verificationEvacuation    Boolean @default(false)
-  verificationVentilation   Boolean @default(false)
-  verificationSecurites     Boolean @default(false)
-  verificationRegulation    Boolean @default(false)
-  nettoyageConduitFumee     Boolean @default(false)
-  controleCircuitEau        Boolean @default(false)
-  controleVaseExpansion     Boolean @default(false)
-  controleCirculateur       Boolean @default(false)
-  purgeRadiateurs           Boolean @default(false)
+  verificationBruleur     Boolean @default(false)
+  verificationVeilleuse   Boolean @default(false)
+  nettoyageCorpChauffe    Boolean @default(false)
+  verificationEtancheite  Boolean @default(false)
+  verificationEvacuation  Boolean @default(false)
+  verificationVentilation Boolean @default(false)
+  verificationSecurites   Boolean @default(false)
+  verificationRegulation  Boolean @default(false)
+  nettoyageConduitFumee   Boolean @default(false)
+  controleCircuitEau      Boolean @default(false)
+  controleVaseExpansion   Boolean @default(false)
+  controleCirculateur     Boolean @default(false)
+  purgeRadiateurs         Boolean @default(false)
 
   // Observations & recommendations
-  anomaliesConstatees    String? @db.Text
-  recommandations        String? @db.Text
-  travauxPreconises      String? @db.Text
-  observationsGenerales  String? @db.Text
+  anomaliesConstatees   String? @db.Text
+  recommandations       String? @db.Text
+  travauxPreconises     String? @db.Text
+  observationsGenerales String? @db.Text
 
   // Compliance
   conformeReglementation Boolean @default(true)
@@ -3150,14 +3200,14 @@ model CertificatEntretien {
   dangerImmediat         Boolean @default(false)
 
   // Client signature
-  signatureClient        String? // Base64 or URL
-  dateSignature          DateTime?
-  nomSignataire          String?
+  signatureClient String? // Base64 or URL
+  dateSignature   DateTime?
+  nomSignataire   String?
 
   // PDF
-  pdfUrl                 String?
-  envoiClient            Boolean @default(false)
-  dateEnvoiClient        DateTime?
+  pdfUrl          String?
+  envoiClient     Boolean   @default(false)
+  dateEnvoiClient DateTime?
 
   // Multi-tenant
   entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
@@ -3254,16 +3304,16 @@ model Reservation {
 }
 
 model MenuItem {
-  id          String  @id @default(cuid())
-  nom         String
-  description String?
-  prix        Decimal @db.Decimal(10, 2)
-  categorie   String  @default("Plats") // Entrées, Plats, Desserts, Boissons, Formules, etc.
-  allergenes  Json?   @default("[]") // Array of allergens
+  id               String  @id @default(cuid())
+  nom              String
+  description      String?
+  prix             Decimal @db.Decimal(10, 2)
+  categorie        String  @default("Plats") // Entrées, Plats, Desserts, Boissons, Formules, etc.
+  allergenes       Json?   @default("[]") // Array of allergens
   tempsPreparation Int? // Temps en minutes
-  disponible  Boolean @default(true)
-  imageUrl    String?
-  ordre       Int     @default(0) // Pour trier dans la catégorie
+  disponible       Boolean @default(true)
+  imageUrl         String?
+  ordre            Int     @default(0) // Pour trier dans la catégorie
 
   // Tenant
   entrepriseId String
@@ -3329,8 +3379,8 @@ model Employe {
 
   // Spécialités coach (fitness) - JSON array de strings
   // Ex: ["musculation", "cardio", "yoga", "pilates", "boxe", "crossfit"]
-  specialites Json? // Spécialités du coach (fitness)
-  bio         String? // Biographie/description du coach
+  specialites    Json? // Spécialités du coach (fitness)
+  bio            String? // Biographie/description du coach
   certifications String? // Certifications (BPJEPS, etc.)
 
   // Tenant
@@ -3342,8 +3392,8 @@ model Employe {
   rendezVous     RendezVous[]
 
   // Relations fitness (coach)
-  coursAnimes   CoursCollectif[] // Cours dont il est l'instructeur par défaut
-  seancesAnimees SeanceCours[]   // Séances qu'il anime
+  coursAnimes    CoursCollectif[] // Cours dont il est l'instructeur par défaut
+  seancesAnimees SeanceCours[] // Séances qu'il anime
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -3377,7 +3427,7 @@ model RendezVous {
 
   // Client (optionnel si client existant)
   clientId  String?
-  client    Client?  @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  client    Client? @relation(fields: [clientId], references: [id], onDelete: SetNull)
   nomClient String // Nom si pas de client existant
   telephone String?
   email     String?
@@ -3455,22 +3505,22 @@ model Cabine {
 
 // Statuts d'abonnement fitness
 enum StatutAbonnementFitness {
-  ACTIF       // Abonnement en cours
-  SUSPENDU    // Temporairement suspendu (vacances, blessure)
-  EXPIRE      // Abonnement expiré
-  RESILIE     // Résilié par le client ou l'admin
-  EN_ATTENTE  // En attente de paiement/validation
+  ACTIF // Abonnement en cours
+  SUSPENDU // Temporairement suspendu (vacances, blessure)
+  EXPIRE // Abonnement expiré
+  RESILIE // Résilié par le client ou l'admin
+  EN_ATTENTE // En attente de paiement/validation
 }
 
 // Périodicité de facturation
 enum PeriodiciteFitness {
-  JOURNALIER  // Pass journée
+  JOURNALIER // Pass journée
   HEBDOMADAIRE
   MENSUEL
   TRIMESTRIEL
   SEMESTRIEL
   ANNUEL
-  ILLIMITE    // Abonnement à vie
+  ILLIMITE // Abonnement à vie
 }
 
 // Niveau des cours
@@ -3483,73 +3533,73 @@ enum NiveauCours {
 
 // Statut des séances de cours
 enum StatutSeanceCours {
-  PLANIFIEE    // Séance programmée
-  EN_COURS     // Séance en cours
-  TERMINEE     // Séance terminée
-  ANNULEE      // Séance annulée
-  COMPLETE     // Plus de places disponibles
+  PLANIFIEE // Séance programmée
+  EN_COURS // Séance en cours
+  TERMINEE // Séance terminée
+  ANNULEE // Séance annulée
+  COMPLETE // Plus de places disponibles
 }
 
 // Statut des réservations de cours
 enum StatutReservationCours {
-  CONFIRMEE    // Réservation confirmée
-  EN_ATTENTE   // Liste d'attente
-  ANNULEE      // Annulée par le client
-  NO_SHOW      // Client absent
-  PRESENTE     // Client présent (check-in effectué)
+  CONFIRMEE // Réservation confirmée
+  EN_ATTENTE // Liste d'attente
+  ANNULEE // Annulée par le client
+  NO_SHOW // Client absent
+  PRESENTE // Client présent (check-in effectué)
 }
 
 // Type de salle/zone
 enum TypeSalleFitness {
-  MUSCULATION      // Salle de musculation
-  CARDIO           // Espace cardio
-  COURS_COLLECTIF  // Salle de cours collectifs
-  PISCINE          // Piscine
-  SAUNA            // Sauna/hammam
-  VESTIAIRE        // Vestiaires
-  CROSSFIT         // Box CrossFit
-  YOGA             // Studio yoga/pilates
-  SPINNING         // Salle de cycling
-  BOXE             // Ring/salle de boxe
+  MUSCULATION // Salle de musculation
+  CARDIO // Espace cardio
+  COURS_COLLECTIF // Salle de cours collectifs
+  PISCINE // Piscine
+  SAUNA // Sauna/hammam
+  VESTIAIRE // Vestiaires
+  CROSSFIT // Box CrossFit
+  YOGA // Studio yoga/pilates
+  SPINNING // Salle de cycling
+  BOXE // Ring/salle de boxe
   AUTRE
 }
 
 // Type d'accès (check-in)
 enum TypeAccesFitness {
-  ENTREE          // Entrée standard
-  SORTIE          // Sortie
-  COURS           // Accès pour un cours
-  ESPACE_PREMIUM  // Accès zone premium (spa, etc.)
+  ENTREE // Entrée standard
+  SORTIE // Sortie
+  COURS // Accès pour un cours
+  ESPACE_PREMIUM // Accès zone premium (spa, etc.)
 }
 
 // Types d'abonnements proposés par la salle
 model TypeAbonnementFitness {
   id          String  @id @default(cuid())
-  nom         String  // "Mensuel", "Annuel", "Pass 10 séances"
+  nom         String // "Mensuel", "Annuel", "Pass 10 séances"
   description String?
 
   // Tarification
-  prix        Decimal @db.Decimal(10, 2)
+  prix        Decimal            @db.Decimal(10, 2)
   periodicite PeriodiciteFitness @default(MENSUEL)
 
   // Durée
-  dureeJours  Int?    // Durée en jours (null si illimité ou pass séances)
-  nombreSeances Int?  // Pour les pass (10 séances, 20 séances, etc.)
+  dureeJours    Int? // Durée en jours (null si illimité ou pass séances)
+  nombreSeances Int? // Pour les pass (10 séances, 20 séances, etc.)
 
   // Accès
-  accesIllimite      Boolean @default(true)  // Accès illimité ou limité
-  nombreAccesSemaine Int?    // Si limité: nombre d'accès par semaine
-  accesCours         Boolean @default(true)  // Accès aux cours collectifs
+  accesIllimite      Boolean @default(true) // Accès illimité ou limité
+  nombreAccesSemaine Int? // Si limité: nombre d'accès par semaine
+  accesCours         Boolean @default(true) // Accès aux cours collectifs
   accesZonesPremium  Boolean @default(false) // Accès sauna, spa, etc.
 
   // Options
-  engagementMois     Int     @default(0)    // Durée d'engagement en mois
-  fraisInscription   Decimal @default(0) @db.Decimal(10, 2)
+  engagementMois   Int     @default(0) // Durée d'engagement en mois
+  fraisInscription Decimal @default(0) @db.Decimal(10, 2)
 
   // Statut
-  actif       Boolean @default(true)
-  ordre       Int     @default(0)
-  couleur     String? // Pour l'affichage
+  actif   Boolean @default(true)
+  ordre   Int     @default(0)
+  couleur String? // Pour l'affichage
 
   // Tenant
   entrepriseId String
@@ -3569,46 +3619,46 @@ model TypeAbonnementFitness {
 
 // Abonnements des clients
 model AbonnementFitness {
-  id           String  @id @default(cuid())
-  numero       String  // Numéro unique d'abonnement
+  id     String @id @default(cuid())
+  numero String // Numéro unique d'abonnement
 
   // Client
-  clientId     String
-  client       Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
   // Type d'abonnement
   typeAbonnementId String
   typeAbonnement   TypeAbonnementFitness @relation(fields: [typeAbonnementId], references: [id])
 
   // Dates
-  dateDebut    DateTime
-  dateFin      DateTime?  // Null si illimité
+  dateDebut       DateTime
+  dateFin         DateTime? // Null si illimité
   dateResiliation DateTime? // Si résilié
 
   // Statut
-  statut       StatutAbonnementFitness @default(EN_ATTENTE)
+  statut StatutAbonnementFitness @default(EN_ATTENTE)
 
   // Compteurs (pour les pass séances)
-  seancesRestantes Int?   // Nombre de séances restantes
-  seancesUtilisees Int    @default(0)
+  seancesRestantes Int? // Nombre de séances restantes
+  seancesUtilisees Int  @default(0)
 
   // Paiement
-  montantPaye      Decimal @default(0) @db.Decimal(10, 2)
+  montantPaye      Decimal   @default(0) @db.Decimal(10, 2)
   prochainPaiement DateTime?
   modePaiement     String? // "cb", "prelevement", "especes", "cheque"
 
   // Badge/Carte membre
-  numeroCarte      String? @unique // Numéro de carte/badge
-  codeAcces        String? // Code PIN pour le check-in
+  numeroCarte String? @unique // Numéro de carte/badge
+  codeAcces   String? // Code PIN pour le check-in
 
-  notes            String?
+  notes String?
 
   // Tenant
   entrepriseId String
   entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
 
   // Relations
-  presences    PresenceFitness[]
+  presences PresenceFitness[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -3627,40 +3677,40 @@ model AbonnementFitness {
 // Cours collectifs proposés
 model CoursCollectif {
   id          String  @id @default(cuid())
-  nom         String  // "Yoga Vinyasa", "Spinning Intense", "Body Pump"
+  nom         String // "Yoga Vinyasa", "Spinning Intense", "Body Pump"
   description String?
 
   // Caractéristiques
-  dureeMinutes  Int     @default(60)
-  niveau        NiveauCours @default(TOUS_NIVEAUX)
-  capaciteMax   Int     @default(20)
+  dureeMinutes Int         @default(60)
+  niveau       NiveauCours @default(TOUS_NIVEAUX)
+  capaciteMax  Int         @default(20)
 
   // Catégorie
-  categorie     String? // "cardio", "renforcement", "bien-etre", "danse", "aquatique"
+  categorie String? // "cardio", "renforcement", "bien-etre", "danse", "aquatique"
 
   // Coach par défaut
   instructeurId String?
   instructeur   Employe? @relation(fields: [instructeurId], references: [id], onDelete: SetNull)
 
   // Salle par défaut
-  salleId       String?
-  salle         SalleFitness? @relation(fields: [salleId], references: [id], onDelete: SetNull)
+  salleId String?
+  salle   SalleFitness? @relation(fields: [salleId], references: [id], onDelete: SetNull)
 
   // Options
-  materielNecessaire String?  // "Tapis, serviette, bouteille d'eau"
-  couleur            String?  // Pour le planning
-  actif              Boolean  @default(true)
-  reservationRequise Boolean  @default(true) // Nécessite une réservation
+  materielNecessaire String? // "Tapis, serviette, bouteille d'eau"
+  couleur            String? // Pour le planning
+  actif              Boolean @default(true)
+  reservationRequise Boolean @default(true) // Nécessite une réservation
 
   // Image
-  imageUrl     String?
+  imageUrl String?
 
   // Tenant
   entrepriseId String
   entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
 
   // Relations
-  seances      SeanceCours[]
+  seances SeanceCours[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -3676,35 +3726,35 @@ model CoursCollectif {
 
 // Séances de cours planifiées
 model SeanceCours {
-  id          String  @id @default(cuid())
+  id String @id @default(cuid())
 
   // Cours
-  coursId     String
-  cours       CoursCollectif @relation(fields: [coursId], references: [id], onDelete: Cascade)
+  coursId String
+  cours   CoursCollectif @relation(fields: [coursId], references: [id], onDelete: Cascade)
 
   // Planning
-  dateHeure   DateTime // Date et heure de début
-  dureeMinutes Int?    // Override de la durée du cours
+  dateHeure    DateTime // Date et heure de début
+  dureeMinutes Int? // Override de la durée du cours
 
   // Coach (peut être différent du coach par défaut)
   instructeurId String?
   instructeur   Employe? @relation(fields: [instructeurId], references: [id], onDelete: SetNull)
 
   // Salle (peut être différente de la salle par défaut)
-  salleId       String?
-  salle         SalleFitness? @relation(fields: [salleId], references: [id], onDelete: SetNull)
+  salleId String?
+  salle   SalleFitness? @relation(fields: [salleId], references: [id], onDelete: SetNull)
 
   // Capacité (peut être override)
-  capaciteMax   Int?    // Override de la capacité du cours
+  capaciteMax Int? // Override de la capacité du cours
 
   // Statut
-  statut        StatutSeanceCours @default(PLANIFIEE)
+  statut StatutSeanceCours @default(PLANIFIEE)
 
   // Compteurs
   placesReservees Int @default(0)
 
   // Notes
-  notes         String?
+  notes           String?
   motifAnnulation String? // Si annulée
 
   // Tenant
@@ -3729,25 +3779,25 @@ model SeanceCours {
 
 // Réservations aux cours
 model ReservationCours {
-  id          String  @id @default(cuid())
+  id String @id @default(cuid())
 
   // Séance
-  seanceId    String
-  seance      SeanceCours @relation(fields: [seanceId], references: [id], onDelete: Cascade)
+  seanceId String
+  seance   SeanceCours @relation(fields: [seanceId], references: [id], onDelete: Cascade)
 
   // Client
-  clientId    String
-  client      Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
   // Statut
-  statut      StatutReservationCours @default(CONFIRMEE)
+  statut          StatutReservationCours @default(CONFIRMEE)
   positionAttente Int? // Position dans la liste d'attente
 
   // Check-in
   heureArrivee DateTime? // Heure d'arrivée effective
 
   // Notes
-  notes       String?
+  notes String?
 
   // Tenant
   entrepriseId String
@@ -3768,34 +3818,34 @@ model ReservationCours {
 // Salles et zones de la salle de sport
 model SalleFitness {
   id          String  @id @default(cuid())
-  nom         String  // "Salle Musculation", "Studio 1", "Piscine"
+  nom         String // "Salle Musculation", "Studio 1", "Piscine"
   description String?
 
   // Type
-  type        TypeSalleFitness @default(AUTRE)
+  type TypeSalleFitness @default(AUTRE)
 
   // Capacité
-  capacite    Int     @default(0) // 0 = illimitée
+  capacite Int @default(0) // 0 = illimitée
 
   // Équipements
   equipements String? // Liste des équipements
-  surface     Int?    // Surface en m²
+  surface     Int? // Surface en m²
 
   // Options
-  reservable  Boolean @default(false) // Peut être réservée
-  premium     Boolean @default(false) // Zone premium (accès restreint)
-  actif       Boolean @default(true)
-  ordre       Int     @default(0)
-  couleur     String? // Pour l'affichage
+  reservable Boolean @default(false) // Peut être réservée
+  premium    Boolean @default(false) // Zone premium (accès restreint)
+  actif      Boolean @default(true)
+  ordre      Int     @default(0)
+  couleur    String? // Pour l'affichage
 
   // Tenant
   entrepriseId String
   entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
 
   // Relations
-  cours       CoursCollectif[] // Cours qui s'y déroulent par défaut
-  seances     SeanceCours[]    // Séances qui s'y déroulent
-  presences   PresenceFitness[] // Check-ins dans cette zone
+  cours     CoursCollectif[] // Cours qui s'y déroulent par défaut
+  seances   SeanceCours[] // Séances qui s'y déroulent
+  presences PresenceFitness[] // Check-ins dans cette zone
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -3809,32 +3859,32 @@ model SalleFitness {
 
 // Check-ins / Présences
 model PresenceFitness {
-  id          String  @id @default(cuid())
+  id String @id @default(cuid())
 
   // Client
-  clientId    String
-  client      Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
   // Abonnement utilisé
   abonnementId String?
   abonnement   AbonnementFitness? @relation(fields: [abonnementId], references: [id], onDelete: SetNull)
 
   // Type d'accès
-  typeAcces   TypeAccesFitness @default(ENTREE)
+  typeAcces TypeAccesFitness @default(ENTREE)
 
   // Horaires
-  heureEntree DateTime @default(now())
+  heureEntree DateTime  @default(now())
   heureSortie DateTime?
 
   // Salle/Zone (optionnel)
-  salleId     String?
-  salle       SalleFitness? @relation(fields: [salleId], references: [id], onDelete: SetNull)
+  salleId String?
+  salle   SalleFitness? @relation(fields: [salleId], references: [id], onDelete: SetNull)
 
   // Méthode de check-in
   methodCheckin String? // "badge", "code", "manuel", "app"
 
   // Notes
-  notes       String?
+  notes String?
 
   // Tenant
   entrepriseId String
@@ -3859,18 +3909,18 @@ model PresenceFitness {
 
 enum TypeFacturation {
   FORFAIT // Fixed price for the mission
-  REGIE   // Time & materials (hourly billing)
-  MIXTE   // Fixed price + hourly overruns
+  REGIE // Time & materials (hourly billing)
+  MIXTE // Fixed price + hourly overruns
 }
 
 enum StatutMission {
   PROPOSITION // Quote sent, waiting for approval
-  VALIDEE     // Approved, not started yet
-  EN_COURS    // Work in progress
-  LIVREE      // Delivered, pending invoicing
-  FACTUREE    // Invoiced
-  CLOTUREE    // Closed/archived
-  ANNULEE     // Cancelled
+  VALIDEE // Approved, not started yet
+  EN_COURS // Work in progress
+  LIVREE // Delivered, pending invoicing
+  FACTUREE // Invoiced
+  CLOTUREE // Closed/archived
+  ANNULEE // Cancelled
 }
 
 // ============================================
@@ -3879,129 +3929,129 @@ enum StatutMission {
 
 // Type de dossier comptable
 enum TypeDossierComptable {
-  BILAN           // Bilan annuel
-  LIASSE_FISCALE  // Liasse fiscale
-  TVA             // Déclaration TVA
-  IS              // Impôt sur les sociétés
-  IR              // Impôt sur le revenu
-  PAIE            // Gestion de la paie
-  SOCIAL          // Déclarations sociales (URSSAF, etc.)
-  COMPTABILITE    // Tenue comptable courante
-  CONSEIL         // Mission de conseil
-  AUDIT           // Audit/révision des comptes
-  JURIDIQUE       // Missions juridiques (AG, statuts, etc.)
-  AUTRE           // Autre type de mission
+  BILAN // Bilan annuel
+  LIASSE_FISCALE // Liasse fiscale
+  TVA // Déclaration TVA
+  IS // Impôt sur les sociétés
+  IR // Impôt sur le revenu
+  PAIE // Gestion de la paie
+  SOCIAL // Déclarations sociales (URSSAF, etc.)
+  COMPTABILITE // Tenue comptable courante
+  CONSEIL // Mission de conseil
+  AUDIT // Audit/révision des comptes
+  JURIDIQUE // Missions juridiques (AG, statuts, etc.)
+  AUTRE // Autre type de mission
 }
 
 // Périodicité des échéances
 enum PeriodiciteEcheance {
-  PONCTUEL      // Une seule fois
-  MENSUEL       // Chaque mois
-  TRIMESTRIEL   // Chaque trimestre
-  SEMESTRIEL    // Chaque semestre
-  ANNUEL        // Chaque année
+  PONCTUEL // Une seule fois
+  MENSUEL // Chaque mois
+  TRIMESTRIEL // Chaque trimestre
+  SEMESTRIEL // Chaque semestre
+  ANNUEL // Chaque année
 }
 
 // Statut d'une échéance fiscale
 enum StatutEcheance {
-  A_VENIR       // Échéance à venir
-  EN_COURS      // Travail en cours
-  PRET          // Prêt pour dépôt
-  DEPOSE        // Déposé/transmis
-  VALIDE        // Validé par l'administration
-  EN_RETARD     // En retard
+  A_VENIR // Échéance à venir
+  EN_COURS // Travail en cours
+  PRET // Prêt pour dépôt
+  DEPOSE // Déposé/transmis
+  VALIDE // Validé par l'administration
+  EN_RETARD // En retard
 }
 
 // Régime fiscal de l'entreprise cliente
 enum RegimeFiscal {
-  REEL_NORMAL      // Réel normal
-  REEL_SIMPLIFIE   // Réel simplifié
-  MICRO            // Micro-entreprise / Auto-entrepreneur
+  REEL_NORMAL // Réel normal
+  REEL_SIMPLIFIE // Réel simplifié
+  MICRO // Micro-entreprise / Auto-entrepreneur
 }
 
 // Régime de TVA
 enum RegimeTVA {
-  MENSUEL          // Déclaration mensuelle (CA3)
-  TRIMESTRIEL      // Déclaration trimestrielle
-  ANNUEL           // Déclaration annuelle (CA12)
-  FRANCHISE        // Franchise en base de TVA
+  MENSUEL // Déclaration mensuelle (CA3)
+  TRIMESTRIEL // Déclaration trimestrielle
+  ANNUEL // Déclaration annuelle (CA12)
+  FRANCHISE // Franchise en base de TVA
 }
 
 // Forme juridique de l'entreprise cliente
 enum FormeJuridique {
-  SARL             // Société à responsabilité limitée
-  SAS              // Société par actions simplifiée
-  SA               // Société anonyme
-  EURL             // Entreprise unipersonnelle à responsabilité limitée
-  SASU             // Société par actions simplifiée unipersonnelle
-  EI               // Entreprise individuelle
-  EIRL             // Entreprise individuelle à responsabilité limitée
-  SCI              // Société civile immobilière
-  SNC              // Société en nom collectif
-  ASSOCIATION      // Association loi 1901
-  AUTRE            // Autre forme juridique
+  SARL // Société à responsabilité limitée
+  SAS // Société par actions simplifiée
+  SA // Société anonyme
+  EURL // Entreprise unipersonnelle à responsabilité limitée
+  SASU // Société par actions simplifiée unipersonnelle
+  EI // Entreprise individuelle
+  EIRL // Entreprise individuelle à responsabilité limitée
+  SCI // Société civile immobilière
+  SNC // Société en nom collectif
+  ASSOCIATION // Association loi 1901
+  AUTRE // Autre forme juridique
 }
 
 // Type d'imposition
 enum TypeImposition {
-  IS               // Impôt sur les sociétés
-  IR               // Impôt sur le revenu
+  IS // Impôt sur les sociétés
+  IR // Impôt sur le revenu
 }
 
 // Mission (project for consultants / dossier for accountants)
 model Mission {
-  id          String   @id @default(cuid())
-  numero      String   // MISS-2024-001 or DOSS-2024-001
-  nom         String   // Mission title
-  description String?  @db.Text
+  id          String  @id @default(cuid())
+  numero      String // MISS-2024-001 or DOSS-2024-001
+  nom         String // Mission title
+  description String? @db.Text
 
   // Client
-  clientId    String
-  client      Client   @relation(fields: [clientId], references: [id])
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id])
 
   // Comptabilite specific (optional, for accounting firms)
   typeDossier    TypeDossierComptable? // Type of accounting file
-  periodicite    PeriodiciteEcheance?  // Recurrence for recurring tasks
-  exerciceFiscal String?               // Fiscal year (e.g., "2024" or "2024-2025")
-  anneeReference Int?                  // Reference year for declarations
+  periodicite    PeriodiciteEcheance? // Recurrence for recurring tasks
+  exerciceFiscal String? // Fiscal year (e.g., "2024" or "2024-2025")
+  anneeReference Int? // Reference year for declarations
 
   // Billing configuration
   typeFact       TypeFacturation @default(REGIE)
   montantForfait Decimal?        @db.Decimal(10, 2) // Fixed price (if FORFAIT or MIXTE)
   tauxHoraire    Decimal?        @db.Decimal(10, 2) // Hourly rate (if REGIE or MIXTE)
-  budgetHeures   Int?            // Estimated hours in minutes
+  budgetHeures   Int? // Estimated hours in minutes
 
   // Scheduling
-  dateDebut      DateTime?       @db.Date
-  dateFin        DateTime?       @db.Date
-  dateEcheance   DateTime?       @db.Date // Deadline
+  dateDebut    DateTime? @db.Date
+  dateFin      DateTime? @db.Date
+  dateEcheance DateTime? @db.Date // Deadline
 
   // Status
-  statut         StatutMission   @default(PROPOSITION)
+  statut StatutMission @default(PROPOSITION)
 
   // Calculated totals (updated on time entry changes)
-  totalHeures    Int             @default(0) // Total minutes tracked
-  totalFacturable Int            @default(0) // Billable minutes
-  totalMontant   Decimal         @default(0) @db.Decimal(10, 2) // Total amount
+  totalHeures     Int     @default(0) // Total minutes tracked
+  totalFacturable Int     @default(0) // Billable minutes
+  totalMontant    Decimal @default(0) @db.Decimal(10, 2) // Total amount
 
   // Link to quote (if created from a quote)
-  devisId        String?
-  devis          Document?       @relation("MissionDevis", fields: [devisId], references: [id])
+  devisId String?
+  devis   Document? @relation("MissionDevis", fields: [devisId], references: [id])
 
   // Multi-tenant
-  entrepriseId   String
-  entreprise     Entreprise      @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
 
   // Creator
-  createdById    String?
+  createdById String?
 
   // Relations
-  entreesTemps   EntreeTemps[]
-  factures       Document[]      @relation("MissionFactures")
-  echeances      EcheanceFiscale[] // Fiscal deadlines related to this mission
+  entreesTemps EntreeTemps[]
+  factures     Document[]        @relation("MissionFactures")
+  echeances    EcheanceFiscale[] // Fiscal deadlines related to this mission
 
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([entrepriseId, numero])
   @@index([entrepriseId])
@@ -4016,40 +4066,40 @@ model Mission {
 
 // Time entry for consulting missions
 model EntreeTemps {
-  id          String   @id @default(cuid())
+  id String @id @default(cuid())
 
   // Mission
-  missionId   String
-  mission     Mission  @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  missionId String
+  mission   Mission @relation(fields: [missionId], references: [id], onDelete: Cascade)
 
   // User who tracked time
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
   // Time data
   date        DateTime @db.Date
-  duree       Int      // Duration in minutes
+  duree       Int // Duration in minutes
   description String   @db.Text
 
   // Billing
-  facturable  Boolean  @default(true)
-  tauxHoraire Decimal  @db.Decimal(10, 2) // Hourly rate applied
-  montant     Decimal  @db.Decimal(10, 2) // Calculated amount (duree/60 * tauxHoraire)
+  facturable  Boolean @default(true)
+  tauxHoraire Decimal @db.Decimal(10, 2) // Hourly rate applied
+  montant     Decimal @db.Decimal(10, 2) // Calculated amount (duree/60 * tauxHoraire)
 
   // Invoice link (when invoiced)
-  facturee    Boolean  @default(false)
-  factureId   String?  // Document ID when invoiced
+  facturee  Boolean @default(false)
+  factureId String? // Document ID when invoiced
 
   // Timer support
-  timerStart  DateTime? // Start time if using timer
-  timerEnd    DateTime? // End time if using timer
+  timerStart DateTime? // Start time if using timer
+  timerEnd   DateTime? // End time if using timer
 
   // Multi-tenant
   entrepriseId String
   entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([entrepriseId])
   @@index([missionId])
@@ -4067,47 +4117,47 @@ model EntreeTemps {
 // ============================================================================
 
 model EcheanceFiscale {
-  id          String   @id @default(cuid())
+  id String @id @default(cuid())
 
   // Lien avec le dossier/mission
-  missionId   String
-  mission     Mission  @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  missionId String
+  mission   Mission @relation(fields: [missionId], references: [id], onDelete: Cascade)
 
   // Lien direct avec le client (pour faciliter les requêtes)
-  clientId    String
-  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
   // Type d'échéance
-  type        TypeDossierComptable
-  libelle     String                // Ex: "TVA CA3 Octobre 2024", "Bilan 2023"
+  type    TypeDossierComptable
+  libelle String // Ex: "TVA CA3 Octobre 2024", "Bilan 2023"
 
   // Dates
-  dateEcheance    DateTime          // Date limite légale
-  dateRealisation DateTime?         // Date de réalisation effective
-  dateDepot       DateTime?         // Date de dépôt aux impôts
+  dateEcheance    DateTime // Date limite légale
+  dateRealisation DateTime? // Date de réalisation effective
+  dateDepot       DateTime? // Date de dépôt aux impôts
 
   // Statut et suivi
-  statut          StatutEcheance @default(A_VENIR)
-  periodicite     PeriodiciteEcheance @default(PONCTUEL)
+  statut      StatutEcheance      @default(A_VENIR)
+  periodicite PeriodiciteEcheance @default(PONCTUEL)
 
   // Informations complémentaires
-  exerciceFiscal  String?           // Ex: "2024", "2024-2025"
-  periodeDebut    DateTime?         // Début de la période concernée
-  periodeFin      DateTime?         // Fin de la période concernée
-  montant         Float?            // Montant déclaré (si applicable)
-  reference       String?           // Référence du dépôt / numéro de formulaire
-  notes           String?           // Notes internes
+  exerciceFiscal String? // Ex: "2024", "2024-2025"
+  periodeDebut   DateTime? // Début de la période concernée
+  periodeFin     DateTime? // Fin de la période concernée
+  montant        Float? // Montant déclaré (si applicable)
+  reference      String? // Référence du dépôt / numéro de formulaire
+  notes          String? // Notes internes
 
   // Rappels
-  rappelEnvoye    Boolean  @default(false)
-  dateRappel      DateTime?
+  rappelEnvoye Boolean   @default(false)
+  dateRappel   DateTime?
 
   // Multi-tenant
   entrepriseId String
   entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([entrepriseId])
   @@index([missionId])
@@ -4126,210 +4176,210 @@ model EcheanceFiscale {
 
 // Domaine de droit de l'affaire
 enum DomaineJuridique {
-  CIVIL                // Droit civil général
-  FAMILLE              // Droit de la famille (divorce, garde, succession)
-  PENAL                // Droit pénal
-  COMMERCIAL           // Droit commercial et des affaires
-  SOCIAL               // Droit du travail
-  IMMOBILIER           // Droit immobilier
-  ADMINISTRATIF        // Droit administratif
-  FISCAL               // Droit fiscal
-  PROPRIETE_INTELLECTUELLE  // Propriété intellectuelle, marques, brevets
-  CONSOMMATION         // Droit de la consommation
-  ASSURANCE            // Droit des assurances
-  BANCAIRE             // Droit bancaire
-  SOCIETES             // Droit des sociétés
-  CONSTRUCTION         // Droit de la construction
-  ENVIRONNEMENT        // Droit de l'environnement
-  NUMERIQUE            // Droit du numérique, RGPD
-  AUTRE                // Autre domaine
+  CIVIL // Droit civil général
+  FAMILLE // Droit de la famille (divorce, garde, succession)
+  PENAL // Droit pénal
+  COMMERCIAL // Droit commercial et des affaires
+  SOCIAL // Droit du travail
+  IMMOBILIER // Droit immobilier
+  ADMINISTRATIF // Droit administratif
+  FISCAL // Droit fiscal
+  PROPRIETE_INTELLECTUELLE // Propriété intellectuelle, marques, brevets
+  CONSOMMATION // Droit de la consommation
+  ASSURANCE // Droit des assurances
+  BANCAIRE // Droit bancaire
+  SOCIETES // Droit des sociétés
+  CONSTRUCTION // Droit de la construction
+  ENVIRONNEMENT // Droit de l'environnement
+  NUMERIQUE // Droit du numérique, RGPD
+  AUTRE // Autre domaine
 }
 
 // Type de procédure
 enum TypeProcedure {
-  CONTENTIEUX          // Procédure contentieuse (litige)
-  AMIABLE              // Règlement amiable, médiation
-  CONSEIL              // Mission de conseil pure
-  REDACTION            // Rédaction d'actes
-  NEGOCIATION          // Négociation contractuelle
-  AUDIT                // Audit juridique
-  RECOUVREMENT         // Recouvrement de créances
-  EXECUTION            // Exécution de décision
+  CONTENTIEUX // Procédure contentieuse (litige)
+  AMIABLE // Règlement amiable, médiation
+  CONSEIL // Mission de conseil pure
+  REDACTION // Rédaction d'actes
+  NEGOCIATION // Négociation contractuelle
+  AUDIT // Audit juridique
+  RECOUVREMENT // Recouvrement de créances
+  EXECUTION // Exécution de décision
 }
 
 // Juridiction compétente
 enum Juridiction {
   // Juridictions civiles
-  TRIBUNAL_JUDICIAIRE       // TJ (ex-TGI)
-  TRIBUNAL_PROXIMITE        // Tribunal de proximité
-  TRIBUNAL_COMMERCE         // Tribunal de commerce
-  CONSEIL_PRUDHOMMES        // Conseil de prud'hommes
+  TRIBUNAL_JUDICIAIRE // TJ (ex-TGI)
+  TRIBUNAL_PROXIMITE // Tribunal de proximité
+  TRIBUNAL_COMMERCE // Tribunal de commerce
+  CONSEIL_PRUDHOMMES // Conseil de prud'hommes
 
   // Juridictions pénales
-  TRIBUNAL_POLICE           // Tribunal de police (contraventions)
-  TRIBUNAL_CORRECTIONNEL    // Tribunal correctionnel (délits)
-  COUR_ASSISES              // Cour d'assises (crimes)
-  JUGE_INSTRUCTION          // Cabinet d'instruction
+  TRIBUNAL_POLICE // Tribunal de police (contraventions)
+  TRIBUNAL_CORRECTIONNEL // Tribunal correctionnel (délits)
+  COUR_ASSISES // Cour d'assises (crimes)
+  JUGE_INSTRUCTION // Cabinet d'instruction
 
   // Cours d'appel et cassation
-  COUR_APPEL                // Cour d'appel
-  COUR_CASSATION            // Cour de cassation
+  COUR_APPEL // Cour d'appel
+  COUR_CASSATION // Cour de cassation
 
   // Juridictions administratives
-  TRIBUNAL_ADMINISTRATIF    // Tribunal administratif
+  TRIBUNAL_ADMINISTRATIF // Tribunal administratif
   COUR_ADMINISTRATIVE_APPEL // Cour administrative d'appel
-  CONSEIL_ETAT              // Conseil d'État
+  CONSEIL_ETAT // Conseil d'État
 
   // Autres
-  MEDIATEUR                 // Médiateur
-  ARBITRAGE                 // Tribunal arbitral
-  JAF                       // Juge aux affaires familiales
-  JEX                       // Juge de l'exécution
-  AUTRE                     // Autre juridiction
+  MEDIATEUR // Médiateur
+  ARBITRAGE // Tribunal arbitral
+  JAF // Juge aux affaires familiales
+  JEX // Juge de l'exécution
+  AUTRE // Autre juridiction
 }
 
 // Statut d'une affaire juridique
 enum StatutAffaire {
-  ETUDE              // En cours d'étude / prise en charge
-  INSTRUCTION        // Phase d'instruction
-  MISE_EN_ETAT       // Mise en état
-  AUDIENCE           // Audience fixée
-  DELIBERE           // En délibéré
-  DECISION           // Décision rendue
-  APPEL              // En appel
-  EXECUTEE           // Exécution en cours
-  CLOTUREE           // Affaire clôturée
-  ARCHIVEE           // Affaire archivée
+  ETUDE // En cours d'étude / prise en charge
+  INSTRUCTION // Phase d'instruction
+  MISE_EN_ETAT // Mise en état
+  AUDIENCE // Audience fixée
+  DELIBERE // En délibéré
+  DECISION // Décision rendue
+  APPEL // En appel
+  EXECUTEE // Exécution en cours
+  CLOTUREE // Affaire clôturée
+  ARCHIVEE // Affaire archivée
 }
 
 // Type d'échéance procédurale
 enum TypeEcheanceProcedurale {
-  AUDIENCE           // Date d'audience
-  CONCLUSIONS        // Dépôt de conclusions
-  PIECES             // Communication de pièces
-  RECOURS            // Délai de recours (appel, cassation)
-  SIGNIFICATION      // Signification d'acte
-  EXECUTION          // Délai d'exécution
-  PRESCRIPTION       // Délai de prescription
-  MEDIATION          // Séance de médiation
-  EXPERTISE          // Opérations d'expertise
-  COMPARUTION        // Comparution
-  DELIBERE           // Délibéré
-  DECISION           // Date de décision
-  AUTRE              // Autre échéance
+  AUDIENCE // Date d'audience
+  CONCLUSIONS // Dépôt de conclusions
+  PIECES // Communication de pièces
+  RECOURS // Délai de recours (appel, cassation)
+  SIGNIFICATION // Signification d'acte
+  EXECUTION // Délai d'exécution
+  PRESCRIPTION // Délai de prescription
+  MEDIATION // Séance de médiation
+  EXPERTISE // Opérations d'expertise
+  COMPARUTION // Comparution
+  DELIBERE // Délibéré
+  DECISION // Date de décision
+  AUTRE // Autre échéance
 }
 
 // Statut d'une échéance procédurale
 enum StatutEcheanceProcedurale {
-  A_VENIR            // Échéance à venir
-  EN_PREPARATION     // En cours de préparation
-  PRET               // Documents prêts
-  EFFECTUEE          // Échéance effectuée
-  REPORTEE           // Reportée
-  ANNULEE            // Annulée
+  A_VENIR // Échéance à venir
+  EN_PREPARATION // En cours de préparation
+  PRET // Documents prêts
+  EFFECTUEE // Échéance effectuée
+  REPORTEE // Reportée
+  ANNULEE // Annulée
 }
 
 // Type d'honoraires
 enum TypeHonoraires {
-  TEMPS_PASSE        // Facturation au temps passé
-  FORFAIT            // Honoraires forfaitaires
-  RESULTAT           // Honoraires de résultat
-  MIXTE              // Forfait + temps passé ou résultat
-  AIDE_JURIDICTIONNELLE  // Aide juridictionnelle
+  TEMPS_PASSE // Facturation au temps passé
+  FORFAIT // Honoraires forfaitaires
+  RESULTAT // Honoraires de résultat
+  MIXTE // Forfait + temps passé ou résultat
+  AIDE_JURIDICTIONNELLE // Aide juridictionnelle
 }
 
 // Qualité d'une partie
 enum QualitePartie {
-  DEMANDEUR          // Demandeur (qui introduit l'action)
-  DEFENDEUR          // Défendeur
-  PARTIE_CIVILE      // Partie civile (pénal)
-  PREVENU            // Prévenu (pénal)
-  ACCUSE             // Accusé (assises)
-  APPELANT           // Appelant
-  INTIME             // Intimé (appel)
-  INTERVENANT        // Intervenant volontaire/forcé
-  TIERS              // Tiers
+  DEMANDEUR // Demandeur (qui introduit l'action)
+  DEFENDEUR // Défendeur
+  PARTIE_CIVILE // Partie civile (pénal)
+  PREVENU // Prévenu (pénal)
+  ACCUSE // Accusé (assises)
+  APPELANT // Appelant
+  INTIME // Intimé (appel)
+  INTERVENANT // Intervenant volontaire/forcé
+  TIERS // Tiers
 }
 
 // Type de diligence (action effectuée)
 enum TypeDiligence {
-  CONSULTATION       // Consultation client
-  RECHERCHE          // Recherches juridiques
-  REDACTION          // Rédaction d'actes/conclusions
-  AUDIENCE           // Présence à l'audience
-  NEGOCIATION        // Négociation
-  CORRESPONDANCE     // Courriers, emails
-  TELEPHONE          // Appels téléphoniques
-  REUNION            // Réunion
-  DEPLACEMENT        // Déplacement
-  EXPERTISE          // Participation expertise
-  ADMINISTRATIF      // Formalités administratives
-  AUTRE              // Autre diligence
+  CONSULTATION // Consultation client
+  RECHERCHE // Recherches juridiques
+  REDACTION // Rédaction d'actes/conclusions
+  AUDIENCE // Présence à l'audience
+  NEGOCIATION // Négociation
+  CORRESPONDANCE // Courriers, emails
+  TELEPHONE // Appels téléphoniques
+  REUNION // Réunion
+  DEPLACEMENT // Déplacement
+  EXPERTISE // Participation expertise
+  ADMINISTRATIF // Formalités administratives
+  AUTRE // Autre diligence
 }
 
 // Affaire juridique (dossier client)
 model Affaire {
-  id            String   @id @default(cuid())
-  reference     String   // Référence interne: AFF-2024-001
-  intitule      String   // Intitulé de l'affaire
-  description   String?  @db.Text
+  id          String  @id @default(cuid())
+  reference   String // Référence interne: AFF-2024-001
+  intitule    String // Intitulé de l'affaire
+  description String? @db.Text
 
   // Client
   clientId      String
-  client        Client   @relation(fields: [clientId], references: [id])
+  client        Client        @relation(fields: [clientId], references: [id])
   qualiteClient QualitePartie @default(DEMANDEUR)
 
   // Classification
   domaine       DomaineJuridique
-  typeProcedure TypeProcedure @default(CONTENTIEUX)
+  typeProcedure TypeProcedure    @default(CONTENTIEUX)
   juridiction   Juridiction?
-  chambre       String?       // Chambre du tribunal
+  chambre       String? // Chambre du tribunal
 
   // Numéros de procédure
-  numeroRG      String?       // Numéro de rôle général
-  numeroParquet String?       // Numéro parquet (pénal)
+  numeroRG      String? // Numéro de rôle général
+  numeroParquet String? // Numéro parquet (pénal)
 
   // Dates clés
-  dateOuverture   DateTime @default(now())
-  dateFaits       DateTime?     // Date des faits litigieux
-  dateCloture     DateTime?
+  dateOuverture DateTime  @default(now())
+  dateFaits     DateTime? // Date des faits litigieux
+  dateCloture   DateTime?
 
   // Parties adverses
-  parties         PartieAdverse[]
+  parties PartieAdverse[]
 
   // Honoraires
-  typeHonoraires    TypeHonoraires @default(TEMPS_PASSE)
-  tauxHoraire       Decimal?       @db.Decimal(10, 2)
-  montantForfait    Decimal?       @db.Decimal(10, 2)
-  provision         Decimal?       @db.Decimal(10, 2)  // Provision versée
-  montantAJ         Decimal?       @db.Decimal(10, 2)  // Montant aide juridictionnelle
+  typeHonoraires TypeHonoraires @default(TEMPS_PASSE)
+  tauxHoraire    Decimal?       @db.Decimal(10, 2)
+  montantForfait Decimal?       @db.Decimal(10, 2)
+  provision      Decimal?       @db.Decimal(10, 2) // Provision versée
+  montantAJ      Decimal?       @db.Decimal(10, 2) // Montant aide juridictionnelle
 
   // Enjeu financier
-  enjeuFinancier    Decimal?       @db.Decimal(12, 2)
+  enjeuFinancier Decimal? @db.Decimal(12, 2)
 
   // Statut
-  statut          StatutAffaire @default(ETUDE)
+  statut StatutAffaire @default(ETUDE)
 
   // Relations
-  echeances       EcheanceProcedurale[]
-  diligences      Diligence[]  // Temps passé et actions sur l'affaire
+  echeances  EcheanceProcedurale[]
+  diligences Diligence[] // Temps passé et actions sur l'affaire
 
   // Avocat en charge (si plusieurs dans le cabinet)
-  responsableId   String?
+  responsableId String?
 
   // Documents liés (via Document existant)
-  devisId         String?       // Convention d'honoraires
+  devisId String? // Convention d'honoraires
 
   // Conflit d'intérêts vérifié
-  conflitVerifie  Boolean @default(false)
+  conflitVerifie   Boolean   @default(false)
   dateVerifConflit DateTime?
 
   // Multi-tenant
   entrepriseId String
   entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Index pour performances
   @@index([entrepriseId])
@@ -4345,34 +4395,34 @@ model Affaire {
 
 // Partie adverse dans une affaire
 model PartieAdverse {
-  id            String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  affaireId     String
-  affaire       Affaire  @relation(fields: [affaireId], references: [id], onDelete: Cascade)
+  affaireId String
+  affaire   Affaire @relation(fields: [affaireId], references: [id], onDelete: Cascade)
 
   // Identification
   nom           String
   prenom        String?
-  raisonSociale String?       // Si personne morale
+  raisonSociale String? // Si personne morale
   qualite       QualitePartie
 
   // Contact
-  adresse       String?
-  email         String?
-  telephone     String?
+  adresse   String?
+  email     String?
+  telephone String?
 
   // Représentation
-  avocat        String?       // Nom de l'avocat adverse
-  avocatBarreau String?       // Barreau de l'avocat adverse
-  avocatEmail   String?
+  avocat          String? // Nom de l'avocat adverse
+  avocatBarreau   String? // Barreau de l'avocat adverse
+  avocatEmail     String?
   avocatTelephone String?
 
   // Multi-tenant
   entrepriseId String
   entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([affaireId])
   @@index([entrepriseId])
@@ -4381,40 +4431,40 @@ model PartieAdverse {
 
 // Échéance procédurale
 model EcheanceProcedurale {
-  id            String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  affaireId     String
-  affaire       Affaire  @relation(fields: [affaireId], references: [id], onDelete: Cascade)
+  affaireId String
+  affaire   Affaire @relation(fields: [affaireId], references: [id], onDelete: Cascade)
 
   // Type et libellé
-  type          TypeEcheanceProcedurale
-  libelle       String   // Ex: "Audience de plaidoirie", "Dépôt conclusions n°2"
-  description   String?  @db.Text
+  type        TypeEcheanceProcedurale
+  libelle     String // Ex: "Audience de plaidoirie", "Dépôt conclusions n°2"
+  description String?                 @db.Text
 
   // Dates
-  dateEcheance  DateTime
-  heureDebut    String?  // Format "HH:MM"
-  heureFin      String?
+  dateEcheance DateTime
+  heureDebut   String? // Format "HH:MM"
+  heureFin     String?
 
   // Lieu (si audience/expertise)
-  lieu          String?  // Salle d'audience, adresse expertise
+  lieu String? // Salle d'audience, adresse expertise
 
   // Statut
-  statut        StatutEcheanceProcedurale @default(A_VENIR)
+  statut StatutEcheanceProcedurale @default(A_VENIR)
 
   // Résultat (après l'échéance)
-  resultat      String?  @db.Text  // Notes sur ce qui s'est passé
+  resultat String? @db.Text // Notes sur ce qui s'est passé
 
   // Rappels
-  rappel1Envoye Boolean  @default(false)  // Rappel 7 jours avant
-  rappel2Envoye Boolean  @default(false)  // Rappel 1 jour avant
+  rappel1Envoye Boolean @default(false) // Rappel 7 jours avant
+  rappel2Envoye Boolean @default(false) // Rappel 1 jour avant
 
   // Multi-tenant
   entrepriseId String
   entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([affaireId])
   @@index([entrepriseId])
@@ -4426,38 +4476,38 @@ model EcheanceProcedurale {
 
 // Diligence (action effectuée sur un dossier)
 model Diligence {
-  id            String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  affaireId     String
-  affaire       Affaire  @relation(fields: [affaireId], references: [id], onDelete: Cascade)
+  affaireId String
+  affaire   Affaire @relation(fields: [affaireId], references: [id], onDelete: Cascade)
 
   // Type et description
-  type          TypeDiligence
-  description   String   @db.Text
+  type        TypeDiligence
+  description String        @db.Text
 
   // Date et durée
-  date          DateTime
-  duree         Int      // Durée en minutes
+  date  DateTime
+  duree Int // Durée en minutes
 
   // Facturation
-  facturable    Boolean  @default(true)
-  tauxHoraire   Decimal  @db.Decimal(10, 2)
-  montant       Decimal  @db.Decimal(10, 2)  // Calculé ou override
+  facturable  Boolean @default(true)
+  tauxHoraire Decimal @db.Decimal(10, 2)
+  montant     Decimal @db.Decimal(10, 2) // Calculé ou override
 
   // Facturé ?
-  facturee      Boolean  @default(false)
-  factureId     String?
+  facturee  Boolean @default(false)
+  factureId String?
 
   // Utilisateur qui a effectué la diligence
-  userId        String
-  user          User     @relation(fields: [userId], references: [id])
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
 
   // Multi-tenant
   entrepriseId String
   entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([affaireId])
   @@index([entrepriseId])
@@ -4466,4 +4516,1271 @@ model Diligence {
   @@index([type])
   @@index([facturee])
   @@index([entrepriseId, date])
+}
+
+// ============================================
+// IMMOBILIER - MODÈLES COMMUNS
+// ============================================
+
+enum TypeBien {
+  APPARTEMENT
+  MAISON
+  TERRAIN
+  LOCAL_COMMERCIAL
+  BUREAU
+  PARKING
+  CAVE
+  IMMEUBLE
+  AUTRE
+}
+
+enum StatutBien {
+  DISPONIBLE
+  SOUS_COMPROMIS
+  VENDU
+  LOUE
+  RETIRE
+  EN_ATTENTE
+}
+
+model BienImmobilier {
+  id        String @id @default(cuid())
+  reference String // Référence interne unique
+
+  // Type et statut
+  typeBien TypeBien
+  statut   StatutBien @default(DISPONIBLE)
+
+  // Transaction
+  enVente      Boolean  @default(false)
+  enLocation   Boolean  @default(false)
+  prixVente    Decimal? @db.Decimal(12, 2)
+  prixLocation Decimal? @db.Decimal(10, 2) // Loyer mensuel
+  chargesLoc   Decimal? @db.Decimal(10, 2)
+
+  // Localisation
+  adresse    String
+  codePostal String
+  ville      String
+  pays       String  @default("France")
+  etage      Int?
+  ascenseur  Boolean @default(false)
+  latitude   Float?
+  longitude  Float?
+
+  // Caractéristiques
+  surface       Decimal  @db.Decimal(10, 2) // m²
+  nbPieces      Int
+  nbChambres    Int?
+  nbSallesBains Int?
+  nbWc          Int?
+  balcon        Boolean  @default(false)
+  terrasse      Boolean  @default(false)
+  jardin        Boolean  @default(false)
+  surfaceJardin Decimal? @db.Decimal(10, 2)
+  parking       Boolean  @default(false)
+  garage        Boolean  @default(false)
+  cave          Boolean  @default(false)
+  piscine       Boolean  @default(false)
+
+  // Construction
+  anneeConstruction Int?
+  etatGeneral       String? // Neuf, Bon, À rafraîchir, À rénover
+
+  // DPE et diagnostics
+  dpeConsommation  String? // A, B, C, D, E, F, G
+  dpeEmission      String? // A, B, C, D, E, F, G
+  datesDiagnostics DateTime?
+
+  // Copropriété (si applicable)
+  enCopropriete   Boolean  @default(false)
+  nbLotsCopro     Int?
+  chargesCopro    Decimal? @db.Decimal(10, 2)
+  procedureSyndic Boolean  @default(false)
+
+  // Description
+  titre       String
+  description String? @db.Text
+
+  // Photos et médias
+  photos    Json? // Array of URLs
+  visite360 String? // URL visite virtuelle
+  video     String? // URL vidéo
+
+  // Propriétaire (peut être un client)
+  proprietaire   Client? @relation("BiensProprietaire", fields: [proprietaireId], references: [id])
+  proprietaireId String?
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Relations
+  mandats     MandatImmobilier[]
+  visites     VisiteImmobilier[]
+  estimations EstimationBien[]
+  diffusions  DiffusionAnnonce[]
+  baux        BailLocatif[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([entrepriseId, reference])
+  @@index([entrepriseId])
+  @@index([typeBien])
+  @@index([statut])
+  @@index([ville])
+  @@index([prixVente])
+  @@index([prixLocation])
+}
+
+// ============================================
+// AGENT IMMOBILIER - MANDATS ET TRANSACTIONS
+// ============================================
+
+enum TypeMandat {
+  VENTE_EXCLUSIF
+  VENTE_SIMPLE
+  LOCATION_EXCLUSIF
+  LOCATION_SIMPLE
+  RECHERCHE // Mandat de recherche
+}
+
+enum StatutMandat {
+  EN_COURS
+  SOUS_COMPROMIS
+  VENDU
+  LOUE
+  EXPIRE
+  ANNULE
+}
+
+model MandatImmobilier {
+  id     String @id @default(cuid())
+  numero String // Numéro de mandat (registre)
+
+  // Type et statut
+  typeMandat TypeMandat
+  statut     StatutMandat @default(EN_COURS)
+
+  // Dates
+  dateSignature DateTime
+  dateDebut     DateTime
+  dateFin       DateTime // Date d'expiration
+
+  // Prix
+  prixMandat  Decimal  @db.Decimal(12, 2) // Prix demandé
+  prixMinimum Decimal? @db.Decimal(12, 2) // Prix minimum accepté
+
+  // Honoraires
+  tauxHonoraires Decimal  @db.Decimal(5, 2) // % honoraires
+  honorairesHT   Decimal? @db.Decimal(10, 2)
+  honorairesTTC  Decimal? @db.Decimal(10, 2)
+  chargeVendeur  Boolean  @default(true) // true = vendeur, false = acquéreur
+
+  // Bien concerné
+  bien   BienImmobilier @relation(fields: [bienId], references: [id])
+  bienId String
+
+  // Propriétaire mandant
+  mandant   Client @relation("MandatsClient", fields: [mandantId], references: [id])
+  mandantId String
+
+  // Agent en charge
+  agent   Employee? @relation("MandatAgent", fields: [agentId], references: [id])
+  agentId String?
+
+  // Document signé
+  documentSigneUrl String?
+
+  // Notes
+  notes String? @db.Text
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Relations
+  visites VisiteImmobilier[]
+  offres  OffreAchat[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([entrepriseId, numero])
+  @@index([entrepriseId])
+  @@index([statut])
+  @@index([typeMandat])
+  @@index([dateFin])
+}
+
+enum StatutVisite {
+  PLANIFIEE
+  CONFIRMEE
+  EFFECTUEE
+  ANNULEE
+  ABSENT
+}
+
+model VisiteImmobilier {
+  id String @id @default(cuid())
+
+  // Planification
+  dateVisite DateTime
+  duree      Int          @default(30) // minutes
+  statut     StatutVisite @default(PLANIFIEE)
+
+  // Bien visité
+  bien   BienImmobilier @relation(fields: [bienId], references: [id])
+  bienId String
+
+  // Mandat (optionnel)
+  mandat   MandatImmobilier? @relation(fields: [mandatId], references: [id])
+  mandatId String?
+
+  // Visiteur (acquéreur potentiel)
+  visiteur   Client @relation("VisitesAcquereur", fields: [visiteurId], references: [id])
+  visiteurId String
+
+  // Agent accompagnateur
+  agent   Employee? @relation("VisiteAgent", fields: [agentId], references: [id])
+  agentId String?
+
+  // Compte-rendu
+  compteRendu   String? @db.Text
+  interesseNote Int? // Note d'intérêt 1-5
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([dateVisite])
+  @@index([statut])
+  @@index([bienId])
+  @@index([visiteurId])
+}
+
+model EstimationBien {
+  id String @id @default(cuid())
+
+  // Bien estimé
+  bien   BienImmobilier @relation(fields: [bienId], references: [id])
+  bienId String
+
+  // Estimation
+  prixEstimeBas  Decimal @db.Decimal(12, 2)
+  prixEstimeHaut Decimal @db.Decimal(12, 2)
+  prixRecommande Decimal @db.Decimal(12, 2)
+
+  // Méthode
+  methode     String? // Comparative, DCF, etc.
+  comparables Json? // Biens comparables utilisés
+
+  // Agent
+  agent   Employee? @relation("EstimationAgent", fields: [agentId], references: [id])
+  agentId String?
+
+  // Document généré
+  rapportUrl String?
+
+  dateEstimation DateTime @default(now())
+  validiteJours  Int      @default(90)
+
+  notes String? @db.Text
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([bienId])
+  @@index([dateEstimation])
+}
+
+enum StatutOffre {
+  EN_ATTENTE
+  ACCEPTEE
+  REFUSEE
+  CONTRE_OFFRE
+  EXPIREE
+  RETIREE
+}
+
+model OffreAchat {
+  id String @id @default(cuid())
+
+  // Offre
+  montant      Decimal     @db.Decimal(12, 2)
+  dateOffre    DateTime    @default(now())
+  dateValidite DateTime
+  statut       StatutOffre @default(EN_ATTENTE)
+
+  // Conditions
+  conditions      String?  @db.Text // Conditions suspensives
+  financement     String? // Type de financement
+  apportPersonnel Decimal? @db.Decimal(12, 2)
+
+  // Mandat concerné
+  mandat   MandatImmobilier @relation(fields: [mandatId], references: [id])
+  mandatId String
+
+  // Acquéreur
+  acquereur   Client @relation("OffresAcquereur", fields: [acquereurId], references: [id])
+  acquereurId String
+
+  // Réponse
+  dateReponse       DateTime?
+  contreProposition Decimal?  @db.Decimal(12, 2)
+  motifRefus        String?
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([mandatId])
+  @@index([statut])
+}
+
+// ============================================
+// AGENT IMMOBILIER - DIFFUSION ANNONCES
+// ============================================
+
+enum PortailDiffusion {
+  SELOGER
+  LEBONCOIN
+  BIEN_ICI
+  LOGIC_IMMO
+  PAP
+  FIGARO_IMMO
+  GREEN_ACRES // International
+  SITE_AGENCE
+  AUTRE
+}
+
+enum StatutDiffusion {
+  BROUILLON // Non publié
+  EN_ATTENTE // En attente de validation portail
+  ACTIVE // Publiée et active
+  PAUSE // Mise en pause temporaire
+  EXPIREE // Expirée automatiquement
+  REFUSEE // Refusée par le portail
+  ERREUR // Erreur technique
+}
+
+enum TypeAnnonce {
+  STANDARD
+  PREMIUM // Mise en avant payante
+  BOOST // Boost temporaire
+  VITRINE // Position vitrine
+}
+
+// Configuration des portails (settings par entreprise)
+model ConfigurationPortail {
+  id String @id @default(cuid())
+
+  portail PortailDiffusion
+  actif   Boolean          @default(false)
+
+  // Credentials (simulés pour l'instant)
+  identifiant String?
+  cleApi      String? // Encrypted
+  agenceId    String? // ID agence sur le portail
+
+  // Options de diffusion par défaut
+  typeAnnonceDefaut  TypeAnnonce @default(STANDARD)
+  dureeDefautJours   Int         @default(30)
+  autoRenouvellement Boolean     @default(true)
+
+  // Limites du compte (simulé)
+  creditsDispo Int @default(100)
+  annoncesMax  Int @default(50)
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([entrepriseId, portail])
+  @@index([entrepriseId])
+}
+
+model DiffusionAnnonce {
+  id String @id @default(cuid())
+
+  // Bien diffusé
+  bien   BienImmobilier @relation(fields: [bienId], references: [id])
+  bienId String
+
+  // Portail et type
+  portail     PortailDiffusion
+  typeAnnonce TypeAnnonce      @default(STANDARD)
+  statut      StatutDiffusion  @default(BROUILLON)
+
+  // Identifiants externes (comme si c'était réel)
+  referenceExterne String? // ID sur le portail (ex: "SL-123456")
+  urlAnnonce       String? // URL de l'annonce sur le portail
+
+  // Contenu personnalisé par portail (peut différer du bien)
+  titreAnnonce        String? // Titre spécifique au portail
+  descriptionAnnonce  String? @db.Text // Description adaptée
+  photosSelectionnees Json? // IDs des photos à diffuser (ordre spécifique)
+
+  // Options payantes (simulées)
+  optionBoost   Boolean @default(false)
+  optionUrgent  Boolean @default(false)
+  optionPhotoHD Boolean @default(false)
+  coutCredits   Int     @default(1) // Coût en crédits
+
+  // Statistiques (simulées avec des données réalistes)
+  nbVues           Int      @default(0)
+  nbVuesUniques    Int      @default(0)
+  nbClicsContact   Int      @default(0)
+  nbClicsTelephone Int      @default(0)
+  nbFavoris        Int      @default(0)
+  nbPartages       Int      @default(0)
+  positionMoyenne  Decimal? @db.Decimal(5, 2) // Position dans les résultats
+
+  // Statistiques par période (JSON)
+  statsHebdo      Json? // { "2024-W01": { vues: 150, contacts: 5 }, ... }
+  statsMensuelles Json? // { "2024-01": { vues: 600, contacts: 20 }, ... }
+
+  // Dates
+  datePublication        DateTime?
+  dateExpiration         DateTime?
+  dateDerniereModif      DateTime?
+  derniereSynchro        DateTime?
+  prochainRenouvellement DateTime?
+
+  // Historique des remontées/boost
+  historiqueBooosts Json? // [{ date: "...", duree: 7, cout: 5 }, ...]
+
+  // Logs et erreurs
+  erreurMessage String?
+  logsSync      Json? // Historique des synchros
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Relations
+  leads LeadPortail[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([bienId, portail])
+  @@index([entrepriseId])
+  @@index([portail])
+  @@index([statut])
+  @@index([dateExpiration])
+}
+
+// Leads générés par les portails (contacts entrants)
+model LeadPortail {
+  id String @id @default(cuid())
+
+  // Source
+  diffusion   DiffusionAnnonce @relation(fields: [diffusionId], references: [id])
+  diffusionId String
+  portail     PortailDiffusion
+
+  // Contact
+  nom       String
+  prenom    String?
+  email     String
+  telephone String?
+  message   String? @db.Text
+
+  // Qualification
+  budget        Decimal? @db.Decimal(12, 2)
+  delaiAchat    String? // "Immédiat", "3 mois", "6 mois", "1 an"
+  financementOk Boolean?
+  dejaProprio   Boolean?
+
+  // Statut du lead
+  statut       String    @default("nouveau") // nouveau, contacte, qualifie, rdv, perdu
+  dateContact  DateTime?
+  agentAssigne Employee? @relation("LeadAgentResponsable", fields: [agentId], references: [id])
+  agentId      String?
+
+  // Converti en client ?
+  clientConverti Client? @relation("LeadsConvertis", fields: [clientId], references: [id])
+  clientId       String?
+
+  dateReception DateTime @default(now())
+  notes         String?  @db.Text
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([diffusionId])
+  @@index([statut])
+  @@index([dateReception])
+}
+
+// Matching acquéreurs
+model RechercheAcquereur {
+  id String @id @default(cuid())
+
+  // Acquéreur
+  acquereur   Client @relation("RecherchesAcquereur", fields: [acquereurId], references: [id])
+  acquereurId String
+
+  // Critères de recherche
+  typesBiens TypeBien[] // Types recherchés
+  enAchat    Boolean    @default(true)
+  enLocation Boolean    @default(false)
+
+  // Budget
+  budgetMin Decimal? @db.Decimal(12, 2)
+  budgetMax Decimal? @db.Decimal(12, 2)
+  loyerMax  Decimal? @db.Decimal(10, 2)
+
+  // Localisation
+  villesRecherchees String[] // Array de villes
+  codesPostaux      String[]
+  rayonKm           Int? // Rayon de recherche
+
+  // Surface
+  surfaceMin    Decimal? @db.Decimal(10, 2)
+  surfaceMax    Decimal? @db.Decimal(10, 2)
+  nbPiecesMin   Int?
+  nbPiecesMax   Int?
+  nbChambresMin Int?
+
+  // Critères optionnels
+  avecJardin             Boolean?
+  avecParking            Boolean?
+  avecAscenseur          Boolean?
+  rdcUniquement          Boolean  @default(false)
+  dernierEtageUniquement Boolean  @default(false)
+
+  // DPE
+  dpeMaximum String? // A, B, C, D, E
+
+  // Statut
+  actif   Boolean @default(true)
+  urgence Int     @default(3) // 1=très urgent, 5=pas pressé
+
+  notes String? @db.Text
+
+  // Matching
+  biensMatchs     Json? // IDs des biens correspondants (cache)
+  dernierMatching DateTime?
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([acquereurId])
+  @@index([actif])
+}
+
+// ============================================
+// GESTION LOCATIVE - BAUX ET LOYERS
+// ============================================
+
+enum TypeBail {
+  HABITATION_VIDE
+  HABITATION_MEUBLEE
+  COMMERCIAL
+  PROFESSIONNEL
+  MIXTE
+  SAISONNIER
+}
+
+enum StatutBail {
+  EN_COURS
+  PREAVIS
+  TERMINE
+  RESILIE
+}
+
+model BailLocatif {
+  id        String @id @default(cuid())
+  reference String
+
+  // Type et statut
+  typeBail TypeBail
+  statut   StatutBail @default(EN_COURS)
+
+  // Bien loué
+  bien   BienImmobilier @relation(fields: [bienId], references: [id])
+  bienId String
+
+  // Locataire principal
+  locatairePrincipal Client @relation("BauxLocataire", fields: [locataireId], references: [id])
+  locataireId        String
+
+  // Propriétaire (si gestion pour compte)
+  proprietaire   Client? @relation("BauxProprietaire", fields: [proprietaireId], references: [id])
+  proprietaireId String?
+
+  // Dates
+  dateSignature DateTime
+  dateDebut     DateTime
+  dateFin       DateTime? // null si bail reconductible
+  dureeMois     Int // 12, 36, etc.
+
+  // Loyer
+  loyerHC    Decimal @db.Decimal(10, 2) // Hors charges
+  provisions Decimal @db.Decimal(10, 2) // Provisions sur charges
+  loyerCC    Decimal @db.Decimal(10, 2) // Charges comprises (calculé)
+
+  // Dépôt de garantie
+  depotGarantie      Decimal   @db.Decimal(10, 2)
+  depotRecu          Boolean   @default(false)
+  dateReceptionDepot DateTime?
+
+  // Révision
+  indiceReference String? // IRL
+  dateRevision    DateTime? // Date de révision annuelle
+
+  // Preavis
+  dureePreavisMois Int       @default(3) // 1, 3 ou 6 mois
+  dateCongeRecu    DateTime?
+  dateFinPreavis   DateTime?
+
+  // Assurance
+  assuranceLocataire   Boolean @default(false)
+  attestationAssurance String?
+
+  // Documents
+  documentBailUrl String?
+
+  notes String? @db.Text
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Relations
+  loyers     AppelLoyer[]
+  etatsLieux EtatDesLieux[]
+  incidents  IncidentLocatif[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([entrepriseId, reference])
+  @@index([entrepriseId])
+  @@index([statut])
+  @@index([locataireId])
+  @@index([bienId])
+}
+
+enum StatutLoyer {
+  A_ENVOYER
+  ENVOYE
+  PAYE
+  PARTIELLEMENT_PAYE
+  IMPAYE
+  EN_CONTENTIEUX
+}
+
+model AppelLoyer {
+  id     String @id @default(cuid())
+  numero String
+
+  // Bail concerné
+  bail   BailLocatif @relation(fields: [bailId], references: [id])
+  bailId String
+
+  // Période
+  mois         Int // 1-12
+  annee        Int
+  dateEcheance DateTime
+
+  // Montants
+  loyerHC    Decimal @db.Decimal(10, 2)
+  provisions Decimal @db.Decimal(10, 2)
+  totalDu    Decimal @db.Decimal(10, 2)
+
+  // Paiement
+  statut       StatutLoyer @default(A_ENVOYER)
+  montantPaye  Decimal     @default(0) @db.Decimal(10, 2)
+  datePaiement DateTime?
+  modePaiement String? // Virement, prélèvement, chèque
+
+  // Quittance
+  quittanceGeneree   Boolean   @default(false)
+  quittanceUrl       String?
+  dateEnvoiQuittance DateTime?
+
+  // Relances
+  nbRelances      Int       @default(0)
+  derniereRelance DateTime?
+
+  notes String?
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([bailId, mois, annee])
+  @@index([entrepriseId])
+  @@index([statut])
+  @@index([dateEcheance])
+}
+
+enum TypeEtatLieux {
+  ENTREE
+  SORTIE
+}
+
+model EtatDesLieux {
+  id String @id @default(cuid())
+
+  // Bail concerné
+  bail   BailLocatif @relation(fields: [bailId], references: [id])
+  bailId String
+
+  // Type et date
+  typeEtat TypeEtatLieux
+  dateEtat DateTime
+
+  // Relevés compteurs
+  releveEau  Decimal? @db.Decimal(10, 2)
+  releveElec Decimal? @db.Decimal(10, 2)
+  releveGaz  Decimal? @db.Decimal(10, 2)
+
+  // Constatations par pièce (JSON)
+  constatations Json? // { "salon": { "etat": "bon", "remarques": "..." }, ... }
+
+  // Photos
+  photos Json? // Array of URLs
+
+  // Signatures
+  signatureLocataire    String? // URL signature
+  signatureProprietaire String?
+  dateSignature         DateTime?
+
+  // Retenue sur dépôt (sortie uniquement)
+  retenueDepot Decimal? @db.Decimal(10, 2)
+  motifRetenue String?  @db.Text
+
+  // Document
+  documentUrl String?
+
+  notes String? @db.Text
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([bailId])
+  @@index([typeEtat])
+}
+
+enum StatutIncident {
+  SIGNALE
+  EN_COURS
+  DEVIS_DEMANDE
+  TRAVAUX_PLANIFIES
+  RESOLU
+  ANNULE
+}
+
+model IncidentLocatif {
+  id String @id @default(cuid())
+
+  // Bail concerné
+  bail   BailLocatif @relation(fields: [bailId], references: [id])
+  bailId String
+
+  // Incident
+  dateSignalement DateTime @default(now())
+  description     String   @db.Text
+  categorie       String // Plomberie, Électricité, Chauffage, etc.
+  urgence         Int      @default(3) // 1=urgent, 5=non urgent
+
+  // Statut
+  statut StatutIncident @default(SIGNALE)
+
+  // Photos
+  photos Json?
+
+  // Intervention
+  dateIntervention DateTime?
+  prestataire      String?
+  coutEstime       Decimal?  @db.Decimal(10, 2)
+  coutReel         Decimal?  @db.Decimal(10, 2)
+  aChargeDe        String? // "locataire" ou "proprietaire"
+
+  notes String? @db.Text
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([bailId])
+  @@index([statut])
+}
+
+// ============================================
+// SYNDIC COPROPRIETE
+// ============================================
+
+model Copropriete {
+  id        String @id @default(cuid())
+  reference String
+  nom       String // Nom de la copropriété
+
+  // Adresse
+  adresse    String
+  codePostal String
+  ville      String
+
+  // Caractéristiques
+  nbBatiments    Int @default(1)
+  nbLots         Int
+  totalTantiemes Int // Total des tantièmes (souvent 10000)
+
+  // Immatriculation
+  numeroImmatriculation String?
+  dateImmatriculation   DateTime?
+
+  // Dates
+  dateCreation    DateTime? // Date création copropriété
+  datePriseSyndic DateTime // Date prise en charge
+  dateFinMandat   DateTime?
+
+  // Comptes bancaires
+  comptePrincipal String? // IBAN compte principal
+  compteTravaux   String? // IBAN compte travaux (Alur)
+
+  // Règlement
+  reglementCopro String? // URL règlement
+
+  notes String? @db.Text
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Relations
+  lots            LotCopropriete[]
+  appelsCharges   AppelCharges[]
+  assemblees      AssembleeGenerale[]
+  travauxCopro    TravauxCopropriete[]
+  compteCopro     CompteCopropriete[]
+  conseilSyndical MembreConseilSyndical[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([entrepriseId, reference])
+  @@index([entrepriseId])
+  @@index([ville])
+}
+
+enum TypeLot {
+  APPARTEMENT
+  PARKING
+  CAVE
+  LOCAL_COMMERCIAL
+  BUREAU
+  CHAMBRE_SERVICE
+  AUTRE
+}
+
+model LotCopropriete {
+  id     String @id @default(cuid())
+  numero String // Numéro de lot
+
+  // Type
+  typeLot  TypeLot
+  etage    Int?
+  batiment String? // A, B, C...
+
+  // Surface et tantièmes
+  surface               Decimal? @db.Decimal(10, 2)
+  tantiemesGeneraux     Int // Tantièmes parties communes générales
+  tantiemesParticuliers Json? // { "ascenseur": 150, "chauffage": 200 }
+
+  // Copropriété
+  copropriete   Copropriete @relation(fields: [coproprieteId], references: [id])
+  coproprieteId String
+
+  // Copropriétaire actuel
+  coproprietaire   Client? @relation("LotsCoproprietaire", fields: [coproprietaireId], references: [id])
+  coproprietaireId String?
+
+  // Si loué
+  estLoue     Boolean @default(false)
+  locataire   Client? @relation("LotsLocataire", fields: [locataireId], references: [id])
+  locataireId String?
+
+  notes String?
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Relations
+  appelsCharges LigneAppelCharges[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([coproprieteId, numero])
+  @@index([entrepriseId])
+  @@index([coproprieteId])
+  @@index([coproprietaireId])
+}
+
+enum TypeAppelCharges {
+  BUDGET_PREVISIONNEL
+  TRAVAUX
+  REGULARISATION
+  EXCEPTIONNEL
+}
+
+enum StatutAppelCharges {
+  BROUILLON
+  ENVOYE
+  PARTIELLEMENT_PAYE
+  PAYE
+  IMPAYE
+}
+
+model AppelCharges {
+  id     String @id @default(cuid())
+  numero String
+
+  // Copropriété
+  copropriete   Copropriete @relation(fields: [coproprieteId], references: [id])
+  coproprieteId String
+
+  // Type et période
+  typeAppel    TypeAppelCharges
+  trimestre    Int? // 1-4
+  annee        Int
+  dateEcheance DateTime
+
+  // Montant total
+  montantTotal Decimal @db.Decimal(12, 2)
+
+  // Statut
+  statut    StatutAppelCharges @default(BROUILLON)
+  dateEnvoi DateTime?
+
+  notes String?
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Relations
+  lignes LigneAppelCharges[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([coproprieteId, numero])
+  @@index([entrepriseId])
+  @@index([coproprieteId])
+  @@index([statut])
+  @@index([annee])
+}
+
+model LigneAppelCharges {
+  id String @id @default(cuid())
+
+  // Appel parent
+  appel   AppelCharges @relation(fields: [appelId], references: [id])
+  appelId String
+
+  // Lot concerné
+  lot   LotCopropriete @relation(fields: [lotId], references: [id])
+  lotId String
+
+  // Montant
+  montantDu    Decimal   @db.Decimal(10, 2)
+  montantPaye  Decimal   @default(0) @db.Decimal(10, 2)
+  datePaiement DateTime?
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([appelId])
+  @@index([lotId])
+  @@index([entrepriseId])
+}
+
+enum TypeAG {
+  ORDINAIRE
+  EXTRAORDINAIRE
+}
+
+enum StatutAG {
+  PLANIFIEE
+  CONVOCATIONS_ENVOYEES
+  EN_COURS
+  TERMINEE
+  PV_ENVOYE
+}
+
+model AssembleeGenerale {
+  id String @id @default(cuid())
+
+  // Copropriété
+  copropriete   Copropriete @relation(fields: [coproprieteId], references: [id])
+  coproprieteId String
+
+  // Type et dates
+  typeAG     TypeAG   @default(ORDINAIRE)
+  dateAG     DateTime
+  heureDebut String // "18:30"
+  lieu       String
+
+  // Statut
+  statut StatutAG @default(PLANIFIEE)
+
+  // Convocation
+  dateConvocation  DateTime?
+  delaiConvocation Int       @default(21) // jours
+
+  // Ordre du jour
+  ordreJour Json? // Array de résolutions
+
+  // Résultats
+  nbPresents        Int?
+  nbRepresentes     Int?
+  tantiemesPresents Int?
+  quorum            Boolean?
+
+  // Documents
+  convocationUrl String?
+  pvUrl          String?
+
+  notes String? @db.Text
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Relations
+  resolutions ResolutionAG[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([coproprieteId])
+  @@index([dateAG])
+  @@index([statut])
+}
+
+enum ResultatVote {
+  ADOPTEE
+  REJETEE
+  REPORTEE
+  NON_VOTEE
+}
+
+enum TypeMajorite {
+  SIMPLE // Article 24
+  ABSOLUE // Article 25
+  DOUBLE // Article 26
+  UNANIMITE
+}
+
+model ResolutionAG {
+  id     String @id @default(cuid())
+  numero Int // Numéro de résolution dans l'AG
+
+  // AG
+  assemblee   AssembleeGenerale @relation(fields: [assembleeId], references: [id])
+  assembleeId String
+
+  // Contenu
+  titre        String
+  description  String?      @db.Text
+  typeMajorite TypeMajorite
+
+  // Vote
+  resultat      ResultatVote?
+  voixPour      Int?
+  voixContre    Int?
+  abstentions   Int?
+  tantiemesPour Int?
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([assembleeId])
+  @@index([entrepriseId])
+}
+
+enum StatutTravauxCopro {
+  PROJET
+  VOTE
+  EN_COURS
+  TERMINE
+  ANNULE
+}
+
+model TravauxCopropriete {
+  id String @id @default(cuid())
+
+  // Copropriété
+  copropriete   Copropriete @relation(fields: [coproprieteId], references: [id])
+  coproprieteId String
+
+  // Travaux
+  titre       String
+  description String? @db.Text
+  categorie   String // Ravalement, Toiture, Ascenseur, etc.
+
+  // Statut
+  statut StatutTravauxCopro @default(PROJET)
+
+  // Budget
+  budgetEstime Decimal? @db.Decimal(12, 2)
+  budgetVote   Decimal? @db.Decimal(12, 2)
+  coutFinal    Decimal? @db.Decimal(12, 2)
+
+  // Dates
+  dateDebutPrevue DateTime?
+  dateFinPrevue   DateTime?
+  dateDebutReelle DateTime?
+  dateFinReelle   DateTime?
+
+  // Entreprise intervenante
+  prestataire        String?
+  contactPrestataire String?
+
+  // AG de vote
+  assembleeVote String? // ID de l'AG où c'est voté
+
+  // Documents
+  devis    Json? // Array d'URLs de devis
+  factures Json? // Array d'URLs de factures
+
+  notes String? @db.Text
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([coproprieteId])
+  @@index([statut])
+}
+
+// Comptabilité copropriété
+model CompteCopropriete {
+  id String @id @default(cuid())
+
+  // Copropriété
+  copropriete   Copropriete @relation(fields: [coproprieteId], references: [id])
+  coproprieteId String
+
+  // Exercice
+  exercice  Int // Année de l'exercice
+  dateDebut DateTime
+  dateFin   DateTime
+  cloture   Boolean  @default(false)
+
+  // Budget prévisionnel
+  budgetPrevisionnel Decimal @db.Decimal(12, 2)
+
+  // Réalisé
+  totalCharges  Decimal @default(0) @db.Decimal(12, 2)
+  totalProduits Decimal @default(0) @db.Decimal(12, 2)
+
+  // Solde
+  soldeDebut Decimal  @default(0) @db.Decimal(12, 2)
+  soldeFin   Decimal? @db.Decimal(12, 2)
+
+  // Documents
+  rapportFinancierUrl String?
+  annexesComptesUrl   String?
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([coproprieteId, exercice])
+  @@index([entrepriseId])
+  @@index([coproprieteId])
+}
+
+model MembreConseilSyndical {
+  id String @id @default(cuid())
+
+  // Copropriété
+  copropriete   Copropriete @relation(fields: [coproprieteId], references: [id])
+  coproprieteId String
+
+  // Membre
+  membre   Client @relation("MembresConseilSyndical", fields: [membreId], references: [id])
+  membreId String
+
+  // Rôle
+  role String // Président, Membre, Trésorier
+
+  // Mandat
+  dateDebut DateTime
+  dateFin   DateTime?
+  actif     Boolean   @default(true)
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([coproprieteId])
+  @@index([membreId])
+  @@index([entrepriseId])
 }
