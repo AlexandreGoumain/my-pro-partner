@@ -7,6 +7,7 @@ import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { DashboardSkeleton } from "@/components/dashboard/dashboard-skeleton";
 import { DocumentPipelineCard } from "@/components/dashboard/document-pipeline-card";
 import { GoalProgressCard } from "@/components/dashboard/goal-progress-card";
+import { ImmobilierDashboardSection } from "@/components/dashboard/immobilier";
 import { MetricComparisonCard } from "@/components/dashboard/metric-comparison-card";
 import { PeriodSelector } from "@/components/dashboard/period-selector";
 import { QuickActionsCard } from "@/components/dashboard/quick-actions-card";
@@ -24,6 +25,7 @@ export default function Dashboard() {
         selectedPeriod,
         handlePeriodChange,
         isServiceIntellectuel,
+        isImmobilier,
         greeting,
         userName,
         dateLabel,
@@ -56,6 +58,11 @@ export default function Dashboard() {
             {/* Consulting Section - For SERVICE_INTELLECTUEL businesses */}
             {isServiceIntellectuel && (
                 <ConsultingDashboardSection period={selectedPeriod} />
+            )}
+
+            {/* Immobilier Section - For IMMOBILIER businesses */}
+            {isImmobilier && (
+                <ImmobilierDashboardSection period={selectedPeriod} />
             )}
 
             {/* Loading State */}

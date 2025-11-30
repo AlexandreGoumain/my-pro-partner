@@ -10,6 +10,7 @@ export interface UseDashboardPageReturn {
 
     // Business type
     isServiceIntellectuel: boolean;
+    isImmobilier: boolean;
 
     // Dashboard data
     greeting: ReturnType<typeof useDashboardData>["greeting"];
@@ -28,7 +29,7 @@ export interface UseDashboardPageReturn {
 export function useDashboardPage(): UseDashboardPageReturn {
     const [selectedPeriod, setSelectedPeriod] = useState(30);
 
-    const { isServiceIntellectuel } = useCapabilities();
+    const { isServiceIntellectuel, isImmobilier } = useCapabilities();
 
     const { greeting, userName, dateLabel, todayTasks, quickActions } =
         useDashboardData();
@@ -49,6 +50,7 @@ export function useDashboardPage(): UseDashboardPageReturn {
         selectedPeriod,
         handlePeriodChange,
         isServiceIntellectuel,
+        isImmobilier,
         greeting,
         userName,
         dateLabel,
