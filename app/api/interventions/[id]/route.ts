@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 // GET /api/interventions/[id] - Get intervention details
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -22,9 +22,11 @@ export async function GET(
         const capabilityCheck = await requireAnyCapability("domicile", "atelier");
         if (capabilityCheck) return capabilityCheck;
 
+        const { id } = await params;
+
         const intervention = await prisma.intervention.findUnique({
             where: {
-                id: params.id,
+                id,
                 entrepriseId: session.user.entrepriseId,
             },
             include: {
@@ -86,7 +88,7 @@ export async function GET(
 // PUT /api/interventions/[id] - Update intervention
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -101,11 +103,12 @@ export async function PUT(
         const capabilityCheck = await requireAnyCapability("domicile", "atelier");
         if (capabilityCheck) return capabilityCheck;
 
+        const { id } = await params;
         const body = await request.json();
 
         const intervention = await prisma.intervention.update({
             where: {
-                id: params.id,
+                id,
                 entrepriseId: session.user.entrepriseId,
             },
             data: body,
@@ -122,7 +125,7 @@ export async function PUT(
         // Log the update
         await prisma.interventionHistorique.create({
             data: {
-                interventionId: params.id,
+                interventionId: id,
                 action: "UPDATE",
                 description: "Intervention mise à jour",
                 metadata: body,
@@ -143,7 +146,7 @@ export async function PUT(
 // DELETE /api/interventions/[id] - Delete intervention
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await getServerSession(authOptions);
@@ -158,9 +161,11 @@ export async function DELETE(
         const capabilityCheck = await requireAnyCapability("domicile", "atelier");
         if (capabilityCheck) return capabilityCheck;
 
+        const { id } = await params;
+
         await prisma.intervention.delete({
             where: {
-                id: params.id,
+                id,
                 entrepriseId: session.user.entrepriseId,
             },
         });
