@@ -16,22 +16,22 @@ export async function DELETE() {
             const { entrepriseId } = await requireTenantAuth();
 
             // Delete line items first (foreign key constraint)
-            await prisma.ligneFacture.deleteMany({
+            await prisma.ligneDocument.deleteMany({
                 where: {
-                    facture: { entrepriseId },
+                    document: { entrepriseId },
                 },
             });
 
-            // Then delete invoices
-            const result = await prisma.facture.deleteMany({
+            // Then delete documents
+            const result = await prisma.document.deleteMany({
                 where: { entrepriseId },
             });
 
             return NextResponse.json({
-                message: `${result.count} facture${result.count > 1 ? "s" : ""}/devis supprimé${result.count > 1 ? "s" : ""}`,
+                message: `${result.count} document${result.count > 1 ? "s" : ""} supprimé${result.count > 1 ? "s" : ""}`,
                 deleted: result.count,
             });
         },
-        { resourceName: "Factures", operation: "delete-all" }
+        { resourceName: "Documents", operation: "delete-all" }
     );
 }

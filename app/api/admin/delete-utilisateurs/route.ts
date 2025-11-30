@@ -15,7 +15,7 @@ export async function DELETE() {
 
             const { entrepriseId } = await requireTenantAuth();
 
-            const result = await prisma.utilisateur.deleteMany({
+            const result = await prisma.user.deleteMany({
                 where: { entrepriseId },
             });
 

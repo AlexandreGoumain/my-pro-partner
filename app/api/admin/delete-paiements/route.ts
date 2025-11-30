@@ -15,8 +15,9 @@ export async function DELETE() {
 
             const { entrepriseId } = await requireTenantAuth();
 
+            // Delete paiements through document relation
             const result = await prisma.paiement.deleteMany({
-                where: { entrepriseId },
+                where: { document: { entrepriseId } },
             });
 
             return NextResponse.json({

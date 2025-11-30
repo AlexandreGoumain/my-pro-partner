@@ -17,12 +17,12 @@ export async function DELETE() {
 
             // Delete time entries
             const timeEntriesResult = await prisma.timeEntry.deleteMany({
-                where: { utilisateur: { entrepriseId } },
+                where: { user: { entrepriseId } },
             });
 
-            // Delete work schedules
-            const schedulesResult = await prisma.workSchedule.deleteMany({
-                where: { utilisateur: { entrepriseId } },
+            // Delete user schedules
+            const schedulesResult = await prisma.userSchedule.deleteMany({
+                where: { user: { entrepriseId } },
             });
 
             const total = timeEntriesResult.count + schedulesResult.count;

@@ -15,18 +15,18 @@ export async function DELETE() {
 
             const { entrepriseId } = await requireTenantAuth();
 
-            // Delete AI messages first
-            await prisma.aIMessage.deleteMany({
-                where: { conversation: { utilisateur: { entrepriseId } } },
+            // Delete messages first
+            await prisma.message.deleteMany({
+                where: { conversation: { user: { entrepriseId } } },
             });
 
             // Then delete conversations
-            const result = await prisma.aIConversation.deleteMany({
-                where: { utilisateur: { entrepriseId } },
+            const result = await prisma.conversation.deleteMany({
+                where: { user: { entrepriseId } },
             });
 
             return NextResponse.json({
-                message: `${result.count} conversation${result.count > 1 ? "s" : ""} IA supprimée${result.count > 1 ? "s" : ""}`,
+                message: `${result.count} conversation${result.count > 1 ? "s" : ""} supprimée${result.count > 1 ? "s" : ""}`,
                 deleted: result.count,
             });
         },

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { requireTenantAuth } from "@/lib/middleware/tenant-isolation";
 import { NextResponse } from "next/server";
 import { withErrorHandling } from "@/lib/errors";
 
@@ -11,6 +12,9 @@ export async function DELETE() {
                     { status: 403 }
                 );
             }
+
+            // Require authentication even in development
+            await requireTenantAuth();
 
             // This deletes ALL enterprises (not tenant-scoped)
             const result = await prisma.entreprise.deleteMany({});
