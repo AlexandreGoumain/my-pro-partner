@@ -1,21 +1,23 @@
-import { BusinessSelector } from "@/components/landing/business-selector";
-import { CompetitorComparison } from "@/components/landing/competitor-comparison";
-import { CTASection } from "@/components/landing/cta-section";
-import { FAQEnhanced } from "@/components/landing/faq-enhanced";
-import { FeaturesShowcase } from "@/components/landing/features-showcase";
+import { BeforeAfter } from "@/components/landing/before-after";
+import { BenefitsPremium } from "@/components/landing/benefits-premium";
+import { BusinessTypes } from "@/components/landing/business-types";
+import { ClientPortal } from "@/components/landing/client-portal";
+import { FAQSimple } from "@/components/landing/faq-simple";
+import { FinalCTA } from "@/components/landing/final-cta";
 import { Footer } from "@/components/landing/footer";
-import { HeroRedesigned } from "@/components/landing/hero-redesigned";
-import { HowItWorks } from "@/components/landing/how-it-works";
+import { Guarantees } from "@/components/landing/guarantees";
+import { HeroPremium } from "@/components/landing/hero-premium";
+import { HowItWorksPremium } from "@/components/landing/how-it-works-premium";
 import { Navigation } from "@/components/landing/navigation";
 import { PricingCards } from "@/components/landing/pricing-cards";
-import { ProblemsSolutions } from "@/components/landing/problems-solutions";
-import { TrustBadgesEnhanced } from "@/components/landing/trust-badges-enhanced";
+import { ProductShowcase } from "@/components/landing/product-showcase";
+import { ROICalculator } from "@/components/landing/roi-calculator";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "MyProPartner - ERP Simple et Intelligent pour votre Entreprise",
+    title: "MyProPartner - L'IA qui gère votre entreprise",
     description:
-        "Gérez votre entreprise en quelques clics. Créez factures, analysez vos ventes, gérez vos stocks simplement. Réponses instantanées à toutes vos questions. Rejoignez notre liste d'attente.",
+        "Arrêtez de perdre 3h par jour en paperasse. L'assistant IA qui gère vos devis, factures et relances. Parlez, c'est fait.",
     keywords: [
         "ERP avec IA",
         "assistant IA entreprise",
@@ -27,23 +29,19 @@ export const metadata: Metadata = {
         "gestion stock",
         "gestion clients",
         "ERP français",
-        "logiciel facturation",
-        "gestion entreprise artisan",
-        "comptabilité simplifiée",
-        "CRM artisan",
     ],
     openGraph: {
-        title: "MyProPartner - ERP Simple pour votre entreprise",
+        title: "MyProPartner - L'IA qui gère votre entreprise",
         description:
-            "Plus de business. Moins de temps perdu. Gérez devis, factures, clients et stocks en quelques clics. Lancement imminent.",
+            "Arrêtez de perdre 3h par jour en paperasse. L'assistant IA qui gère vos devis, factures et relances.",
         type: "website",
         locale: "fr_FR",
     },
     twitter: {
         card: "summary_large_image",
-        title: "MyProPartner - ERP Simple et Intelligent",
+        title: "MyProPartner - L'IA qui gère votre entreprise",
         description:
-            "Plus de business. Moins de temps perdu. Gérez votre entreprise en quelques clics. Lancement imminent.",
+            "Arrêtez de perdre 3h par jour en paperasse. L'assistant IA qui gère vos devis, factures et relances.",
     },
 };
 
@@ -52,16 +50,18 @@ export default function LandingPage() {
         <>
             <Navigation />
             <main>
-                <HeroRedesigned />
-                <TrustBadgesEnhanced />
-                <FeaturesShowcase />
-                <BusinessSelector />
-                <ProblemsSolutions />
-                <HowItWorks />
-                <CompetitorComparison />
+                <HeroPremium />
+                <BenefitsPremium />
+                <BeforeAfter />
+                <BusinessTypes />
+                <ProductShowcase />
+                <ClientPortal />
+                <ROICalculator />
+                <HowItWorksPremium />
+                <Guarantees />
                 <PricingCards />
-                <FAQEnhanced />
-                <CTASection />
+                <FAQSimple />
+                <FinalCTA />
             </main>
             <Footer />
         </>
