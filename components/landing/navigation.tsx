@@ -1,14 +1,28 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import {
+    Sheet,
+    SheetContent,
+    SheetTrigger,
+} from "@/components/ui/sheet";
 import { useScroll } from "@/hooks/use-scroll";
 import { cn } from "@/lib/utils";
+import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { useState } from "react";
+
+const navLinks = [
+    { href: "/#features", label: "Fonctionnalités" },
+    { href: "/#pricing", label: "Tarifs" },
+    { href: "/contact", label: "Contact" },
+];
 
 export function Navigation() {
     const scrolled = useScroll(20);
     const { data: session } = useSession();
+    const [isOpen, setIsOpen] = useState(false);
 
     return (
         <nav
@@ -27,28 +41,21 @@ export function Navigation() {
                         </span>
                     </Link>
 
+                    {/* Desktop Navigation */}
                     <div className="hidden md:flex items-center space-x-8">
-                        <Link
-                            href="/#features"
-                            className="text-[12px] font-medium text-black/60 hover:text-black transition-colors duration-200"
-                        >
-                            Fonctionnalités
-                        </Link>
-                        <Link
-                            href="/#pricing"
-                            className="text-[12px] font-medium text-black/60 hover:text-black transition-colors duration-200"
-                        >
-                            Tarifs
-                        </Link>
-                        <Link
-                            href="/contact"
-                            className="text-[12px] font-medium text-black/60 hover:text-black transition-colors duration-200"
-                        >
-                            Contact
-                        </Link>
+                        {navLinks.map((link) => (
+                            <Link
+                                key={link.href}
+                                href={link.href}
+                                className="text-[12px] font-medium text-black/60 hover:text-black transition-colors duration-200"
+                            >
+                                {link.label}
+                            </Link>
+                        ))}
                     </div>
 
-                    <div className="flex items-center space-x-2">
+                    {/* Desktop CTA */}
+                    <div className="hidden md:flex items-center space-x-2">
                         {session ? (
                             <Link href="/account">
                                 <Button
@@ -80,6 +87,87 @@ export function Navigation() {
                             </>
                         )}
                     </div>
+
+                    {/* Mobile Menu Button */}
+                    <Sheet open={isOpen} onOpenChange={setIsOpen}>
+                        <SheetTrigger asChild className="md:hidden">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                            >
+                                <Menu className="h-5 w-5 text-black" strokeWidth={2} />
+                                <span className="sr-only">Menu</span>
+                            </Button>
+                        </SheetTrigger>
+                        <SheetContent
+                            side="right"
+                            className="w-full sm:w-[320px] bg-white border-l border-black/[0.08] p-0"
+                        >
+                            {/* Mobile Menu Header */}
+                            <div className="flex items-center justify-between px-6 py-4 border-b border-black/[0.06]">
+                                <span className="text-[15px] font-medium tracking-[-0.01em] text-black">
+                                    MyProPartner
+                                </span>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 w-8 p-0"
+                                    onClick={() => setIsOpen(false)}
+                                >
+                                    <X className="h-5 w-5 text-black/60" strokeWidth={2} />
+                                </Button>
+                            </div>
+
+                            {/* Mobile Menu Links */}
+                            <div className="px-6 py-6 space-y-1">
+                                {navLinks.map((link) => (
+                                    <Link
+                                        key={link.href}
+                                        href={link.href}
+                                        onClick={() => setIsOpen(false)}
+                                        className="flex items-center py-3 text-[15px] font-medium text-black/70 hover:text-black transition-colors"
+                                    >
+                                        {link.label}
+                                    </Link>
+                                ))}
+                            </div>
+
+                            {/* Mobile Menu CTA */}
+                            <div className="px-6 py-6 border-t border-black/[0.06] space-y-3">
+                                {session ? (
+                                    <Link href="/account" onClick={() => setIsOpen(false)}>
+                                        <Button className="w-full bg-black hover:bg-black/90 text-white h-11 text-[14px] font-medium rounded-lg">
+                                            Mon compte
+                                        </Button>
+                                    </Link>
+                                ) : (
+                                    <>
+                                        <Link href="/waitlist" onClick={() => setIsOpen(false)}>
+                                            <Button className="w-full bg-black hover:bg-black/90 text-white h-11 text-[14px] font-medium rounded-lg">
+                                                Essai gratuit
+                                            </Button>
+                                        </Link>
+                                        <Link href="/waitlist" onClick={() => setIsOpen(false)}>
+                                            <Button
+                                                variant="outline"
+                                                className="w-full h-11 text-[14px] font-medium rounded-lg border-black/10"
+                                            >
+                                                Connexion
+                                            </Button>
+                                        </Link>
+                                    </>
+                                )}
+                            </div>
+
+                            {/* Mobile Menu Footer */}
+                            <div className="absolute bottom-6 left-6 right-6">
+                                <p className="text-[12px] text-black/40 text-center">
+                                    Sans carte bancaire • 14 jours gratuits
+                                </p>
+                            </div>
+                        </SheetContent>
+                    </Sheet>
                 </div>
             </div>
         </nav>

@@ -1,134 +1,179 @@
 "use client";
 
-import { Card } from "@/components/ui/card";
-import { X, Check } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowRight, X, Check } from "lucide-react";
+
+const comparisons = [
+    {
+        task: "Créer un devis",
+        before: "20 min",
+        after: "30 sec",
+    },
+    {
+        task: "Générer une facture",
+        before: "15 min",
+        after: "1 clic",
+    },
+    {
+        task: "Relancer un impayé",
+        before: "Manuel",
+        after: "Auto",
+    },
+    {
+        task: "Suivre son stock",
+        before: "Excel",
+        after: "Temps réel",
+    },
+    {
+        task: "Voir son CA",
+        before: "Calculer",
+        after: "Dashboard",
+    },
+    {
+        task: "Temps admin/jour",
+        before: "3h+",
+        after: "15 min",
+    },
+];
 
 export function BeforeAfter() {
-    const comparisons = [
-        {
-            before: "30 min pour créer un devis sur Excel",
-            after: "2 min avec MyProPartner",
-            metric: "15x plus rapide"
-        },
-        {
-            before: "Fichiers éparpillés sur 3 ordinateurs",
-            after: "Tout centralisé, accessible partout",
-            metric: "100% organisé"
-        },
-        {
-            before: "Oubli de relances clients = paiements tardifs",
-            after: "Relances automatiques par email",
-            metric: "Paiement 40% plus rapide"
-        },
-        {
-            before: "Ruptures de stock non détectées",
-            after: "Alertes temps réel avant rupture",
-            metric: "Zéro rupture"
-        },
-        {
-            before: "Pas de visibilité sur le CA",
-            after: "Dashboard avec analytics en temps réel",
-            metric: "Vision claire 24/7"
-        },
-        {
-            before: "15h/semaine sur tâches administratives",
-            after: "5h/semaine avec automatisations",
-            metric: "10h économisées"
-        },
-    ];
+    const [isVisible, setIsVisible] = useState(false);
+    const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+    const ref = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) setIsVisible(true);
+            },
+            { threshold: 0.1 }
+        );
+
+        if (ref.current) observer.observe(ref.current);
+        return () => observer.disconnect();
+    }, []);
 
     return (
-        <section className="py-32 px-6 sm:px-8 bg-neutral-50">
-            <div className="max-w-[1120px] mx-auto">
-                <div className="text-center space-y-5 mb-20">
-                    <h2 className="text-[48px] sm:text-[56px] font-semibold tracking-[-0.02em] text-black leading-[1.05]">
-                        Avant / Après MyProPartner
+        <section ref={ref} className="py-24 px-6 sm:px-8 bg-white relative overflow-hidden">
+            {/* Background */}
+            <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute top-1/2 left-0 w-[400px] h-[400px] bg-gradient-radial from-black/[0.02] to-transparent rounded-full -translate-x-1/2" />
+                <div className="absolute top-1/2 right-0 w-[400px] h-[400px] bg-gradient-radial from-black/[0.02] to-transparent rounded-full translate-x-1/2" />
+            </div>
+
+            <div className="max-w-[900px] mx-auto relative">
+                {/* Header */}
+                <div
+                    className={`text-center space-y-4 mb-16 transition-all duration-700 ${
+                        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+                    }`}
+                >
+                    <p className="text-[13px] font-semibold text-black/40 uppercase tracking-widest">
+                        Comparaison
+                    </p>
+                    <h2 className="text-[36px] sm:text-[44px] font-bold tracking-[-0.02em] text-black leading-[1.1]">
+                        Avant / Après
                     </h2>
-                    <p className="text-[19px] text-black/60 max-w-[680px] mx-auto leading-[1.5] tracking-[-0.01em]">
-                        Découvrez comment MyProPartner transforme radicalement
-                        la gestion quotidienne de votre entreprise
+                    <p className="text-[17px] text-black/50 max-w-[450px] mx-auto">
+                        Voyez la différence sur vos tâches quotidiennes.
                     </p>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-6">
-                    <Card className="p-8 bg-white border border-black/[0.08]">
-                        <div className="space-y-6">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
-                                    <X className="w-5 h-5 text-red-600" strokeWidth={2} />
-                                </div>
-                                <h3 className="text-[24px] font-semibold text-black tracking-[-0.01em]">
-                                    Sans MyProPartner
-                                </h3>
-                            </div>
-                            <div className="space-y-3">
-                                {comparisons.map((item, index) => (
-                                    <div
-                                        key={index}
-                                        className="flex items-start gap-3 p-4 rounded-lg bg-red-500/[0.03] border border-red-500/10"
-                                    >
-                                        <X className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" strokeWidth={2} />
-                                        <p className="text-[14px] text-black/70 leading-[1.5]">
-                                            {item.before}
-                                        </p>
-                                    </div>
-                                ))}
-                            </div>
+                {/* Comparison Table */}
+                <div
+                    className={`transition-all duration-700 delay-200 ${
+                        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+                    }`}
+                >
+                    {/* Table Header */}
+                    <div className="grid grid-cols-3 gap-4 mb-4 px-4">
+                        <div className="text-[12px] font-semibold text-black/40 uppercase tracking-wide">
+                            Tâche
                         </div>
-                    </Card>
+                        <div className="text-[12px] font-semibold text-black/40 uppercase tracking-wide text-center">
+                            <span className="inline-flex items-center gap-1.5">
+                                <X className="w-3 h-3" strokeWidth={2} />
+                                Sans
+                            </span>
+                        </div>
+                        <div className="text-[12px] font-semibold text-black/40 uppercase tracking-wide text-center">
+                            <span className="inline-flex items-center gap-1.5">
+                                <Check className="w-3 h-3" strokeWidth={2} />
+                                Avec MyProPartner
+                            </span>
+                        </div>
+                    </div>
 
-                    <Card className="p-8 bg-white border border-black/[0.08] relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/5 rounded-full blur-3xl" />
-                        <div className="relative space-y-6">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center">
-                                    <Check className="w-5 h-5 text-green-600" strokeWidth={2} />
+                    {/* Table Rows */}
+                    <div className="space-y-2">
+                        {comparisons.map((item, i) => (
+                            <div
+                                key={i}
+                                className={`grid grid-cols-3 gap-4 p-4 rounded-xl border transition-all duration-300 cursor-default ${
+                                    hoveredIndex === i
+                                        ? "bg-black text-white border-black"
+                                        : "bg-neutral-50/50 border-black/[0.04] hover:border-black/[0.08]"
+                                }`}
+                                style={{ transitionDelay: `${i * 50}ms` }}
+                                onMouseEnter={() => setHoveredIndex(i)}
+                                onMouseLeave={() => setHoveredIndex(null)}
+                            >
+                                <div
+                                    className={`text-[14px] font-medium ${
+                                        hoveredIndex === i ? "text-white" : "text-black"
+                                    }`}
+                                >
+                                    {item.task}
                                 </div>
-                                <h3 className="text-[24px] font-semibold text-black tracking-[-0.01em]">
-                                    Avec MyProPartner
-                                </h3>
-                            </div>
-                            <div className="space-y-3">
-                                {comparisons.map((item, index) => (
-                                    <div
-                                        key={index}
-                                        className="flex items-start gap-3 p-4 rounded-lg bg-green-500/[0.03] border border-green-500/10"
+                                <div
+                                    className={`text-[14px] text-center ${
+                                        hoveredIndex === i ? "text-white/50 line-through" : "text-black/40"
+                                    }`}
+                                >
+                                    {item.before}
+                                </div>
+                                <div className="text-center">
+                                    <span
+                                        className={`inline-flex items-center gap-2 text-[14px] font-semibold ${
+                                            hoveredIndex === i ? "text-white" : "text-black"
+                                        }`}
                                     >
-                                        <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" strokeWidth={2} />
-                                        <div className="flex-1 space-y-1">
-                                            <p className="text-[14px] text-black/70 leading-[1.5]">
-                                                {item.after}
-                                            </p>
-                                            <div className="inline-flex px-2 py-0.5 rounded-full bg-green-500/10">
-                                                <span className="text-[11px] text-green-700 font-medium">
-                                                    {item.metric}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
+                                        <ArrowRight
+                                            className={`w-3 h-3 ${
+                                                hoveredIndex === i ? "text-white/60" : "text-black/30"
+                                            }`}
+                                            strokeWidth={2}
+                                        />
+                                        {item.after}
+                                    </span>
+                                </div>
                             </div>
-                        </div>
-                    </Card>
+                        ))}
+                    </div>
                 </div>
 
-                <div className="mt-12 text-center">
-                    <Card className="inline-flex items-center gap-3 p-6 bg-black border-none">
-                        <div className="text-left">
-                            <p className="text-[20px] font-semibold text-white mb-1">
-                                Prêt à transformer votre gestion ?
-                            </p>
-                            <p className="text-[14px] text-white/60">
-                                Essayez MyProPartner gratuitement pendant 14 jours
-                            </p>
+                {/* Bottom Result */}
+                <div
+                    className={`mt-12 text-center transition-all duration-700 delay-500 ${
+                        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+                    }`}
+                >
+                    <div className="inline-flex flex-col sm:flex-row items-center gap-4 sm:gap-8 p-6 rounded-2xl bg-black text-white">
+                        <div className="text-center sm:text-left">
+                            <p className="text-[32px] font-bold tracking-[-0.02em]">3h</p>
+                            <p className="text-[13px] text-white/60">économisées par jour</p>
                         </div>
-                        <a
-                            href="/waitlist"
-                            className="px-8 py-3 rounded-lg bg-white text-black text-[14px] font-medium hover:bg-white/90 transition-colors whitespace-nowrap"
-                        >
-                            Démarrer maintenant
-                        </a>
-                    </Card>
+                        <div className="hidden sm:block w-px h-12 bg-white/20" />
+                        <div className="text-center sm:text-left">
+                            <p className="text-[32px] font-bold tracking-[-0.02em]">15h</p>
+                            <p className="text-[13px] text-white/60">par semaine</p>
+                        </div>
+                        <div className="hidden sm:block w-px h-12 bg-white/20" />
+                        <div className="text-center sm:text-left">
+                            <p className="text-[32px] font-bold tracking-[-0.02em]">780h</p>
+                            <p className="text-[13px] text-white/60">par an</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>

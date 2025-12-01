@@ -14,7 +14,7 @@ export function CTASection() {
                         Prêt à gagner du temps ?
                     </h2>
                     <p className="text-[19px] text-black/60 leading-[1.5] max-w-[600px] mx-auto">
-                        Rejoignez 500+ entreprises qui développent leur business sans se compliquer la vie.
+                        Rejoignez la liste d'attente et soyez parmi les premiers à découvrir MyProPartner.
                     </p>
                 </div>
 

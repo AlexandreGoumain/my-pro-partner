@@ -80,7 +80,7 @@ export default function WaitlistPage() {
                             Merci pour votre intérêt !
                         </h1>
                         <p className="text-[15px] text-black/60 leading-relaxed mb-8">
-                            Vous êtes maintenant sur la liste d'attente.
+                            Vous êtes maintenant sur la liste d&apos;attente.
                             <br />
                             Nous vous contacterons dès le lancement.
                         </p>
@@ -88,7 +88,7 @@ export default function WaitlistPage() {
                             onClick={() => (window.location.href = "/")}
                             className="bg-black hover:bg-black/90 text-white h-11 px-6 text-[14px] font-medium shadow-sm"
                         >
-                            Retour à l'accueil
+                            Retour à l&apos;accueil
                         </Button>
                     </CardContent>
                 </Card>
@@ -106,8 +106,8 @@ export default function WaitlistPage() {
                     </h1>
                     <p className="text-[20px] text-black/60 tracking-[-0.01em] leading-relaxed max-w-xl mx-auto">
                         La solution ERP tout-en-un pour gérer votre entreprise
-                        simplement. Rejoignez la liste d'attente pour être parmi
-                        les premiers utilisateurs.
+                        simplement. Rejoignez la liste d&apos;attente pour être
+                        parmi les premiers utilisateurs.
                     </p>
                 </div>
 
@@ -172,7 +172,7 @@ export default function WaitlistPage() {
                                     htmlFor="templateType"
                                     className="block text-[14px] font-medium text-black/80 mb-2"
                                 >
-                                    Type d'activité
+                                    Type d&apos;activité
                                 </label>
                                 <Select
                                     value={templateType}
