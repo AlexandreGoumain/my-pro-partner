@@ -26,4 +26,5 @@ services:
 
 networks:
   app-network:
+    name: my-pro-partner_app-network
     external: true
