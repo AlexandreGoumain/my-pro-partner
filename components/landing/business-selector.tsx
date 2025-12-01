@@ -31,8 +31,8 @@ const businessTypes = [
         id: "plumber",
         name: "Plombier",
         icon: Wrench,
-        color: "from-blue-500/10 to-cyan-500/10",
-        iconColor: "text-blue-600",
+        color: "from-black/[0.02] to-black/[0.05]",
+        iconColor: "text-black/70",
         headline: "Gérez vos interventions comme un pro",
         features: [
             "Suivi interventions",
@@ -46,8 +46,8 @@ const businessTypes = [
         id: "hairdresser",
         name: "Coiffeur",
         icon: Scissors,
-        color: "from-pink-500/10 to-rose-500/10",
-        iconColor: "text-pink-600",
+        color: "from-black/[0.02] to-black/[0.05]",
+        iconColor: "text-black/70",
         headline: "Un salon qui tourne sans stress",
         features: [
             "Réservations en ligne",
@@ -61,8 +61,8 @@ const businessTypes = [
         id: "carpenter",
         name: "Menuisier",
         icon: Hammer,
-        color: "from-amber-500/10 to-orange-500/10",
-        iconColor: "text-amber-700",
+        color: "from-black/[0.02] to-black/[0.05]",
+        iconColor: "text-black/70",
         headline: "Créez sans perdre de temps",
         features: [
             "Devis sur-mesure",
@@ -76,8 +76,8 @@ const businessTypes = [
         id: "painter",
         name: "Peintre",
         icon: Palette,
-        color: "from-purple-500/10 to-indigo-500/10",
-        iconColor: "text-purple-600",
+        color: "from-black/[0.02] to-black/[0.05]",
+        iconColor: "text-black/70",
         headline: "Plus de chantiers, moins d'admin",
         features: [
             "Calcul surfaces",
@@ -91,8 +91,8 @@ const businessTypes = [
         id: "it-repair",
         name: "Réparation IT",
         icon: Laptop,
-        color: "from-slate-500/10 to-gray-500/10",
-        iconColor: "text-slate-600",
+        color: "from-black/[0.02] to-black/[0.05]",
+        iconColor: "text-black/70",
         headline: "Réparez plus, gérez moins",
         features: [
             "Suivi réparations",
@@ -106,8 +106,8 @@ const businessTypes = [
         id: "mechanic",
         name: "Garagiste",
         icon: Car,
-        color: "from-red-500/10 to-orange-500/10",
-        iconColor: "text-red-600",
+        color: "from-black/[0.02] to-black/[0.05]",
+        iconColor: "text-black/70",
         headline: "Un garage qui carbure",
         features: [
             "Carnet entretien",
@@ -121,8 +121,8 @@ const businessTypes = [
         id: "restaurant",
         name: "Restaurant",
         icon: UtensilsCrossed,
-        color: "from-emerald-500/10 to-green-500/10",
-        iconColor: "text-emerald-600",
+        color: "from-black/[0.02] to-black/[0.05]",
+        iconColor: "text-black/70",
         headline: "Concentrez-vous sur vos clients",
         features: [
             "Gestion tables",
@@ -136,8 +136,8 @@ const businessTypes = [
         id: "cafe",
         name: "Café / Bar",
         icon: Coffee,
-        color: "from-yellow-500/10 to-amber-500/10",
-        iconColor: "text-yellow-700",
+        color: "from-black/[0.02] to-black/[0.05]",
+        iconColor: "text-black/70",
         headline: "Servez plus, comptez moins",
         features: [
             "Caisse tactile",
@@ -151,8 +151,8 @@ const businessTypes = [
         id: "architect",
         name: "Architecte",
         icon: Building2,
-        color: "from-teal-500/10 to-cyan-500/10",
-        iconColor: "text-teal-600",
+        color: "from-black/[0.02] to-black/[0.05]",
+        iconColor: "text-black/70",
         headline: "Gérez vos projets avec clarté",
         features: [
             "Suivi projets",
@@ -166,8 +166,8 @@ const businessTypes = [
         id: "health",
         name: "Professionnel santé",
         icon: Heart,
-        color: "from-rose-500/10 to-pink-500/10",
-        iconColor: "text-rose-600",
+        color: "from-black/[0.02] to-black/[0.05]",
+        iconColor: "text-black/70",
         headline: "Plus de temps pour vos patients",
         features: [
             "Agenda patients",
@@ -181,8 +181,8 @@ const businessTypes = [
         id: "trainer",
         name: "Coach sportif",
         icon: Dumbbell,
-        color: "from-orange-500/10 to-red-500/10",
-        iconColor: "text-orange-600",
+        color: "from-black/[0.02] to-black/[0.05]",
+        iconColor: "text-black/70",
         headline: "Entraînez plus, gérez moins",
         features: [
             "Planning séances",
@@ -196,8 +196,8 @@ const businessTypes = [
         id: "teacher",
         name: "Cours particuliers",
         icon: GraduationCap,
-        color: "from-indigo-500/10 to-blue-500/10",
-        iconColor: "text-indigo-600",
+        color: "from-black/[0.02] to-black/[0.05]",
+        iconColor: "text-black/70",
         headline: "Enseignez sereinement",
         features: [
             "Planning cours",
@@ -211,8 +211,8 @@ const businessTypes = [
         id: "consultant",
         name: "Consultant",
         icon: Briefcase,
-        color: "from-violet-500/10 to-purple-500/10",
-        iconColor: "text-violet-600",
+        color: "from-black/[0.02] to-black/[0.05]",
+        iconColor: "text-black/70",
         headline: "Focalisez sur vos missions",
         features: [
             "Gestion projets",
@@ -226,8 +226,8 @@ const businessTypes = [
         id: "photographer",
         name: "Photographe",
         icon: Camera,
-        color: "from-fuchsia-500/10 to-pink-500/10",
-        iconColor: "text-fuchsia-600",
+        color: "from-black/[0.02] to-black/[0.05]",
+        iconColor: "text-black/70",
         headline: "Capturez sans contraintes",
         features: [
             "Galeries clients",
@@ -241,8 +241,8 @@ const businessTypes = [
         id: "fashion",
         name: "Boutique vêtements",
         icon: Shirt,
-        color: "from-pink-500/10 to-rose-500/10",
-        iconColor: "text-pink-700",
+        color: "from-black/[0.02] to-black/[0.05]",
+        iconColor: "text-black/70",
         headline: "Vendez sans compter",
         features: [
             "Caisse tactile",
@@ -256,8 +256,8 @@ const businessTypes = [
         id: "real-estate",
         name: "Agence immobilière",
         icon: Home,
-        color: "from-sky-500/10 to-blue-500/10",
-        iconColor: "text-sky-600",
+        color: "from-black/[0.02] to-black/[0.05]",
+        iconColor: "text-black/70",
         headline: "Vendez plus de biens",
         features: [
             "Gestion biens",
@@ -271,8 +271,8 @@ const businessTypes = [
         id: "florist",
         name: "Fleuriste",
         icon: Flower2,
-        color: "from-green-500/10 to-emerald-500/10",
-        iconColor: "text-green-600",
+        color: "from-black/[0.02] to-black/[0.05]",
+        iconColor: "text-black/70",
         headline: "Fleurissez votre business",
         features: [
             "Commandes en ligne",
@@ -286,8 +286,8 @@ const businessTypes = [
         id: "electrician",
         name: "Électricien",
         icon: Sparkles,
-        color: "from-yellow-500/10 to-orange-500/10",
-        iconColor: "text-yellow-600",
+        color: "from-black/[0.02] to-black/[0.05]",
+        iconColor: "text-black/70",
         headline: "Électrisez votre productivité",
         features: [
             "Suivi interventions",
@@ -443,7 +443,7 @@ export function BusinessSelector() {
                                 <div className="pt-4">
                                     <Link href="/waitlist">
                                         <Button className="bg-black hover:bg-black/90 text-white h-11 px-6 text-[14px] font-medium rounded-md shadow-sm group">
-                                            Rejoindre la liste d&pos;attente
+                                            Rejoindre la liste d&apos;attente
                                             <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                                         </Button>
                                     </Link>

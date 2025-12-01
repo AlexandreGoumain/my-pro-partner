@@ -18,8 +18,8 @@ const features = [
         icon: Sparkles,
         title: "Assistant IA",
         description: "Parlez naturellement. L'IA comprend vos besoins et agit instantanément.",
-        color: "from-violet-500/10 to-purple-500/10",
-        iconColor: "text-violet-600",
+        color: "from-black/[0.03] to-black/[0.06]",
+        iconColor: "text-black/70",
         stats: "Réponse en 1.2s",
         highlight: true
     },
@@ -27,56 +27,56 @@ const features = [
         icon: FileText,
         title: "Devis & Factures",
         description: "Créez des documents professionnels en 2 minutes chrono.",
-        color: "from-blue-500/10 to-cyan-500/10",
-        iconColor: "text-blue-600",
+        color: "from-black/[0.02] to-black/[0.05]",
+        iconColor: "text-black/70",
         stats: "3x plus rapide"
     },
     {
         icon: Users,
         title: "CRM Intelligent",
         description: "Centralisez tous vos clients. Historique complet et recherche instantanée.",
-        color: "from-emerald-500/10 to-green-500/10",
-        iconColor: "text-emerald-600",
+        color: "from-black/[0.02] to-black/[0.05]",
+        iconColor: "text-black/70",
         stats: "Accès en 1 clic"
     },
     {
         icon: Package,
         title: "Gestion Stocks",
         description: "Suivi en temps réel. Alertes automatiques. Zéro rupture.",
-        color: "from-orange-500/10 to-amber-500/10",
-        iconColor: "text-orange-600",
+        color: "from-black/[0.02] to-black/[0.05]",
+        iconColor: "text-black/70",
         stats: "Temps réel"
     },
     {
         icon: TrendingUp,
         title: "Analytics Avancés",
         description: "Tableaux de bord interactifs. Décisions basées sur les données.",
-        color: "from-pink-500/10 to-rose-500/10",
-        iconColor: "text-pink-600",
+        color: "from-black/[0.02] to-black/[0.05]",
+        iconColor: "text-black/70",
         stats: "Vision 360°"
     },
     {
         icon: Zap,
         title: "Automatisation",
         description: "Relances clients, calculs TVA, exports comptables. Tout automatique.",
-        color: "from-yellow-500/10 to-orange-500/10",
-        iconColor: "text-yellow-600",
+        color: "from-black/[0.02] to-black/[0.05]",
+        iconColor: "text-black/70",
         stats: "95% automatisé"
     },
     {
         icon: MessageSquare,
         title: "Portal Client",
         description: "Vos clients accèdent à leurs documents 24/7. Moins de support.",
-        color: "from-indigo-500/10 to-blue-500/10",
-        iconColor: "text-indigo-600",
+        color: "from-black/[0.02] to-black/[0.05]",
+        iconColor: "text-black/70",
         stats: "Support -60%"
     },
     {
         icon: Shield,
         title: "Sécurité Max",
         description: "Chiffrement bancaire. RGPD. Sauvegardes automatiques quotidiennes.",
-        color: "from-slate-500/10 to-gray-500/10",
-        iconColor: "text-slate-600",
+        color: "from-black/[0.02] to-black/[0.05]",
+        iconColor: "text-black/70",
         stats: "Niveau bancaire"
     }
 ];

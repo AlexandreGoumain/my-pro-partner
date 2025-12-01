@@ -1,220 +1,175 @@
 "use client";
 
-import { Card } from "@/components/ui/card";
-import { TrendingUp, Clock, DollarSign, Zap } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowRight } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export function ROICalculator() {
-    const [hoursPerWeek, setHoursPerWeek] = useState(20);
-    const [hourlyRate, setHourlyRate] = useState(50);
-    const [employees, setEmployees] = useState(1);
+    const [hoursPerWeek, setHoursPerWeek] = useState(15);
+    const [hourlyRate, setHourlyRate] = useState(45);
+    const [isVisible, setIsVisible] = useState(false);
+    const ref = useRef<HTMLDivElement>(null);
 
-    // Calculs
-    const timeSavedPerWeek = 15; // heures économisées avec MyProPartner
-    const timeSavedPerMonth = timeSavedPerWeek * 4;
-    const timeSavedPerYear = timeSavedPerMonth * 12;
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) setIsVisible(true);
+            },
+            { threshold: 0.1 }
+        );
 
-    const moneySavedPerMonth = timeSavedPerMonth * hourlyRate * employees;
-    const moneySavedPerYear = moneySavedPerMonth * 12;
+        if (ref.current) observer.observe(ref.current);
+        return () => observer.disconnect();
+    }, []);
 
-    const planCostPerMonth = 49; // Plan Pro
-    const planCostPerYear = planCostPerMonth * 12;
-
-    const netSavingsPerMonth = moneySavedPerMonth - planCostPerMonth;
-    const netSavingsPerYear = moneySavedPerYear - planCostPerYear;
-
-    const roi = ((netSavingsPerYear / planCostPerYear) * 100).toFixed(0);
+    // Calculs basés sur 60% de temps économisé
+    const percentSaved = 0.6;
+    const timeSavedPerWeek = Math.round(hoursPerWeek * percentSaved);
+    const timeSavedPerYear = timeSavedPerWeek * 52;
+    const moneySavedPerYear = timeSavedPerYear * hourlyRate;
+    const moneySavedPerMonth = Math.round(moneySavedPerYear / 12);
 
     return (
-        <section className="py-32 px-6 sm:px-8 bg-neutral-50">
-            <div className="max-w-[1000px] mx-auto">
-                <div className="text-center space-y-5 mb-16">
-                    <h2 className="text-[48px] sm:text-[56px] font-semibold tracking-[-0.02em] text-black leading-[1.05]">
-                        Calculez votre retour sur investissement
+        <section ref={ref} className="py-24 px-6 sm:px-8 bg-neutral-50 relative overflow-hidden">
+            {/* Subtle background */}
+            <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-gradient-radial from-black/[0.02] to-transparent rounded-full" />
+            </div>
+
+            <div className="max-w-[800px] mx-auto relative">
+                {/* Header */}
+                <div
+                    className={`text-center space-y-4 mb-12 transition-all duration-700 ${
+                        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+                    }`}
+                >
+                    <p className="text-[13px] font-semibold text-black/40 uppercase tracking-widest">
+                        Calculateur
+                    </p>
+                    <h2 className="text-[36px] sm:text-[44px] font-bold tracking-[-0.02em] text-black leading-[1.1]">
+                        Calculez vos économies
                     </h2>
-                    <p className="text-[19px] text-black/60 max-w-[680px] mx-auto leading-[1.5] tracking-[-0.01em]">
-                        Découvrez combien MyProPartner peut vous faire économiser chaque année
+                    <p className="text-[17px] text-black/50 max-w-[450px] mx-auto">
+                        Découvrez combien de temps et d&apos;argent vous pouvez récupérer.
                     </p>
                 </div>
 
-                <Card className="p-8 sm:p-12 bg-white border border-black/[0.08]">
-                    <div className="grid lg:grid-cols-2 gap-12">
-                        {/* Inputs */}
-                        <div className="space-y-8">
-                            <h3 className="text-[24px] font-semibold text-black tracking-[-0.01em]">
-                                Vos informations
-                            </h3>
-
-                            {/* Hours per week */}
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between">
-                                    <label className="text-[14px] font-medium text-black/70">
-                                        Heures/semaine sur la gestion admin
-                                    </label>
-                                    <span className="text-[20px] font-semibold text-black">
-                                        {hoursPerWeek}h
-                                    </span>
-                                </div>
+                {/* Calculator Card */}
+                <div
+                    className={`rounded-2xl bg-white border border-black/[0.06] shadow-sm overflow-hidden transition-all duration-700 delay-200 ${
+                        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+                    }`}
+                >
+                    {/* Sliders Section */}
+                    <div className="p-8 space-y-8">
+                        {/* Hours per week */}
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <label className="text-[14px] text-black/60">
+                                    Heures d&apos;admin par semaine
+                                </label>
+                                <span className="text-[28px] font-bold text-black tracking-[-0.02em]">{hoursPerWeek}h</span>
+                            </div>
+                            <div className="relative">
                                 <input
                                     type="range"
-                                    min="5"
-                                    max="40"
-                                    step="1"
                                     value={hoursPerWeek}
                                     onChange={(e) => setHoursPerWeek(Number(e.target.value))}
-                                    className="w-full h-2 bg-black/10 rounded-lg appearance-none cursor-pointer slider"
+                                    min={5}
+                                    max={40}
+                                    step={1}
+                                    className="w-full h-1.5 bg-black/10 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-black [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-black [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:cursor-pointer"
                                 />
                             </div>
-
-                            {/* Hourly rate */}
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between">
-                                    <label className="text-[14px] font-medium text-black/70">
-                                        Taux horaire de votre temps
-                                    </label>
-                                    <span className="text-[20px] font-semibold text-black">
-                                        {hourlyRate}€/h
-                                    </span>
-                                </div>
-                                <input
-                                    type="range"
-                                    min="20"
-                                    max="200"
-                                    step="5"
-                                    value={hourlyRate}
-                                    onChange={(e) => setHourlyRate(Number(e.target.value))}
-                                    className="w-full h-2 bg-black/10 rounded-lg appearance-none cursor-pointer slider"
-                                />
-                            </div>
-
-                            {/* Employees */}
-                            <div className="space-y-4">
-                                <div className="flex items-center justify-between">
-                                    <label className="text-[14px] font-medium text-black/70">
-                                        Nombre de personnes dans &apos;équipe
-                                    </label>
-                                    <span className="text-[20px] font-semibold text-black">
-                                        {employees}
-                                    </span>
-                                </div>
-                                <input
-                                    type="range"
-                                    min="1"
-                                    max="10"
-                                    step="1"
-                                    value={employees}
-                                    onChange={(e) => setEmployees(Number(e.target.value))}
-                                    className="w-full h-2 bg-black/10 rounded-lg appearance-none cursor-pointer slider"
-                                />
-                            </div>
-
-                            <div className="pt-4 border-t border-black/[0.08]">
-                                <p className="text-[12px] text-black/40 leading-relaxed">
-                                    Ces calculs sont basés sur des données moyennes de nos utilisateurs.
-                                    Les résultats peuvent varier selon votre activité.
-                                </p>
+                            <div className="flex justify-between text-[12px] text-black/30">
+                                <span>5h</span>
+                                <span>40h</span>
                             </div>
                         </div>
 
-                        {/* Results */}
-                        <div className="space-y-6">
-                            <h3 className="text-[24px] font-semibold text-black tracking-[-0.01em]">
-                                Vos économies avec MyProPartner
-                            </h3>
-
-                            <div className="space-y-4">
-                                {/* Time saved */}
-                                <Card className="p-5 bg-blue-500/5 border border-blue-500/20">
-                                    <div className="flex items-start gap-4">
-                                        <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center flex-shrink-0">
-                                            <Clock className="w-5 h-5 text-blue-700" strokeWidth={2} />
-                                        </div>
-                                        <div className="flex-1">
-                                            <p className="text-[13px] text-blue-700/60 font-medium mb-1">
-                                                Temps économisé
-                                            </p>
-                                            <p className="text-[28px] font-semibold text-blue-700 tracking-[-0.02em]">
-                                                {timeSavedPerYear}h<span className="text-[16px] text-blue-700/60">/an</span>
-                                            </p>
-                                            <p className="text-[12px] text-blue-700/50 mt-1">
-                                                Soit {timeSavedPerMonth}h par mois
-                                            </p>
-                                        </div>
-                                    </div>
-                                </Card>
-
-                                {/* Money saved */}
-                                <Card className="p-5 bg-green-500/5 border border-green-500/20">
-                                    <div className="flex items-start gap-4">
-                                        <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center flex-shrink-0">
-                                            <DollarSign className="w-5 h-5 text-green-700" strokeWidth={2} />
-                                        </div>
-                                        <div className="flex-1">
-                                            <p className="text-[13px] text-green-700/60 font-medium mb-1">
-                                                Valeur du temps économisé
-                                            </p>
-                                            <p className="text-[28px] font-semibold text-green-700 tracking-[-0.02em]">
-                                                {moneySavedPerYear.toLocaleString()}€<span className="text-[16px] text-green-700/60">/an</span>
-                                            </p>
-                                            <p className="text-[12px] text-green-700/50 mt-1">
-                                                Soit {moneySavedPerMonth.toLocaleString()}€ par mois
-                                            </p>
-                                        </div>
-                                    </div>
-                                </Card>
-
-                                {/* Net savings */}
-                                <Card className="p-5 bg-purple-500/5 border border-purple-500/20">
-                                    <div className="flex items-start gap-4">
-                                        <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center flex-shrink-0">
-                                            <Zap className="w-5 h-5 text-purple-700" strokeWidth={2} />
-                                        </div>
-                                        <div className="flex-1">
-                                            <p className="text-[13px] text-purple-700/60 font-medium mb-1">
-                                                Économie nette (après abonnement)
-                                            </p>
-                                            <p className="text-[28px] font-semibold text-purple-700 tracking-[-0.02em]">
-                                                {netSavingsPerYear.toLocaleString()}€<span className="text-[16px] text-purple-700/60">/an</span>
-                                            </p>
-                                            <p className="text-[12px] text-purple-700/50 mt-1">
-                                                Soit {netSavingsPerMonth.toLocaleString()}€ par mois
-                                            </p>
-                                        </div>
-                                    </div>
-                                </Card>
-
-                                {/* ROI */}
-                                <Card className="p-6 bg-black border-black">
-                                    <div className="flex items-start gap-4">
-                                        <div className="w-12 h-12 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
-                                            <TrendingUp className="w-6 h-6 text-white" strokeWidth={2} />
-                                        </div>
-                                        <div className="flex-1">
-                                            <p className="text-[13px] text-white/60 font-medium mb-2">
-                                                Retour sur investissement
-                                            </p>
-                                            <p className="text-[48px] font-semibold text-white tracking-[-0.03em] leading-none">
-                                                {roi}%
-                                            </p>
-                                            <p className="text-[13px] text-white/50 mt-3">
-                                                Pour chaque euro investi, vous économisez {(Number(roi) / 100).toFixed(1)}€
-                                            </p>
-                                        </div>
-                                    </div>
-                                </Card>
+                        {/* Hourly rate */}
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <label className="text-[14px] text-black/60">
+                                    Valeur de votre heure
+                                </label>
+                                <span className="text-[28px] font-bold text-black tracking-[-0.02em]">{hourlyRate}€</span>
                             </div>
-
-                            <div className="pt-4">
-                                <a
-                                    href="/waitlist"
-                                    className="flex items-center justify-center w-full h-12 px-6 rounded-lg bg-black text-white text-[14px] font-medium hover:bg-black/90 transition-colors"
-                                >
-                                    Commencer mon essai gratuit
-                                </a>
+                            <div className="relative">
+                                <input
+                                    type="range"
+                                    value={hourlyRate}
+                                    onChange={(e) => setHourlyRate(Number(e.target.value))}
+                                    min={20}
+                                    max={150}
+                                    step={5}
+                                    className="w-full h-1.5 bg-black/10 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-black [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-black [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:cursor-pointer"
+                                />
+                            </div>
+                            <div className="flex justify-between text-[12px] text-black/30">
+                                <span>20€</span>
+                                <span>150€</span>
                             </div>
                         </div>
                     </div>
-                </Card>
+
+                    {/* Divider */}
+                    <div className="h-px bg-black/[0.06]" />
+
+                    {/* Results Section - Dark */}
+                    <div className="bg-black text-white p-8">
+                        {/* Results Grid */}
+                        <div className="grid grid-cols-3 gap-6 mb-8">
+                            <div className="text-center">
+                                <p className="text-[36px] sm:text-[42px] font-bold tracking-[-0.02em]">
+                                    {timeSavedPerWeek}h
+                                </p>
+                                <p className="text-[13px] text-white/50 mt-1">par semaine</p>
+                            </div>
+                            <div className="text-center border-x border-white/10">
+                                <p className="text-[36px] sm:text-[42px] font-bold tracking-[-0.02em]">
+                                    {moneySavedPerMonth.toLocaleString("fr-FR")}€
+                                </p>
+                                <p className="text-[13px] text-white/50 mt-1">par mois</p>
+                            </div>
+                            <div className="text-center">
+                                <p className="text-[36px] sm:text-[42px] font-bold tracking-[-0.02em]">
+                                    {moneySavedPerYear.toLocaleString("fr-FR")}€
+                                </p>
+                                <p className="text-[13px] text-white/50 mt-1">par an</p>
+                            </div>
+                        </div>
+
+                        {/* Summary */}
+                        <p className="text-[14px] text-white/40 text-center mb-6">
+                            {timeSavedPerYear} heures par an, soit{" "}
+                            <span className="text-white/70 font-medium">
+                                {Math.round(timeSavedPerYear / 8)} jours de travail
+                            </span>{" "}
+                            récupérés.
+                        </p>
+
+                        {/* CTA */}
+                        <Link href="/waitlist">
+                            <Button className="w-full h-12 bg-white hover:bg-white/90 text-black text-[14px] font-medium rounded-lg group">
+                                Commencer à économiser
+                                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                            </Button>
+                        </Link>
+                    </div>
+                </div>
+
+                {/* Bottom note */}
+                <div
+                    className={`mt-6 text-center transition-all duration-700 delay-500 ${
+                        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+                    }`}
+                >
+                    <p className="text-[12px] text-black/40">
+                        Basé sur une économie de 60% du temps administratif grâce à l&apos;automatisation.
+                    </p>
+                </div>
             </div>
         </section>
     );

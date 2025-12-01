@@ -164,7 +164,7 @@ export function PricingCards() {
                                             planConfig.popular
                                                 ? "bg-white text-black border-black/[0.08]"
                                                 : planConfig.isPremium
-                                                ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white border-amber-400"
+                                                ? "bg-white text-black border-black/[0.08]"
                                                 : "bg-black text-white border-black"
                                         }`}>
                                             {planConfig.popular && <Sparkles className="w-3 h-3" strokeWidth={2} />}
@@ -189,7 +189,7 @@ export function PricingCards() {
                                                     {plan.name}
                                                 </h3>
                                                 {planConfig.isPremium && (
-                                                    <Crown className="w-4 h-4 text-amber-400" strokeWidth={2} />
+                                                    <Crown className="w-4 h-4 text-white/70" strokeWidth={2} />
                                                 )}
                                             </div>
                                             <p
@@ -301,7 +301,7 @@ export function PricingCards() {
                                                     planConfig.popular
                                                         ? "bg-white hover:bg-white/95 text-black"
                                                         : planConfig.isPremium
-                                                        ? "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
+                                                        ? "bg-white hover:bg-white/90 text-black"
                                                         : "bg-black hover:bg-black/90 text-white"
                                                 }`}
                                             >
@@ -340,7 +340,7 @@ export function PricingCards() {
                         </div>
                         <div className="flex items-center gap-2 text-black/60">
                             <Star className="w-4 h-4 text-black" strokeWidth={2} />
-                            <span>4.9/5 (500+ avis)</span>
+                            <span>Sans engagement</span>
                         </div>
                         <div className="flex items-center gap-2 text-black/60">
                             <TrendingUp className="w-4 h-4 text-black" strokeWidth={2} />

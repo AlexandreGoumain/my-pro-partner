@@ -2,7 +2,13 @@
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowRight, Sparkles, MessageSquare, TrendingUp, Zap } from "lucide-react";
+import {
+    ArrowRight,
+    MessageSquare,
+    Sparkles,
+    TrendingUp,
+    Zap,
+} from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -37,9 +43,13 @@ export function Hero() {
             <div className="max-w-[1200px] mx-auto relative">
                 <div className="text-center space-y-7 mb-16">
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-black/[0.03] border border-black/[0.08] mb-4 animate-in fade-in duration-700">
-                        <Sparkles className="w-4 h-4 text-black/60" strokeWidth={2} />
+                        <Sparkles
+                            className="w-4 h-4 text-black/60"
+                            strokeWidth={2}
+                        />
                         <span className="text-[13px] text-black/60 font-medium">
-                            Lancement imminent • Rejoignez notre liste d'attente
+                            Lancement imminent • Rejoignez notre liste
+                            d&apos;attente
                         </span>
                     </div>
 
@@ -64,7 +74,7 @@ export function Hero() {
                                 size="lg"
                                 className="bg-black hover:bg-black/90 text-white rounded-full h-12 px-8 text-[15px] font-medium shadow-sm hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
                             >
-                                Rejoindre la liste d'attente
+                                Rejoindre la liste d&apos;attente
                                 <ArrowRight className="ml-2 h-4 w-4" />
                             </Button>
                         </Link>
@@ -117,13 +127,17 @@ export function Hero() {
                                         {/* User message */}
                                         <div className="flex items-start gap-4">
                                             <div className="flex-shrink-0 w-10 h-10 rounded-full bg-black/5 flex items-center justify-center">
-                                                <MessageSquare className="w-5 h-5 text-black/60" strokeWidth={2} />
+                                                <MessageSquare
+                                                    className="w-5 h-5 text-black/60"
+                                                    strokeWidth={2}
+                                                />
                                             </div>
                                             <div className="flex-1">
                                                 <div className="inline-block px-5 py-3.5 rounded-2xl rounded-tl-none bg-black/5 border border-black/8">
                                                     <p className="text-[15px] text-black font-medium">
                                                         {typingText}
-                                                        {typingText.length < fullText.length && (
+                                                        {typingText.length <
+                                                            fullText.length && (
                                                             <span className="inline-block w-0.5 h-4 bg-black ml-0.5 animate-pulse" />
                                                         )}
                                                     </p>
@@ -135,55 +149,108 @@ export function Hero() {
                                         {showResponse && (
                                             <div className="flex items-start gap-4 flex-row-reverse animate-in fade-in slide-in-from-bottom-4 duration-500">
                                                 <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-black to-black/80 flex items-center justify-center">
-                                                    <Sparkles className="w-5 h-5 text-white" strokeWidth={2} />
+                                                    <Sparkles
+                                                        className="w-5 h-5 text-white"
+                                                        strokeWidth={2}
+                                                    />
                                                 </div>
                                                 <div className="flex-1 text-right">
                                                     <div className="inline-block px-5 py-4 rounded-2xl rounded-tr-none bg-white border border-black/10 shadow-lg">
                                                         <p className="text-[15px] font-medium text-black mb-4 text-left">
-                                                            Voici vos 3 principaux débiteurs :
+                                                            Voici vos 3
+                                                            principaux débiteurs
+                                                            :
                                                         </p>
                                                         <div className="text-left space-y-3">
                                                             <div className="flex items-center justify-between p-3 bg-black/[0.02] rounded-lg border border-black/5">
                                                                 <div className="flex items-center gap-3">
                                                                     <div className="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center">
-                                                                        <span className="text-[12px] font-bold text-black">1</span>
+                                                                        <span className="text-[12px] font-bold text-black">
+                                                                            1
+                                                                        </span>
                                                                     </div>
                                                                     <div>
-                                                                        <p className="text-[13px] font-semibold text-black">Martin Construction</p>
-                                                                        <p className="text-[11px] text-black/40">3 factures • 45j retard</p>
+                                                                        <p className="text-[13px] font-semibold text-black">
+                                                                            Martin
+                                                                            Construction
+                                                                        </p>
+                                                                        <p className="text-[11px] text-black/40">
+                                                                            3
+                                                                            factures
+                                                                            •
+                                                                            45j
+                                                                            retard
+                                                                        </p>
                                                                     </div>
                                                                 </div>
-                                                                <p className="text-[15px] font-bold text-black">8 450 €</p>
+                                                                <p className="text-[15px] font-bold text-black">
+                                                                    8 450 €
+                                                                </p>
                                                             </div>
                                                             <div className="flex items-center justify-between p-3 bg-black/[0.02] rounded-lg border border-black/5">
                                                                 <div className="flex items-center gap-3">
                                                                     <div className="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center">
-                                                                        <span className="text-[12px] font-bold text-black">2</span>
+                                                                        <span className="text-[12px] font-bold text-black">
+                                                                            2
+                                                                        </span>
                                                                     </div>
                                                                     <div>
-                                                                        <p className="text-[13px] font-semibold text-black">Dupont Rénovation</p>
-                                                                        <p className="text-[11px] text-black/40">2 factures • 22j retard</p>
+                                                                        <p className="text-[13px] font-semibold text-black">
+                                                                            Dupont
+                                                                            Rénovation
+                                                                        </p>
+                                                                        <p className="text-[11px] text-black/40">
+                                                                            2
+                                                                            factures
+                                                                            •
+                                                                            22j
+                                                                            retard
+                                                                        </p>
                                                                     </div>
                                                                 </div>
-                                                                <p className="text-[15px] font-bold text-black">5 200 €</p>
+                                                                <p className="text-[15px] font-bold text-black">
+                                                                    5 200 €
+                                                                </p>
                                                             </div>
                                                             <div className="flex items-center justify-between p-3 bg-black/[0.02] rounded-lg border border-black/5">
                                                                 <div className="flex items-center gap-3">
                                                                     <div className="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center">
-                                                                        <span className="text-[12px] font-bold text-black">3</span>
+                                                                        <span className="text-[12px] font-bold text-black">
+                                                                            3
+                                                                        </span>
                                                                     </div>
                                                                     <div>
-                                                                        <p className="text-[13px] font-semibold text-black">Bernard SARL</p>
-                                                                        <p className="text-[11px] text-black/40">1 facture • 12j retard</p>
+                                                                        <p className="text-[13px] font-semibold text-black">
+                                                                            Bernard
+                                                                            SARL
+                                                                        </p>
+                                                                        <p className="text-[11px] text-black/40">
+                                                                            1
+                                                                            facture
+                                                                            •
+                                                                            12j
+                                                                            retard
+                                                                        </p>
                                                                     </div>
                                                                 </div>
-                                                                <p className="text-[15px] font-bold text-black">3 800 €</p>
+                                                                <p className="text-[15px] font-bold text-black">
+                                                                    3 800 €
+                                                                </p>
                                                             </div>
                                                         </div>
                                                         <div className="mt-4 pt-4 border-t border-black/10 flex items-center justify-between text-left">
                                                             <div className="flex items-center gap-2 text-[11px] text-black/60">
-                                                                <Zap className="w-3.5 h-3.5" strokeWidth={2} />
-                                                                <span>Réponse générée en 1.2s</span>
+                                                                <Zap
+                                                                    className="w-3.5 h-3.5"
+                                                                    strokeWidth={
+                                                                        2
+                                                                    }
+                                                                />
+                                                                <span>
+                                                                    Réponse
+                                                                    générée en
+                                                                    1.2s
+                                                                </span>
                                                             </div>
                                                             <p className="text-[13px] font-semibold text-black">
                                                                 Total: 17 450 €
@@ -203,16 +270,26 @@ export function Hero() {
                                     <div className="absolute -left-8 top-1/4 animate-in fade-in slide-in-from-left duration-700 delay-500 hidden lg:block">
                                         <Card className="p-3 bg-white border-black/10 shadow-lg">
                                             <div className="flex items-center gap-2">
-                                                <TrendingUp className="w-4 h-4 text-black" strokeWidth={2} />
-                                                <span className="text-[11px] font-medium text-black">Analyse temps réel</span>
+                                                <TrendingUp
+                                                    className="w-4 h-4 text-black"
+                                                    strokeWidth={2}
+                                                />
+                                                <span className="text-[11px] font-medium text-black">
+                                                    Analyse temps réel
+                                                </span>
                                             </div>
                                         </Card>
                                     </div>
                                     <div className="absolute -right-8 bottom-1/4 animate-in fade-in slide-in-from-right duration-700 delay-700 hidden lg:block">
                                         <Card className="p-3 bg-white border-black/10 shadow-lg">
                                             <div className="flex items-center gap-2">
-                                                <Sparkles className="w-4 h-4 text-black" strokeWidth={2} />
-                                                <span className="text-[11px] font-medium text-black">40+ actions rapides</span>
+                                                <Sparkles
+                                                    className="w-4 h-4 text-black"
+                                                    strokeWidth={2}
+                                                />
+                                                <span className="text-[11px] font-medium text-black">
+                                                    40+ actions rapides
+                                                </span>
                                             </div>
                                         </Card>
                                     </div>
