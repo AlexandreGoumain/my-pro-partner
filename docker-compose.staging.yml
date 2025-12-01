@@ -1,0 +1,29 @@
+# Docker Compose for STAGING environment
+# Deploy: docker-compose -f docker-compose.staging.yml up -d
+
+services:
+  app-staging:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: my-pro-partner-staging
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    env_file:
+      - .env.staging
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000', (r) => { process.exit(r.statusCode === 200 ? 0 : 1) })"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  app-network:
+    external: true

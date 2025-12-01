@@ -1,10 +1,10 @@
 services:
-  # Application Next.js - My Pro Partner (ERP)
-  app:
+  # Application Next.js - My Pro Partner (ERP) - PRODUCTION
+  app-prod:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: my-pro-partner
+    container_name: my-pro-partner-prod
     restart: unless-stopped
     ports:
       - "3000:3000"
@@ -36,7 +36,7 @@ services:
       - ./nginx/ssl:/etc/nginx/ssl:ro
       - nginx-logs:/var/log/nginx
     depends_on:
-      - app
+      - app-prod
     networks:
       - app-network
 
