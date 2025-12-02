@@ -157,15 +157,16 @@ model Entreprise {
   incidentsLocatifs IncidentLocatif[] // Incidents/travaux
 
   // Relations pour syndic copropriété
-  coproprietes           Copropriete[] // Copropriétés gérées
-  lotsCopropriete        LotCopropriete[] // Lots de copropriété
-  appelsCharges          AppelCharges[] // Appels de charges
-  lignesAppelsCharges    LigneAppelCharges[] // Lignes d'appels
-  assembleesGenerales    AssembleeGenerale[] // Assemblées générales
-  resolutionsAG          ResolutionAG[] // Résolutions AG
-  travauxCopropriete     TravauxCopropriete[] // Travaux copropriété
-  comptesCopropriete     CompteCopropriete[] // Comptabilité copro
-  membresConseilSyndical MembreConseilSyndical[] // Membres conseil
+  coproprietes            Copropriete[] // Copropriétés gérées
+  lotsCopropriete         LotCopropriete[] // Lots de copropriété
+  appelsCharges           AppelCharges[] // Appels de charges
+  lignesAppelsCharges     LigneAppelCharges[] // Lignes d'appels
+  assembleesGenerales     AssembleeGenerale[] // Assemblées générales
+  resolutionsAG           ResolutionAG[] // Résolutions AG
+  travauxCopropriete      TravauxCopropriete[] // Travaux copropriété
+  comptesCopropriete      CompteCopropriete[] // Comptabilité copro
+  membresConseilSyndical  MembreConseilSyndical[] // Membres conseil
+  ecrituresComptableCopro EcritureComptableCopro[] // Écritures comptables copro
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -5392,12 +5393,13 @@ model Copropriete {
   entrepriseId String
 
   // Relations
-  lots            LotCopropriete[]
-  appelsCharges   AppelCharges[]
-  assemblees      AssembleeGenerale[]
-  travauxCopro    TravauxCopropriete[]
-  compteCopro     CompteCopropriete[]
-  conseilSyndical MembreConseilSyndical[]
+  lots                LotCopropriete[]
+  appelsCharges       AppelCharges[]
+  assemblees          AssembleeGenerale[]
+  travauxCopro        TravauxCopropriete[]
+  compteCopro         CompteCopropriete[]
+  conseilSyndical     MembreConseilSyndical[]
+  ecrituresComptables EcritureComptableCopro[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -5451,7 +5453,8 @@ model LotCopropriete {
   entrepriseId String
 
   // Relations
-  appelsCharges LigneAppelCharges[]
+  appelsCharges       LigneAppelCharges[]
+  ecrituresComptables EcritureComptableCopro[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -5460,6 +5463,51 @@ model LotCopropriete {
   @@index([entrepriseId])
   @@index([coproprieteId])
   @@index([coproprietaireId])
+}
+
+// ============================================
+// COMPTABILITE COPROPRIETE
+// ============================================
+
+enum TypeEcritureCopro {
+  DEBIT
+  CREDIT
+}
+
+model EcritureComptableCopro {
+  id String @id @default(cuid())
+
+  // Copropriété concernée
+  copropriete   Copropriete @relation(fields: [coproprieteId], references: [id], onDelete: Cascade)
+  coproprieteId String
+
+  // Lot concerné (optionnel)
+  lot   LotCopropriete? @relation(fields: [lotId], references: [id])
+  lotId String?
+
+  // Détails de l'écriture
+  dateEcriture      DateTime
+  libelle           String
+  montant           Decimal        @db.Decimal(10, 2)
+  typeEcriture      TypeEcritureCopro
+  compte            String // Numéro de compte comptable
+  categorieCharge   String? // Catégorie de charge (chauffage, ascenseur, etc.)
+  pieceJustificative String? // URL ou référence de la pièce
+  notes             String? @db.Text
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([coproprieteId])
+  @@index([lotId])
+  @@index([dateEcriture])
+  @@index([typeEcriture])
+  @@index([compte])
 }
 
 enum TypeAppelCharges {

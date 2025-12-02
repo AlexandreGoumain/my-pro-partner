@@ -58,7 +58,7 @@ async function main() {
 
     try {
       // Compter les enregistrements
-      const count = await (prisma as Record<string, { count?: () => Promise<number> }>)[tableName.toLowerCase()]?.count?.() || 0;
+      const count = await (prisma as unknown as Record<string, { count?: () => Promise<number> }>)[tableName.toLowerCase()]?.count?.() || 0;
       console.log(`   Records: ${count}`);
 
       // Vérifier les index
