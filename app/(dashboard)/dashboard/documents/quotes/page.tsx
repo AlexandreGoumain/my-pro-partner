@@ -71,10 +71,10 @@ export default function QuotesPage() {
                     documents={filters.filteredAndSortedDocuments}
                     isLoading={page.isLoading}
                     type="DEVIS"
-                    onView={page.handlers.handleView}
-                    onEdit={page.handlers.handleEdit}
-                    onDelete={page.handlers.handleDelete}
-                    onConvertToInvoice={convertToInvoice}
+                    onView={(doc) => page.handlers.handleView(doc as Quote)}
+                    onEdit={(doc) => page.handlers.handleEdit(doc as Quote)}
+                    onDelete={(doc) => page.handlers.handleDelete(doc as Quote)}
+                    onConvertToInvoice={(doc) => convertToInvoice(doc as Quote)}
                     onCreate={page.handlers.handleCreate}
                 />
             )}

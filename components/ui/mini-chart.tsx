@@ -9,6 +9,7 @@ import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, ResponsiveContaine
 export interface MiniChartData {
     label: string;
     value: number;
+    [key: string]: string | number;
 }
 
 export interface MiniChartProps {

@@ -40,8 +40,8 @@ export function RepairDetailHeader({ reparation }: RepairDetailHeaderProps) {
 
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <RepairStatusBadge status={reparation.statut} />
-            <RepairPriorityBadge priority={reparation.priorite} />
+            <RepairStatusBadge statut={reparation.statut} />
+            <RepairPriorityBadge priorite={reparation.priorite} />
           </div>
           <RepairStatusActionButton
             reparation={reparation}

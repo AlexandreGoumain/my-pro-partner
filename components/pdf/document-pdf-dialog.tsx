@@ -90,10 +90,10 @@ export function DocumentPdfDialog({
                         <DocumentTemplate
                             type={document.type}
                             numero={document.numero}
-                            dateEmission={document.dateEmission}
-                            dateEcheance={document.dateEcheance}
+                            dateEmission={new Date(document.dateEmission)}
+                            dateEcheance={document.dateEcheance ? new Date(document.dateEcheance) : null}
                             client={document.client}
-                            company={company}
+                            company={{ ...company, nom_entreprise: company.nom_entreprise || "" }}
                             lignes={document.lignes}
                             total_ht={Number(document.total_ht)}
                             total_tva={Number(document.total_tva)}

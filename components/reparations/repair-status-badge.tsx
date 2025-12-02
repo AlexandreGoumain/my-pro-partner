@@ -1,7 +1,7 @@
 "use client";
 
 import { createStatusBadge } from "@/components/ui/status-badge";
-import { type StatutReparation } from "@/lib/generated/prisma/client";
+import { type StatutReparation } from "@/lib/generated/prisma";
 
 const REPAIR_STATUS_CONFIG: Record<
     StatutReparation,

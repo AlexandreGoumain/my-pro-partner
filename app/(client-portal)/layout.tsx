@@ -19,10 +19,17 @@ export default function ClientPortalLayout({
 }: ClientPortalLayoutProps) {
     const pathname = usePathname();
 
+    // Don't show layout or require auth on login, register, forgot-password, reset-password, and welcome pages
+    const isAuthPage =
+        pathname.startsWith("/client/login") ||
+        pathname.startsWith("/client/register") ||
+        pathname.startsWith("/client/forgot-password") ||
+        pathname.startsWith("/client/reset-password") ||
+        pathname === "/client/welcome";
+
     // Use custom auth hook for authentication and client info
-    const { clientName, initials, logout } = useClientAuth(
-        !pathname.startsWith("/client/login")
-    );
+    // Only redirect to login if not on an auth page
+    const { clientName, initials, logout } = useClientAuth(!isAuthPage);
 
     // Define navigation items with memoization
     const navigation: NavigationItem[] = useMemo(
@@ -50,14 +57,6 @@ export default function ClientPortalLayout({
         ],
         []
     );
-
-    // Don't show layout on login, register, forgot-password, reset-password, and welcome pages
-    const isAuthPage =
-        pathname.startsWith("/client/login") ||
-        pathname.startsWith("/client/register") ||
-        pathname.startsWith("/client/forgot-password") ||
-        pathname.startsWith("/client/reset-password") ||
-        pathname === "/client/welcome";
 
     if (isAuthPage) {
         return (

@@ -57,10 +57,12 @@ export function ChatMessagesList({
                 />
             ) : (
                 <div className="px-4 py-4 space-y-4">
-                    {messages.map((message, index) => (
+                    {messages
+                        .filter((message) => message.role !== "system")
+                        .map((message, index) => (
                         <ChatbotMessageBubble
                             key={message.id || index}
-                            role={message.role}
+                            role={message.role as "user" | "assistant"}
                             content={message.content}
                             createdAt={message.createdAt}
                             messageId={message.id}

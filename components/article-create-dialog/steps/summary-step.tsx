@@ -194,7 +194,7 @@ export function SummaryStep({ form, articleType, categories }: StepProps) {
                                             : "-"}
                                     </p>
                                 </div>
-                                {form.watch("prixRachat") !== undefined && form.watch("prixRachat") > 0 && (
+                                {form.watch("prixRachat") !== undefined && (form.watch("prixRachat") ?? 0) > 0 && (
                                     <div className="space-y-1">
                                         <span className="text-[13px] text-black/50 font-medium">
                                             Prix de rachat

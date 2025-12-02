@@ -44,7 +44,7 @@ const STATUS_LABELS: Record<DocumentStatut, string> = {
     ANNULE: "Annulé",
 };
 
-const STATUS_ICONS = {
+const STATUS_ICONS: Partial<Record<DocumentStatut, typeof Send>> = {
     ENVOYE: Send,
     ACCEPTE: CheckCircle2,
     REFUSE: XCircle,
