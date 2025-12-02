@@ -88,7 +88,7 @@ export async function createOpenAIStream({
 
                 // Handle tool calls
                 if (delta?.tool_calls) {
-                  accumulateToolCalls(delta.tool_calls, toolCalls);
+                  accumulateToolCalls(delta.tool_calls as ToolCallDelta[], toolCalls);
                 }
               } catch (_parseError) {
                 // Ignore parsing errors
@@ -104,10 +104,20 @@ export async function createOpenAIStream({
   });
 }
 
+interface ToolCallDelta {
+  index: number;
+  id?: string;
+  type?: string;
+  function?: {
+    name?: string;
+    arguments?: string;
+  };
+}
+
 /**
  * Accumulate tool calls from delta chunks
  */
-function accumulateToolCalls(toolCallDeltas: unknown[], toolCalls: ToolCall[]) {
+function accumulateToolCalls(toolCallDeltas: ToolCallDelta[], toolCalls: ToolCall[]) {
   for (const toolCallDelta of toolCallDeltas) {
     const index = toolCallDelta.index;
 
@@ -196,10 +206,11 @@ async function executeToolCalls(
       // Send result to client
       if (result.success) {
         // For navigation, send a special event
-        if (toolCall.function.name === 'navigate_to' && result.data?.path) {
+        const resultData = result.data as Record<string, unknown> | undefined;
+        if (toolCall.function.name === 'navigate_to' && resultData?.path) {
           const navEvent = JSON.stringify({
             type: 'navigation',
-            path: (result.data as Record<string, unknown>).path,
+            path: resultData.path,
           }) + '\n';
           controller.enqueue(encoder.encode(navEvent));
         }

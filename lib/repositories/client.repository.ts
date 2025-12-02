@@ -1,5 +1,5 @@
-import { PrismaClient, Client } from "@/lib/generated/prisma/client";
-import { BaseRepository } from "./base.repository";
+import { PrismaClient, Client } from "@/lib/generated/prisma";
+import { BaseRepository, PaginationParams } from "./base.repository";
 
 /**
  * Client repository
@@ -29,9 +29,8 @@ export class ClientRepository extends BaseRepository<Client> {
   async findByEntreprise(
     entrepriseId: string,
     search?: string,
-    pagination?: Record<string, unknown>,
+    pagination?: PaginationParams,
     filters?: {
-      actif?: boolean;
       niveauFideliteId?: string;
       ville?: string;
     }
@@ -52,9 +51,6 @@ export class ClientRepository extends BaseRepository<Client> {
 
     // Add additional filters
     if (filters) {
-      if (filters.actif !== undefined) {
-        where.actif = filters.actif;
-      }
       if (filters.niveauFideliteId) {
         where.niveauFideliteId = filters.niveauFideliteId;
       }
@@ -81,12 +77,12 @@ export class ClientRepository extends BaseRepository<Client> {
   }
 
   /**
-   * Count active clients by entreprise
+   * Count clients with email (active/contactable)
    */
-  async countActiveByEntreprise(entrepriseId: string): Promise<number> {
+  async countWithEmail(entrepriseId: string): Promise<number> {
     return this.count({
       entrepriseId,
-      actif: true,
+      email: { not: null },
     });
   }
 
@@ -125,7 +121,7 @@ export class ClientRepository extends BaseRepository<Client> {
     clientId: string,
     points: number
   ): Promise<Client> {
-    return this.update(clientId, { points });
+    return this.update(clientId, { points_solde: points });
   }
 
   /**
@@ -136,8 +132,8 @@ export class ClientRepository extends BaseRepository<Client> {
     pointsToAdd: number
   ): Promise<Client> {
     const client = await this.findByIdOrFail(clientId);
-    const newPoints = (client.points || 0) + pointsToAdd;
-    return this.update(clientId, { points: newPoints });
+    const newPoints = (client.points_solde || 0) + pointsToAdd;
+    return this.update(clientId, { points_solde: newPoints });
   }
 
   /**
@@ -148,21 +144,21 @@ export class ClientRepository extends BaseRepository<Client> {
     pointsToRemove: number
   ): Promise<Client> {
     const client = await this.findByIdOrFail(clientId);
-    const newPoints = Math.max(0, (client.points || 0) - pointsToRemove);
-    return this.update(clientId, { points: newPoints });
+    const newPoints = Math.max(0, (client.points_solde || 0) - pointsToRemove);
+    return this.update(clientId, { points_solde: newPoints });
   }
 
   /**
-   * Deactivate a client
+   * Enable client portal access
    */
-  async deactivate(clientId: string): Promise<Client> {
-    return this.update(clientId, { actif: false });
+  async enablePortal(clientId: string): Promise<Client> {
+    return this.update(clientId, { clientPortalEnabled: true });
   }
 
   /**
-   * Activate a client
+   * Disable client portal access
    */
-  async activate(clientId: string): Promise<Client> {
-    return this.update(clientId, { actif: true });
+  async disablePortal(clientId: string): Promise<Client> {
+    return this.update(clientId, { clientPortalEnabled: false });
   }
 }

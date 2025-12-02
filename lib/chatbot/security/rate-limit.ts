@@ -4,7 +4,7 @@
 
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
-import { PlanAbonnement } from "@prisma/client";
+import { PlanAbonnement } from "@/lib/generated/prisma";
 
 /**
  * Configuration Redis pour Upstash

@@ -6,7 +6,7 @@
  */
 
 export type UserRole = "OWNER" | "ADMIN" | "MANAGER" | "EMPLOYEE" | "CASHIER" | "ACCOUNTANT";
-export type UserStatus = "ACTIVE" | "INACTIVE" | "SUSPENDED" | "INVITED";
+export type UserStatus = "ACTIVE" | "INACTIVE" | "SUSPENDED" | "INVITED" | "DELETED";
 
 export interface RolePermissions {
   // Permissions Clients
@@ -283,6 +283,7 @@ export const STATUS_LABELS: Record<UserStatus, string> = {
   INACTIVE: "Inactif",
   SUSPENDED: "Suspendu",
   INVITED: "Invitation envoyée",
+  DELETED: "Supprimé",
 };
 
 /**
@@ -293,6 +294,7 @@ export const STATUS_COLORS: Record<UserStatus, string> = {
   INACTIVE: "secondary",
   SUSPENDED: "destructive",
   INVITED: "warning",
+  DELETED: "secondary",
 };
 
 /**

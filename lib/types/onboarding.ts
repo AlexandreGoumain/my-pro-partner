@@ -3,7 +3,7 @@
  */
 
 import { BusinessType } from "@/lib/types/business";
-import { PlanAbonnement } from "@prisma/client";
+import { PlanAbonnement } from "@/lib/generated/prisma";
 
 export interface OnboardingStep {
     number: number;

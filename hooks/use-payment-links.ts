@@ -44,7 +44,7 @@ export function useCreatePaymentLink() {
     const mutation = paymentLinkHooks.useCreate<PaymentLinkFormData>();
 
     return useMutation({
-        mutationFn: mutation.mutateAsync,
+        mutationFn: (data: PaymentLinkFormData) => mutation.mutateAsync(data),
         onSuccess: () => {
             toast.success("Lien créé avec succès !");
         },
@@ -63,7 +63,7 @@ export function useUpdatePaymentLink() {
     const mutation = paymentLinkHooks.useUpdate<PaymentLinkFormData>();
 
     return useMutation({
-        mutationFn: mutation.mutateAsync,
+        mutationFn: (params: { id: string; data: PaymentLinkFormData }) => mutation.mutateAsync(params),
         onSuccess: () => {
             toast.success("Lien mis à jour avec succès !");
         },
@@ -82,7 +82,7 @@ export function useDeletePaymentLink() {
     const mutation = paymentLinkHooks.useDelete();
 
     return useMutation({
-        mutationFn: mutation.mutateAsync,
+        mutationFn: (id: string) => mutation.mutateAsync(id),
         onSuccess: () => {
             toast.success("Lien supprimé");
         },

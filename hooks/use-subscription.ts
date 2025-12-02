@@ -133,8 +133,8 @@ export function useSubscription() {
             // Rafraîchir la session NextAuth pour mettre à jour le plan
             await updateSession();
             router.refresh();
-        } catch (error: unknown) {
-            toast.error(error.message || "Erreur lors du changement de plan");
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : "Erreur lors du changement de plan");
         } finally {
             setLoading(false);
         }
@@ -160,8 +160,8 @@ export function useSubscription() {
             } else {
                 throw new Error("URL du portail manquante");
             }
-        } catch (error: unknown) {
-            toast.error(error.message || "Erreur lors de l'accès au portail");
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : "Erreur lors de l'accès au portail");
             setLoading(false);
         }
     };

@@ -44,7 +44,7 @@ export interface StoresPageHandlers {
     };
 
     // Pricing
-    userPlan: Record<string, unknown>;
+    userPlan: string;
     checkLimit: (limitKey: keyof PlanLimits, currentValue: number) => boolean;
 }
 

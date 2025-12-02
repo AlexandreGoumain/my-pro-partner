@@ -23,7 +23,7 @@ export function useUpdateNotificationSettings() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (notifications: NotificationPreferences) =>
+        mutationFn: async (notifications: Partial<NotificationPreferences>) =>
             api.put<{ notifications: NotificationPreferences }>("/api/settings/notifications", notifications),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: notificationSettingsKeys.all });

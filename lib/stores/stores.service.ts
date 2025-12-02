@@ -103,10 +103,10 @@ export async function createTransfer(
     toStoreId: string;
     items: Prisma.StockTransferItemCreateWithoutTransferInput[];
     notes?: string;
-    requestedBy?: string;
+    requestedBy: string;
   }
 ) {
-  const { fromStoreId, toStoreId, items, ...rest } = data;
+  const { fromStoreId, toStoreId, items, notes, requestedBy } = data;
 
   return await prisma.stockTransfer.create({
     data: {
@@ -114,7 +114,8 @@ export async function createTransfer(
       fromStore: { connect: { id: fromStoreId } },
       toStore: { connect: { id: toStoreId } },
       numero: `TR-${Date.now()}`,
-      ...rest,
+      notes,
+      requestedBy,
       items: {
         create: items,
       },

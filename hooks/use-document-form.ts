@@ -45,8 +45,19 @@ export function useDocumentForm({
     const { data: articlesData = [] } = useArticles();
 
     // Convertir les données pour le formulaire
-    const clients = clientsData as unknown as Client[];
-    const articles = articlesData as unknown as Article[];
+    const clients = (clientsData as unknown as Array<{ id?: string; nom: string; prenom: string | null; email: string | null; telephone: string | null; adresse?: string | null }>)
+        .filter((c): c is Client => !!c.id)
+        .map((c) => ({ ...c, adresse: c.adresse ?? null }));
+
+    // Map articles to include prix/tva aliases for LineItemsEditor compatibility
+    const articles = (articlesData as unknown as Array<{ id: string; nom: string; reference?: string; type: "PRODUIT" | "SERVICE"; prix_ht?: number; tva_taux?: number; prix?: number }>)
+        .map((a) => ({
+            ...a,
+            prix_ht: a.prix_ht ?? a.prix ?? 0,
+            tva_taux: a.tva_taux ?? 20,
+            prix: a.prix_ht ?? a.prix ?? 0,
+            tva: a.tva_taux ?? 20,
+        })) as Article[];
 
     // Calculate default expiry date for initial state (only once)
     const getDefaultExpiryDate = () => {

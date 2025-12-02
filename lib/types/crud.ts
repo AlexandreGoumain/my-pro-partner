@@ -130,9 +130,9 @@ export interface CrudConfig<TData = any, TResource = any> {
     include?: Record<string, unknown>;
 
     /**
-     * Default order by clause
+     * Default order by clause (can be a single object or array of objects for multi-column sorting)
      */
-    orderBy?: Record<string, unknown>;
+    orderBy?: Record<string, unknown> | Record<string, unknown>[];
 
     /**
      * Plan limit key (e.g., 'maxClients', 'maxProducts')

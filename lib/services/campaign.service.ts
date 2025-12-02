@@ -1,7 +1,7 @@
 import { campaignRepository, segmentRepository } from "@/lib/repositories";
 import { ConflictError, NotFoundError, BusinessError } from "@/lib/errors";
 import { SegmentService } from "./segment.service";
-import type { Campaign, Prisma } from "@/lib/generated/prisma/client";
+import type { Campaign } from "@/lib/generated/prisma";
 
 /**
  * Options for creating a campaign
@@ -9,12 +9,13 @@ import type { Campaign, Prisma } from "@/lib/generated/prisma/client";
 export interface CreateCampaignOptions {
   entrepriseId: string;
   nom: string;
-  type: string;
-  statut?: string;
+  type?: "EMAIL" | "SMS" | "NOTIFICATION";
+  statut?: "DRAFT" | "SCHEDULED" | "SENDING" | "SENT" | "CANCELLED";
   description?: string;
   segmentId?: string;
-  contenu?: Prisma.JsonValue;
-  datePlanifiee?: Date;
+  subject?: string;
+  body?: string;
+  scheduledAt?: Date;
 }
 
 /**
@@ -22,12 +23,13 @@ export interface CreateCampaignOptions {
  */
 export interface UpdateCampaignOptions {
   nom?: string;
-  type?: string;
-  statut?: string;
+  type?: "EMAIL" | "SMS" | "NOTIFICATION";
+  statut?: "DRAFT" | "SCHEDULED" | "SENDING" | "SENT" | "CANCELLED";
   description?: string;
   segmentId?: string;
-  contenu?: Prisma.JsonValue;
-  datePlanifiee?: Date;
+  subject?: string;
+  body?: string;
+  scheduledAt?: Date;
 }
 
 /**
@@ -62,11 +64,11 @@ export class CampaignService {
       nom,
       segmentId,
       entrepriseId,
-      statut: options.statut || "BROUILLON",
-      dateCreation: new Date(),
-      nombreEnvois: 0,
-      nombreOuvertures: 0,
-      nombreClics: 0,
+      statut: options.statut || "DRAFT",
+      recipientsCount: 0,
+      sentCount: 0,
+      openedCount: 0,
+      clickedCount: 0,
     });
 
     return campaign;
@@ -88,8 +90,8 @@ export class CampaignService {
     }
 
     // Prevent modification of sent campaigns
-    if (existingCampaign.statut === "ENVOYE" || existingCampaign.statut === "TERMINE") {
-      throw new BusinessError("Impossible de modifier une campagne déjà envoyée");
+    if (existingCampaign.statut === "SENT" || existingCampaign.statut === "CANCELLED") {
+      throw new BusinessError("Impossible de modifier une campagne déjà envoyée ou annulée");
     }
 
     // Check name uniqueness if changing name
@@ -108,7 +110,7 @@ export class CampaignService {
       }
     }
 
-    return campaignRepository.update(campaignId, options);
+    return campaignRepository.update(campaignId, options as Record<string, unknown>);
   }
 
   /**
@@ -126,7 +128,7 @@ export class CampaignService {
     }
 
     // Prevent deletion of sent campaigns
-    if (campaign.statut === "ENVOYE" || campaign.statut === "TERMINE") {
+    if (campaign.statut === "SENT") {
       throw new BusinessError("Impossible de supprimer une campagne déjà envoyée");
     }
 
@@ -139,7 +141,7 @@ export class CampaignService {
   static async scheduleCampaign(
     campaignId: string,
     entrepriseId: string,
-    datePlanifiee: Date
+    scheduledAt: Date
   ): Promise<Campaign> {
     // Verify campaign exists
     const campaign = await campaignRepository.findByIdOrFail(campaignId);
@@ -152,18 +154,18 @@ export class CampaignService {
       throw new BusinessError("La campagne doit avoir un segment cible");
     }
 
-    if (!campaign.contenu) {
-      throw new BusinessError("La campagne doit avoir un contenu");
+    if (!campaign.body && !campaign.subject) {
+      throw new BusinessError("La campagne doit avoir un contenu (sujet ou corps)");
     }
 
     // Validate scheduled date is in the future
-    if (datePlanifiee <= new Date()) {
+    if (scheduledAt <= new Date()) {
       throw new BusinessError("La date planifiée doit être dans le futur");
     }
 
     return campaignRepository.update(campaignId, {
-      statut: "PLANIFIE",
-      datePlanifiee,
+      statut: "SCHEDULED",
+      scheduledAt,
     });
   }
 
@@ -181,15 +183,15 @@ export class CampaignService {
     }
 
     // Validate campaign can be sent
-    if (campaign.statut === "ENVOYE" || campaign.statut === "TERMINE") {
-      throw new BusinessError("Cette campagne a déjà été envoyée");
+    if (campaign.statut === "SENT" || campaign.statut === "CANCELLED") {
+      throw new BusinessError("Cette campagne a déjà été envoyée ou annulée");
     }
 
     if (!campaign.segmentId) {
       throw new BusinessError("La campagne doit avoir un segment cible");
     }
 
-    if (!campaign.contenu) {
+    if (!campaign.body && !campaign.subject) {
       throw new BusinessError("La campagne doit avoir un contenu");
     }
 
@@ -204,13 +206,14 @@ export class CampaignService {
     }
 
     // TODO: Integrate with email service to actually send emails
-    // await emailService.sendBulkEmails(recipients, campaign.contenu);
+    // await emailService.sendBulkEmails(recipients, campaign.body);
 
     // Update campaign status and stats
     const updatedCampaign = await campaignRepository.update(campaignId, {
-      statut: "ENVOYE",
-      dateEnvoi: new Date(),
-      nombreEnvois: recipients.length,
+      statut: "SENT",
+      sentAt: new Date(),
+      recipientsCount: recipients.length,
+      sentCount: recipients.length,
     });
 
     return {
@@ -241,9 +244,9 @@ export class CampaignService {
   }
 
   /**
-   * Mark a campaign as completed
+   * Cancel a campaign
    */
-  static async completeCampaign(
+  static async cancelCampaign(
     campaignId: string,
     entrepriseId: string
   ): Promise<Campaign> {
@@ -252,11 +255,11 @@ export class CampaignService {
       throw new NotFoundError("Campaign", campaignId);
     }
 
-    if (campaign.statut !== "ENVOYE") {
-      throw new BusinessError("Seules les campagnes envoyées peuvent être marquées comme terminées");
+    if (campaign.statut === "SENT") {
+      throw new BusinessError("Impossible d'annuler une campagne déjà envoyée");
     }
 
-    return campaignRepository.markAsCompleted(campaignId);
+    return campaignRepository.markAsCancelled(campaignId);
   }
 
   /**
@@ -332,8 +335,9 @@ export class CampaignService {
       type: original.type,
       description: original.description || undefined,
       segmentId: original.segmentId || undefined,
-      contenu: original.contenu,
-      statut: "BROUILLON",
+      subject: original.subject || undefined,
+      body: original.body || undefined,
+      statut: "DRAFT",
     });
   }
 }

@@ -1,5 +1,5 @@
-import { PrismaClient, Document } from "@/lib/generated/prisma/client";
-import { BaseRepository } from "./base.repository";
+import { PrismaClient, Document } from "@/lib/generated/prisma";
+import { BaseRepository, PaginationParams } from "./base.repository";
 
 /**
  * Document repository
@@ -29,7 +29,7 @@ export class DocumentRepository extends BaseRepository<Document> {
   async findByEntreprise(
     entrepriseId: string,
     search?: string,
-    pagination?: Record<string, unknown>,
+    pagination?: PaginationParams,
     filters?: {
       type?: "DEVIS" | "FACTURE" | "AVOIR";
       statut?: string;
@@ -67,13 +67,14 @@ export class DocumentRepository extends BaseRepository<Document> {
 
     // Add date range filter
     if (filters?.dateFrom || filters?.dateTo) {
-      where.date = {};
+      const dateFilter: { gte?: Date; lte?: Date } = {};
       if (filters.dateFrom) {
-        where.date.gte = filters.dateFrom;
+        dateFilter.gte = filters.dateFrom;
       }
       if (filters.dateTo) {
-        where.date.lte = filters.dateTo;
+        dateFilter.lte = filters.dateTo;
       }
+      where.dateEmission = dateFilter;
     }
 
     return this.findAll(
@@ -87,7 +88,7 @@ export class DocumentRepository extends BaseRepository<Document> {
           },
         },
       },
-      { date: "desc" }
+      { dateEmission: "desc" }
     );
   }
 
@@ -164,13 +165,13 @@ export class DocumentRepository extends BaseRepository<Document> {
       entrepriseId,
       type,
       statut: "PAYE",
-      date: {
+      dateEmission: {
         gte: dateFrom,
         lte: dateTo,
       },
     });
 
-    return documents.items.reduce((sum, doc) => sum + (doc.total || 0), 0);
+    return documents.items.reduce((sum, doc) => sum + Number(doc.total_ttc || 0), 0);
   }
 
   /**

@@ -108,10 +108,10 @@ export function useFECExport() {
         title: "Export réussi",
         description: `Le fichier FEC a été téléchargé : ${filename}`,
       });
-    } catch (error: unknown) {
+    } catch (error) {
       toast({
         title: "Erreur d'export",
-        description: error.message,
+        description: error instanceof Error ? error.message : "Une erreur est survenue",
         variant: "destructive",
       });
     } finally {

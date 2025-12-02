@@ -1,6 +1,6 @@
 import { clientRepository, documentRepository, loyaltyLevelRepository } from "@/lib/repositories";
 import { ConflictError, NotFoundError, BusinessError } from "@/lib/errors";
-import type { Client } from "@/lib/generated/prisma/client";
+import type { Client } from "@/lib/generated/prisma";
 
 /**
  * Options for creating a client
@@ -93,7 +93,7 @@ export class ClientService {
     }
 
     // Update client
-    return clientRepository.update(clientId, options);
+    return clientRepository.update(clientId, options as Record<string, unknown>);
   }
 
   /**
@@ -168,7 +168,7 @@ export class ClientService {
       throw new NotFoundError("Client", clientId);
     }
 
-    return clientRepository.activate(clientId);
+    return clientRepository.update(clientId, { actif: true });
   }
 
   /**
@@ -183,7 +183,7 @@ export class ClientService {
       throw new NotFoundError("Client", clientId);
     }
 
-    return clientRepository.deactivate(clientId);
+    return clientRepository.update(clientId, { actif: false });
   }
 
   /**
@@ -192,7 +192,7 @@ export class ClientService {
   static async getClientStatistics(entrepriseId: string) {
     const [totalClients, activeClients] = await Promise.all([
       clientRepository.countByEntreprise(entrepriseId),
-      clientRepository.countActiveByEntreprise(entrepriseId),
+      clientRepository.count({ entrepriseId, actif: true }),
     ]);
 
     return {

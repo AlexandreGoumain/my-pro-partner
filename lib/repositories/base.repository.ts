@@ -1,4 +1,4 @@
-import { PrismaClient } from "@/lib/generated/prisma/client";
+import { PrismaClient } from "@/lib/generated/prisma";
 import { NotFoundError } from "@/lib/errors";
 
 /**
@@ -9,6 +9,7 @@ export interface PaginationParams {
   take: number;
   page: number;
   limit: number;
+  [key: string]: unknown;
 }
 
 /**
@@ -37,8 +38,9 @@ export abstract class BaseRepository<T> {
   /**
    * Get the Prisma model delegate
    */
-  protected get model(): Record<string, (...args: unknown[]) => unknown> {
-    return (this.prisma as Record<string, unknown>)[this.modelName] as Record<string, (...args: unknown[]) => unknown>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  protected get model(): any {
+    return (this.prisma as any)[this.modelName];
   }
 
   /**
@@ -48,7 +50,7 @@ export abstract class BaseRepository<T> {
     where: Record<string, unknown> = {},
     pagination?: PaginationParams,
     include?: Record<string, unknown>,
-    orderBy?: Record<string, unknown>
+    orderBy?: Record<string, unknown> | Record<string, unknown>[]
   ): Promise<PaginatedResult<T>> {
     const [items, total] = await Promise.all([
       this.model.findMany({
@@ -244,8 +246,9 @@ export abstract class BaseRepository<T> {
    * Execute operations in a transaction
    */
   async transaction<R>(
-    callback: (tx: PrismaClient) => Promise<R>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    callback: (tx: any) => Promise<R>
   ): Promise<R> {
-    return this.prisma.$transaction(callback as (tx: PrismaClient) => Promise<R>);
+    return this.prisma.$transaction(callback);
   }
 }

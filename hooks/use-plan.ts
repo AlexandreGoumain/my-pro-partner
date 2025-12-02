@@ -21,8 +21,7 @@ export function usePlan() {
   const { data: session } = useSession();
 
   const currentPlan: PlanType = useMemo(() => {
-    // @ts-expect-error - session.user.plan existe dans notre config NextAuth
-    return (session?.user?.plan as PlanType) || "FREE";
+    return ((session?.user as { plan?: PlanType } | undefined)?.plan as PlanType) || "FREE";
   }, [session]);
 
   const planConfig = useMemo(() => getPlanConfig(currentPlan), [currentPlan]);

@@ -154,8 +154,9 @@ export function useEntityActions<T extends { id: string }>(
         const articleUpper =
             labels.article === "l'"
                 ? "L'"
-                : labels.article?.charAt(0).toUpperCase() +
-                      labels.article?.slice(1) || "";
+                : labels.article
+                    ? labels.article.charAt(0).toUpperCase() + labels.article.slice(1)
+                    : "";
 
         return {
             createSuccess:
