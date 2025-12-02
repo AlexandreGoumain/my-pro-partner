@@ -141,14 +141,17 @@ export async function POST(req: NextRequest) {
                 data: { prochain_numero_facture: prochainNumero + 1 },
             });
         } else {
-            prefixe = parametres.prefixe_avoir;
-            prochainNumero = parametres.prochain_numero_avoir;
-            numero = `${prefixe}${prochainNumero.toString().padStart(5, "0")}`;
-
-            await prisma.parametresEntreprise.update({
-                where: { entrepriseId: client.entrepriseId },
-                data: { prochain_numero_avoir: prochainNumero + 1 },
+            // Avoir: utilise préfixe "AV" par défaut et compteur basé sur factures
+            prefixe = "AV";
+            // Count existing avoirs to generate next number
+            const avoirCount = await prisma.document.count({
+                where: {
+                    entrepriseId: client.entrepriseId,
+                    type: "AVOIR",
+                },
             });
+            prochainNumero = avoirCount + 1;
+            numero = `${prefixe}${prochainNumero.toString().padStart(5, "0")}`;
         }
 
         // Extract lignes from validation data

@@ -3,7 +3,7 @@ import {
     verifyResourceAccess,
 } from "@/lib/middleware/tenant-isolation";
 import { prisma } from "@/lib/prisma";
-import { applySegmentCriteria } from "@/lib/types/segment";
+import { applySegmentCriteria, SegmentCriteria } from "@/lib/types/segment";
 import { getDaysAgo, calculatePercentageChange } from "@/lib/utils/date-periods";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -32,7 +32,7 @@ export async function GET(
         // Apply segment criteria
         const segmentClients = applySegmentCriteria(
             allClients,
-            segment.criteres as Record<string, unknown>
+            segment.criteres as unknown as SegmentCriteria
         );
 
         // Calculate demographics

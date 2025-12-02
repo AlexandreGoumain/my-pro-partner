@@ -118,7 +118,6 @@ export async function POST(request: NextRequest) {
             couleur,
             actif,
             disponibilites,
-            poste,
             specialites,
             bio,
             certifications,
@@ -150,7 +149,6 @@ export async function POST(request: NextRequest) {
                 couleur: couleur || null,
                 actif: actif !== false,
                 // Coach fields (fitness)
-                poste: poste?.trim() || null,
                 specialites: specialites || null,
                 bio: bio?.trim() || null,
                 certifications: certifications?.trim() || null,

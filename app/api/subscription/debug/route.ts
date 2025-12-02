@@ -45,20 +45,25 @@ export async function GET(_req: NextRequest) {
             email: customer.deleted ? null : customer.email,
             name: customer.deleted ? null : customer.name,
           },
-          subscriptions: subscriptions.data.map((sub) => ({
-            id: sub.id,
-            status: sub.status,
-            current_period_end: sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : null,
-            cancel_at_period_end: sub.cancel_at_period_end,
-            cancel_at: sub.cancel_at ? new Date(sub.cancel_at * 1000).toISOString() : null,
-            trial_end: sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null,
-            items: sub.items.data.map((item) => ({
-              price_id: item.price.id,
-              product: item.price.product,
-              amount: item.price.unit_amount ? item.price.unit_amount / 100 : 0,
-              interval: item.price.recurring?.interval,
-            })),
-          })),
+          subscriptions: subscriptions.data.map((sub) => {
+            // Cast to any to handle API version differences in property names
+            const subAny = sub as unknown as Record<string, unknown>;
+            const periodEnd = subAny.current_period_end as number | null;
+            return {
+              id: sub.id,
+              status: sub.status,
+              current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
+              cancel_at_period_end: sub.cancel_at_period_end,
+              cancel_at: sub.cancel_at ? new Date(sub.cancel_at * 1000).toISOString() : null,
+              trial_end: sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null,
+              items: sub.items.data.map((item) => ({
+                price_id: item.price.id,
+                product: item.price.product,
+                amount: item.price.unit_amount ? item.price.unit_amount / 100 : 0,
+                interval: item.price.recurring?.interval,
+              })),
+            };
+          }),
         };
       } catch (err) {
         stripeData = { error: err instanceof Error ? err.message : 'Unknown error' };
@@ -95,12 +100,19 @@ export async function GET(_req: NextRequest) {
 /**
  * Générer des recommandations basées sur l'état
  */
-function getRecommendations(entreprise: { id: string; nom: string; plan: string; subscription: { plan: string; status: string; cancelAtPeriodEnd: boolean } | null }, stripeData: { subscriptions?: Array<{ status: string; cancel_at_period_end: boolean }> } | null): string[] {
+type StripeDataType = {
+  customer?: unknown;
+  subscriptions?: Array<{ status: string; cancel_at_period_end: boolean }>;
+  error?: string;
+} | null;
+
+function getRecommendations(entreprise: { id: string; nom: string; plan: string; subscription: { plan: string; status: string; cancelAtPeriodEnd: boolean } | null }, stripeData: StripeDataType): string[] {
   const recommendations: string[] = [];
 
   // Vérifier si le plan DB correspond à Stripe
-  if (entreprise.subscription && stripeData?.subscriptions?.length > 0) {
-    const stripeSub = stripeData.subscriptions[0];
+  const subscriptions = stripeData?.subscriptions;
+  if (entreprise.subscription && subscriptions && subscriptions.length > 0) {
+    const stripeSub = subscriptions[0];
 
     if (stripeSub.status !== entreprise.subscription.status) {
       recommendations.push(
@@ -123,7 +135,7 @@ function getRecommendations(entreprise: { id: string; nom: string; plan: string;
   }
 
   // Si pas de subscription dans Stripe mais dans DB
-  if (entreprise.subscription && !stripeData?.subscriptions?.length) {
+  if (entreprise.subscription && (!subscriptions || subscriptions.length === 0)) {
     recommendations.push(
       `⚠️ Subscription exists in DB but not in Stripe (deleted or expired)`
     );

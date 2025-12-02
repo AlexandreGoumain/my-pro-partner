@@ -3,7 +3,7 @@ import {
     verifyResourceAccess,
 } from "@/lib/middleware/tenant-isolation";
 import { prisma } from "@/lib/prisma";
-import { applySegmentCriteria } from "@/lib/types/segment";
+import { applySegmentCriteria, SegmentCriteria } from "@/lib/types/segment";
 import { NextRequest, NextResponse } from "next/server";
 
 // ============================================
@@ -35,7 +35,7 @@ export async function GET(
         // Apply segment criteria
         const filteredClients = applySegmentCriteria(
             allClients,
-            segment.criteres as Record<string, unknown>
+            segment.criteres as unknown as SegmentCriteria
         );
 
         // Format data based on requested format

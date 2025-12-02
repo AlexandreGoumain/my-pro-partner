@@ -4,6 +4,7 @@ import {
     requireTenantAuth,
 } from "@/lib/middleware/tenant-isolation";
 import { prisma } from "@/lib/prisma";
+import { clientInviteLimiter } from "@/lib/rate-limit";
 import { validateRequest } from "@/lib/utils/validation-helper";
 import { nanoid } from "nanoid";
 import { NextRequest, NextResponse } from "next/server";
@@ -24,6 +25,15 @@ const inviteClientSchema = z.object({
 export async function POST(req: NextRequest) {
     try {
         const { entrepriseId } = await requireTenantAuth();
+
+        // Rate limiting par entreprise
+        const { success: rateLimitOk } = await clientInviteLimiter.limit(entrepriseId);
+        if (!rateLimitOk) {
+            return NextResponse.json(
+                { message: "Trop d'invitations envoyées. Réessayez plus tard." },
+                { status: 429 }
+            );
+        }
 
         const body = await req.json();
         const result = validateRequest(inviteClientSchema, body);
@@ -91,20 +101,8 @@ export async function POST(req: NextRequest) {
                     });
             }
 
-            console.log(
-                `[Client Invitation] Resending invitation to ${email} with token ${existingInvitation.token}`
-            );
-
             return NextResponse.json({
                 message: "Invitation renvoyée avec succès",
-                invitationToken:
-                    process.env.NODE_ENV === "development"
-                        ? existingInvitation.token
-                        : undefined,
-                invitationLink:
-                    process.env.NODE_ENV === "development"
-                        ? `${process.env.NEXTAUTH_URL}/client/register?token=${existingInvitation.token}`
-                        : undefined,
             });
         }
 
@@ -149,13 +147,6 @@ export async function POST(req: NextRequest) {
                 });
         }
 
-        console.log(
-            `[Client Invitation] Invitation created for ${email} with token ${token}`
-        );
-        console.log(
-            `[Client Invitation] Link: ${process.env.NEXTAUTH_URL}/client/register?token=${token}`
-        );
-
         return NextResponse.json({
             message: "Invitation envoyée avec succès",
             invitation: {
@@ -163,13 +154,6 @@ export async function POST(req: NextRequest) {
                 email: invitation.email,
                 expiresAt: invitation.expiresAt,
             },
-            // In development, return the token for testing
-            invitationToken:
-                process.env.NODE_ENV === "development" ? token : undefined,
-            invitationLink:
-                process.env.NODE_ENV === "development"
-                    ? `${process.env.NEXTAUTH_URL}/client/register?token=${token}`
-                    : undefined,
         });
     } catch (error) {
         return handleTenantError(error);

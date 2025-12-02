@@ -5,7 +5,7 @@ import {
 } from "@/lib/middleware/tenant-isolation";
 import { getDaysAgo } from "@/lib/utils/date-periods";
 import { NextRequest, NextResponse } from "next/server";
-import type { StatutEmploye, TypeContrat } from "@prisma/client";
+import type { StatutEmploye, TypeContrat } from "@/lib/generated/prisma";
 
 export interface DepartmentData {
     department: string;

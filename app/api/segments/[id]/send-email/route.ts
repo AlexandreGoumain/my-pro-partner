@@ -4,7 +4,7 @@ import {
   requireTenantAuth,
 } from "@/lib/middleware/tenant-isolation";
 import { NextRequest, NextResponse } from "next/server";
-import { applySegmentCriteria } from "@/lib/types/segment";
+import { applySegmentCriteria, SegmentCriteria } from "@/lib/types/segment";
 import { emailService } from "@/lib/email/email-service";
 import { render } from "@react-email/render";
 import { CampaignEmail } from "@/lib/email/templates/campaign";
@@ -63,7 +63,7 @@ export async function POST(
     // Apply segment criteria
     const recipients = applySegmentCriteria(
       allClients,
-      segment.criteres as Record<string, unknown>
+      segment.criteres as unknown as SegmentCriteria
     ).filter((c) => c.email); // Only clients with email
 
     if (recipients.length === 0) {

@@ -18,6 +18,7 @@ import {
     requireTenantAuth,
 } from "@/lib/middleware/tenant-isolation";
 import { prisma } from "@/lib/prisma";
+import type { PlanAbonnement } from "@/lib/generated/prisma";
 import {
     checkFeatureAccess,
     createFeatureError,
@@ -85,8 +86,8 @@ export async function POST(req: NextRequest) {
 
         // ✅ SÉCURITÉ : Rate limiting adaptatif selon le plan
         // FREE: 0/min, STARTER: 5/min, PRO: 20/min, ENTERPRISE: 50/min
-        const rateLimitResult = await checkMessageRateLimitForPlan(userId, entreprise.plan);
-        const planLimit = getRateLimitForPlan(entreprise.plan);
+        const rateLimitResult = await checkMessageRateLimitForPlan(userId, entreprise.plan as PlanAbonnement);
+        const planLimit = getRateLimitForPlan(entreprise.plan as PlanAbonnement);
 
         if (!rateLimitResult.success) {
             logger.warn("Rate limit exceeded for chatbot messages", {
@@ -321,12 +322,9 @@ export async function POST(req: NextRequest) {
             onStreamEnd: async (fullText, toolCalls) => {
                 // Save assistant message to database
                 try {
-                    const metadata: {
-                        timestamp: string;
-                        toolCalls?: unknown[];
-                    } = {
+                    const metadata = {
                         timestamp: new Date().toISOString(),
-                        ...(toolCalls.length > 0 && { toolCalls }),
+                        ...(toolCalls.length > 0 && { toolCalls: toolCalls as object[] }),
                     };
 
                     await prisma.message.create({
@@ -335,7 +333,7 @@ export async function POST(req: NextRequest) {
                             role: "ASSISTANT",
                             content: fullText,
                             model: "gpt-4o-mini",
-                            metadata,
+                            metadata: metadata as object,
                         },
                     });
 

@@ -19,7 +19,7 @@ export async function GET(_req: NextRequest) {
       amount: invoice.amount_paid / 100, // Convertir centimes en euros
       currency: invoice.currency,
       status: invoice.status,
-      paid: invoice.paid,
+      paid: invoice.status === "paid",
       date: new Date(invoice.created * 1000).toLocaleDateString("fr-FR"),
       pdfUrl: invoice.invoice_pdf,
       hostedUrl: invoice.hosted_invoice_url,

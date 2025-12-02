@@ -40,7 +40,7 @@ export async function GET(
                     select: {
                         id: true,
                         numero: true,
-                        proprietaire: {
+                        coproprietaire: {
                             select: {
                                 id: true,
                                 nom: true,

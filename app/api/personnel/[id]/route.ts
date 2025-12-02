@@ -15,7 +15,7 @@ import {
   toggleUserStatus,
   userHasPermission,
 } from "@/lib/personnel/personnel.service";
-import { UserStatus } from "@/lib/generated/prisma";
+import { UserStatus } from "@/lib/personnel/roles-config";
 
 /**
  * GET /api/personnel/[id]

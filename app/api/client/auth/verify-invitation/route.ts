@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { z } from "zod";
+import { getClientIp, tokenVerifyLimiter } from "@/lib/rate-limit";
 import { validateRequest } from "@/lib/utils/validation-helper";
+import { z } from "zod";
 
 const verifyInvitationSchema = z.object({
   token: z.string().min(1, "Token requis"),
@@ -13,6 +14,16 @@ const verifyInvitationSchema = z.object({
  */
 export async function POST(req: NextRequest) {
   try {
+    // Rate limiting par IP pour prévenir le brute force
+    const ip = getClientIp(req);
+    const { success: rateLimitOk } = await tokenVerifyLimiter.limit(ip);
+    if (!rateLimitOk) {
+      return NextResponse.json(
+        { message: "Trop de tentatives. Réessayez dans 15 minutes." },
+        { status: 429 }
+      );
+    }
+
     const body = await req.json();
     const result = validateRequest(verifyInvitationSchema, body);
     if (!result.success) return result.response;

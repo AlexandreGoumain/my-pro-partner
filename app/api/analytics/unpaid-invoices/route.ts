@@ -1,5 +1,6 @@
 import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/lib/generated/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
@@ -15,14 +16,7 @@ export async function GET(req: NextRequest) {
         const overdueOnly = searchParams.get("overdueOnly") === "true";
 
         // Build where clause
-        const where: {
-            entrepriseId: string;
-            type: string;
-            statut: { notIn: string[] };
-            reste_a_payer: { gt?: number; gte?: number };
-            clientId?: string;
-            dateEcheance?: { lt: Date };
-        } = {
+        const where: Prisma.DocumentWhereInput = {
             entrepriseId,
             type: "FACTURE",
             statut: {
@@ -97,14 +91,14 @@ export async function GET(req: NextRequest) {
                 montantTTC: Number(invoice.total_ttc),
                 resteAPayer: Number(invoice.reste_a_payer),
                 statut: invoice.statut,
-                client: {
+                client: invoice.client ? {
                     id: invoice.client.id,
                     nom: invoice.client.nom,
                     prenom: invoice.client.prenom,
                     email: invoice.client.email,
                     telephone: invoice.client.telephone,
                     ville: invoice.client.ville,
-                },
+                } : null,
             };
         });
 

@@ -194,7 +194,7 @@ export async function PATCH(
             });
 
             const result = await emailService.sendEmail({
-                to: locataire.email,
+                to: locataire.email!,
                 subject: `Appel de loyer - ${MOIS_LABELS[loyer.mois]} ${loyer.annee}`,
                 html: emailHtml,
                 fromName: parametres?.nom_entreprise,
