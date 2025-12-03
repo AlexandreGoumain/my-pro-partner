@@ -1,7 +1,6 @@
-import { authOptions } from "@/lib/auth";
-import { requireCapability } from "@/lib/middleware/business-type-check";
+import { withApiHandler } from "@/lib/api/api-handler";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import { NotFoundError, ValidationError } from "@/lib/errors";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -23,170 +22,145 @@ const createCoursSchema = z.object({
     imageUrl: z.string().optional().nullable(),
 });
 
-// GET /api/fitness/cours - Liste des cours collectifs
+const coursInclude = {
+    instructeur: {
+        select: {
+            id: true,
+            nom: true,
+            prenom: true,
+            couleur: true,
+        },
+    },
+    salle: {
+        select: {
+            id: true,
+            nom: true,
+            type: true,
+        },
+    },
+} as const;
+
+/**
+ * GET /api/fitness/cours
+ * List group classes
+ */
 export async function GET(request: NextRequest) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Non autorisé" },
-                { status: 401 }
-            );
-        }
+    return withApiHandler(
+        async (ctx) => {
+            const { searchParams } = new URL(request.url);
+            const actif = searchParams.get("actif");
+            const categorie = searchParams.get("categorie");
+            const niveau = searchParams.get("niveau");
+            const instructeurId = searchParams.get("instructeurId");
+            const search = searchParams.get("search") || "";
 
-        const capabilityCheck = await requireCapability("cours_collectifs");
-        if (capabilityCheck) return capabilityCheck;
-
-        const { searchParams } = new URL(request.url);
-        const actif = searchParams.get("actif");
-        const categorie = searchParams.get("categorie");
-        const niveau = searchParams.get("niveau");
-        const instructeurId = searchParams.get("instructeurId");
-        const search = searchParams.get("search") || "";
-
-        const where = {
-            entrepriseId: session.user.entrepriseId,
-            ...(actif !== null && actif !== "" && { actif: actif === "true" }),
-            ...(categorie && { categorie }),
-            ...(niveau && {
-                niveau: niveau as
-                    | "DEBUTANT"
-                    | "INTERMEDIAIRE"
-                    | "AVANCE"
-                    | "TOUS_NIVEAUX",
-            }),
-            ...(instructeurId && { instructeurId }),
-            ...(search && {
-                OR: [
-                    { nom: { contains: search, mode: "insensitive" as const } },
-                    {
-                        description: {
-                            contains: search,
-                            mode: "insensitive" as const,
+            const where = {
+                entrepriseId: ctx.entrepriseId,
+                ...(actif !== null && actif !== "" && { actif: actif === "true" }),
+                ...(categorie && { categorie }),
+                ...(niveau && {
+                    niveau: niveau as
+                        | "DEBUTANT"
+                        | "INTERMEDIAIRE"
+                        | "AVANCE"
+                        | "TOUS_NIVEAUX",
+                }),
+                ...(instructeurId && { instructeurId }),
+                ...(search && {
+                    OR: [
+                        { nom: { contains: search, mode: "insensitive" as const } },
+                        {
+                            description: {
+                                contains: search,
+                                mode: "insensitive" as const,
+                            },
                         },
-                    },
-                ],
-            }),
-        };
+                    ],
+                }),
+            };
 
-        const cours = await prisma.coursCollectif.findMany({
-            where,
-            orderBy: [{ nom: "asc" }],
-            include: {
-                instructeur: {
-                    select: {
-                        id: true,
-                        nom: true,
-                        prenom: true,
-                        couleur: true,
+            const cours = await prisma.coursCollectif.findMany({
+                where,
+                orderBy: [{ nom: "asc" }],
+                include: {
+                    ...coursInclude,
+                    _count: {
+                        select: { seances: true },
                     },
                 },
-                salle: {
-                    select: {
-                        id: true,
-                        nom: true,
-                        type: true,
-                    },
-                },
-                _count: {
-                    select: { seances: true },
-                },
-            },
-        });
+            });
 
-        return NextResponse.json({ data: cours });
-    } catch (error) {
-        console.error("Erreur GET cours:", error);
-        return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
-    }
+            return NextResponse.json({ data: cours });
+        },
+        {
+            capability: "cours_collectifs",
+            context: { resourceName: "CoursCollectif", operation: "list" },
+        }
+    );
 }
 
-// POST /api/fitness/cours - Créer un cours
+/**
+ * POST /api/fitness/cours
+ * Create a group class
+ */
 export async function POST(request: NextRequest) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Non autorisé" },
-                { status: 401 }
-            );
-        }
+    return withApiHandler(
+        async (ctx) => {
+            const body = await request.json();
+            const validation = createCoursSchema.safeParse(body);
 
-        const capabilityCheck = await requireCapability("cours_collectifs");
-        if (capabilityCheck) return capabilityCheck;
-
-        const body = await request.json();
-        const validatedData = createCoursSchema.parse(body);
-
-        // Vérifier que l'instructeur existe (si fourni)
-        if (validatedData.instructeurId) {
-            const instructeur = await prisma.employe.findFirst({
-                where: {
-                    id: validatedData.instructeurId,
-                    entrepriseId: session.user.entrepriseId,
-                    actif: true,
-                },
-            });
-
-            if (!instructeur) {
-                return NextResponse.json(
-                    { error: "Instructeur non trouvé" },
-                    { status: 404 }
+            if (!validation.success) {
+                throw new ValidationError(
+                    "Données invalides",
+                    validation.error.flatten().fieldErrors as Record<string, string[]>
                 );
             }
-        }
 
-        // Vérifier que la salle existe (si fournie)
-        if (validatedData.salleId) {
-            const salle = await prisma.salleFitness.findFirst({
-                where: {
-                    id: validatedData.salleId,
-                    entrepriseId: session.user.entrepriseId,
-                    actif: true,
+            const data = validation.data;
+
+            // Check that instructor exists (if provided)
+            if (data.instructeurId) {
+                const instructeur = await prisma.employe.findFirst({
+                    where: {
+                        id: data.instructeurId,
+                        entrepriseId: ctx.entrepriseId,
+                        actif: true,
+                    },
+                });
+
+                if (!instructeur) {
+                    throw new NotFoundError("Instructeur non trouvé");
+                }
+            }
+
+            // Check that room exists (if provided)
+            if (data.salleId) {
+                const salle = await prisma.salleFitness.findFirst({
+                    where: {
+                        id: data.salleId,
+                        entrepriseId: ctx.entrepriseId,
+                        actif: true,
+                    },
+                });
+
+                if (!salle) {
+                    throw new NotFoundError("Salle non trouvée");
+                }
+            }
+
+            const cours = await prisma.coursCollectif.create({
+                data: {
+                    ...data,
+                    entrepriseId: ctx.entrepriseId,
                 },
+                include: coursInclude,
             });
 
-            if (!salle) {
-                return NextResponse.json(
-                    { error: "Salle non trouvée" },
-                    { status: 404 }
-                );
-            }
+            return NextResponse.json(cours, { status: 201 });
+        },
+        {
+            capability: "cours_collectifs",
+            context: { resourceName: "CoursCollectif", operation: "create" },
         }
-
-        const cours = await prisma.coursCollectif.create({
-            data: {
-                ...validatedData,
-                entrepriseId: session.user.entrepriseId,
-            },
-            include: {
-                instructeur: {
-                    select: {
-                        id: true,
-                        nom: true,
-                        prenom: true,
-                        couleur: true,
-                    },
-                },
-                salle: {
-                    select: {
-                        id: true,
-                        nom: true,
-                        type: true,
-                    },
-                },
-            },
-        });
-
-        return NextResponse.json(cours, { status: 201 });
-    } catch (error) {
-        if (error instanceof z.ZodError) {
-            return NextResponse.json(
-                { error: "Données invalides", details: error.errors },
-                { status: 400 }
-            );
-        }
-        console.error("Erreur POST cours:", error);
-        return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
-    }
+    );
 }

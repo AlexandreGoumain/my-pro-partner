@@ -1,7 +1,6 @@
-import { authOptions } from "@/lib/auth";
-import { requireCapability } from "@/lib/middleware/business-type-check";
+import { withApiHandler } from "@/lib/api/api-handler";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import { NotFoundError, ValidationError, BusinessError } from "@/lib/errors";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -35,145 +34,122 @@ const updateTypeAbonnementSchema = z.object({
 
 type RouteParams = { params: Promise<{ id: string }> };
 
-// GET /api/fitness/types-abonnements/[id]
-export async function GET(request: NextRequest, { params }: RouteParams) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Non autorisé" },
-                { status: 401 }
-            );
-        }
+/**
+ * GET /api/fitness/types-abonnements/[id]
+ * Get a single subscription type
+ */
+export async function GET(_request: NextRequest, { params }: RouteParams) {
+    return withApiHandler(
+        async (ctx) => {
+            const { id } = await params;
 
-        const { id } = await params;
-
-        const type = await prisma.typeAbonnementFitness.findFirst({
-            where: {
-                id,
-                entrepriseId: session.user.entrepriseId,
-            },
-            include: {
-                _count: {
-                    select: { abonnements: true },
+            const type = await prisma.typeAbonnementFitness.findFirst({
+                where: {
+                    id,
+                    entrepriseId: ctx.entrepriseId,
                 },
-            },
-        });
+                include: {
+                    _count: {
+                        select: { abonnements: true },
+                    },
+                },
+            });
 
-        if (!type) {
-            return NextResponse.json(
-                { error: "Type d'abonnement non trouvé" },
-                { status: 404 }
-            );
+            if (!type) {
+                throw new NotFoundError("Type d'abonnement non trouvé");
+            }
+
+            return NextResponse.json(type);
+        },
+        {
+            capability: "abonnements_fitness",
+            context: { resourceName: "TypeAbonnementFitness", operation: "get" },
         }
-
-        return NextResponse.json(type);
-    } catch (error) {
-        console.error("Erreur GET type-abonnement:", error);
-        return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
-    }
+    );
 }
 
-// PUT /api/fitness/types-abonnements/[id]
+/**
+ * PUT /api/fitness/types-abonnements/[id]
+ * Update a subscription type
+ */
 export async function PUT(request: NextRequest, { params }: RouteParams) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Non autorisé" },
-                { status: 401 }
-            );
+    return withApiHandler(
+        async (ctx) => {
+            const { id } = await params;
+
+            const existing = await prisma.typeAbonnementFitness.findFirst({
+                where: {
+                    id,
+                    entrepriseId: ctx.entrepriseId,
+                },
+            });
+
+            if (!existing) {
+                throw new NotFoundError("Type d'abonnement non trouvé");
+            }
+
+            const body = await request.json();
+            const validation = updateTypeAbonnementSchema.safeParse(body);
+
+            if (!validation.success) {
+                throw new ValidationError(
+                    "Données invalides",
+                    validation.error.flatten().fieldErrors as Record<string, string[]>
+                );
+            }
+
+            const type = await prisma.typeAbonnementFitness.update({
+                where: { id },
+                data: validation.data,
+            });
+
+            return NextResponse.json(type);
+        },
+        {
+            capability: "abonnements_fitness",
+            context: { resourceName: "TypeAbonnementFitness", operation: "update" },
         }
-
-        const capabilityCheck = await requireCapability("abonnements_fitness");
-        if (capabilityCheck) return capabilityCheck;
-
-        const { id } = await params;
-
-        const existing = await prisma.typeAbonnementFitness.findFirst({
-            where: {
-                id,
-                entrepriseId: session.user.entrepriseId,
-            },
-        });
-
-        if (!existing) {
-            return NextResponse.json(
-                { error: "Type d'abonnement non trouvé" },
-                { status: 404 }
-            );
-        }
-
-        const body = await request.json();
-        const validatedData = updateTypeAbonnementSchema.parse(body);
-
-        const type = await prisma.typeAbonnementFitness.update({
-            where: { id },
-            data: validatedData,
-        });
-
-        return NextResponse.json(type);
-    } catch (error) {
-        if (error instanceof z.ZodError) {
-            return NextResponse.json(
-                { error: "Données invalides", details: error.errors },
-                { status: 400 }
-            );
-        }
-        console.error("Erreur PUT type-abonnement:", error);
-        return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
-    }
+    );
 }
 
-// DELETE /api/fitness/types-abonnements/[id]
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Non autorisé" },
-                { status: 401 }
-            );
-        }
+/**
+ * DELETE /api/fitness/types-abonnements/[id]
+ * Delete a subscription type
+ */
+export async function DELETE(_request: NextRequest, { params }: RouteParams) {
+    return withApiHandler(
+        async (ctx) => {
+            const { id } = await params;
 
-        const capabilityCheck = await requireCapability("abonnements_fitness");
-        if (capabilityCheck) return capabilityCheck;
-
-        const { id } = await params;
-
-        const existing = await prisma.typeAbonnementFitness.findFirst({
-            where: {
-                id,
-                entrepriseId: session.user.entrepriseId,
-            },
-            include: {
-                _count: {
-                    select: { abonnements: true },
+            const existing = await prisma.typeAbonnementFitness.findFirst({
+                where: {
+                    id,
+                    entrepriseId: ctx.entrepriseId,
                 },
-            },
-        });
-
-        if (!existing) {
-            return NextResponse.json(
-                { error: "Type d'abonnement non trouvé" },
-                { status: 404 }
-            );
-        }
-
-        if (existing._count.abonnements > 0) {
-            return NextResponse.json(
-                {
-                    error: "Impossible de supprimer un type d'abonnement avec des abonnements actifs. Désactivez-le plutôt.",
+                include: {
+                    _count: {
+                        select: { abonnements: true },
+                    },
                 },
-                { status: 400 }
-            );
+            });
+
+            if (!existing) {
+                throw new NotFoundError("Type d'abonnement non trouvé");
+            }
+
+            if (existing._count.abonnements > 0) {
+                throw new BusinessError(
+                    "Impossible de supprimer un type d'abonnement avec des abonnements actifs. Désactivez-le plutôt."
+                );
+            }
+
+            await prisma.typeAbonnementFitness.delete({ where: { id } });
+
+            return NextResponse.json({ success: true });
+        },
+        {
+            capability: "abonnements_fitness",
+            context: { resourceName: "TypeAbonnementFitness", operation: "delete" },
         }
-
-        await prisma.typeAbonnementFitness.delete({ where: { id } });
-
-        return NextResponse.json({ success: true });
-    } catch (error) {
-        console.error("Erreur DELETE type-abonnement:", error);
-        return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
-    }
+    );
 }
