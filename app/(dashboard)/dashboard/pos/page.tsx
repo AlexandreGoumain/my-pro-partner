@@ -13,7 +13,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { FilterBar } from "@/components/ui/filter-bar";
 import { RouteGuard } from "@/components/ui/route-guard";
 import { usePOSPage } from "@/hooks/use-pos-page";
-import { FEATURE_FLAGS } from "@/lib/config/features.config";
+import { GLOBAL_FEATURE_FLAGS } from "@/lib/config/plans.config";
 import { ShoppingCart, Trash2, User } from "lucide-react";
 
 /**
@@ -146,8 +146,8 @@ export default function POSPage() {
                     </div>
                 </div>
 
-                {/* Terminal Payment Dialog - Désactivé par défaut (nécessite matériel Stripe Terminal) */}
-                {FEATURE_FLAGS.ENABLE_PAYMENT_TERMINALS && (
+                {/* Terminal Payment Dialog - Désactivé par défaut */}
+                {GLOBAL_FEATURE_FLAGS.ENABLE_PAYMENT_TERMINALS && (
                     <TerminalPayment
                         open={page.terminalDialogOpen}
                         onOpenChange={page.setTerminalDialogOpen}
