@@ -1,22 +1,19 @@
-import {
-    handleTenantError,
-    requireTenantAuth,
-} from "@/lib/middleware/tenant-isolation";
+import { withApiHandler } from "@/lib/api/api-handler";
 import { BankReconciliationService } from "@/lib/services/bank-reconciliation.service";
 import { NextResponse } from "next/server";
 
 /**
  * GET /api/bank/stats
- * Récupérer les statistiques de rapprochement
+ * Get reconciliation statistics
  */
 export async function GET() {
-    try {
-        const { entrepriseId } = await requireTenantAuth();
-
-        const stats = await BankReconciliationService.getStats(entrepriseId);
-
-        return NextResponse.json({ stats });
-    } catch (error) {
-        return handleTenantError(error);
-    }
+    return withApiHandler(
+        async (ctx) => {
+            const stats = await BankReconciliationService.getStats(ctx.entrepriseId);
+            return NextResponse.json({ stats });
+        },
+        {
+            context: { resourceName: "BankTransaction", operation: "stats" },
+        }
+    );
 }
