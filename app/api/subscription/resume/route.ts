@@ -1,22 +1,23 @@
-import { NextRequest, NextResponse } from "next/server";
-import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
+import { withApiHandler } from "@/lib/api/api-handler";
 import { SubscriptionService } from "@/lib/services/subscription.service";
+import { NextRequest, NextResponse } from "next/server";
 
 /**
  * POST /api/subscription/resume
  * Réactiver un abonnement qui était en attente d'annulation
  */
 export async function POST(_req: NextRequest) {
-  try {
-    const { entrepriseId } = await requireTenantAuth();
+    return withApiHandler(
+        async (ctx) => {
+            await SubscriptionService.resumeSubscription(ctx.entrepriseId);
 
-    await SubscriptionService.resumeSubscription(entrepriseId);
-
-    return NextResponse.json({
-      success: true,
-      message: "Abonnement réactivé avec succès",
-    });
-  } catch (error) {
-    return handleTenantError(error);
-  }
+            return NextResponse.json({
+                success: true,
+                message: "Abonnement réactivé avec succès",
+            });
+        },
+        {
+            context: { resourceName: "Subscription", operation: "resume" },
+        }
+    );
 }
