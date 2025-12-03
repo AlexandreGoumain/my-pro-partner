@@ -1,7 +1,5 @@
-import {
-    handleTenantError,
-    verifyResourceAccess,
-} from "@/lib/middleware/tenant-isolation";
+import { withApiHandler } from "@/lib/api/api-handler";
+import { NotFoundError } from "@/lib/errors";
 import { prisma } from "@/lib/prisma";
 import { applySegmentCriteria, SegmentCriteria } from "@/lib/types/segment";
 import {
@@ -10,49 +8,59 @@ import {
 } from "@/lib/utils/pagination";
 import { NextRequest, NextResponse } from "next/server";
 
+type RouteParams = { params: Promise<{ id: string }> };
+
 // ============================================
 // GET /api/segments/[id]/clients - Get clients in segment
 // ============================================
 
 export async function GET(
     req: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
+    { params }: RouteParams
 ) {
-    try {
-        const { id } = await params;
+    return withApiHandler(
+        async (ctx) => {
+            const { id } = await params;
 
-        const { resource: segment, context } = await verifyResourceAccess(
-            id,
-            (id) => prisma.segment.findUnique({ where: { id } }),
-            "Segment"
-        );
+            const segment = await prisma.segment.findFirst({
+                where: {
+                    id,
+                    entrepriseId: ctx.entrepriseId,
+                },
+            });
 
-        // Get all clients for this entreprise
-        const allClients = await prisma.client.findMany({
-            where: { entrepriseId: context.entrepriseId },
-            orderBy: { createdAt: "desc" },
-        });
+            if (!segment) {
+                throw new NotFoundError("Segment non trouvé");
+            }
 
-        // Apply segment criteria
-        const filteredClients = applySegmentCriteria(
-            allClients,
-            segment.criteres as unknown as SegmentCriteria
-        );
+            // Get all clients for this entreprise
+            const allClients = await prisma.client.findMany({
+                where: { entrepriseId: ctx.entrepriseId },
+                orderBy: { createdAt: "desc" },
+            });
 
-        // Handle pagination
-        const { searchParams } = new URL(req.url);
-        const pagination = getPaginationParams(searchParams);
+            // Apply segment criteria
+            const filteredClients = applySegmentCriteria(
+                allClients,
+                segment.criteres as unknown as SegmentCriteria
+            );
 
-        const total = filteredClients.length;
-        const paginatedClients = filteredClients.slice(
-            pagination.skip,
-            pagination.skip + pagination.limit
-        );
+            // Handle pagination
+            const { searchParams } = new URL(req.url);
+            const pagination = getPaginationParams(searchParams);
 
-        return NextResponse.json(
-            createPaginatedResponse(paginatedClients, total, pagination)
-        );
-    } catch (error) {
-        return handleTenantError(error);
-    }
+            const total = filteredClients.length;
+            const paginatedClients = filteredClients.slice(
+                pagination.skip,
+                pagination.skip + pagination.limit
+            );
+
+            return NextResponse.json(
+                createPaginatedResponse(paginatedClients, total, pagination)
+            );
+        },
+        {
+            context: { resourceName: "Segment", operation: "getClients" },
+        }
+    );
 }
