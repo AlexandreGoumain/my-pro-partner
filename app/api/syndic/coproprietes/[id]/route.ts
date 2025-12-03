@@ -1,257 +1,179 @@
-import { authOptions } from "@/lib/auth";
-import { requireAnyCapability } from "@/lib/middleware/business-type-check";
+import { withApiHandler } from "@/lib/api/api-handler";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import { NotFoundError, BusinessError } from "@/lib/errors";
 import { NextRequest, NextResponse } from "next/server";
 
-// GET /api/syndic/coproprietes/[id] - Get single copropriete
-export async function GET(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Unauthorized" },
-                { status: 401 }
-            );
-        }
+type RouteParams = { params: Promise<{ id: string }> };
 
-        const capabilityCheck = await requireAnyCapability("coproprietes");
-        if (capabilityCheck) return capabilityCheck;
+/**
+ * GET /api/syndic/coproprietes/[id]
+ * Get single copropriete
+ */
+export async function GET(_request: NextRequest, { params }: RouteParams) {
+    return withApiHandler(
+        async (ctx) => {
+            const { id } = await params;
 
-        const { id } = await params;
-
-        const copropriete = await prisma.copropriete.findFirst({
-            where: {
-                id,
-                entrepriseId: session.user.entrepriseId,
-            },
-            include: {
-                lots: {
-                    include: {
-                        coproprietaire: {
-                            select: {
-                                id: true,
-                                nom: true,
-                                prenom: true,
-                                telephone: true,
-                                email: true,
+            const copropriete = await prisma.copropriete.findFirst({
+                where: {
+                    id,
+                    entrepriseId: ctx.entrepriseId,
+                },
+                include: {
+                    lots: {
+                        include: {
+                            coproprietaire: {
+                                select: {
+                                    id: true,
+                                    nom: true,
+                                    prenom: true,
+                                    telephone: true,
+                                    email: true,
+                                },
+                            },
+                            locataire: {
+                                select: {
+                                    id: true,
+                                    nom: true,
+                                    prenom: true,
+                                },
                             },
                         },
-                        locataire: {
-                            select: {
-                                id: true,
-                                nom: true,
-                                prenom: true,
-                            },
+                        orderBy: { numero: "asc" },
+                    },
+                    _count: {
+                        select: {
+                            lots: true,
+                            appelsCharges: true,
+                            assemblees: true,
+                            travauxCopro: true,
+                            conseilSyndical: true,
                         },
                     },
-                    orderBy: { numero: "asc" },
                 },
-                _count: {
-                    select: {
-                        lots: true,
-                        appelsCharges: true,
-                        assemblees: true,
-                        travauxCopro: true,
-                        conseilSyndical: true,
-                    },
-                },
-            },
-        });
+            });
 
-        if (!copropriete) {
-            return NextResponse.json(
-                { error: "Copropriété non trouvée" },
-                { status: 404 }
-            );
+            if (!copropriete) {
+                throw new NotFoundError("Copropriété non trouvée");
+            }
+
+            return NextResponse.json({ copropriete });
+        },
+        {
+            anyCapability: ["coproprietes"],
+            context: { resourceName: "Copropriete", operation: "get" },
         }
-
-        return NextResponse.json({ copropriete });
-    } catch (error) {
-        console.error("Error fetching copropriete:", error);
-        return NextResponse.json(
-            { error: "Failed to fetch copropriete" },
-            { status: 500 }
-        );
-    }
+    );
 }
 
-// PATCH /api/syndic/coproprietes/[id] - Update copropriete
-export async function PATCH(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Unauthorized" },
-                { status: 401 }
-            );
-        }
+/**
+ * PATCH /api/syndic/coproprietes/[id]
+ * Update copropriete
+ */
+export async function PATCH(request: NextRequest, { params }: RouteParams) {
+    return withApiHandler(
+        async (ctx) => {
+            const { id } = await params;
+            const body = await request.json();
 
-        const capabilityCheck = await requireAnyCapability("coproprietes");
-        if (capabilityCheck) return capabilityCheck;
+            const existing = await prisma.copropriete.findFirst({
+                where: {
+                    id,
+                    entrepriseId: ctx.entrepriseId,
+                },
+            });
 
-        const { id } = await params;
-        const body = await request.json();
+            if (!existing) {
+                throw new NotFoundError("Copropriété non trouvée");
+            }
 
-        // Verify copropriete exists and belongs to entreprise
-        const existing = await prisma.copropriete.findFirst({
-            where: {
-                id,
-                entrepriseId: session.user.entrepriseId,
-            },
-        });
+            const updateData: Record<string, unknown> = {};
 
-        if (!existing) {
-            return NextResponse.json(
-                { error: "Copropriété non trouvée" },
-                { status: 404 }
-            );
-        }
+            if (body.nom !== undefined) updateData.nom = body.nom;
+            if (body.adresse !== undefined) updateData.adresse = body.adresse;
+            if (body.codePostal !== undefined) updateData.codePostal = body.codePostal;
+            if (body.ville !== undefined) updateData.ville = body.ville;
+            if (body.nbLots !== undefined) updateData.nbLots = body.nbLots;
+            if (body.nbBatiments !== undefined) updateData.nbBatiments = body.nbBatiments;
+            if (body.totalTantiemes !== undefined) updateData.totalTantiemes = body.totalTantiemes;
+            if (body.datePriseSyndic !== undefined) {
+                updateData.datePriseSyndic = new Date(body.datePriseSyndic);
+            }
+            if (body.dateCreation !== undefined) {
+                updateData.dateCreation = body.dateCreation ? new Date(body.dateCreation) : null;
+            }
+            if (body.numeroImmatriculation !== undefined) {
+                updateData.numeroImmatriculation = body.numeroImmatriculation;
+            }
+            if (body.reglementCopro !== undefined) updateData.reglementCopro = body.reglementCopro;
+            if (body.notes !== undefined) updateData.notes = body.notes;
 
-        // Build update data
-        const updateData: any = {};
-
-        if (body.nom !== undefined) {
-            updateData.nom = body.nom;
-        }
-
-        if (body.adresse !== undefined) {
-            updateData.adresse = body.adresse;
-        }
-
-        if (body.codePostal !== undefined) {
-            updateData.codePostal = body.codePostal;
-        }
-
-        if (body.ville !== undefined) {
-            updateData.ville = body.ville;
-        }
-
-        if (body.nbLots !== undefined) {
-            updateData.nbLots = body.nbLots;
-        }
-
-        if (body.nbBatiments !== undefined) {
-            updateData.nbBatiments = body.nbBatiments;
-        }
-
-        if (body.totalTantiemes !== undefined) {
-            updateData.totalTantiemes = body.totalTantiemes;
-        }
-
-        if (body.datePriseSyndic !== undefined) {
-            updateData.datePriseSyndic = new Date(body.datePriseSyndic);
-        }
-
-        if (body.dateCreation !== undefined) {
-            updateData.dateCreation = body.dateCreation ? new Date(body.dateCreation) : null;
-        }
-
-        if (body.numeroImmatriculation !== undefined) {
-            updateData.numeroImmatriculation = body.numeroImmatriculation;
-        }
-
-        if (body.reglementCopro !== undefined) {
-            updateData.reglementCopro = body.reglementCopro;
-        }
-
-        if (body.notes !== undefined) {
-            updateData.notes = body.notes;
-        }
-
-        const copropriete = await prisma.copropriete.update({
-            where: { id },
-            data: updateData,
-            include: {
-                _count: {
-                    select: {
-                        lots: true,
-                        appelsCharges: true,
-                        assemblees: true,
-                        travauxCopro: true,
+            const copropriete = await prisma.copropriete.update({
+                where: { id },
+                data: updateData,
+                include: {
+                    _count: {
+                        select: {
+                            lots: true,
+                            appelsCharges: true,
+                            assemblees: true,
+                            travauxCopro: true,
+                        },
                     },
                 },
-            },
-        });
+            });
 
-        return NextResponse.json({ copropriete });
-    } catch (error) {
-        console.error("Error updating copropriete:", error);
-        return NextResponse.json(
-            { error: "Failed to update copropriete" },
-            { status: 500 }
-        );
-    }
+            return NextResponse.json({ copropriete });
+        },
+        {
+            anyCapability: ["coproprietes"],
+            context: { resourceName: "Copropriete", operation: "update" },
+        }
+    );
 }
 
-// DELETE /api/syndic/coproprietes/[id] - Delete copropriete
-export async function DELETE(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Unauthorized" },
-                { status: 401 }
-            );
-        }
+/**
+ * DELETE /api/syndic/coproprietes/[id]
+ * Delete copropriete
+ */
+export async function DELETE(_request: NextRequest, { params }: RouteParams) {
+    return withApiHandler(
+        async (ctx) => {
+            const { id } = await params;
 
-        const capabilityCheck = await requireAnyCapability("coproprietes");
-        if (capabilityCheck) return capabilityCheck;
-
-        const { id } = await params;
-
-        // Verify copropriete exists and belongs to entreprise
-        const existing = await prisma.copropriete.findFirst({
-            where: {
-                id,
-                entrepriseId: session.user.entrepriseId,
-            },
-            include: {
-                _count: {
-                    select: {
-                        lots: true,
-                        appelsCharges: true,
-                        assemblees: true,
-                        travauxCopro: true,
+            const existing = await prisma.copropriete.findFirst({
+                where: {
+                    id,
+                    entrepriseId: ctx.entrepriseId,
+                },
+                include: {
+                    _count: {
+                        select: {
+                            lots: true,
+                        },
                     },
                 },
-            },
-        });
+            });
 
-        if (!existing) {
-            return NextResponse.json(
-                { error: "Copropriété non trouvée" },
-                { status: 404 }
-            );
+            if (!existing) {
+                throw new NotFoundError("Copropriété non trouvée");
+            }
+
+            if (existing._count.lots > 0) {
+                throw new BusinessError(
+                    "Impossible de supprimer une copropriété avec des lots. Supprimez d'abord les lots."
+                );
+            }
+
+            await prisma.copropriete.delete({
+                where: { id },
+            });
+
+            return NextResponse.json({ success: true });
+        },
+        {
+            anyCapability: ["coproprietes"],
+            context: { resourceName: "Copropriete", operation: "delete" },
         }
-
-        // Prevent deletion if has lots
-        if (existing._count.lots > 0) {
-            return NextResponse.json(
-                { error: "Impossible de supprimer une copropriété avec des lots. Supprimez d'abord les lots." },
-                { status: 400 }
-            );
-        }
-
-        await prisma.copropriete.delete({
-            where: { id },
-        });
-
-        return NextResponse.json({ success: true });
-    } catch (error) {
-        console.error("Error deleting copropriete:", error);
-        return NextResponse.json(
-            { error: "Failed to delete copropriete" },
-            { status: 500 }
-        );
-    }
+    );
 }
