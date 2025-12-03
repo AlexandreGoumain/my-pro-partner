@@ -1,82 +1,67 @@
-import { authOptions } from "@/lib/auth";
-import { requireCapability } from "@/lib/middleware/business-type-check";
+import { withApiHandler } from "@/lib/api/api-handler";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import { NotFoundError, BusinessError } from "@/lib/errors";
 import { NextRequest, NextResponse } from "next/server";
 
-type Params = { params: Promise<{ id: string }> };
+type RouteParams = { params: Promise<{ id: string }> };
 
-// POST /api/reservations/[id]/confirm - Confirm a reservation
-export async function POST(request: NextRequest, { params }: Params) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Unauthorized" },
-                { status: 401 }
-            );
-        }
+const reservationInclude = {
+    table: {
+        select: {
+            id: true,
+            numero: true,
+            nom: true,
+            zone: true,
+        },
+    },
+    client: {
+        select: {
+            id: true,
+            nom: true,
+            prenom: true,
+            telephone: true,
+            email: true,
+        },
+    },
+} as const;
 
-        const capabilityCheck = await requireCapability("agenda");
-        if (capabilityCheck) return capabilityCheck;
+/**
+ * POST /api/reservations/[id]/confirm
+ * Confirm a reservation
+ */
+export async function POST(_request: NextRequest, { params }: RouteParams) {
+    return withApiHandler(
+        async (ctx) => {
+            const { id } = await params;
 
-        const { id } = await params;
-
-        // Check if reservation exists
-        const existingReservation = await prisma.reservation.findFirst({
-            where: {
-                id,
-                entrepriseId: session.user.entrepriseId,
-            },
-        });
-
-        if (!existingReservation) {
-            return NextResponse.json(
-                { error: "Réservation non trouvée" },
-                { status: 404 }
-            );
-        }
-
-        // Only EN_ATTENTE reservations can be confirmed
-        if (existingReservation.statut !== "EN_ATTENTE") {
-            return NextResponse.json(
-                {
-                    error: "Seules les réservations en attente peuvent être confirmées",
+            const existingReservation = await prisma.reservation.findFirst({
+                where: {
+                    id,
+                    entrepriseId: ctx.entrepriseId,
                 },
-                { status: 400 }
-            );
+            });
+
+            if (!existingReservation) {
+                throw new NotFoundError("Réservation non trouvée");
+            }
+
+            if (existingReservation.statut !== "EN_ATTENTE") {
+                throw new BusinessError(
+                    "Seules les réservations en attente peuvent être confirmées"
+                );
+            }
+
+            const reservation = await prisma.reservation.update({
+                where: { id },
+                data: { statut: "CONFIRMEE" },
+                include: reservationInclude,
+            });
+
+            return NextResponse.json({ reservation });
+        },
+        {
+            capability: "agenda",
+            context: { resourceName: "Reservation", operation: "confirm" },
         }
-
-        const reservation = await prisma.reservation.update({
-            where: { id },
-            data: { statut: "CONFIRMEE" },
-            include: {
-                table: {
-                    select: {
-                        id: true,
-                        numero: true,
-                        nom: true,
-                        zone: true,
-                    },
-                },
-                client: {
-                    select: {
-                        id: true,
-                        nom: true,
-                        prenom: true,
-                        telephone: true,
-                        email: true,
-                    },
-                },
-            },
-        });
-
-        return NextResponse.json({ reservation });
-    } catch (error) {
-        console.error("Error confirming reservation:", error);
-        return NextResponse.json(
-            { error: "Failed to confirm reservation" },
-            { status: 500 }
-        );
-    }
+    );
 }
