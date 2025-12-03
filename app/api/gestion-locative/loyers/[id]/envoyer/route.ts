@@ -1,9 +1,10 @@
-import { authOptions } from "@/lib/auth";
-import { requireAnyCapability } from "@/lib/middleware/business-type-check";
+import { withApiHandler } from "@/lib/api/api-handler";
 import { prisma } from "@/lib/prisma";
+import { NotFoundError, BusinessError } from "@/lib/errors";
 import { emailService } from "@/lib/email/email-service";
-import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
+
+type RouteParams = { params: Promise<{ id: string }> };
 
 const MOIS_LABELS: Record<number, string> = {
     1: "Janvier",
@@ -101,120 +102,100 @@ function getLoyerEmailTemplate(data: {
     `.trim();
 }
 
-// PATCH /api/gestion-locative/loyers/[id]/envoyer - Mark loyer as sent
-export async function PATCH(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Unauthorized" },
-                { status: 401 }
-            );
-        }
+/**
+ * PATCH /api/gestion-locative/loyers/[id]/envoyer
+ * Mark loyer as sent
+ */
+export async function PATCH(_request: NextRequest, { params }: RouteParams) {
+    return withApiHandler(
+        async (ctx) => {
+            const { id } = await params;
 
-        const capabilityCheck = await requireAnyCapability("loyers");
-        if (capabilityCheck) return capabilityCheck;
+            const existing = await prisma.appelLoyer.findFirst({
+                where: {
+                    id,
+                    entrepriseId: ctx.entrepriseId,
+                },
+            });
 
-        const { id } = await params;
+            if (!existing) {
+                throw new NotFoundError("Loyer non trouvé");
+            }
 
-        // Verify loyer exists and belongs to entreprise
-        const existing = await prisma.appelLoyer.findFirst({
-            where: {
-                id,
-                entrepriseId: session.user.entrepriseId,
-            },
-        });
+            if (existing.statut !== "A_ENVOYER") {
+                throw new BusinessError("Ce loyer a déjà été envoyé");
+            }
 
-        if (!existing) {
-            return NextResponse.json(
-                { error: "Loyer non trouvé" },
-                { status: 404 }
-            );
-        }
-
-        if (existing.statut !== "A_ENVOYER") {
-            return NextResponse.json(
-                { error: "Ce loyer a déjà été envoyé" },
-                { status: 400 }
-            );
-        }
-
-        const loyer = await prisma.appelLoyer.update({
-            where: { id },
-            data: {
-                statut: "ENVOYE",
-            },
-            include: {
-                bail: {
-                    include: {
-                        bien: {
-                            select: {
-                                id: true,
-                                reference: true,
-                                titre: true,
+            const loyer = await prisma.appelLoyer.update({
+                where: { id },
+                data: {
+                    statut: "ENVOYE",
+                },
+                include: {
+                    bail: {
+                        include: {
+                            bien: {
+                                select: {
+                                    id: true,
+                                    reference: true,
+                                    titre: true,
+                                },
                             },
-                        },
-                        locatairePrincipal: {
-                            select: {
-                                nom: true,
-                                prenom: true,
-                                email: true,
+                            locatairePrincipal: {
+                                select: {
+                                    nom: true,
+                                    prenom: true,
+                                    email: true,
+                                },
                             },
                         },
                     },
                 },
-            },
-        });
-
-        // Send email notification to locataire if email exists
-        let emailSent = false;
-        if (loyer.bail?.locatairePrincipal?.email) {
-            // Get entreprise info
-            const parametres = await prisma.parametresEntreprise.findUnique({
-                where: { entrepriseId: session.user.entrepriseId },
-                select: { nom_entreprise: true },
             });
 
-            const locataire = loyer.bail.locatairePrincipal;
-            const bien = loyer.bail.bien;
-            const locataireNom = [locataire.prenom, locataire.nom].filter(Boolean).join(" ") || "Locataire";
+            let emailSent = false;
+            if (loyer.bail?.locatairePrincipal?.email) {
+                const parametres = await prisma.parametresEntreprise.findUnique({
+                    where: { entrepriseId: ctx.entrepriseId },
+                    select: { nom_entreprise: true },
+                });
 
-            const emailHtml = getLoyerEmailTemplate({
-                locataireNom,
-                bienTitre: bien?.titre || "Bien",
-                mois: loyer.mois,
-                annee: loyer.annee,
-                totalDu: Number(loyer.totalDu),
-                loyerHC: Number(loyer.loyerHC),
-                provisions: Number(loyer.provisions),
-                entrepriseName: parametres?.nom_entreprise || "Votre gestionnaire",
+                const locataire = loyer.bail.locatairePrincipal;
+                const bien = loyer.bail.bien;
+                const locataireNom = [locataire.prenom, locataire.nom].filter(Boolean).join(" ") || "Locataire";
+
+                const emailHtml = getLoyerEmailTemplate({
+                    locataireNom,
+                    bienTitre: bien?.titre || "Bien",
+                    mois: loyer.mois,
+                    annee: loyer.annee,
+                    totalDu: Number(loyer.totalDu),
+                    loyerHC: Number(loyer.loyerHC),
+                    provisions: Number(loyer.provisions),
+                    entrepriseName: parametres?.nom_entreprise || "Votre gestionnaire",
+                });
+
+                const result = await emailService.sendEmail({
+                    to: locataire.email!,
+                    subject: `Appel de loyer - ${MOIS_LABELS[loyer.mois]} ${loyer.annee}`,
+                    html: emailHtml,
+                    fromName: parametres?.nom_entreprise,
+                });
+
+                emailSent = result.success;
+            }
+
+            return NextResponse.json({
+                loyer,
+                emailSent,
+                message: emailSent
+                    ? "Appel de loyer envoyé par email"
+                    : "Appel de loyer marqué comme envoyé",
             });
-
-            const result = await emailService.sendEmail({
-                to: locataire.email!,
-                subject: `Appel de loyer - ${MOIS_LABELS[loyer.mois]} ${loyer.annee}`,
-                html: emailHtml,
-                fromName: parametres?.nom_entreprise,
-            });
-
-            emailSent = result.success;
+        },
+        {
+            anyCapability: ["loyers"],
+            context: { resourceName: "AppelLoyer", operation: "send" },
         }
-
-        return NextResponse.json({
-            loyer,
-            emailSent,
-            message: emailSent
-                ? "Appel de loyer envoyé par email"
-                : "Appel de loyer marqué comme envoyé",
-        });
-    } catch (error) {
-        console.error("Error marking loyer as sent:", error);
-        return NextResponse.json(
-            { error: "Failed to mark loyer as sent" },
-            { status: 500 }
-        );
-    }
+    );
 }
