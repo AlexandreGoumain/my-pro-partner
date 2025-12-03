@@ -1,10 +1,7 @@
+import { withApiHandler } from "@/lib/api/api-handler";
+import { NotFoundError, ValidationError } from "@/lib/errors";
 import { emailService } from "@/lib/email/email-service";
-import {
-    handleTenantError,
-    requireTenantAuth,
-} from "@/lib/middleware/tenant-isolation";
 import { prisma } from "@/lib/prisma";
-import { validateRequest } from "@/lib/utils/validation-helper";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -21,106 +18,107 @@ export async function POST(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
-    try {
-        const { entrepriseId } = await requireTenantAuth();
-        const { id: clientId } = await params;
+    return withApiHandler(
+        async (ctx) => {
+            const { id: clientId } = await params;
 
-        const body = await req.json();
-        const result = validateRequest(approveSchema, body);
-        if (!result.success) return result.response;
+            const body = await req.json();
+            const result = approveSchema.safeParse(body);
+            if (!result.success) {
+                throw new ValidationError(result.error.errors[0].message);
+            }
 
-        const { approve, reason } = result.data;
+            const { approve, reason } = result.data;
 
-        // Check if client exists and belongs to company
-        const client = await prisma.client.findFirst({
-            where: {
-                id: clientId,
-                entrepriseId,
-                pendingApproval: true,
-            },
-            include: {
-                entreprise: {
-                    include: {
-                        parametres: true,
+            // Check if client exists and belongs to company
+            const client = await prisma.client.findFirst({
+                where: {
+                    id: clientId,
+                    entrepriseId: ctx.entrepriseId,
+                    pendingApproval: true,
+                },
+                include: {
+                    entreprise: {
+                        include: {
+                            parametres: true,
+                        },
                     },
                 },
-            },
-        });
-
-        if (!client) {
-            return NextResponse.json(
-                { message: "Client non trouvé ou déjà traité" },
-                { status: 404 }
-            );
-        }
-
-        const entrepriseName = client.entreprise.nom || "Notre entreprise";
-        const notifPrefs = client.entreprise.parametres;
-
-        if (approve) {
-            // Approve: enable portal access
-            const updatedClient = await prisma.client.update({
-                where: { id: clientId },
-                data: {
-                    pendingApproval: false,
-                    clientPortalEnabled: true,
-                },
             });
 
-            // Send approval email if enabled in preferences
-            if (notifPrefs?.notif_client_approved && client.email) {
-                const loginUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/client/auth/login`;
-                await emailService
-                    .sendClientApproval({
-                        to: client.email,
-                        clientName: `${client.prenom} ${client.nom}`,
-                        entrepriseName,
-                        loginUrl,
-                    })
-                    .catch((err) => {
-                        console.error(
-                            "[Email] Failed to send approval email:",
-                            err
-                        );
-                    });
+            if (!client) {
+                throw new NotFoundError("Client non trouvé ou déjà traité");
             }
 
-            return NextResponse.json({
-                message: "Client approuvé avec succès",
-                client: {
-                    id: updatedClient.id,
-                    email: updatedClient.email,
-                    clientPortalEnabled: updatedClient.clientPortalEnabled,
-                },
-            });
-        } else {
-            // Send rejection email before deleting if enabled in preferences
-            if (notifPrefs?.notif_client_rejected && client.email) {
-                await emailService
-                    .sendClientRejection({
-                        to: client.email,
-                        clientName: `${client.prenom} ${client.nom}`,
-                        entrepriseName,
-                        reason,
-                    })
-                    .catch((err) => {
-                        console.error(
-                            "[Email] Failed to send rejection email:",
-                            err
-                        );
-                    });
+            const entrepriseName = client.entreprise.nom || "Notre entreprise";
+            const notifPrefs = client.entreprise.parametres;
+
+            if (approve) {
+                // Approve: enable portal access
+                const updatedClient = await prisma.client.update({
+                    where: { id: clientId },
+                    data: {
+                        pendingApproval: false,
+                        clientPortalEnabled: true,
+                    },
+                });
+
+                // Send approval email if enabled in preferences
+                if (notifPrefs?.notif_client_approved && client.email) {
+                    const loginUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/client/auth/login`;
+                    await emailService
+                        .sendClientApproval({
+                            to: client.email,
+                            clientName: `${client.prenom} ${client.nom}`,
+                            entrepriseName,
+                            loginUrl,
+                        })
+                        .catch((err) => {
+                            console.error(
+                                "[Email] Failed to send approval email:",
+                                err
+                            );
+                        });
+                }
+
+                return NextResponse.json({
+                    message: "Client approuvé avec succès",
+                    client: {
+                        id: updatedClient.id,
+                        email: updatedClient.email,
+                        clientPortalEnabled: updatedClient.clientPortalEnabled,
+                    },
+                });
+            } else {
+                // Send rejection email before deleting if enabled in preferences
+                if (notifPrefs?.notif_client_rejected && client.email) {
+                    await emailService
+                        .sendClientRejection({
+                            to: client.email,
+                            clientName: `${client.prenom} ${client.nom}`,
+                            entrepriseName,
+                            reason,
+                        })
+                        .catch((err) => {
+                            console.error(
+                                "[Email] Failed to send rejection email:",
+                                err
+                            );
+                        });
+                }
+
+                // Reject: delete the client
+                await prisma.client.delete({
+                    where: { id: clientId },
+                });
+
+                return NextResponse.json({
+                    message: "Client rejeté",
+                });
             }
-
-            // Reject: delete the client
-            await prisma.client.delete({
-                where: { id: clientId },
-            });
-
-            return NextResponse.json({
-                message: "Client rejeté",
-            });
+        },
+        {
+            context: { resourceName: "Client", operation: "approve" },
         }
-    } catch (error) {
-        return handleTenantError(error);
-    }
+    );
 }
