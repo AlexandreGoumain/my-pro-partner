@@ -1,9 +1,8 @@
 "use client";
 
 import { LimitReachedDialog } from "@/components/paywall";
-import { usePlanLimits } from "@/hooks/use-plan-limits";
+import { usePlanLimits, type PlanType, type CombinedKey, type LimitKey } from "@/hooks/use-plan-limits";
 import { useUserPlan } from "@/hooks/use-user-plan";
-import { PlanLimits, PlanType } from "@/lib/pricing-config";
 import { useSession } from "next-auth/react";
 import React, {
     createContext,
@@ -18,18 +17,18 @@ interface LimitDialogContextValue {
      * Vérifier une limite numérique et afficher le dialog si atteinte
      * @returns true si l'action peut continuer, false si limite atteinte
      */
-    checkLimit: (limitKey: keyof PlanLimits, currentValue: number) => boolean;
+    checkLimit: (limitKey: LimitKey, currentValue: number) => boolean;
 
     /**
      * Vérifier une feature booléenne et afficher le dialog si non disponible
      * @returns true si la feature est disponible, false sinon
      */
-    checkFeature: (feature: keyof PlanLimits) => boolean;
+    checkFeature: (feature: CombinedKey) => boolean;
 
     /**
      * Afficher manuellement le dialog pour une limite donnée
      */
-    showDialog: (limitKey: keyof PlanLimits) => void;
+    showDialog: (limitKey: CombinedKey) => void;
 
     /**
      * Fermer le dialog
@@ -75,9 +74,7 @@ export function LimitDialogProvider({
     const { isLimited, canUse } = usePlanLimits(userPlan);
 
     const [isOpen, setIsOpen] = useState(false);
-    const [currentLimitKey, setCurrentLimitKey] = useState<
-        keyof PlanLimits | null
-    >(null);
+    const [currentLimitKey, setCurrentLimitKey] = useState<CombinedKey | null>(null);
 
     // Auto-refresh de la session quand l'utilisateur revient sur l'onglet
     useEffect(() => {
@@ -102,10 +99,10 @@ export function LimitDialogProvider({
      * Vérifier une limite et afficher le dialog si atteinte
      */
     const checkLimit = useCallback(
-        (limitKey: keyof PlanLimits, currentValue: number): boolean => {
+        (limitKey: LimitKey, currentValue: number): boolean => {
             const limited = isLimited(limitKey, currentValue);
             if (limited) {
-                setCurrentLimitKey(limitKey);
+                setCurrentLimitKey(limitKey as CombinedKey);
                 setIsOpen(true);
                 return false;
             }
@@ -118,10 +115,10 @@ export function LimitDialogProvider({
      * Vérifier une feature booléenne et afficher le dialog si non disponible
      */
     const checkFeature = useCallback(
-        (feature: keyof PlanLimits): boolean => {
+        (feature: CombinedKey): boolean => {
             const hasAccess = canUse(feature);
             if (!hasAccess) {
-                setCurrentLimitKey(feature);
+                setCurrentLimitKey(feature as CombinedKey);
                 setIsOpen(true);
                 return false;
             }
@@ -133,8 +130,8 @@ export function LimitDialogProvider({
     /**
      * Afficher manuellement le dialog
      */
-    const showDialog = useCallback((limitKey: keyof PlanLimits) => {
-        setCurrentLimitKey(limitKey);
+    const showDialog = useCallback((limitKey: CombinedKey) => {
+        setCurrentLimitKey(limitKey as CombinedKey);
         setIsOpen(true);
     }, []);
 
@@ -162,7 +159,7 @@ export function LimitDialogProvider({
                 open={isOpen}
                 onOpenChange={setIsOpen}
                 userPlan={userPlan}
-                limitKey={currentLimitKey || ("maxClients" as keyof PlanLimits)} // Fallback
+                limitKey={currentLimitKey || "maxClients"}
             />
         </LimitDialogContext.Provider>
     );

@@ -11,9 +11,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Lock, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { PlanType, PlanLimits } from "@/lib/pricing-config";
+import { usePlanLimits, type PlanType, type CombinedKey } from "@/hooks/use-plan-limits";
 import { PLANS_CONFIG } from "@/lib/config/plans.config";
-import { usePlanLimits } from "@/hooks/use-plan-limits";
 
 interface LimitReachedDialogProps {
     /**
@@ -34,7 +33,7 @@ interface LimitReachedDialogProps {
     /**
      * Clé de la limite atteinte
      */
-    limitKey: keyof PlanLimits;
+    limitKey: CombinedKey;
 
     /**
      * Message personnalisé (optionnel, sinon généré automatiquement)

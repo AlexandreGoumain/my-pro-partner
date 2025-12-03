@@ -2,7 +2,7 @@
 
 import { LimitIndicator } from "@/components/paywall";
 import { CardSection } from "@/components/ui/card-section";
-import { PlanLimits, PlanType } from "@/lib/pricing-config";
+import { type PlanType, type LimitKey } from "@/hooks/use-plan-limits";
 import { LucideIcon } from "lucide-react";
 
 export interface UsageLimitCardProps {
@@ -14,7 +14,7 @@ export interface UsageLimitCardProps {
     /**
      * Clé de la limite à afficher
      */
-    limitKey: keyof PlanLimits;
+    limitKey: LimitKey;
 
     /**
      * Valeur actuelle
