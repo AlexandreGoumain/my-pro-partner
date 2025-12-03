@@ -1,8 +1,5 @@
+import { withApiHandler } from "@/lib/api/api-handler";
 import { prisma } from "@/lib/prisma";
-import {
-    handleTenantError,
-    requireTenantAuth,
-} from "@/lib/middleware/tenant-isolation";
 import { getDaysAgo, calculatePercentageChange } from "@/lib/utils/date-periods";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -37,192 +34,171 @@ export interface ClientsStats {
     dataQuality: DataQuality;
 }
 
+/**
+ * GET /api/clients/stats
+ * Get clients statistics
+ */
 export async function GET(_req: NextRequest) {
-    try {
-        const { entrepriseId } = await requireTenantAuth();
+    return withApiHandler(
+        async (ctx) => {
+            const now = new Date();
+            const thirtyDaysAgo = getDaysAgo(30);
+            const ninetyDaysAgo = getDaysAgo(90);
 
-        const now = new Date();
-        const thirtyDaysAgo = getDaysAgo(30);
-        const ninetyDaysAgo = getDaysAgo(90);
+            // Dates for current and last month
+            const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+            const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
 
-        // Dates for current and last month
-        const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-        const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
-
-        // Execute all queries in parallel for better performance
-        const [
-            total,
-            inactive,
-            active,
-            complete,
-            withEmail,
-            withPhone,
-            withBoth,
-            withLocation,
-            currentMonth,
-            lastMonth,
-            cityAggregation,
-        ] = await Promise.all([
-            // Total clients
-            prisma.client.count({
-                where: { entrepriseId },
-            }),
-
-            // Inactive clients (>90 days)
-            prisma.client.count({
-                where: {
-                    entrepriseId,
-                    updatedAt: { lt: ninetyDaysAgo },
-                },
-            }),
-
-            // Active clients (<=30 days)
-            prisma.client.count({
-                where: {
-                    entrepriseId,
-                    updatedAt: { gte: thirtyDaysAgo },
-                },
-            }),
-
-            // Complete clients (email + telephone + adresse)
-            prisma.client.count({
-                where: {
-                    entrepriseId,
-                    email: { not: null },
-                    telephone: { not: null },
-                    adresse: { not: null },
-                },
-            }),
-
-            // Clients with email
-            prisma.client.count({
-                where: {
-                    entrepriseId,
-                    email: { not: null },
-                },
-            }),
-
-            // Clients with phone
-            prisma.client.count({
-                where: {
-                    entrepriseId,
-                    telephone: { not: null },
-                },
-            }),
-
-            // Clients with both email and phone
-            prisma.client.count({
-                where: {
-                    entrepriseId,
-                    email: { not: null },
-                    telephone: { not: null },
-                },
-            }),
-
-            // Clients with location
-            prisma.client.count({
-                where: {
-                    entrepriseId,
-                    ville: { not: null },
-                },
-            }),
-
-            // Clients created this month
-            prisma.client.count({
-                where: {
-                    entrepriseId,
-                    createdAt: { gte: currentMonthStart },
-                },
-            }),
-
-            // Clients created last month
-            prisma.client.count({
-                where: {
-                    entrepriseId,
-                    createdAt: { gte: lastMonthStart, lte: lastMonthEnd },
-                },
-            }),
-
-            // City aggregation for top cities
-            prisma.client.groupBy({
-                by: ['ville'],
-                where: {
-                    entrepriseId,
-                    ville: { not: null },
-                },
-                _count: {
-                    ville: true,
-                },
-                orderBy: {
-                    _count: {
-                        ville: 'desc',
+            // Execute all queries in parallel for better performance
+            const [
+                total,
+                inactive,
+                active,
+                complete,
+                withEmail,
+                withPhone,
+                withBoth,
+                withLocation,
+                currentMonth,
+                lastMonth,
+                cityAggregation,
+            ] = await Promise.all([
+                prisma.client.count({
+                    where: { entrepriseId: ctx.entrepriseId },
+                }),
+                prisma.client.count({
+                    where: {
+                        entrepriseId: ctx.entrepriseId,
+                        updatedAt: { lt: ninetyDaysAgo },
                     },
-                },
-                take: 5,
-            }),
-        ]);
+                }),
+                prisma.client.count({
+                    where: {
+                        entrepriseId: ctx.entrepriseId,
+                        updatedAt: { gte: thirtyDaysAgo },
+                    },
+                }),
+                prisma.client.count({
+                    where: {
+                        entrepriseId: ctx.entrepriseId,
+                        email: { not: null },
+                        telephone: { not: null },
+                        adresse: { not: null },
+                    },
+                }),
+                prisma.client.count({
+                    where: {
+                        entrepriseId: ctx.entrepriseId,
+                        email: { not: null },
+                    },
+                }),
+                prisma.client.count({
+                    where: {
+                        entrepriseId: ctx.entrepriseId,
+                        telephone: { not: null },
+                    },
+                }),
+                prisma.client.count({
+                    where: {
+                        entrepriseId: ctx.entrepriseId,
+                        email: { not: null },
+                        telephone: { not: null },
+                    },
+                }),
+                prisma.client.count({
+                    where: {
+                        entrepriseId: ctx.entrepriseId,
+                        ville: { not: null },
+                    },
+                }),
+                prisma.client.count({
+                    where: {
+                        entrepriseId: ctx.entrepriseId,
+                        createdAt: { gte: currentMonthStart },
+                    },
+                }),
+                prisma.client.count({
+                    where: {
+                        entrepriseId: ctx.entrepriseId,
+                        createdAt: { gte: lastMonthStart, lte: lastMonthEnd },
+                    },
+                }),
+                prisma.client.groupBy({
+                    by: ['ville'],
+                    where: {
+                        entrepriseId: ctx.entrepriseId,
+                        ville: { not: null },
+                    },
+                    _count: {
+                        ville: true,
+                    },
+                    orderBy: {
+                        _count: {
+                            ville: 'desc',
+                        },
+                    },
+                    take: 5,
+                }),
+            ]);
 
-        const completionRate = total > 0 ? (complete / total) * 100 : 0;
-        const growth = calculatePercentageChange(currentMonth, lastMonth);
+            const completionRate = total > 0 ? (complete / total) * 100 : 0;
+            const growth = calculatePercentageChange(currentMonth, lastMonth);
 
-        // Format top cities
-        const topCities: CityData[] = cityAggregation.map(item => ({
-            city: item.ville || '',
-            count: item._count.ville,
-        }));
+            const topCities: CityData[] = cityAggregation.map(item => ({
+                city: item.ville || '',
+                count: item._count.ville,
+            }));
 
-        // Data quality object
-        const dataQuality: DataQuality = {
-            withEmail,
-            withPhone,
-            withBoth,
-            withLocation,
-        };
+            const dataQuality: DataQuality = {
+                withEmail,
+                withPhone,
+                withBoth,
+                withLocation,
+            };
 
-        // Calculate monthly evolution over the last 6 months
-        const monthlyEvolution: MonthlyData[] = [];
-        const monthNames = ["Jan", "Fév", "Mar", "Avr", "Mai", "Jui", "Juil", "Aoû", "Sep", "Oct", "Nov", "Déc"];
+            // Calculate monthly evolution over the last 6 months
+            const monthlyEvolution: MonthlyData[] = [];
+            const monthNames = ["Jan", "Fév", "Mar", "Avr", "Mai", "Jui", "Juil", "Aoû", "Sep", "Oct", "Nov", "Déc"];
 
-        for (let i = 5; i >= 0; i--) {
-            const date = new Date(now);
-            date.setMonth(date.getMonth() - i);
-            const year = date.getFullYear();
-            const month = date.getMonth();
+            for (let i = 5; i >= 0; i--) {
+                const date = new Date(now);
+                date.setMonth(date.getMonth() - i);
+                const year = date.getFullYear();
+                const month = date.getMonth();
+                const monthEnd = new Date(year, month + 1, 0, 23, 59, 59, 999);
 
-            // End of the month
-            const monthEnd = new Date(year, month + 1, 0, 23, 59, 59, 999);
+                const count = await prisma.client.count({
+                    where: {
+                        entrepriseId: ctx.entrepriseId,
+                        createdAt: { lte: monthEnd },
+                    },
+                });
 
-            // Count all clients created up to the end of this month
-            const count = await prisma.client.count({
-                where: {
-                    entrepriseId,
-                    createdAt: { lte: monthEnd },
-                },
-            });
+                monthlyEvolution.push({
+                    month: monthNames[month],
+                    count,
+                });
+            }
 
-            monthlyEvolution.push({
-                month: monthNames[month],
-                count,
-            });
+            const stats: ClientsStats = {
+                total,
+                inactive,
+                active,
+                complete,
+                completionRate,
+                currentMonth,
+                lastMonth,
+                growth,
+                monthlyEvolution,
+                topCities,
+                dataQuality,
+            };
+
+            return NextResponse.json(stats);
+        },
+        {
+            context: { resourceName: "Client", operation: "stats" },
         }
-
-        const stats: ClientsStats = {
-            total,
-            inactive,
-            active,
-            complete,
-            completionRate,
-            currentMonth,
-            lastMonth,
-            growth,
-            monthlyEvolution,
-            topCities,
-            dataQuality,
-        };
-
-        return NextResponse.json(stats);
-    } catch (error) {
-        return handleTenantError(error);
-    }
+    );
 }
