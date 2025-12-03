@@ -1,8 +1,5 @@
-import {
-    handleTenantError,
-    requireDevelopmentMode,
-    requireTenantAuth,
-} from "@/lib/middleware/tenant-isolation";
+import { withApiHandler } from "@/lib/api/api-handler";
+import { BusinessError } from "@/lib/errors";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
@@ -12,32 +9,35 @@ import { NextResponse } from "next/server";
  * WARNING: This action is irreversible
  */
 export async function DELETE() {
-    try {
-        // Block this endpoint in production
-        requireDevelopmentMode();
+    return withApiHandler(
+        async (ctx) => {
+            // Block this endpoint in production
+            if (process.env.NODE_ENV === "production") {
+                throw new BusinessError("Cette opération n'est pas autorisée en production");
+            }
 
-        const { userId, entrepriseId } = await requireTenantAuth();
+            // Delete the user (cascade will automatically delete all related data)
+            // This includes:
+            // - UserPermissions
+            // - UserSchedule
+            // - TimeEntry
+            // - UserActivity
+            // - Conversation (and nested Messages)
+            // - MouvementStock
+            const deletedUser = await prisma.user.delete({
+                where: {
+                    id: ctx.userId,
+                    entrepriseId: ctx.entrepriseId, // Tenant isolation check
+                },
+            });
 
-        // Delete the user (cascade will automatically delete all related data)
-        // This includes:
-        // - UserPermissions
-        // - UserSchedule
-        // - TimeEntry
-        // - UserActivity
-        // - Conversation (and nested Messages)
-        // - MouvementStock
-        const deletedUser = await prisma.user.delete({
-            where: {
-                id: userId,
-                entrepriseId, // Tenant isolation check
-            },
-        });
-
-        return NextResponse.json({
-            message: "Toutes vos données ont été supprimées avec succès",
-            userId: deletedUser.id,
-        });
-    } catch (error) {
-        return handleTenantError(error);
-    }
+            return NextResponse.json({
+                message: "Toutes vos données ont été supprimées avec succès",
+                userId: deletedUser.id,
+            });
+        },
+        {
+            context: { resourceName: "User", operation: "deleteAllData" },
+        }
+    );
 }
