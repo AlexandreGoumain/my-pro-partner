@@ -2,20 +2,30 @@
 // CHATBOT MESSAGE BUBBLE
 // ============================================
 
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { ThumbsDown, ThumbsUp } from "lucide-react";
+import { Check, Copy, ThumbsDown, ThumbsUp } from "lucide-react";
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { ChatToolCalls } from "./chat-tool-call";
+
+interface ToolInvocation {
+    toolCallId: string;
+    toolName: string;
+    args: Record<string, unknown>;
+    state: "pending" | "result" | "error";
+    result?: unknown;
+}
 
 interface ChatbotMessageBubbleProps {
     role: "user" | "assistant";
     content: string;
     createdAt?: Date;
     messageId?: string;
+    toolInvocations?: ToolInvocation[];
     onFeedback?: (
         messageId: string,
         feedback: "positive" | "negative",
@@ -28,6 +38,7 @@ export function ChatbotMessageBubble({
     content,
     createdAt,
     messageId,
+    toolInvocations,
     onFeedback,
 }: ChatbotMessageBubbleProps) {
     const [feedbackGiven, setFeedbackGiven] = useState<
@@ -36,6 +47,7 @@ export function ChatbotMessageBubble({
     const [showCommentInput, setShowCommentInput] = useState(false);
     const [comment, setComment] = useState("");
     const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+    const [copied, setCopied] = useState(false);
 
     const isUser = role === "user";
 
@@ -66,6 +78,12 @@ export function ChatbotMessageBubble({
         setComment("");
     };
 
+    const handleCopy = async () => {
+        await navigator.clipboard.writeText(content);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
     return (
         <div className={cn("flex", isUser ? "justify-end" : "justify-start")}>
             <div
@@ -74,6 +92,12 @@ export function ChatbotMessageBubble({
                     isUser ? "items-end" : "items-start"
                 )}
             >
+                {/* Tool Calls */}
+                {!isUser && toolInvocations && toolInvocations.length > 0 && (
+                    <ChatToolCalls toolInvocations={toolInvocations} />
+                )}
+
+                {/* Message Content */}
                 <div
                     className={cn(
                         "max-w-[280px] px-4 py-2.5 rounded-2xl break-words",
@@ -87,12 +111,76 @@ export function ChatbotMessageBubble({
                             {content}
                         </p>
                     ) : (
-                        <div className="text-[14px] prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-li:my-0">
-                            <ReactMarkdown>{content}</ReactMarkdown>
+                        <div className="text-[14px] prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-li:my-0 prose-pre:my-2 prose-code:text-[12px]">
+                            <ReactMarkdown
+                                components={{
+                                    code({ className, children, ...props }) {
+                                        const isInline =
+                                            typeof children === "string" &&
+                                            !children.includes("\n");
+
+                                        if (isInline) {
+                                            return (
+                                                <code
+                                                    className="bg-black/10 px-1 py-0.5 rounded text-[12px] font-mono"
+                                                    {...props}
+                                                >
+                                                    {children}
+                                                </code>
+                                            );
+                                        }
+
+                                        return (
+                                            <code
+                                                className={cn(
+                                                    "block bg-black/5 p-2 rounded text-[12px] overflow-x-auto font-mono whitespace-pre-wrap",
+                                                    className
+                                                )}
+                                                {...props}
+                                            >
+                                                {children}
+                                            </code>
+                                        );
+                                    },
+                                    pre({ children }) {
+                                        return (
+                                            <pre className="bg-black/5 rounded-md overflow-x-auto my-2">
+                                                {children}
+                                            </pre>
+                                        );
+                                    },
+                                    table({ children }) {
+                                        return (
+                                            <div className="overflow-x-auto my-2">
+                                                <table className="min-w-full text-[12px] border-collapse">
+                                                    {children}
+                                                </table>
+                                            </div>
+                                        );
+                                    },
+                                    th({ children }) {
+                                        return (
+                                            <th className="border border-black/10 px-2 py-1 bg-black/5 text-left font-medium">
+                                                {children}
+                                            </th>
+                                        );
+                                    },
+                                    td({ children }) {
+                                        return (
+                                            <td className="border border-black/10 px-2 py-1">
+                                                {children}
+                                            </td>
+                                        );
+                                    },
+                                }}
+                            >
+                                {content}
+                            </ReactMarkdown>
                         </div>
                     )}
                 </div>
 
+                {/* Footer: Time + Actions */}
                 <div className="flex items-center gap-2 mt-1 px-1">
                     {createdAt && (
                         <span className="text-[11px] text-black/30">
@@ -100,6 +188,25 @@ export function ChatbotMessageBubble({
                         </span>
                     )}
 
+                    {/* Copy button for assistant messages */}
+                    {!isUser && content && (
+                        <button
+                            onClick={handleCopy}
+                            className="p-1 rounded hover:bg-black/5 transition-colors text-black/30 hover:text-black/60"
+                            title="Copier"
+                        >
+                            {copied ? (
+                                <Check
+                                    className="w-3 h-3 text-green-600"
+                                    strokeWidth={2}
+                                />
+                            ) : (
+                                <Copy className="w-3 h-3" strokeWidth={2} />
+                            )}
+                        </button>
+                    )}
+
+                    {/* Feedback buttons */}
                     {!isUser && messageId && onFeedback && !showCommentInput && (
                         <div className="flex items-center gap-1">
                             <button

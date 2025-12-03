@@ -1,14 +1,25 @@
 // ============================================
-// CHATBOT MESSAGE API - Streaming with OpenAI
+// CHATBOT MESSAGE API - Streaming with AI SDK v5
 // ============================================
 
-import { createOpenAIStream } from "@/lib/chatbot/api/stream-handler";
-import { chatbotTools } from "@/lib/chatbot/chatbot-actions";
+import { openai } from "@ai-sdk/openai";
+import { streamText, tool } from "ai";
+import { nanoid } from "nanoid";
+import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+
+import { executeAction } from "@/lib/chatbot/chatbot-executor";
 import { getSystemPrompt } from "@/lib/chatbot/chatbot-prompts";
+import { checkContext } from "@/lib/chatbot/security/context-filter";
 import { checkInjection } from "@/lib/chatbot/security/injection-filter";
 import { logger, logSecurityEvent } from "@/lib/chatbot/security/logger";
-import { checkMessageRateLimitForPlan, getRateLimitForPlan, recordInjectionAttempt } from "@/lib/chatbot/security/rate-limit";
+import {
+    checkMessageRateLimitForPlan,
+    getRateLimitForPlan,
+    recordInjectionAttempt,
+} from "@/lib/chatbot/security/rate-limit";
 import { chatRequestSchema } from "@/lib/chatbot/validation";
+import type { PlanAbonnement } from "@/lib/generated/prisma";
 import {
     getCurrentUsage,
     isLimitReached,
@@ -18,24 +29,16 @@ import {
     requireTenantAuth,
 } from "@/lib/middleware/tenant-isolation";
 import { prisma } from "@/lib/prisma";
-import type { PlanAbonnement } from "@/lib/generated/prisma";
 import {
     checkFeatureAccess,
     createFeatureError,
     createLimitError,
 } from "@/lib/utils/plan-helpers";
 import { validateRequest } from "@/lib/utils/validation-helper";
-import { nanoid } from "nanoid";
-import { NextRequest, NextResponse } from "next/server";
 
 interface ChatMessage {
     role: "user" | "assistant" | "system";
     content: string;
-}
-
-interface RequestBody {
-    messages: ChatMessage[];
-    conversationId?: string;
 }
 
 // Estimation simple du nombre de tokens (1 token ≈ 4 caractères)
@@ -47,8 +50,22 @@ function estimateTokens(messages: ChatMessage[]): number {
     return total;
 }
 
-// Timeout controller pour la requête OpenAI
-const OPENAI_TIMEOUT_MS = 30000; // 30 secondes
+// Tool execution wrapper for AI SDK v5
+function createExecutableTool<T extends z.ZodObject<Record<string, z.ZodTypeAny>>>(
+    name: string,
+    description: string,
+    inputSchema: T,
+    baseUrl: string
+) {
+    return tool({
+        description,
+        inputSchema,
+        execute: async (args: z.infer<T>) => {
+            const result = await executeAction(name, args as Record<string, unknown>, baseUrl);
+            return result;
+        },
+    });
+}
 
 export async function POST(req: NextRequest) {
     try {
@@ -56,18 +73,14 @@ export async function POST(req: NextRequest) {
             await requireTenantAuth();
 
         // Check if user has access to the assistant (STARTER+ only)
-        // Using new centralized plan system
-        const hasAssistant = await checkFeatureAccess(
-            entrepriseId,
-            "aiChatbot"
-        );
+        const hasAssistant = await checkFeatureAccess(entrepriseId, "aiChatbot");
         if (!hasAssistant) {
             return NextResponse.json(createFeatureError("aiChatbot"), {
                 status: 403,
             });
         }
 
-        // Check quota for maxQuestionsPerMonth (except if unlimited = -1)
+        // Check quota for maxQuestionsPerMonth
         const currentUsage = await getCurrentUsage(
             entrepriseId,
             "maxQuestionsPerMonth"
@@ -84,9 +97,11 @@ export async function POST(req: NextRequest) {
             });
         }
 
-        // ✅ SÉCURITÉ : Rate limiting adaptatif selon le plan
-        // FREE: 0/min, STARTER: 5/min, PRO: 20/min, ENTERPRISE: 50/min
-        const rateLimitResult = await checkMessageRateLimitForPlan(userId, entreprise.plan as PlanAbonnement);
+        // Rate limiting
+        const rateLimitResult = await checkMessageRateLimitForPlan(
+            userId,
+            entreprise.plan as PlanAbonnement
+        );
         const planLimit = getRateLimitForPlan(entreprise.plan as PlanAbonnement);
 
         if (!rateLimitResult.success) {
@@ -94,110 +109,89 @@ export async function POST(req: NextRequest) {
                 userId,
                 entrepriseId,
                 plan: entreprise.plan,
-                limit: rateLimitResult.limit,
-                remaining: rateLimitResult.remaining,
-                reset: new Date(rateLimitResult.reset).toISOString()
             });
 
             return NextResponse.json(
                 {
                     error: "Trop de requêtes",
-                    detail: `Vous avez atteint la limite de ${planLimit} messages par minute pour le plan ${entreprise.plan}. Veuillez réessayer dans quelques instants.`,
+                    detail: `Limite de ${planLimit} messages par minute atteinte.`,
                     retryAfter: rateLimitResult.reset,
-                    plan: entreprise.plan,
-                    limit: planLimit,
                 },
                 {
                     status: 429,
                     headers: {
                         "X-RateLimit-Limit": rateLimitResult.limit.toString(),
-                        "X-RateLimit-Remaining": rateLimitResult.remaining.toString(),
-                        "X-RateLimit-Reset": rateLimitResult.reset.toString(),
-                        "Retry-After": Math.ceil((rateLimitResult.reset - Date.now()) / 1000).toString(),
-                    }
+                        "X-RateLimit-Remaining":
+                            rateLimitResult.remaining.toString(),
+                        "Retry-After": Math.ceil(
+                            (rateLimitResult.reset - Date.now()) / 1000
+                        ).toString(),
+                    },
                 }
             );
         }
 
-        // ✅ SÉCURITÉ : Validation stricte avec Zod
+        // Validation
         const body = await req.json();
         const result = validateRequest(chatRequestSchema, body);
         if (!result.success) return result.response;
 
         const { messages, conversationId } = result.data;
-
         const lastMessage = messages[messages.length - 1];
         const userMessage = lastMessage.content;
 
-        // ✅ SÉCURITÉ : Détection d'injection de prompt
+        // Injection detection
         const injectionCheck = checkInjection(userMessage);
         if (injectionCheck.blocked) {
-            // Enregistrer la tentative d'injection pour rate limiting
             const injectionRateLimit = await recordInjectionAttempt(userId);
 
             logSecurityEvent(
                 "Prompt injection blocked",
                 "high",
                 `Blocked prompt injection attempt (score: ${injectionCheck.score})`,
-                { userId, entrepriseId, score: injectionCheck.score }
+                { userId, entrepriseId }
             );
 
-            // Si trop de tentatives d'injection, bloquer l'utilisateur
             if (!injectionRateLimit.success) {
-                logSecurityEvent(
-                    "User blocked for repeated injection attempts",
-                    "critical",
-                    `User exceeded injection attempt limit (${injectionRateLimit.limit} attempts)`,
-                    { userId, entrepriseId }
-                );
-
                 return NextResponse.json(
-                    {
-                        error: "Compte temporairement bloqué",
-                        detail: "Trop de tentatives suspectes détectées. Votre compte a été temporairement bloqué pour des raisons de sécurité.",
-                        code: "ACCOUNT_BLOCKED",
-                    },
+                    { error: "Compte temporairement bloqué" },
                     { status: 403 }
                 );
             }
 
             return NextResponse.json(
+                { error: "Requête suspecte détectée", detail: injectionCheck.reason },
+                { status: 400 }
+            );
+        }
+
+        // Context check - Vérifier si la question est liée à l'ERP
+        const contextCheck = checkContext(userMessage);
+        if (!contextCheck.isOnTopic) {
+            logger.info("Off-topic question detected", {
+                userId,
+                entrepriseId,
+                relevanceScore: contextCheck.relevanceScore,
+            });
+
+            return NextResponse.json(
                 {
-                    error: "Requête suspecte détectée",
-                    detail: injectionCheck.reason,
-                    code: "INJECTION_DETECTED",
+                    error: "Question hors contexte",
+                    detail: contextCheck.reason,
+                    relevanceScore: contextCheck.relevanceScore,
                 },
                 { status: 400 }
             );
         }
 
-        // Log si score de suspicion élevé (mais pas bloquant)
-        if (injectionCheck.score > 30) {
-            logSecurityEvent(
-                "High suspicion score detected",
-                injectionCheck.score >= 50 ? "medium" : "low",
-                `Message with suspicion score ${injectionCheck.score}`,
-                { userId, entrepriseId }
-            );
-        }
-
-        // ✅ SÉCURITÉ : Vérifier estimation de tokens
+        // Token limit check
         const estimatedTokens = estimateTokens(messages);
         if (estimatedTokens > 4000) {
             return NextResponse.json(
-                {
-                    error: "Message trop long",
-                    detail: "Votre message est trop long. Veuillez le raccourcir. (Limite: ~4000 tokens)",
-                },
+                { error: "Message trop long", detail: "Limite: ~4000 tokens" },
                 { status: 400 }
             );
         }
-
-        // Format messages for OpenAI
-        const formattedMessages = messages.map((msg) => ({
-            role: msg.role,
-            content: msg.content,
-        }));
 
         // Create or retrieve conversation
         let conversation;
@@ -206,7 +200,6 @@ export async function POST(req: NextRequest) {
                 where: { id: conversationId },
             });
         } else {
-            // Create new conversation
             const title =
                 userMessage.length > 50
                     ? userMessage.substring(0, 47) + "..."
@@ -222,12 +215,9 @@ export async function POST(req: NextRequest) {
         }
 
         if (!conversation) {
-            return new Response(
-                JSON.stringify({ error: "Conversation non trouvée" }),
-                {
-                    status: 404,
-                    headers: { "Content-Type": "application/json" },
-                }
+            return NextResponse.json(
+                { error: "Conversation non trouvée" },
+                { status: 404 }
             );
         }
 
@@ -241,99 +231,180 @@ export async function POST(req: NextRequest) {
             },
         });
 
-        // Prepare system prompt
+        // System prompt
         const systemPrompt = getSystemPrompt({
             userName: user.name || undefined,
             entrepriseName: entreprise.nom || "Mon Entreprise",
             userRole: user.role || "utilisateur",
         });
 
-        // Call OpenAI API
-        const apiKey = process.env.OPENAI_API_KEY;
-
-        // ✅ SÉCURITÉ : Timeout sur la requête OpenAI
-        const controller = new AbortController();
-        const timeoutId = setTimeout(
-            () => controller.abort(),
-            OPENAI_TIMEOUT_MS
-        );
-
-        let openaiResponse;
-        try {
-            openaiResponse = await fetch(
-                "https://api.openai.com/v1/chat/completions",
-                {
-                    method: "POST",
-                    headers: {
-                        Authorization: `Bearer ${apiKey}`,
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        model: "gpt-4o-mini",
-                        messages: [
-                            { role: "system", content: systemPrompt },
-                            ...formattedMessages,
-                        ],
-                        tools: chatbotTools,
-                        tool_choice: "auto",
-                        temperature: 0.7,
-                        stream: true,
-                    }),
-                    signal: controller.signal,
-                }
-            );
-        } catch (fetchError) {
-            clearTimeout(timeoutId);
-            if (
-                fetchError instanceof Error &&
-                fetchError.name === "AbortError"
-            ) {
-                return NextResponse.json(
-                    {
-                        error: "Timeout",
-                        detail: "La requête a pris trop de temps. Veuillez réessayer.",
-                    },
-                    { status: 408 }
-                );
-            }
-            throw fetchError;
-        }
-
-        clearTimeout(timeoutId);
-
-        if (!openaiResponse.ok) {
-            await openaiResponse.text(); // Consume response body
-            logger.error("OpenAI API error", {
-                statusCode: openaiResponse.status,
-                statusText: openaiResponse.statusText
-            }, { userId, entrepriseId });
-            throw new Error(`OpenAI API error: ${openaiResponse.status}`);
-        }
-
-        // Get base URL for action execution
+        // Base URL for tool execution
         const protocol = req.headers.get("x-forwarded-proto") || "http";
         const host = req.headers.get("host") || "localhost:3000";
         const baseUrl = `${protocol}://${host}`;
 
-        // Create stream with callback to save to database
-        const stream = await createOpenAIStream({
-            response: openaiResponse,
-            baseUrl,
-            onStreamEnd: async (fullText, toolCalls) => {
-                // Save assistant message to database
-                try {
-                    const metadata = {
-                        timestamp: new Date().toISOString(),
-                        ...(toolCalls.length > 0 && { toolCalls: toolCalls as object[] }),
-                    };
+        // Define tools with AI SDK format
+        const tools = {
+            search_clients: createExecutableTool(
+                "search_clients",
+                "Rechercher des clients avec filtres (nom, email, ville, points fidélité)",
+                z.object({
+                    query: z.string().optional().describe("Terme de recherche"),
+                    ville: z.string().optional().describe("Filtrer par ville"),
+                    minPoints: z.number().optional().describe("Points minimum"),
+                    maxPoints: z.number().optional().describe("Points maximum"),
+                    limit: z.number().optional().describe("Nombre max de résultats"),
+                }),
+                baseUrl
+            ),
+            get_client_details: createExecutableTool(
+                "get_client_details",
+                "Obtenir les détails complets d'un client",
+                z.object({ clientId: z.string().describe("ID du client") }),
+                baseUrl
+            ),
+            create_client: createExecutableTool(
+                "create_client",
+                "Créer un nouveau client",
+                z.object({
+                    nom: z.string().describe("Nom du client"),
+                    prenom: z.string().optional().describe("Prénom"),
+                    email: z.string().optional().describe("Email"),
+                    telephone: z.string().optional().describe("Téléphone"),
+                    adresse: z.string().optional().describe("Adresse"),
+                    ville: z.string().optional().describe("Ville"),
+                    codePostal: z.string().optional().describe("Code postal"),
+                }),
+                baseUrl
+            ),
+            search_articles: createExecutableTool(
+                "search_articles",
+                "Rechercher des articles/produits",
+                z.object({
+                    query: z.string().optional().describe("Terme de recherche"),
+                    type: z.enum(["PRODUIT", "SERVICE"]).optional(),
+                    categorieId: z.string().optional(),
+                    enStock: z.boolean().optional(),
+                    limit: z.number().optional(),
+                }),
+                baseUrl
+            ),
+            get_stock_alerts: createExecutableTool(
+                "get_stock_alerts",
+                "Obtenir les alertes de stock (rupture, faible)",
+                z.object({
+                    type: z.enum(["RUPTURE", "FAIBLE", "TOUS"]).optional(),
+                }),
+                baseUrl
+            ),
+            search_documents: createExecutableTool(
+                "search_documents",
+                "Rechercher des documents (devis, factures, avoirs)",
+                z.object({
+                    type: z.enum(["DEVIS", "FACTURE", "AVOIR"]).optional(),
+                    statut: z.enum(["BROUILLON", "ENVOYE", "ACCEPTE", "REFUSE", "PAYE", "ANNULE"]).optional(),
+                    clientId: z.string().optional(),
+                    limit: z.number().optional(),
+                }),
+                baseUrl
+            ),
+            create_document: createExecutableTool(
+                "create_document",
+                "Créer un nouveau document (devis, facture, avoir)",
+                z.object({
+                    type: z.enum(["DEVIS", "FACTURE", "AVOIR"]),
+                    clientId: z.string(),
+                    dateEmission: z.string().optional(),
+                }),
+                baseUrl
+            ),
+            get_statistics: createExecutableTool(
+                "get_statistics",
+                "Obtenir les statistiques globales",
+                z.object({
+                    period: z.enum(["TODAY", "WEEK", "MONTH", "YEAR", "ALL"]).optional(),
+                }),
+                baseUrl
+            ),
+            get_dashboard_kpis: createExecutableTool(
+                "get_dashboard_kpis",
+                "Obtenir les KPIs du dashboard",
+                z.object({}),
+                baseUrl
+            ),
+            query_unpaid_invoices: createExecutableTool(
+                "query_unpaid_invoices",
+                "Rechercher les factures impayées",
+                z.object({
+                    overdueOnly: z.boolean().optional(),
+                    minAmount: z.number().optional(),
+                    clientId: z.string().optional(),
+                }),
+                baseUrl
+            ),
+            identify_best_clients: createExecutableTool(
+                "identify_best_clients",
+                "Identifier les meilleurs clients",
+                z.object({
+                    limit: z.number().optional(),
+                    period: z.enum(["month", "quarter", "year", "all"]).optional(),
+                    sortBy: z.enum(["revenue", "count", "loyalty"]).optional(),
+                }),
+                baseUrl
+            ),
+            search_all: createExecutableTool(
+                "search_all",
+                "Recherche globale (clients, articles, documents)",
+                z.object({
+                    query: z.string().describe("Terme de recherche"),
+                    limit: z.number().optional(),
+                }),
+                baseUrl
+            ),
+            navigate_to: tool({
+                description: "Naviguer vers une page de l'ERP",
+                inputSchema: z.object({
+                    page: z.enum([
+                        "DASHBOARD",
+                        "CLIENTS",
+                        "ARTICLES",
+                        "DOCUMENTS",
+                        "STOCK",
+                        "SEGMENTS",
+                        "CAMPAIGNS",
+                        "LOYALTY",
+                        "SETTINGS",
+                    ]).describe("Page de destination"),
+                    entityId: z.string().optional().describe("ID de l'entité"),
+                }),
+                // No execute - handled client-side
+            }),
+        };
 
+        // Stream with AI SDK
+        const streamResult = streamText({
+            model: openai("gpt-4o-mini"),
+            system: systemPrompt,
+            messages: messages.map((m) => ({
+                role: m.role,
+                content: m.content,
+            })),
+            tools,
+            toolChoice: "auto",
+            temperature: 0.7,
+            maxOutputTokens: 2000,
+            onFinish: async ({ text, toolCalls }) => {
+                // Save assistant message
+                try {
                     await prisma.message.create({
                         data: {
                             conversationId: conversation!.id,
                             role: "ASSISTANT",
-                            content: fullText,
+                            content: text,
                             model: "gpt-4o-mini",
-                            metadata: metadata as object,
+                            metadata: toolCalls?.length
+                                ? ({ toolCalls } as object)
+                                : undefined,
                         },
                     });
 
@@ -342,24 +413,23 @@ export async function POST(req: NextRequest) {
                         data: { updatedAt: new Date() },
                     });
                 } catch (dbError) {
-                    logger.error("Failed to save assistant message to database", dbError, {
-                        conversationId: conversation!.id,
-                        userId,
-                        entrepriseId
-                    });
+                    logger.error("Failed to save message", dbError);
                 }
             },
         });
 
-        // Return the stream with custom headers
-        return new Response(stream, {
-            headers: {
-                "Content-Type": "text/plain; charset=utf-8",
-                "X-Conversation-Id": conversation.id,
-                "X-Model-Used": "gpt-4o-mini",
-                "Cache-Control": "no-cache",
-                Connection: "keep-alive",
-            },
+        // Return streaming response with conversation ID header
+        const response = streamResult.toUIMessageStreamResponse();
+
+        // Add custom headers
+        const headers = new Headers(response.headers);
+        headers.set("X-Conversation-Id", conversation.id);
+        headers.set("X-Model-Used", "gpt-4o-mini");
+
+        return new Response(response.body, {
+            status: response.status,
+            statusText: response.statusText,
+            headers,
         });
     } catch (error: unknown) {
         return handleTenantError(error);

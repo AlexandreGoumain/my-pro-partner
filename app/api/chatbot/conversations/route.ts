@@ -13,15 +13,25 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
+    const search = searchParams.get('search') || '';
     const skip = (page - 1) * limit;
+
+    // Build where clause with optional search
+    const whereClause = {
+      userId,
+      entrepriseId,
+      ...(search && {
+        OR: [
+          { titre: { contains: search, mode: 'insensitive' as const } },
+          { messages: { some: { content: { contains: search, mode: 'insensitive' as const } } } },
+        ],
+      }),
+    };
 
     // Récupérer les conversations de l'utilisateur
     const [conversations, total] = await Promise.all([
       prisma.conversation.findMany({
-        where: {
-          userId,
-          entrepriseId,
-        },
+        where: whereClause,
         include: {
           messages: {
             take: 1,
@@ -46,10 +56,7 @@ export async function GET(req: NextRequest) {
         take: limit,
       }),
       prisma.conversation.count({
-        where: {
-          userId,
-          entrepriseId,
-        },
+        where: whereClause,
       }),
     ]);
 
