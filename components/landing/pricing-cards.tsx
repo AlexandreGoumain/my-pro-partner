@@ -5,8 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Check, Sparkles, ArrowRight, Shield, TrendingUp, Zap, Crown, Star } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { PLAN_FEATURES, PlanType } from "@/lib/pricing-config";
-import { PLANS_CONFIG } from "@/lib/config/plans.config";
+import { PLAN_FEATURES, PlanType, PLANS_CONFIG } from "@/lib/config/plans.config";
 
 const plans: Array<{
     id: PlanType;

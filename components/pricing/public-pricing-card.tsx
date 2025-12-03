@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
 import { PlanFeature } from "@/lib/types/pricing";
-import { PlanType } from "@/lib/pricing-config";
+import { PlanType } from "@/lib/config/plans.config";
 
 interface PublicPricingCardProps {
     name: string;
