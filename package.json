@@ -24,7 +24,11 @@
         "db:migrate:prod": "dotenv -e .env.production -- npx prisma migrate deploy",
         "db:studio:staging": "dotenv -e .env.staging -- npx prisma studio",
         "db:push:staging": "dotenv -e .env.staging -- npx prisma db push",
-        "db:migrate:staging": "dotenv -e .env.staging -- npx prisma migrate deploy"
+        "db:migrate:staging": "dotenv -e .env.staging -- npx prisma migrate deploy",
+        "test": "vitest",
+        "test:run": "vitest run",
+        "test:ui": "vitest --ui",
+        "test:coverage": "vitest run --coverage"
     },
     "dependencies": {
         "@ai-sdk/openai": "^2.0.59",
@@ -93,20 +97,27 @@
         "zod": "^3.25.76"
     },
     "devDependencies": {
+        "@testing-library/dom": "^10.4.1",
+        "@testing-library/jest-dom": "^6.9.1",
+        "@testing-library/react": "^16.3.0",
+        "@testing-library/user-event": "^14.6.1",
         "@types/bcryptjs": "^2.4.6",
         "@types/canvas-confetti": "^1.9.0",
         "@types/node": "^20",
         "@types/qrcode": "^1.5.6",
         "@types/react": "^19",
         "@types/react-dom": "^19",
+        "@vitejs/plugin-react": "^5.1.1",
         "autoprefixer": "^10.4.20",
         "dotenv": "^16.4.5",
         "eslint": "^9",
         "eslint-config-next": "16.0.0",
+        "jsdom": "^27.2.0",
         "postcss": "^8.4.49",
         "prisma": "^6.0.0",
         "tailwindcss": "^3.4.17",
         "tsx": "^4.20.6",
-        "typescript": "^5"
+        "typescript": "^5",
+        "vitest": "^4.0.15"
     }
 }
