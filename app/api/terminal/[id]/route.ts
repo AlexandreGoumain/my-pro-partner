@@ -1,23 +1,26 @@
-import { NextRequest, NextResponse } from "next/server";
-import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
+import { withApiHandler } from "@/lib/api/api-handler";
 import { TerminalService } from "@/lib/services/terminal.service";
+import { NextRequest, NextResponse } from "next/server";
 
 /**
  * DELETE /api/terminal/[id]
  * Supprimer un terminal
  */
 export async function DELETE(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+    _req: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    await requireTenantAuth();
-    const { id } = await params;
+    return withApiHandler(
+        async () => {
+            const { id } = await params;
 
-    await TerminalService.deleteTerminal(id);
+            await TerminalService.deleteTerminal(id);
 
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    return handleTenantError(error);
-  }
+            return NextResponse.json({ success: true });
+        },
+        {
+            anyCapability: ["pos"],
+            context: { resourceName: "Terminal", operation: "delete" },
+        }
+    );
 }
