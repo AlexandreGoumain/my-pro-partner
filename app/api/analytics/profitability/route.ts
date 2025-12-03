@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
         const { entrepriseId, entreprise } = await requireTenantAuth();
 
         // Check if user's plan allows advanced analytics (PRO+ only)
-        const featureCheck = await validateFeatureAccess(entreprise.plan, "hasAdvancedAnalytics");
+        const featureCheck = await validateFeatureAccess(entreprise.plan, "advancedAnalytics");
         if (featureCheck) return featureCheck;
 
         const searchParams = req.nextUrl.searchParams;

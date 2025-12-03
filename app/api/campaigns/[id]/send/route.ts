@@ -25,7 +25,7 @@ export async function POST(
     const { entrepriseId, entreprise } = await requireTenantAuth();
 
     // Check if user's plan allows campaign creation/sending (PRO+ only)
-    const featureCheck = await validateFeatureAccess(entreprise.plan, "canCreateCampaigns");
+    const featureCheck = await validateFeatureAccess(entreprise.plan, "campaigns");
     if (featureCheck) return featureCheck;
 
     const { id } = await params;
