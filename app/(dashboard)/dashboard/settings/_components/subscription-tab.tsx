@@ -7,7 +7,7 @@ import { LimitIndicator } from "@/components/paywall";
 import { useLimitDialog } from "@/components/providers";
 import { useArticles } from "@/hooks/use-articles";
 import { useClients } from "@/hooks/use-clients";
-import { PRICING_PLANS } from "@/lib/pricing-config";
+import { PLANS_CONFIG } from "@/lib/config/plans.config";
 import {
     ArrowRight,
     CreditCard,
@@ -54,8 +54,8 @@ export function SubscriptionTab() {
     const { data: clients = [] } = useClients();
     const { data: articles = [] } = useArticles();
 
-    const currentPlanLimits = PRICING_PLANS[userPlan];
-    const documentsLimit = currentPlanLimits.maxDocumentsPerMonth;
+    const currentPlanConfig = PLANS_CONFIG[userPlan];
+    const documentsLimit = currentPlanConfig.limits.maxDocumentsPerMonth;
 
     return (
         <div className="space-y-8">
