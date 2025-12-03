@@ -6,7 +6,7 @@ import { useArticleHandlers } from "@/hooks/use-article-handlers";
 import { useArticlesPaginated, useArticlesStats } from "@/hooks/use-articles";
 import { useCategories } from "@/hooks/use-categories";
 import { usePageFiltersWithScroll } from "@/hooks/use-page-filters";
-import { type PlanLimits, type PlanType } from "@/lib/pricing-config";
+import { type LimitKey, type PlanType } from "@/hooks/use-plan-limits";
 import { type Article, type ArticleTypeFilter } from "@/lib/types/article";
 import { expandCategoryIds } from "@/lib/types/category";
 import { getArticleEmptyStateMessage } from "@/lib/utils/article-helpers";
@@ -86,7 +86,7 @@ export interface ArticlesPageHandlers {
 
     // Pricing
     userPlan: PlanType;
-    checkLimit: (limitKey: keyof PlanLimits, currentValue: number) => boolean;
+    checkLimit: (limitKey: LimitKey, currentValue: number) => boolean;
 }
 
 export function useArticlesPage(): ArticlesPageHandlers {
