@@ -1,7 +1,4 @@
-import {
-    handleTenantError,
-    requireTenantAuth,
-} from "@/lib/middleware/tenant-isolation";
+import { withApiHandler } from "@/lib/api/api-handler";
 import { prisma } from "@/lib/prisma";
 import type {
     ActivityEvent,
@@ -26,37 +23,36 @@ import { NextRequest, NextResponse } from "next/server";
  * Returns all metrics, insights, and business intelligence
  */
 export async function GET(req: NextRequest) {
-    try {
-        const { entrepriseId } = await requireTenantAuth();
+    return withApiHandler(
+        async (ctx) => {
+            // Get period from query params (default: last 30 days)
+                const searchParams = req.nextUrl.searchParams;
+            const periodDays = parseInt(searchParams.get("period") || "30");
 
-        // Get period from query params (default: last 30 days)
-        const searchParams = req.nextUrl.searchParams;
-        const periodDays = parseInt(searchParams.get("period") || "30");
+            const now = new Date();
+            const periodStart = new Date(now);
+            periodStart.setDate(periodStart.getDate() - periodDays);
 
-        const now = new Date();
-        const periodStart = new Date(now);
-        periodStart.setDate(periodStart.getDate() - periodDays);
+            // Define date ranges for comparisons
+            const firstDayThisMonth = new Date(
+                now.getFullYear(),
+                now.getMonth(),
+                1
+            );
+            const firstDayLastMonth = new Date(
+                now.getFullYear(),
+                now.getMonth() - 1,
+                1
+            );
+            const firstDayThisYear = new Date(now.getFullYear(), 0, 1);
+            const thirtyDaysAgo = new Date(now);
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-        // Define date ranges for comparisons
-        const firstDayThisMonth = new Date(
-            now.getFullYear(),
-            now.getMonth(),
-            1
-        );
-        const firstDayLastMonth = new Date(
-            now.getFullYear(),
-            now.getMonth() - 1,
-            1
-        );
-        const firstDayThisYear = new Date(now.getFullYear(), 0, 1);
-        const thirtyDaysAgo = new Date(now);
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-        // Fetch all data in parallel for performance
-        const [documents, clients, articles, mouvementsStock, paiements] =
-            await Promise.all([
-                prisma.document.findMany({
-                    where: { entrepriseId },
+            // Fetch all data in parallel for performance
+            const [documents, clients, articles, mouvementsStock, paiements] =
+                await Promise.all([
+                    prisma.document.findMany({
+                        where: { entrepriseId: ctx.entrepriseId },
                     select: {
                         id: true,
                         type: true,
@@ -89,8 +85,8 @@ export async function GET(req: NextRequest) {
                         },
                     },
                 }),
-                prisma.client.findMany({
-                    where: { entrepriseId },
+                    prisma.client.findMany({
+                        where: { entrepriseId: ctx.entrepriseId },
                     select: {
                         id: true,
                         nom: true,
@@ -106,8 +102,8 @@ export async function GET(req: NextRequest) {
                         },
                     },
                 }),
-                prisma.article.findMany({
-                    where: { entrepriseId },
+                    prisma.article.findMany({
+                        where: { entrepriseId: ctx.entrepriseId },
                     select: {
                         id: true,
                         reference: true,
@@ -119,9 +115,9 @@ export async function GET(req: NextRequest) {
                         valeurEstimee: true,
                     },
                 }),
-                prisma.mouvementStock.findMany({
-                    where: {
-                        article: { entrepriseId },
+                    prisma.mouvementStock.findMany({
+                        where: {
+                            article: { entrepriseId: ctx.entrepriseId },
                         createdAt: { gte: periodStart },
                     },
                     select: {
@@ -130,10 +126,10 @@ export async function GET(req: NextRequest) {
                         createdAt: true,
                     },
                 }),
-                prisma.paiement.findMany({
-                    where: {
-                        document: { entrepriseId },
-                    },
+                    prisma.paiement.findMany({
+                        where: {
+                            document: { entrepriseId: ctx.entrepriseId },
+                        },
                     select: {
                         montant: true,
                         date_paiement: true,
@@ -213,10 +209,12 @@ export async function GET(req: NextRequest) {
             },
         };
 
-        return NextResponse.json({ success: true, data: overview });
-    } catch (error) {
-        return handleTenantError(error);
-    }
+            return NextResponse.json({ success: true, data: overview });
+        },
+        {
+            context: { resourceName: "Dashboard", operation: "overview" },
+        }
+    );
 }
 
 // ============================================================================
