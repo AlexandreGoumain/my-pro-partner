@@ -1,5 +1,5 @@
 import { Package, RotateCcw, Settings2, Wrench, type LucideIcon } from "lucide-react";
-import type { ArticleType } from "@/lib/generated/prisma/client";
+import type { ArticleType } from "@/lib/generated/prisma";
 
 export interface ArticleTab {
     value: string;

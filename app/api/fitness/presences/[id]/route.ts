@@ -1,7 +1,6 @@
-import { authOptions } from "@/lib/auth";
-import { requireCapability } from "@/lib/middleware/business-type-check";
+import { withApiHandler } from "@/lib/api/api-handler";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import { NotFoundError, ValidationError } from "@/lib/errors";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -16,167 +15,149 @@ const updatePresenceSchema = z.object({
 
 type RouteParams = { params: Promise<{ id: string }> };
 
-// GET /api/fitness/presences/[id]
-export async function GET(request: NextRequest, { params }: RouteParams) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Non autorisé" },
-                { status: 401 }
-            );
-        }
+const presenceInclude = {
+    client: {
+        select: {
+            id: true,
+            nom: true,
+            prenom: true,
+            email: true,
+        },
+    },
+    abonnement: {
+        select: {
+            id: true,
+            numero: true,
+            statut: true,
+        },
+    },
+    salle: {
+        select: {
+            id: true,
+            nom: true,
+            type: true,
+        },
+    },
+} as const;
 
-        const { id } = await params;
+/**
+ * GET /api/fitness/presences/[id]
+ * Get a single attendance record
+ */
+export async function GET(_request: NextRequest, { params }: RouteParams) {
+    return withApiHandler(
+        async (ctx) => {
+            const { id } = await params;
 
-        const presence = await prisma.presenceFitness.findFirst({
-            where: {
-                id,
-                entrepriseId: session.user.entrepriseId,
-            },
-            include: {
-                client: {
-                    select: {
-                        id: true,
-                        nom: true,
-                        prenom: true,
-                        email: true,
-                        telephone: true,
-                    },
+            const presence = await prisma.presenceFitness.findFirst({
+                where: {
+                    id,
+                    entrepriseId: ctx.entrepriseId,
                 },
-                abonnement: {
-                    include: {
-                        typeAbonnement: true,
+                include: {
+                    client: {
+                        select: {
+                            id: true,
+                            nom: true,
+                            prenom: true,
+                            email: true,
+                            telephone: true,
+                        },
                     },
+                    abonnement: {
+                        include: {
+                            typeAbonnement: true,
+                        },
+                    },
+                    salle: true,
                 },
-                salle: true,
-            },
-        });
+            });
 
-        if (!presence) {
-            return NextResponse.json(
-                { error: "Présence non trouvée" },
-                { status: 404 }
-            );
+            if (!presence) {
+                throw new NotFoundError("Présence non trouvée");
+            }
+
+            return NextResponse.json(presence);
+        },
+        {
+            capability: "presences_fitness",
+            context: { resourceName: "PresenceFitness", operation: "get" },
         }
-
-        return NextResponse.json(presence);
-    } catch (error) {
-        console.error("Erreur GET presence:", error);
-        return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
-    }
+    );
 }
 
-// PUT /api/fitness/presences/[id] - Mettre à jour (notamment heure de sortie)
+/**
+ * PUT /api/fitness/presences/[id]
+ * Update attendance (notably exit time)
+ */
 export async function PUT(request: NextRequest, { params }: RouteParams) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Non autorisé" },
-                { status: 401 }
-            );
-        }
+    return withApiHandler(
+        async (ctx) => {
+            const { id } = await params;
 
-        const capabilityCheck = await requireCapability("presences_fitness");
-        if (capabilityCheck) return capabilityCheck;
-
-        const { id } = await params;
-
-        const existing = await prisma.presenceFitness.findFirst({
-            where: {
-                id,
-                entrepriseId: session.user.entrepriseId,
-            },
-        });
-
-        if (!existing) {
-            return NextResponse.json(
-                { error: "Présence non trouvée" },
-                { status: 404 }
-            );
-        }
-
-        const body = await request.json();
-        const validatedData = updatePresenceSchema.parse(body);
-
-        const presence = await prisma.presenceFitness.update({
-            where: { id },
-            data: validatedData,
-            include: {
-                client: {
-                    select: {
-                        id: true,
-                        nom: true,
-                        prenom: true,
-                        email: true,
-                    },
+            const existing = await prisma.presenceFitness.findFirst({
+                where: {
+                    id,
+                    entrepriseId: ctx.entrepriseId,
                 },
-                abonnement: {
-                    select: {
-                        id: true,
-                        numero: true,
-                        statut: true,
-                    },
-                },
-                salle: {
-                    select: {
-                        id: true,
-                        nom: true,
-                        type: true,
-                    },
-                },
-            },
-        });
+            });
 
-        return NextResponse.json(presence);
-    } catch (error) {
-        if (error instanceof z.ZodError) {
-            return NextResponse.json(
-                { error: "Données invalides", details: error.errors },
-                { status: 400 }
-            );
+            if (!existing) {
+                throw new NotFoundError("Présence non trouvée");
+            }
+
+            const body = await request.json();
+            const validation = updatePresenceSchema.safeParse(body);
+
+            if (!validation.success) {
+                throw new ValidationError(
+                    "Données invalides",
+                    validation.error.flatten().fieldErrors as Record<string, string[]>
+                );
+            }
+
+            const presence = await prisma.presenceFitness.update({
+                where: { id },
+                data: validation.data,
+                include: presenceInclude,
+            });
+
+            return NextResponse.json(presence);
+        },
+        {
+            capability: "presences_fitness",
+            context: { resourceName: "PresenceFitness", operation: "update" },
         }
-        console.error("Erreur PUT presence:", error);
-        return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
-    }
+    );
 }
 
-// DELETE /api/fitness/presences/[id]
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Non autorisé" },
-                { status: 401 }
-            );
+/**
+ * DELETE /api/fitness/presences/[id]
+ * Delete attendance record
+ */
+export async function DELETE(_request: NextRequest, { params }: RouteParams) {
+    return withApiHandler(
+        async (ctx) => {
+            const { id } = await params;
+
+            const existing = await prisma.presenceFitness.findFirst({
+                where: {
+                    id,
+                    entrepriseId: ctx.entrepriseId,
+                },
+            });
+
+            if (!existing) {
+                throw new NotFoundError("Présence non trouvée");
+            }
+
+            await prisma.presenceFitness.delete({ where: { id } });
+
+            return NextResponse.json({ success: true });
+        },
+        {
+            capability: "presences_fitness",
+            context: { resourceName: "PresenceFitness", operation: "delete" },
         }
-
-        const capabilityCheck = await requireCapability("presences_fitness");
-        if (capabilityCheck) return capabilityCheck;
-
-        const { id } = await params;
-
-        const existing = await prisma.presenceFitness.findFirst({
-            where: {
-                id,
-                entrepriseId: session.user.entrepriseId,
-            },
-        });
-
-        if (!existing) {
-            return NextResponse.json(
-                { error: "Présence non trouvée" },
-                { status: 404 }
-            );
-        }
-
-        await prisma.presenceFitness.delete({ where: { id } });
-
-        return NextResponse.json({ success: true });
-    } catch (error) {
-        console.error("Erreur DELETE presence:", error);
-        return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
-    }
+    );
 }

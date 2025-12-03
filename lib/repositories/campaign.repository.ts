@@ -1,5 +1,5 @@
-import { PrismaClient, Campaign } from "@/lib/generated/prisma/client";
-import { BaseRepository } from "./base.repository";
+import { PrismaClient, Campaign } from "@/lib/generated/prisma";
+import { BaseRepository, PaginationParams } from "./base.repository";
 
 /**
  * Campaign repository
@@ -29,7 +29,7 @@ export class CampaignRepository extends BaseRepository<Campaign> {
   async findByEntreprise(
     entrepriseId: string,
     search?: string,
-    pagination?: Record<string, unknown>,
+    pagination?: PaginationParams,
     filters?: {
       type?: string;
       statut?: string;
@@ -69,7 +69,7 @@ export class CampaignRepository extends BaseRepository<Campaign> {
       {
         segment: true,
       },
-      { dateCreation: "desc" }
+      { createdAt: "desc" }
     );
   }
 
@@ -110,20 +110,20 @@ export class CampaignRepository extends BaseRepository<Campaign> {
     const now = new Date();
     const result = await this.findAll({
       entrepriseId,
-      statut: "PLANIFIE",
-      datePlanifiee: { lte: now },
+      statut: "SCHEDULED",
+      scheduledAt: { lte: now },
     });
 
     return result.items;
   }
 
   /**
-   * Find active campaigns
+   * Find sending campaigns
    */
-  async findActive(entrepriseId: string): Promise<Campaign[]> {
+  async findSending(entrepriseId: string): Promise<Campaign[]> {
     const result = await this.findAll({
       entrepriseId,
-      statut: "ACTIVE",
+      statut: "SENDING",
     });
 
     return result.items;
@@ -145,9 +145,9 @@ export class CampaignRepository extends BaseRepository<Campaign> {
   async updateStatistics(
     campaignId: string,
     stats: {
-      nombreEnvois?: number;
-      nombreOuvertures?: number;
-      nombreClics?: number;
+      sentCount?: number;
+      openedCount?: number;
+      clickedCount?: number;
     }
   ): Promise<Campaign> {
     return this.update(campaignId, stats);
@@ -159,7 +159,7 @@ export class CampaignRepository extends BaseRepository<Campaign> {
   async incrementSendCount(campaignId: string): Promise<Campaign> {
     const campaign = await this.findByIdOrFail(campaignId);
     return this.update(campaignId, {
-      nombreEnvois: (campaign.nombreEnvois || 0) + 1,
+      sentCount: (campaign.sentCount || 0) + 1,
     });
   }
 
@@ -169,7 +169,7 @@ export class CampaignRepository extends BaseRepository<Campaign> {
   async incrementOpenCount(campaignId: string): Promise<Campaign> {
     const campaign = await this.findByIdOrFail(campaignId);
     return this.update(campaignId, {
-      nombreOuvertures: (campaign.nombreOuvertures || 0) + 1,
+      openedCount: (campaign.openedCount || 0) + 1,
     });
   }
 
@@ -179,7 +179,7 @@ export class CampaignRepository extends BaseRepository<Campaign> {
   async incrementClickCount(campaignId: string): Promise<Campaign> {
     const campaign = await this.findByIdOrFail(campaignId);
     return this.update(campaignId, {
-      nombreClics: (campaign.nombreClics || 0) + 1,
+      clickedCount: (campaign.clickedCount || 0) + 1,
     });
   }
 
@@ -188,17 +188,17 @@ export class CampaignRepository extends BaseRepository<Campaign> {
    */
   async markAsSent(campaignId: string): Promise<Campaign> {
     return this.update(campaignId, {
-      statut: "ENVOYE",
-      dateEnvoi: new Date(),
+      statut: "SENT",
+      sentAt: new Date(),
     });
   }
 
   /**
-   * Mark campaign as completed
+   * Mark campaign as cancelled
    */
-  async markAsCompleted(campaignId: string): Promise<Campaign> {
+  async markAsCancelled(campaignId: string): Promise<Campaign> {
     return this.update(campaignId, {
-      statut: "TERMINE",
+      statut: "CANCELLED",
     });
   }
 
@@ -234,21 +234,21 @@ export class CampaignRepository extends BaseRepository<Campaign> {
   async getStatistics(entrepriseId: string) {
     const [
       totalCampaigns,
-      activeCampaigns,
+      draftCampaigns,
       scheduledCampaigns,
-      completedCampaigns,
+      sentCampaigns,
     ] = await Promise.all([
       this.count({ entrepriseId }),
-      this.countByStatus(entrepriseId, "ACTIVE"),
-      this.countByStatus(entrepriseId, "PLANIFIE"),
-      this.countByStatus(entrepriseId, "TERMINE"),
+      this.countByStatus(entrepriseId, "DRAFT"),
+      this.countByStatus(entrepriseId, "SCHEDULED"),
+      this.countByStatus(entrepriseId, "SENT"),
     ]);
 
     return {
       total: totalCampaigns,
-      active: activeCampaigns,
+      draft: draftCampaigns,
       scheduled: scheduledCampaigns,
-      completed: completedCampaigns,
+      sent: sentCampaigns,
     };
   }
 
@@ -258,22 +258,22 @@ export class CampaignRepository extends BaseRepository<Campaign> {
   async calculatePerformance(campaignId: string) {
     const campaign = await this.findByIdOrFail(campaignId);
 
-    const openRate = campaign.nombreEnvois
-      ? (campaign.nombreOuvertures || 0) / campaign.nombreEnvois * 100
+    const openRate = campaign.sentCount
+      ? (campaign.openedCount || 0) / campaign.sentCount * 100
       : 0;
 
-    const clickRate = campaign.nombreEnvois
-      ? (campaign.nombreClics || 0) / campaign.nombreEnvois * 100
+    const clickRate = campaign.sentCount
+      ? (campaign.clickedCount || 0) / campaign.sentCount * 100
       : 0;
 
-    const clickThroughRate = campaign.nombreOuvertures
-      ? (campaign.nombreClics || 0) / campaign.nombreOuvertures * 100
+    const clickThroughRate = campaign.openedCount
+      ? (campaign.clickedCount || 0) / campaign.openedCount * 100
       : 0;
 
     return {
-      sends: campaign.nombreEnvois || 0,
-      opens: campaign.nombreOuvertures || 0,
-      clicks: campaign.nombreClics || 0,
+      sends: campaign.sentCount || 0,
+      opens: campaign.openedCount || 0,
+      clicks: campaign.clickedCount || 0,
       openRate: Math.round(openRate * 100) / 100,
       clickRate: Math.round(clickRate * 100) / 100,
       clickThroughRate: Math.round(clickThroughRate * 100) / 100,

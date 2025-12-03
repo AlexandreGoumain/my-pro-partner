@@ -133,24 +133,24 @@ export async function recordAuditEvent(event: AuditEventMetadata): Promise<void>
             });
         }
 
-        // TODO: Enregistrer dans la base de données avec Prisma
-        // await prisma.auditLog.create({
-        //     data: {
-        //         userId: event.userId,
-        //         entrepriseId: event.entrepriseId,
-        //         eventType: event.eventType,
-        //         riskLevel: event.riskLevel,
-        //         description: event.description,
-        //         actionName: event.actionName,
-        //         conversationId: event.conversationId,
-        //         messageId: event.messageId,
-        //         result: event.result,
-        //         errorMessage: event.errorMessage,
-        //         metadata: event.metadata as any,
-        //         ipAddress: event.ipAddress,
-        //         userAgent: event.userAgent,
-        //     },
-        // });
+        // Enregistrer dans la base de données
+        await prisma.chatbotAuditLog.create({
+            data: {
+                userId: event.userId,
+                entrepriseId: event.entrepriseId,
+                eventType: event.eventType,
+                riskLevel: event.riskLevel,
+                description: event.description,
+                actionName: event.actionName,
+                conversationId: event.conversationId,
+                messageId: event.messageId,
+                result: event.result,
+                errorMessage: event.errorMessage,
+                metadata: event.metadata as object,
+                ipAddress: event.ipAddress,
+                userAgent: event.userAgent,
+            },
+        });
     } catch (error) {
         // Si l'audit fail, au moins logger l'erreur
         logger.error("Failed to record audit event", error, {
@@ -344,19 +344,20 @@ export async function getAuditLogs(
         offset?: number;
     }
 ): Promise<unknown[]> {
-    // TODO: Implémenter avec Prisma une fois le modèle créé
-    // const logs = await prisma.auditLog.findMany({
-    //     where: {
-    //         userId,
-    //         ...(options?.eventType && { eventType: options.eventType }),
-    //         ...(options?.riskLevel && { riskLevel: options.riskLevel }),
-    //     },
-    //     orderBy: { createdAt: "desc" },
-    //     take: options?.limit || 100,
-    //     skip: options?.offset || 0,
-    // });
-    // return logs;
-
-    logger.info("Audit logs requested", { userId, options });
-    return [];
+    try {
+        const logs = await prisma.chatbotAuditLog.findMany({
+            where: {
+                userId,
+                ...(options?.eventType && { eventType: options.eventType }),
+                ...(options?.riskLevel && { riskLevel: options.riskLevel }),
+            },
+            orderBy: { createdAt: "desc" },
+            take: options?.limit || 100,
+            skip: options?.offset || 0,
+        });
+        return logs;
+    } catch (error) {
+        logger.error("Failed to get audit logs", error, { userId });
+        return [];
+    }
 }

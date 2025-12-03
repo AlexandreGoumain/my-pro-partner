@@ -107,7 +107,7 @@ export function UnpaidInvoiceTable({
                                 {formatDate(invoice.dateEmission)}
                             </TableCell>
                             <TableCell className="text-[14px] text-black/60">
-                                {formatDate(invoice.dateEcheance)}
+                                {invoice.dateEcheance ? formatDate(invoice.dateEcheance) : "-"}
                             </TableCell>
                             <TableCell>
                                 {invoice.isOverdue ? (

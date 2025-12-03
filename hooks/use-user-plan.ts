@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { PlanType } from "@/lib/pricing-config";
+import { PlanType } from "@/lib/config/plans.config";
 import { useMemo } from "react";
 
 /**

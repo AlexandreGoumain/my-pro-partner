@@ -1,7 +1,6 @@
 "use client";
 
-import { PlanType, PlanLimits } from "@/lib/pricing-config";
-import { usePlanLimits } from "@/hooks/use-plan-limits";
+import { usePlanLimits, type PlanType, type LimitKey } from "@/hooks/use-plan-limits";
 import { Progress } from "@/components/ui/progress";
 import { AlertCircle } from "lucide-react";
 import Link from "next/link";
@@ -15,7 +14,7 @@ interface LimitIndicatorProps {
     /**
      * Clé de la limite à afficher
      */
-    limitKey: keyof PlanLimits;
+    limitKey: LimitKey;
 
     /**
      * Valeur actuelle

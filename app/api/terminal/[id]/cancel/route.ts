@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
-import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
+import { withApiHandler } from "@/lib/api/api-handler";
+import { ValidationError } from "@/lib/errors";
 import { TerminalService } from "@/lib/services/terminal.service";
-import { validateRequest } from "@/lib/utils/validation-helper";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 const cancelSchema = z.object({
-  paymentIntentId: z.string(),
+    paymentIntentId: z.string(),
 });
 
 /**
@@ -13,24 +13,29 @@ const cancelSchema = z.object({
  * Annuler un paiement sur un terminal
  */
 export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+    req: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    await requireTenantAuth();
-    const { id } = await params;
+    return withApiHandler(
+        async () => {
+            const { id } = await params;
 
-    const body = await req.json();
-    const result = validateRequest(cancelSchema, body);
-    if (!result.success) return result.response;
+            const body = await req.json();
+            const result = cancelSchema.safeParse(body);
+            if (!result.success) {
+                throw new ValidationError(result.error.errors[0].message);
+            }
 
-    await TerminalService.cancelPayment({
-      terminalId: id,
-      paymentIntentId: result.data.paymentIntentId,
-    });
+            await TerminalService.cancelPayment({
+                terminalId: id,
+                paymentIntentId: result.data.paymentIntentId,
+            });
 
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    return handleTenantError(error);
-  }
+            return NextResponse.json({ success: true });
+        },
+        {
+            anyCapability: ["pos"],
+            context: { resourceName: "Terminal", operation: "cancelPayment" },
+        }
+    );
 }

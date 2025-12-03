@@ -1,4 +1,12 @@
 import { authOptions } from "@/lib/auth";
+import {
+    StatutAffaire,
+    DomaineJuridique,
+    Juridiction,
+    QualitePartie,
+    TypeProcedure,
+    TypeHonoraires,
+} from "@/lib/generated/prisma";
 import { requireCapability } from "@/lib/middleware/business-type-check";
 import { prisma } from "@/lib/prisma";
 import type { AffaireUpdateInput } from "@/lib/types/juridique";
@@ -197,16 +205,16 @@ export async function PUT(request: NextRequest, context: RouteContext) {
                 }),
                 ...(body.clientId !== undefined && { clientId: body.clientId }),
                 ...(body.qualiteClient !== undefined && {
-                    qualiteClient: body.qualiteClient as any,
+                    qualiteClient: body.qualiteClient as QualitePartie,
                 }),
                 ...(body.domaine !== undefined && {
-                    domaine: body.domaine as any,
+                    domaine: body.domaine as DomaineJuridique,
                 }),
                 ...(body.typeProcedure !== undefined && {
-                    typeProcedure: body.typeProcedure as any,
+                    typeProcedure: body.typeProcedure as TypeProcedure,
                 }),
                 ...(body.juridiction !== undefined && {
-                    juridiction: body.juridiction as any,
+                    juridiction: body.juridiction as Juridiction,
                 }),
                 ...(body.chambre !== undefined && { chambre: body.chambre }),
                 ...(body.numeroRG !== undefined && { numeroRG: body.numeroRG }),
@@ -222,7 +230,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
                         : null,
                 }),
                 ...(body.typeHonoraires !== undefined && {
-                    typeHonoraires: body.typeHonoraires as any,
+                    typeHonoraires: body.typeHonoraires as TypeHonoraires,
                 }),
                 ...(body.tauxHoraire !== undefined && {
                     tauxHoraire: body.tauxHoraire,
@@ -240,7 +248,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
                     enjeuFinancier: body.enjeuFinancier,
                 }),
                 ...(body.statut !== undefined && {
-                    statut: body.statut as any,
+                    statut: body.statut as StatutAffaire,
                 }),
                 ...(body.responsableId !== undefined && {
                     responsableId: body.responsableId,

@@ -1,6 +1,5 @@
-import { PrismaClient, Automation, TriggerType, ActionType } from "@prisma/client";
-import { BaseRepository } from "./base.repository";
-import { PaginationParams } from "@/lib/types";
+import { PrismaClient, Automation, TriggerType, ActionType } from "@/lib/generated/prisma";
+import { BaseRepository, PaginationParams } from "./base.repository";
 
 export class AutomationRepository extends BaseRepository<Automation> {
   constructor(prisma: PrismaClient) {

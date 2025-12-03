@@ -1,30 +1,23 @@
-import { DocumentCard } from "./document-card";
+import { DocumentCard, type DocumentBase } from "./document-card";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { Plus, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export interface DocumentGridViewProps<T> {
-    documents: T[];
+export interface DocumentGridViewProps {
+    documents: DocumentBase[];
     isLoading: boolean;
     type: "DEVIS" | "FACTURE" | "AVOIR";
-    onView: (doc: T) => void;
-    onEdit: (doc: T) => void;
-    onDelete: (doc: T) => void;
-    onConvertToInvoice?: (doc: T) => void;
+    onView: (doc: DocumentBase) => void;
+    onEdit: (doc: DocumentBase) => void;
+    onDelete: (doc: DocumentBase) => void;
+    onConvertToInvoice?: (doc: DocumentBase) => void;
     onCreate: () => void;
     className?: string;
 }
 
-export function DocumentGridView<T extends {
-    id: string;
-    numero: string;
-    dateEmission: Date;
-    statut: "BROUILLON" | "ENVOYE" | "ACCEPTE" | "REFUSE" | "PAYE" | "ANNULE";
-    client: { nom: string; prenom: string | null };
-    total_ttc: number;
-}>({
+export function DocumentGridView({
     documents,
     isLoading,
     type,
@@ -34,7 +27,7 @@ export function DocumentGridView<T extends {
     onConvertToInvoice,
     onCreate,
     className,
-}: DocumentGridViewProps<T>) {
+}: DocumentGridViewProps) {
     if (isLoading) {
         return (
             <GridSkeleton

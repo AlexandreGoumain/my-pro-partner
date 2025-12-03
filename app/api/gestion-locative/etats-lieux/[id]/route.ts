@@ -1,259 +1,214 @@
-import { authOptions } from "@/lib/auth";
-import { requireAnyCapability } from "@/lib/middleware/business-type-check";
+import { withApiHandler } from "@/lib/api/api-handler";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import { NotFoundError, BusinessError } from "@/lib/errors";
 import { NextRequest, NextResponse } from "next/server";
 
-// GET /api/gestion-locative/etats-lieux/[id] - Get single etat des lieux
-export async function GET(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Unauthorized" },
-                { status: 401 }
-            );
-        }
+type RouteParams = { params: Promise<{ id: string }> };
 
-        const capabilityCheck = await requireAnyCapability("etats_lieux");
-        if (capabilityCheck) return capabilityCheck;
+/**
+ * GET /api/gestion-locative/etats-lieux/[id]
+ * Get single etat des lieux
+ */
+export async function GET(_request: NextRequest, { params }: RouteParams) {
+    return withApiHandler(
+        async (ctx) => {
+            const { id } = await params;
 
-        const { id } = await params;
-
-        const etatDesLieux = await prisma.etatDesLieux.findFirst({
-            where: {
-                id,
-                entrepriseId: session.user.entrepriseId,
-            },
-            include: {
-                bail: {
-                    select: {
-                        id: true,
-                        reference: true,
-                        bien: {
-                            select: {
-                                id: true,
-                                titre: true,
-                                adresse: true,
-                                ville: true,
-                                surface: true,
+            const etatDesLieux = await prisma.etatDesLieux.findFirst({
+                where: {
+                    id,
+                    entrepriseId: ctx.entrepriseId,
+                },
+                include: {
+                    bail: {
+                        select: {
+                            id: true,
+                            reference: true,
+                            bien: {
+                                select: {
+                                    id: true,
+                                    titre: true,
+                                    adresse: true,
+                                    ville: true,
+                                    surface: true,
+                                },
                             },
-                        },
-                        locatairePrincipal: {
-                            select: {
-                                id: true,
-                                nom: true,
-                                prenom: true,
-                                telephone: true,
-                                email: true,
+                            locatairePrincipal: {
+                                select: {
+                                    id: true,
+                                    nom: true,
+                                    prenom: true,
+                                    telephone: true,
+                                    email: true,
+                                },
                             },
-                        },
-                        proprietaire: {
-                            select: {
-                                id: true,
-                                nom: true,
-                                prenom: true,
+                            proprietaire: {
+                                select: {
+                                    id: true,
+                                    nom: true,
+                                    prenom: true,
+                                },
                             },
                         },
                     },
                 },
-            },
-        });
+            });
 
-        if (!etatDesLieux) {
-            return NextResponse.json(
-                { error: "État des lieux non trouvé" },
-                { status: 404 }
-            );
+            if (!etatDesLieux) {
+                throw new NotFoundError("État des lieux non trouvé");
+            }
+
+            return NextResponse.json({ etatDesLieux });
+        },
+        {
+            anyCapability: ["etats_lieux"],
+            context: { resourceName: "EtatDesLieux", operation: "get" },
         }
-
-        return NextResponse.json({ etatDesLieux });
-    } catch (error) {
-        console.error("Error fetching etat des lieux:", error);
-        return NextResponse.json(
-            { error: "Failed to fetch etat des lieux" },
-            { status: 500 }
-        );
-    }
+    );
 }
 
-// PATCH /api/gestion-locative/etats-lieux/[id] - Update etat des lieux
-export async function PATCH(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Unauthorized" },
-                { status: 401 }
-            );
-        }
+/**
+ * PATCH /api/gestion-locative/etats-lieux/[id]
+ * Update etat des lieux
+ */
+export async function PATCH(request: NextRequest, { params }: RouteParams) {
+    return withApiHandler(
+        async (ctx) => {
+            const { id } = await params;
+            const body = await request.json();
 
-        const capabilityCheck = await requireAnyCapability("etats_lieux");
-        if (capabilityCheck) return capabilityCheck;
+            const existing = await prisma.etatDesLieux.findFirst({
+                where: {
+                    id,
+                    entrepriseId: ctx.entrepriseId,
+                },
+            });
 
-        const { id } = await params;
-        const body = await request.json();
+            if (!existing) {
+                throw new NotFoundError("État des lieux non trouvé");
+            }
 
-        // Verify etat des lieux exists and belongs to entreprise
-        const existing = await prisma.etatDesLieux.findFirst({
-            where: {
-                id,
-                entrepriseId: session.user.entrepriseId,
-            },
-        });
+            const updateData: Record<string, unknown> = {};
 
-        if (!existing) {
-            return NextResponse.json(
-                { error: "État des lieux non trouvé" },
-                { status: 404 }
-            );
-        }
+            if (body.dateEtat !== undefined) {
+                updateData.dateEtat = new Date(body.dateEtat);
+            }
 
-        // Build update data
-        const updateData: any = {};
+            if (body.releveEau !== undefined) {
+                updateData.releveEau = body.releveEau;
+            }
 
-        if (body.dateEtat !== undefined) {
-            updateData.dateEtat = new Date(body.dateEtat);
-        }
+            if (body.releveElec !== undefined) {
+                updateData.releveElec = body.releveElec;
+            }
 
-        if (body.releveEau !== undefined) {
-            updateData.releveEau = body.releveEau;
-        }
+            if (body.releveGaz !== undefined) {
+                updateData.releveGaz = body.releveGaz;
+            }
 
-        if (body.releveElec !== undefined) {
-            updateData.releveElec = body.releveElec;
-        }
+            if (body.constatations !== undefined) {
+                updateData.constatations = body.constatations;
+            }
 
-        if (body.releveGaz !== undefined) {
-            updateData.releveGaz = body.releveGaz;
-        }
+            if (body.photos !== undefined) {
+                updateData.photos = body.photos;
+            }
 
-        if (body.constatations !== undefined) {
-            updateData.constatations = body.constatations;
-        }
+            if (body.notes !== undefined) {
+                updateData.notes = body.notes;
+            }
 
-        if (body.photos !== undefined) {
-            updateData.photos = body.photos;
-        }
+            if (body.signatureLocataire !== undefined) {
+                updateData.signatureLocataire = body.signatureLocataire;
+            }
 
-        if (body.notes !== undefined) {
-            updateData.notes = body.notes;
-        }
+            if (body.signatureProprietaire !== undefined) {
+                updateData.signatureProprietaire = body.signatureProprietaire;
+            }
 
-        if (body.signatureLocataire !== undefined) {
-            updateData.signatureLocataire = body.signatureLocataire;
-        }
+            if (body.documentUrl !== undefined) {
+                updateData.documentUrl = body.documentUrl;
+            }
 
-        if (body.signatureProprietaire !== undefined) {
-            updateData.signatureProprietaire = body.signatureProprietaire;
-        }
+            if (body.retenueDepot !== undefined) {
+                updateData.retenueDepot = body.retenueDepot;
+            }
 
-        if (body.documentUrl !== undefined) {
-            updateData.documentUrl = body.documentUrl;
-        }
+            if (body.motifRetenue !== undefined) {
+                updateData.motifRetenue = body.motifRetenue;
+            }
 
-        if (body.retenueDepot !== undefined) {
-            updateData.retenueDepot = body.retenueDepot;
-        }
-
-        if (body.motifRetenue !== undefined) {
-            updateData.motifRetenue = body.motifRetenue;
-        }
-
-        const etatDesLieux = await prisma.etatDesLieux.update({
-            where: { id },
-            data: updateData,
-            include: {
-                bail: {
-                    select: {
-                        id: true,
-                        reference: true,
-                        bien: {
-                            select: {
-                                id: true,
-                                titre: true,
+            const etatDesLieux = await prisma.etatDesLieux.update({
+                where: { id },
+                data: updateData,
+                include: {
+                    bail: {
+                        select: {
+                            id: true,
+                            reference: true,
+                            bien: {
+                                select: {
+                                    id: true,
+                                    titre: true,
+                                },
                             },
-                        },
-                        locatairePrincipal: {
-                            select: {
-                                id: true,
-                                nom: true,
-                                prenom: true,
+                            locatairePrincipal: {
+                                select: {
+                                    id: true,
+                                    nom: true,
+                                    prenom: true,
+                                },
                             },
                         },
                     },
                 },
-            },
-        });
+            });
 
-        return NextResponse.json({ etatDesLieux });
-    } catch (error) {
-        console.error("Error updating etat des lieux:", error);
-        return NextResponse.json(
-            { error: "Failed to update etat des lieux" },
-            { status: 500 }
-        );
-    }
+            return NextResponse.json({ etatDesLieux });
+        },
+        {
+            anyCapability: ["etats_lieux"],
+            context: { resourceName: "EtatDesLieux", operation: "update" },
+        }
+    );
 }
 
-// DELETE /api/gestion-locative/etats-lieux/[id] - Delete etat des lieux
-export async function DELETE(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Unauthorized" },
-                { status: 401 }
-            );
+/**
+ * DELETE /api/gestion-locative/etats-lieux/[id]
+ * Delete etat des lieux
+ */
+export async function DELETE(_request: NextRequest, { params }: RouteParams) {
+    return withApiHandler(
+        async (ctx) => {
+            const { id } = await params;
+
+            const existing = await prisma.etatDesLieux.findFirst({
+                where: {
+                    id,
+                    entrepriseId: ctx.entrepriseId,
+                },
+            });
+
+            if (!existing) {
+                throw new NotFoundError("État des lieux non trouvé");
+            }
+
+            // Prevent deletion if signed
+            if (existing.signatureLocataire && existing.signatureProprietaire) {
+                throw new BusinessError(
+                    "Impossible de supprimer un état des lieux signé"
+                );
+            }
+
+            await prisma.etatDesLieux.delete({
+                where: { id },
+            });
+
+            return NextResponse.json({ success: true });
+        },
+        {
+            anyCapability: ["etats_lieux"],
+            context: { resourceName: "EtatDesLieux", operation: "delete" },
         }
-
-        const capabilityCheck = await requireAnyCapability("etats_lieux");
-        if (capabilityCheck) return capabilityCheck;
-
-        const { id } = await params;
-
-        // Verify etat des lieux exists and belongs to entreprise
-        const existing = await prisma.etatDesLieux.findFirst({
-            where: {
-                id,
-                entrepriseId: session.user.entrepriseId,
-            },
-        });
-
-        if (!existing) {
-            return NextResponse.json(
-                { error: "État des lieux non trouvé" },
-                { status: 404 }
-            );
-        }
-
-        // Prevent deletion if signed
-        if (existing.signatureLocataire && existing.signatureProprietaire) {
-            return NextResponse.json(
-                { error: "Impossible de supprimer un état des lieux signé" },
-                { status: 400 }
-            );
-        }
-
-        await prisma.etatDesLieux.delete({
-            where: { id },
-        });
-
-        return NextResponse.json({ success: true });
-    } catch (error) {
-        console.error("Error deleting etat des lieux:", error);
-        return NextResponse.json(
-            { error: "Failed to delete etat des lieux" },
-            { status: 500 }
-        );
-    }
+    );
 }

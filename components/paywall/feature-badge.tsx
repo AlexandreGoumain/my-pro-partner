@@ -1,6 +1,6 @@
 "use client";
 
-import { PlanType, PLAN_PRICING } from "@/lib/pricing-config";
+import { PlanType, PLAN_PRICING } from "@/lib/config/plans.config";
 import { Crown, Star, Zap } from "lucide-react";
 
 interface FeatureBadgeProps {

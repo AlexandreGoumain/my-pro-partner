@@ -1,10 +1,8 @@
+import { withApiHandler } from "@/lib/api/api-handler";
+import { ValidationError } from "@/lib/errors";
 import {
-  handleTenantError,
-  requireTenantAuth,
-} from "@/lib/middleware/tenant-isolation";
-import {
-  BusinessTemplateService,
-  BusinessType,
+    BusinessTemplateService,
+    BusinessType,
 } from "@/lib/services/business-template.service";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -13,45 +11,40 @@ import { NextRequest, NextResponse } from "next/server";
 // ============================================
 
 export async function POST(req: NextRequest) {
-  try {
-    const { entrepriseId } = await requireTenantAuth();
-    const { businessType } = await req.json();
+    return withApiHandler(
+        async (ctx) => {
+            const { businessType } = await req.json();
 
-    if (!businessType) {
-      return NextResponse.json(
-        { message: "Le type de business est requis" },
-        { status: 400 }
-      );
-    }
+            if (!businessType) {
+                throw new ValidationError("Le type de business est requis");
+            }
 
-    // Valider que le type de business est valide
-    const validTypes = BusinessTemplateService.getAllTemplates().map(
-      (t) => t.type
+            // Valider que le type de business est valide
+            const validTypes = BusinessTemplateService.getAllTemplates().map(
+                (t) => t.type
+            );
+            if (!validTypes.includes(businessType)) {
+                throw new ValidationError("Type de business invalide");
+            }
+
+            // Appliquer le template
+            await BusinessTemplateService.applyTemplate(
+                ctx.entrepriseId,
+                businessType as BusinessType
+            );
+
+            const template = BusinessTemplateService.getTemplate(
+                businessType as BusinessType
+            );
+
+            return NextResponse.json({
+                success: true,
+                message: `Template "${template.label}" appliqué avec succès`,
+                template,
+            });
+        },
+        {
+            context: { resourceName: "BusinessTemplate", operation: "apply" },
+        }
     );
-    if (!validTypes.includes(businessType)) {
-      return NextResponse.json(
-        { message: "Type de business invalide" },
-        { status: 400 }
-      );
-    }
-
-    // Appliquer le template
-    await BusinessTemplateService.applyTemplate(
-      entrepriseId,
-      businessType as BusinessType
-    );
-
-    const template = BusinessTemplateService.getTemplate(
-      businessType as BusinessType
-    );
-
-    return NextResponse.json({
-      success: true,
-      message: `Template "${template.label}" appliqué avec succès`,
-      template,
-    });
-  } catch (error) {
-    console.error("[BUSINESS_TEMPLATES_APPLY_ERROR]", error);
-    return handleTenantError(error);
-  }
 }

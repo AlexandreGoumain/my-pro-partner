@@ -30,13 +30,14 @@ interface SegmentComparisonDialogProps {
 interface ComparisonSegmentData {
     id: string;
     nom: string;
-    total: number;
-    uniqueClients: number;
+    count: number;
 }
 
 interface ComparisonData {
-    segments: [ComparisonSegmentData, ComparisonSegmentData];
-    totalOverlap: number;
+    segments: ComparisonSegmentData[];
+    overlap?: number;
+    uniqueToFirst?: number;
+    uniqueToSecond?: number;
 }
 
 export function SegmentComparisonDialog({
@@ -70,7 +71,7 @@ export function SegmentComparisonDialog({
                 segmentA,
                 segmentB,
             ]);
-            setComparisonData(result);
+            setComparisonData(result as ComparisonData);
         } catch (error) {
             const message =
                 error instanceof Error
@@ -80,10 +81,10 @@ export function SegmentComparisonDialog({
         }
     };
 
-    const selectedSegmentA = segments.find((s) => s.id === segmentA);
-    const selectedSegmentB = segments.find((s) => s.id === segmentB);
+    const selectedSegmentA = segments.find((s: ComparisonSegmentData) => s.id === segmentA);
+    const selectedSegmentB = segments.find((s: ComparisonSegmentData) => s.id === segmentB);
 
-    const availableSegmentsB = segments.filter((s) => s.id !== segmentA);
+    const availableSegmentsB = segments.filter((s: ComparisonSegmentData) => s.id !== segmentA);
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -109,7 +110,7 @@ export function SegmentComparisonDialog({
                                     <SelectValue placeholder="Sélectionner un segment" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {segments.map((segment) => (
+                                    {segments.map((segment: { id: string; nom: string; nombreClients?: number }) => (
                                         <SelectItem
                                             key={segment.id}
                                             value={segment.id}
@@ -135,7 +136,7 @@ export function SegmentComparisonDialog({
                                     <SelectValue placeholder="Sélectionner un segment" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {availableSegmentsB.map((segment) => (
+                                    {availableSegmentsB.map((segment: { id: string; nom: string; nombreClients?: number }) => (
                                         <SelectItem
                                             key={segment.id}
                                             value={segment.id}
@@ -177,10 +178,7 @@ export function SegmentComparisonDialog({
                                             Uniquement {selectedSegmentA.nom}
                                         </p>
                                         <p className="text-[24px] font-semibold tracking-[-0.02em]">
-                                            {
-                                                comparisonData.segments[0]
-                                                    .uniqueClients
-                                            }
+                                            {comparisonData.uniqueToFirst || 0}
                                         </p>
                                     </CardContent>
                                 </Card>
@@ -197,7 +195,7 @@ export function SegmentComparisonDialog({
                                             Chevauchement
                                         </p>
                                         <p className="text-[24px] font-semibold tracking-[-0.02em]">
-                                            {comparisonData.totalOverlap}
+                                            {comparisonData.overlap || 0}
                                         </p>
                                     </CardContent>
                                 </Card>
@@ -214,10 +212,7 @@ export function SegmentComparisonDialog({
                                             Uniquement {selectedSegmentB.nom}
                                         </p>
                                         <p className="text-[24px] font-semibold tracking-[-0.02em]">
-                                            {
-                                                comparisonData.segments[1]
-                                                    .uniqueClients
-                                            }
+                                            {comparisonData.uniqueToSecond || 0}
                                         </p>
                                     </CardContent>
                                 </Card>
@@ -243,11 +238,7 @@ export function SegmentComparisonDialog({
                                                         {selectedSegmentA.nom}
                                                     </p>
                                                     <p className="text-[20px] font-semibold text-blue-900">
-                                                        {
-                                                            comparisonData
-                                                                .segments[0]
-                                                                .uniqueClients
-                                                        }
+                                                        {comparisonData.uniqueToFirst || 0}
                                                     </p>
                                                 </div>
                                             </div>
@@ -265,11 +256,7 @@ export function SegmentComparisonDialog({
                                                         {selectedSegmentB.nom}
                                                     </p>
                                                     <p className="text-[20px] font-semibold text-green-900">
-                                                        {
-                                                            comparisonData
-                                                                .segments[1]
-                                                                .uniqueClients
-                                                        }
+                                                        {comparisonData.uniqueToSecond || 0}
                                                     </p>
                                                 </div>
                                             </div>
@@ -282,9 +269,7 @@ export function SegmentComparisonDialog({
                                                     Commun
                                                 </p>
                                                 <p className="text-[24px] font-semibold text-purple-900 text-center">
-                                                    {
-                                                        comparisonData.totalOverlap
-                                                    }
+                                                    {comparisonData.overlap || 0}
                                                 </p>
                                             </div>
                                         </div>
@@ -327,10 +312,7 @@ export function SegmentComparisonDialog({
                                                     Total clients
                                                 </span>
                                                 <span className="text-[14px] font-medium">
-                                                    {
-                                                        comparisonData
-                                                            .segments[0].total
-                                                    }
+                                                    {comparisonData.segments[0]?.count || 0}
                                                 </span>
                                             </div>
                                             <div className="flex justify-between items-center">
@@ -338,11 +320,7 @@ export function SegmentComparisonDialog({
                                                     Clients uniques
                                                 </span>
                                                 <span className="text-[14px] font-medium text-blue-600">
-                                                    {
-                                                        comparisonData
-                                                            .segments[0]
-                                                            .uniqueClients
-                                                    }
+                                                    {comparisonData.uniqueToFirst || 0}
                                                 </span>
                                             </div>
                                             <div className="flex justify-between items-center">
@@ -350,13 +328,10 @@ export function SegmentComparisonDialog({
                                                     Taux de chevauchement
                                                 </span>
                                                 <span className="text-[14px] font-medium">
-                                                    {comparisonData.segments[0]
-                                                        .total > 0
+                                                    {(comparisonData.segments[0]?.count || 0) > 0
                                                         ? (
-                                                              (comparisonData.totalOverlap /
-                                                                  comparisonData
-                                                                      .segments[0]
-                                                                      .total) *
+                                                              ((comparisonData.overlap || 0) /
+                                                                  (comparisonData.segments[0]?.count || 1)) *
                                                               100
                                                           ).toFixed(1)
                                                         : 0}
@@ -378,10 +353,7 @@ export function SegmentComparisonDialog({
                                                     Total clients
                                                 </span>
                                                 <span className="text-[14px] font-medium">
-                                                    {
-                                                        comparisonData
-                                                            .segments[1].total
-                                                    }
+                                                    {comparisonData.segments[1]?.count || 0}
                                                 </span>
                                             </div>
                                             <div className="flex justify-between items-center">
@@ -389,11 +361,7 @@ export function SegmentComparisonDialog({
                                                     Clients uniques
                                                 </span>
                                                 <span className="text-[14px] font-medium text-green-600">
-                                                    {
-                                                        comparisonData
-                                                            .segments[1]
-                                                            .uniqueClients
-                                                    }
+                                                    {comparisonData.uniqueToSecond || 0}
                                                 </span>
                                             </div>
                                             <div className="flex justify-between items-center">
@@ -401,13 +369,10 @@ export function SegmentComparisonDialog({
                                                     Taux de chevauchement
                                                 </span>
                                                 <span className="text-[14px] font-medium">
-                                                    {comparisonData.segments[1]
-                                                        .total > 0
+                                                    {(comparisonData.segments[1]?.count || 0) > 0
                                                         ? (
-                                                              (comparisonData.totalOverlap /
-                                                                  comparisonData
-                                                                      .segments[1]
-                                                                      .total) *
+                                                              ((comparisonData.overlap || 0) /
+                                                                  (comparisonData.segments[1]?.count || 1)) *
                                                               100
                                                           ).toFixed(1)
                                                         : 0}
@@ -429,7 +394,7 @@ export function SegmentComparisonDialog({
                                         <p>
                                             •{" "}
                                             <strong>
-                                                {comparisonData.totalOverlap}
+                                                {comparisonData.overlap || 0}
                                             </strong>{" "}
                                             clients sont présents dans les deux
                                             segments
@@ -437,10 +402,7 @@ export function SegmentComparisonDialog({
                                         <p>
                                             •{" "}
                                             <strong>
-                                                {
-                                                    comparisonData.segments[0]
-                                                        .uniqueClients
-                                                }
+                                                {comparisonData.uniqueToFirst || 0}
                                             </strong>{" "}
                                             clients sont uniquement dans &quot;
                                             {selectedSegmentA.nom}&quot;
@@ -448,10 +410,7 @@ export function SegmentComparisonDialog({
                                         <p>
                                             •{" "}
                                             <strong>
-                                                {
-                                                    comparisonData.segments[1]
-                                                        .uniqueClients
-                                                }
+                                                {comparisonData.uniqueToSecond || 0}
                                             </strong>{" "}
                                             clients sont uniquement dans &quot;
                                             {selectedSegmentB.nom}&quot;
@@ -459,11 +418,9 @@ export function SegmentComparisonDialog({
                                         <p>
                                             •{" "}
                                             <strong>
-                                                {comparisonData.segments[0]
-                                                    .total +
-                                                    comparisonData.segments[1]
-                                                        .total -
-                                                    comparisonData.totalOverlap}
+                                                {(comparisonData.segments[0]?.count || 0) +
+                                                    (comparisonData.segments[1]?.count || 0) -
+                                                    (comparisonData.overlap || 0)}
                                             </strong>{" "}
                                             clients au total dans l&apos;union
                                             des deux segments

@@ -1,7 +1,4 @@
-import {
-    handleTenantError,
-    requireTenantAuth,
-} from "@/lib/middleware/tenant-isolation";
+import { withApiHandler } from "@/lib/api/api-handler";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
@@ -9,14 +6,15 @@ import { NextRequest, NextResponse } from "next/server";
  * Get current user information
  */
 export async function GET(_req: NextRequest) {
-    try {
-        const { user, entreprise } = await requireTenantAuth();
-
-        return NextResponse.json({
-            user,
-            entreprise,
-        });
-    } catch (error) {
-        return handleTenantError(error);
-    }
+    return withApiHandler(
+        async (ctx) => {
+            return NextResponse.json({
+                user: ctx.user,
+                entreprise: ctx.entreprise,
+            });
+        },
+        {
+            context: { resourceName: "User", operation: "me" },
+        }
+    );
 }

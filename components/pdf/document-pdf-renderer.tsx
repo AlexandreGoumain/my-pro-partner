@@ -234,14 +234,15 @@ export function DocumentPdfRenderer({
         AVOIR: "Avoir",
     }[document.type];
 
-    const statutLabel = {
+    const statutLabels: Record<string, string> = {
         BROUILLON: "Brouillon",
         ENVOYE: "Envoyé",
         ACCEPTE: "Accepté",
         REFUSE: "Refusé",
         PAYE: "Payé",
         ANNULE: "Annulé",
-    }[document.statut as keyof typeof statutLabel] || document.statut;
+    };
+    const statutLabel = statutLabels[document.statut] || document.statut;
 
     const clientName = document.client.prenom
         ? `${document.client.nom} ${document.client.prenom}`
@@ -421,9 +422,7 @@ export function DocumentPdfRenderer({
                                 <Text
                                     style={[
                                         styles.notesTitle,
-                                        document.conditions_paiement && {
-                                            marginTop: 12,
-                                        },
+                                        document.conditions_paiement ? { marginTop: 12 } : {},
                                     ]}
                                 >
                                     Notes

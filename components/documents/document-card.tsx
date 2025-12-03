@@ -24,29 +24,31 @@ import {
 } from "lucide-react";
 import { memo } from "react";
 
-interface DocumentCardProps<T> {
-    document: T & {
-        id: string;
-        numero: string;
-        dateEmission: Date;
-        statut:
-            | "BROUILLON"
-            | "ENVOYE"
-            | "ACCEPTE"
-            | "REFUSE"
-            | "PAYE"
-            | "ANNULE";
-        client: {
-            nom: string;
-            prenom: string | null;
-        };
-        total_ttc: number;
+export interface DocumentBase {
+    id: string;
+    numero: string;
+    dateEmission: Date;
+    statut:
+        | "BROUILLON"
+        | "ENVOYE"
+        | "ACCEPTE"
+        | "REFUSE"
+        | "PAYE"
+        | "ANNULE";
+    client: {
+        nom: string;
+        prenom: string | null;
     };
+    total_ttc: number;
+}
+
+interface DocumentCardProps {
+    document: DocumentBase;
     type: "DEVIS" | "FACTURE" | "AVOIR";
-    onView?: (doc: T) => void;
-    onEdit?: (doc: T) => void;
-    onDelete?: (doc: T) => void;
-    onConvertToInvoice?: (doc: T) => void;
+    onView?: (doc: DocumentBase) => void;
+    onEdit?: (doc: DocumentBase) => void;
+    onDelete?: (doc: DocumentBase) => void;
+    onConvertToInvoice?: (doc: DocumentBase) => void;
 }
 
 const TYPE_CONFIG = {
@@ -73,14 +75,14 @@ const TYPE_CONFIG = {
     },
 };
 
-export const DocumentCard = memo(function DocumentCard<T>({
+export const DocumentCard = memo(function DocumentCard({
     document,
     type,
     onView,
     onEdit,
     onDelete,
     onConvertToInvoice,
-}: DocumentCardProps<T>) {
+}: DocumentCardProps) {
     const config = TYPE_CONFIG[type];
     const Icon = config.icon;
     const clientName = `${document.client.nom}${document.client.prenom ? ` ${document.client.prenom}` : ""}`;
@@ -119,13 +121,13 @@ export const DocumentCard = memo(function DocumentCard<T>({
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuItem
-                                onClick={() => onView?.(document as T)}
+                                onClick={() => onView?.(document)}
                             >
                                 <Eye className="mr-2 h-4 w-4" />
                                 Voir détails
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                                onClick={() => onEdit?.(document as T)}
+                                onClick={() => onEdit?.(document)}
                             >
                                 <Edit className="mr-2 h-4 w-4" />
                                 Modifier
@@ -135,7 +137,7 @@ export const DocumentCard = memo(function DocumentCard<T>({
                                 document.statut === "ACCEPTE" && (
                                     <DropdownMenuItem
                                         onClick={() =>
-                                            onConvertToInvoice(document as T)
+                                            onConvertToInvoice(document)
                                         }
                                     >
                                         <Receipt className="mr-2 h-4 w-4" />
@@ -144,7 +146,7 @@ export const DocumentCard = memo(function DocumentCard<T>({
                                 )}
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
-                                onClick={() => onDelete?.(document as T)}
+                                onClick={() => onDelete?.(document)}
                                 className="text-destructive"
                             >
                                 <Trash2 className="mr-2 h-4 w-4" />
@@ -215,7 +217,7 @@ export const DocumentCard = memo(function DocumentCard<T>({
                     size="sm"
                     variant="outline"
                     className="flex-1 cursor-pointer h-9"
-                    onClick={() => onView?.(document as T)}
+                    onClick={() => onView?.(document)}
                 >
                     <Eye className="h-4 w-4 mr-2" />
                     Voir
@@ -224,7 +226,7 @@ export const DocumentCard = memo(function DocumentCard<T>({
                     size="sm"
                     variant="outline"
                     className="flex-1 cursor-pointer h-9"
-                    onClick={() => onEdit?.(document as T)}
+                    onClick={() => onEdit?.(document)}
                 >
                     <Edit className="h-4 w-4 mr-2" />
                     Modifier

@@ -1,5 +1,13 @@
 import { authOptions } from "@/lib/auth";
-import { Prisma } from "@/lib/generated/prisma";
+import {
+    Prisma,
+    StatutAffaire,
+    DomaineJuridique,
+    Juridiction,
+    QualitePartie,
+    TypeProcedure,
+    TypeHonoraires,
+} from "@/lib/generated/prisma";
 import { requireCapability } from "@/lib/middleware/business-type-check";
 import { prisma } from "@/lib/prisma";
 import type { AffaireCreateInput } from "@/lib/types/juridique";
@@ -38,23 +46,23 @@ export async function GET(request: NextRequest) {
             // Support multiple statuses (comma-separated)
             const statuts = statut.split(",");
             if (statuts.length === 1) {
-                where.statut = statut as any;
+                where.statut = statut as StatutAffaire;
             } else {
-                where.statut = { in: statuts as any };
+                where.statut = { in: statuts as StatutAffaire[] };
             }
         }
 
         if (domaine && domaine !== "ALL") {
             const domaines = domaine.split(",");
             if (domaines.length === 1) {
-                where.domaine = domaine as any;
+                where.domaine = domaine as DomaineJuridique;
             } else {
-                where.domaine = { in: domaines as any };
+                where.domaine = { in: domaines as DomaineJuridique[] };
             }
         }
 
         if (juridiction && juridiction !== "ALL") {
-            where.juridiction = juridiction as any;
+            where.juridiction = juridiction as Juridiction;
         }
 
         if (clientId) {
@@ -200,10 +208,12 @@ export async function POST(request: NextRequest) {
                 intitule: body.intitule.trim(),
                 description: body.description?.trim() || null,
                 clientId: body.clientId,
-                qualiteClient: (body.qualiteClient as any) || "DEMANDEUR",
-                domaine: body.domaine as any,
-                typeProcedure: (body.typeProcedure as any) || "CONTENTIEUX",
-                juridiction: (body.juridiction as any) || null,
+                qualiteClient:
+                    (body.qualiteClient as QualitePartie) || "DEMANDEUR",
+                domaine: body.domaine as DomaineJuridique,
+                typeProcedure:
+                    (body.typeProcedure as TypeProcedure) || "CONTENTIEUX",
+                juridiction: (body.juridiction as Juridiction) || null,
                 chambre: body.chambre || null,
                 numeroRG: body.numeroRG || null,
                 numeroParquet: body.numeroParquet || null,
@@ -211,7 +221,8 @@ export async function POST(request: NextRequest) {
                     ? new Date(body.dateOuverture)
                     : new Date(),
                 dateFaits: body.dateFaits ? new Date(body.dateFaits) : null,
-                typeHonoraires: (body.typeHonoraires as any) || "TEMPS_PASSE",
+                typeHonoraires:
+                    (body.typeHonoraires as TypeHonoraires) || "TEMPS_PASSE",
                 tauxHoraire: body.tauxHoraire || null,
                 montantForfait: body.montantForfait || null,
                 provision: body.provision || null,

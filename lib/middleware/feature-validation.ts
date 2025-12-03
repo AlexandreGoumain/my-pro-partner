@@ -1,25 +1,32 @@
 import { NextResponse } from "next/server";
 import {
-  PlanType,
-  PlanLimits,
-  getLimitErrorMessage,
-  getRecommendedUpgrade,
-  PRICING_PLANS,
-} from "@/lib/pricing-config";
-import { PLANS_CONFIG } from "@/lib/config/plans.config";
+    type PlanType,
+    type PlanLimits,
+    type PlanFeatures,
+    PLANS_CONFIG,
+    getPlanConfig,
+    checkPlanLimit,
+    isPlanFeatureEnabled,
+    PLAN_PRICING,
+} from "@/lib/config/plans.config";
 import { prisma } from "@/lib/prisma";
 
 /**
- * Get plan limits for a user's plan
+ * Type combiné pour limites et features
+ */
+type CombinedKey = keyof PlanLimits | keyof PlanFeatures;
+
+/**
+ * Get plan config for a user's plan
  * Database and pricing config now use the same plan names: FREE, STARTER, PRO, ENTERPRISE
  */
 export function getPlanLimitsFromSession(plan: string): PlanLimits {
     const planType = plan as PlanType;
-    if (!PRICING_PLANS[planType]) {
+    if (!PLANS_CONFIG[planType]) {
         console.warn(`Unknown plan type: ${plan}, defaulting to FREE`);
-        return PRICING_PLANS.FREE;
+        return PLANS_CONFIG.FREE.limits;
     }
-    return PRICING_PLANS[planType];
+    return PLANS_CONFIG[planType].limits;
 }
 
 /**
@@ -28,18 +35,21 @@ export function getPlanLimitsFromSession(plan: string): PlanLimits {
  * @param feature - Feature key to check
  * @returns true if feature is available, false otherwise
  */
-export function canAccessFeature(plan: string, feature: keyof PlanLimits): boolean {
-    const limits = getPlanLimitsFromSession(plan);
-    const featureValue = limits[feature];
+export function canAccessFeature(plan: string, feature: CombinedKey): boolean {
+    const planType = plan as PlanType;
+    const config = getPlanConfig(planType);
 
-    // For boolean features, return the value directly
-    if (typeof featureValue === "boolean") {
-        return featureValue;
+    // Check if it's a feature (boolean)
+    if (feature in config.features) {
+        return isPlanFeatureEnabled(planType, feature as keyof PlanFeatures);
     }
 
-    // For numeric features, return true if not zero (unlimited = -1 or positive number)
-    if (typeof featureValue === "number") {
-        return featureValue !== 0;
+    // Check if it's a limit (numeric)
+    if (feature in config.limits) {
+        const limit = config.limits[feature as keyof PlanLimits];
+        if (typeof limit === "number") {
+            return limit !== 0;
+        }
     }
 
     return false;
@@ -53,25 +63,58 @@ export function canAccessFeature(plan: string, feature: keyof PlanLimits): boole
  * @returns true if limit is reached, false otherwise
  */
 export function isLimitReached(plan: string, limitKey: keyof PlanLimits, currentUsage: number): boolean {
-    const limits = getPlanLimitsFromSession(plan);
-    const limit = limits[limitKey];
+    const planType = plan as PlanType;
+    // checkPlanLimit returns true if within limit, so we negate it
+    return !checkPlanLimit(planType, limitKey, currentUsage);
+}
 
-    // If limit is -1, it means unlimited
-    if (typeof limit === "number" && limit === -1) {
-        return false;
+/**
+ * Get recommended upgrade plan for a feature/limit
+ */
+function getRecommendedUpgrade(currentPlan: PlanType, key: CombinedKey): PlanType | null {
+    const planOrder: PlanType[] = ["FREE", "STARTER", "PRO", "ENTERPRISE"];
+    const currentIndex = planOrder.indexOf(currentPlan);
+
+    for (let i = currentIndex + 1; i < planOrder.length; i++) {
+        const nextPlan = planOrder[i];
+        const nextConfig = PLANS_CONFIG[nextPlan];
+
+        // Check features
+        if (key in nextConfig.features) {
+            if (nextConfig.features[key as keyof PlanFeatures]) {
+                return nextPlan;
+            }
+        }
+
+        // Check limits
+        if (key in nextConfig.limits) {
+            const limit = nextConfig.limits[key as keyof PlanLimits];
+            if (typeof limit === "number" && limit === -1) {
+                return nextPlan;
+            }
+        }
     }
 
-    // If limit is 0, feature is not available
-    if (typeof limit === "number" && limit === 0) {
-        return true;
-    }
+    return null;
+}
 
-    // Check if current usage exceeds the limit
-    if (typeof limit === "number") {
-        return currentUsage >= limit;
-    }
+/**
+ * Get limit error message
+ */
+function getLimitErrorMessage(plan: PlanType, limitKey: keyof PlanLimits): string {
+    const config = getPlanConfig(plan);
+    const limit = config.limits[limitKey];
+    const planName = PLAN_PRICING[plan].name;
 
-    return false;
+    const messages: Partial<Record<keyof PlanLimits, string>> = {
+        maxClients: `Vous avez atteint la limite de ${limit} clients pour le plan ${planName}. Passez au plan supérieur pour ajouter plus de clients.`,
+        maxProducts: `Vous avez atteint la limite de ${limit} produits pour le plan ${planName}.`,
+        maxDocumentsPerMonth: `Vous avez atteint la limite de ${limit} documents ce mois-ci. Passez au plan supérieur pour créer plus de documents.`,
+        maxUsers: `Vous avez atteint la limite de ${limit} utilisateur(s) pour le plan ${planName}.`,
+        maxQuestionsPerMonth: `Vous avez atteint la limite de ${limit} questions ce mois-ci. Passez au plan supérieur pour poser plus de questions à l'assistant.`,
+    };
+
+    return messages[limitKey] || `Cette fonctionnalité n'est pas disponible dans votre plan ${planName}.`;
 }
 
 /**
@@ -80,7 +123,7 @@ export function isLimitReached(plan: string, limitKey: keyof PlanLimits, current
  * @param feature - Feature key that must be available
  * @throws Error with appropriate message if feature is not available
  */
-export function requireFeature(plan: string, feature: keyof PlanLimits): void {
+export function requireFeature(plan: string, feature: CombinedKey): void {
     if (!canAccessFeature(plan, feature)) {
         const planType = plan as PlanType;
         const recommendedPlan = getRecommendedUpgrade(planType, feature);
@@ -107,7 +150,7 @@ export function requireWithinLimit(plan: string, limitKey: keyof PlanLimits, cur
         const message = getLimitErrorMessage(planType, limitKey);
         const recommendedPlan = getRecommendedUpgrade(planType, limitKey);
 
-        throw new LimitReachedError(message, limitKey, planType, recommendedPlan);
+        throw new LimitReachedError(message, limitKey as CombinedKey, planType, recommendedPlan);
     }
 }
 
@@ -175,7 +218,7 @@ export async function getCurrentUsage(entrepriseId: string, limitKey: keyof Plan
 export class FeatureNotAvailableError extends Error {
     constructor(
         message: string,
-        public feature: keyof PlanLimits,
+        public feature: CombinedKey,
         public currentPlan: PlanType,
         public recommendedPlan: PlanType | null
     ) {
@@ -190,7 +233,7 @@ export class FeatureNotAvailableError extends Error {
 export class LimitReachedError extends Error {
     constructor(
         message: string,
-        public limitKey: keyof PlanLimits,
+        public limitKey: CombinedKey,
         public currentPlan: PlanType,
         public recommendedPlan: PlanType | null
     ) {
@@ -242,7 +285,7 @@ export function handleFeatureError(error: unknown): NextResponse {
  */
 export async function validateFeatureAccess(
     plan: string,
-    feature: keyof PlanLimits
+    feature: CombinedKey
 ): Promise<NextResponse | null> {
     try {
         requireFeature(plan, feature);

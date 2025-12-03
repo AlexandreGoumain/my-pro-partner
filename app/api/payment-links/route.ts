@@ -2,7 +2,7 @@ import { createCrudRoutes } from "@/lib/api/crud-factory";
 import { paymentLinkCreateSchema, paymentLinkUpdateSchema } from "@/lib/validation";
 import { prisma } from "@/lib/prisma";
 import { ConflictError } from "@/lib/errors";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@/lib/generated/prisma";
 
 export const { GET, POST } = createCrudRoutes({
   modelName: "paymentLink",

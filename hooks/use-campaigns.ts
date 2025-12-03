@@ -14,6 +14,7 @@ export interface Campaign {
   type: "EMAIL" | "SMS" | "NOTIFICATION";
   statut: "DRAFT" | "SCHEDULED" | "SENDING" | "SENT" | "CANCELLED";
   segmentId?: string;
+  segment?: { id: string; nom: string };
   subject?: string;
   body?: string;
   scheduledAt?: Date;

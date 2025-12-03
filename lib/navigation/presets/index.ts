@@ -453,16 +453,16 @@ const EsthetiquePreset: BusinessPreset = {
 
     quickActions: [
         {
-            id: "new-rdv",
+            feature: "agenda",
+            action: "new-rdv",
             label: "Nouveau RDV",
             icon: "CalendarPlus",
-            href: "/dashboard/agenda",
         },
         {
-            id: "new-client",
+            feature: "clients",
+            action: "new-client",
             label: "Nouveau client",
             icon: "UserPlus",
-            href: "/dashboard/clients/new",
         },
     ],
 

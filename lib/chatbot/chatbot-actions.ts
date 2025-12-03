@@ -1208,7 +1208,8 @@ export const chatbotTools: ChatCompletionTool[] = [
 /**
  * Types pour les actions
  */
-export type ActionName = (typeof chatbotTools)[number]["function"]["name"];
+type ChatbotTool = { type: "function"; function: { name: string; description: string; parameters: object } };
+export type ActionName = (typeof chatbotTools)[number] extends ChatbotTool ? string : never;
 
 export interface ActionResult {
     success: boolean;

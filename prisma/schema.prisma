@@ -157,15 +157,20 @@ model Entreprise {
   incidentsLocatifs IncidentLocatif[] // Incidents/travaux
 
   // Relations pour syndic copropriété
-  coproprietes           Copropriete[] // Copropriétés gérées
-  lotsCopropriete        LotCopropriete[] // Lots de copropriété
-  appelsCharges          AppelCharges[] // Appels de charges
-  lignesAppelsCharges    LigneAppelCharges[] // Lignes d'appels
-  assembleesGenerales    AssembleeGenerale[] // Assemblées générales
-  resolutionsAG          ResolutionAG[] // Résolutions AG
-  travauxCopropriete     TravauxCopropriete[] // Travaux copropriété
-  comptesCopropriete     CompteCopropriete[] // Comptabilité copro
-  membresConseilSyndical MembreConseilSyndical[] // Membres conseil
+  coproprietes            Copropriete[] // Copropriétés gérées
+  lotsCopropriete         LotCopropriete[] // Lots de copropriété
+  appelsCharges           AppelCharges[] // Appels de charges
+  lignesAppelsCharges     LigneAppelCharges[] // Lignes d'appels
+  assembleesGenerales     AssembleeGenerale[] // Assemblées générales
+  resolutionsAG           ResolutionAG[] // Résolutions AG
+  travauxCopropriete      TravauxCopropriete[] // Travaux copropriété
+  comptesCopropriete      CompteCopropriete[] // Comptabilité copro
+  membresConseilSyndical  MembreConseilSyndical[] // Membres conseil
+  ecrituresComptableCopro EcritureComptableCopro[] // Écritures comptables copro
+
+  // Relations pour sécurité chatbot
+  chatbotAuditLogs    ChatbotAuditLog[]
+  chatbotActionTokens ChatbotActionToken[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -619,6 +624,10 @@ model User {
 
   // Relations pour système juridique (cabinets d'avocats)
   diligences Diligence[] // Diligences effectuées par cet avocat
+
+  // Relations pour sécurité chatbot
+  chatbotAuditLogs   ChatbotAuditLog[]
+  chatbotActionTokens ChatbotActionToken[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1852,6 +1861,80 @@ enum MessageRole {
   USER
   ASSISTANT
   SYSTEM
+}
+
+// Audit log pour le chatbot (traçabilité des actions)
+model ChatbotAuditLog {
+  id String @id @default(cuid())
+
+  // Qui
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Quoi
+  eventType   String // MESSAGE_SENT, ACTION_EXECUTED, INJECTION_DETECTED, etc.
+  riskLevel   String // low, medium, high, critical
+  description String @db.Text
+  actionName  String? // Nom de l'action si applicable
+
+  // Contexte
+  conversationId String?
+  messageId      String?
+
+  // Résultat
+  result       String? // success, failure, blocked
+  errorMessage String? @db.Text
+
+  // Métadonnées
+  metadata  Json?
+  ipAddress String?
+  userAgent String?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([entrepriseId])
+  @@index([eventType])
+  @@index([riskLevel])
+  @@index([createdAt])
+}
+
+// Tokens de confirmation pour actions critiques
+model ChatbotActionToken {
+  id String @id @default(cuid())
+
+  // Token (hashé)
+  tokenHash String @unique
+
+  // Action à exécuter
+  actionName   String
+  actionParams String @db.Text // JSON des paramètres
+  riskLevel    String // low, medium, high, critical
+
+  // Qui
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Contexte
+  conversationId String
+
+  // État
+  used   Boolean   @default(false)
+  usedAt DateTime?
+
+  // Expiration
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([tokenHash])
+  @@index([userId])
+  @@index([entrepriseId])
+  @@index([expiresAt])
+  @@index([used])
 }
 
 // ============================================
@@ -5392,12 +5475,13 @@ model Copropriete {
   entrepriseId String
 
   // Relations
-  lots            LotCopropriete[]
-  appelsCharges   AppelCharges[]
-  assemblees      AssembleeGenerale[]
-  travauxCopro    TravauxCopropriete[]
-  compteCopro     CompteCopropriete[]
-  conseilSyndical MembreConseilSyndical[]
+  lots                LotCopropriete[]
+  appelsCharges       AppelCharges[]
+  assemblees          AssembleeGenerale[]
+  travauxCopro        TravauxCopropriete[]
+  compteCopro         CompteCopropriete[]
+  conseilSyndical     MembreConseilSyndical[]
+  ecrituresComptables EcritureComptableCopro[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -5451,7 +5535,8 @@ model LotCopropriete {
   entrepriseId String
 
   // Relations
-  appelsCharges LigneAppelCharges[]
+  appelsCharges       LigneAppelCharges[]
+  ecrituresComptables EcritureComptableCopro[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -5460,6 +5545,51 @@ model LotCopropriete {
   @@index([entrepriseId])
   @@index([coproprieteId])
   @@index([coproprietaireId])
+}
+
+// ============================================
+// COMPTABILITE COPROPRIETE
+// ============================================
+
+enum TypeEcritureCopro {
+  DEBIT
+  CREDIT
+}
+
+model EcritureComptableCopro {
+  id String @id @default(cuid())
+
+  // Copropriété concernée
+  copropriete   Copropriete @relation(fields: [coproprieteId], references: [id], onDelete: Cascade)
+  coproprieteId String
+
+  // Lot concerné (optionnel)
+  lot   LotCopropriete? @relation(fields: [lotId], references: [id])
+  lotId String?
+
+  // Détails de l'écriture
+  dateEcriture      DateTime
+  libelle           String
+  montant           Decimal        @db.Decimal(10, 2)
+  typeEcriture      TypeEcritureCopro
+  compte            String // Numéro de compte comptable
+  categorieCharge   String? // Catégorie de charge (chauffage, ascenseur, etc.)
+  pieceJustificative String? // URL ou référence de la pièce
+  notes             String? @db.Text
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([coproprieteId])
+  @@index([lotId])
+  @@index([dateEcriture])
+  @@index([typeEcriture])
+  @@index([compte])
 }
 
 enum TypeAppelCharges {

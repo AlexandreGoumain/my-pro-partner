@@ -1,6 +1,5 @@
-import { PrismaClient, User, UserRole, UserStatus } from "@prisma/client";
-import { BaseRepository } from "./base.repository";
-import { PaginationParams } from "@/lib/types";
+import { PrismaClient, User, UserRole, UserStatus } from "@/lib/generated/prisma";
+import { BaseRepository, PaginationParams } from "./base.repository";
 
 export class UserRepository extends BaseRepository<User> {
   constructor(prisma: PrismaClient) {

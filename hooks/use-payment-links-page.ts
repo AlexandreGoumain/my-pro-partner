@@ -1,5 +1,5 @@
 import type { PaymentLink, PaymentLinkFormData } from "@/lib/types/payment-link";
-import { usePaymentLinks } from "./use-payment-links";
+import { usePaymentLinksLegacy } from "./use-payment-links";
 import { useState } from "react";
 
 export interface PaymentLinksPageState {
@@ -41,7 +41,7 @@ export function usePaymentLinksPage(): PaymentLinksPageState {
         deletePaymentLink,
         copyLink,
         getTauxConversion,
-    } = usePaymentLinks();
+    } = usePaymentLinksLegacy();
 
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
     const [statsDialogOpen, setStatsDialogOpen] = useState(false);
@@ -49,10 +49,10 @@ export function usePaymentLinksPage(): PaymentLinksPageState {
 
     // Computed stats
     const totalLinks = paymentLinks.length;
-    const totalViews = paymentLinks.reduce((sum, link) => sum + link.nombreVues, 0);
-    const totalPayments = paymentLinks.reduce((sum, link) => sum + link.nombrePaiements, 0);
+    const totalViews = paymentLinks.reduce((sum: number, link: PaymentLink) => sum + link.nombreVues, 0);
+    const totalPayments = paymentLinks.reduce((sum: number, link: PaymentLink) => sum + link.nombrePaiements, 0);
     const totalRevenue = paymentLinks
-        .reduce((sum, link) => sum + Number(link.montantCollecte), 0)
+        .reduce((sum: number, link: PaymentLink) => sum + Number(link.montantCollecte), 0)
         .toFixed(0);
 
     // Handlers

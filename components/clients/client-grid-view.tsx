@@ -12,7 +12,7 @@ export interface ClientGridViewProps {
     clients: Client[];
     isLoading: boolean;
     searchTerm: string;
-    pagination: PaginationInfo;
+    pagination?: PaginationInfo;
     showPagination: boolean;
     onView: (client: Client) => void;
     onEdit: (client: Client) => void;
@@ -86,7 +86,7 @@ export function ClientGridView({
                     />
                 ))}
             </ResponsiveGrid>
-            {showPagination && (
+            {showPagination && pagination && (
                 <GridPagination
                     pagination={pagination}
                     onPageChange={onPageChange}

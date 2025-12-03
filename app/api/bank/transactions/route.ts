@@ -1,37 +1,33 @@
-import {
-    handleTenantError,
-    requireTenantAuth,
-} from "@/lib/middleware/tenant-isolation";
+import { withApiHandler } from "@/lib/api/api-handler";
 import { BankReconciliationService } from "@/lib/services/bank-reconciliation.service";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
  * GET /api/bank/transactions
- * Récupérer toutes les transactions bancaires
+ * Get all bank transactions
  */
 export async function GET(req: NextRequest) {
-    try {
-        const { entrepriseId } = await requireTenantAuth();
+    return withApiHandler(
+        async (ctx) => {
+            const searchParams = req.nextUrl.searchParams;
+            const status = searchParams.get("status");
 
-        const searchParams = req.nextUrl.searchParams;
-        const status = searchParams.get("status");
+            let transactions;
 
-        let transactions;
-
-        if (status === "pending") {
-            transactions =
-                await BankReconciliationService.getPendingTransactions(
-                    entrepriseId
+            if (status === "pending") {
+                transactions = await BankReconciliationService.getPendingTransactions(
+                    ctx.entrepriseId
                 );
-        } else {
-            transactions =
-                await BankReconciliationService.getAllTransactions(
-                    entrepriseId
+            } else {
+                transactions = await BankReconciliationService.getAllTransactions(
+                    ctx.entrepriseId
                 );
+            }
+
+            return NextResponse.json({ transactions });
+        },
+        {
+            context: { resourceName: "BankTransaction", operation: "list" },
         }
-
-        return NextResponse.json({ transactions });
-    } catch (error) {
-        return handleTenantError(error);
-    }
+    );
 }

@@ -58,7 +58,7 @@ export default function ClientSegmentsPage() {
     return (
         <PlanGate
             userPlan={userPlan}
-            feature="canSegmentClients"
+            feature="clientSegmentation"
             upgradeMessage="La segmentation clients nécessite le plan Pro. Débloquez cette fonctionnalité pour organiser et analyser vos clients par segments."
         >
             <div className="space-y-6">

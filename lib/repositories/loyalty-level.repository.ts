@@ -1,5 +1,5 @@
-import { PrismaClient, NiveauFidelite } from "@/lib/generated/prisma/client";
-import { BaseRepository } from "./base.repository";
+import { PrismaClient, NiveauFidelite } from "@/lib/generated/prisma";
+import { BaseRepository, PaginationParams } from "./base.repository";
 
 /**
  * Loyalty Level repository
@@ -45,7 +45,7 @@ export class LoyaltyLevelRepository extends BaseRepository<NiveauFidelite> {
 
     return this.findAll(
       where,
-      pagination,
+      pagination as PaginationParams | undefined,
       {
         _count: {
           select: { clients: true },

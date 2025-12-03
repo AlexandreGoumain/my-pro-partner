@@ -122,7 +122,7 @@ export async function getRecentActivity(
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
   const paramsObj = params as Record<string, unknown>;
-  const days = paramsObj.days || 7;
+  const days = Number(paramsObj.days) || 7;
   const fromDate = new Date();
   fromDate.setDate(fromDate.getDate() - days);
 
@@ -228,7 +228,7 @@ export async function identifyBestClients(
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
   const paramsObj = params as Record<string, unknown>;
-  const limit = paramsObj.limit || 10;
+  const limit = Number(paramsObj.limit) || 10;
   const period = paramsObj.period || 'year';
   const sortBy = paramsObj.sortBy || 'revenue';
 
@@ -312,7 +312,7 @@ export async function predictRevenue(
 ): Promise<ActionResult> {
   const api = createFetchHelper(baseUrl);
   const paramsObj = params as Record<string, unknown>;
-  const months = paramsObj.months || 1;
+  const months = Number(paramsObj.months) || 1;
 
   try {
     // Get historical data (last 12 months of paid invoices)

@@ -1,6 +1,5 @@
-import { PrismaClient, Terminal, TerminalStatus } from "@prisma/client";
-import { BaseRepository } from "./base.repository";
-import { PaginationParams } from "@/lib/types";
+import { PrismaClient, Terminal, TerminalStatus } from "@/lib/generated/prisma";
+import { BaseRepository, PaginationParams } from "./base.repository";
 
 export class TerminalRepository extends BaseRepository<Terminal> {
   constructor(prisma: PrismaClient) {

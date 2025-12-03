@@ -1,11 +1,8 @@
+import { withApiHandler } from "@/lib/api/api-handler";
 import { PLAN_ABONNEMENT } from "@/lib/config/activity-plan-mapping";
 import { calculateTrialExpiration } from "@/lib/config/trial.config";
-import {
-    handleTenantError,
-    requireTenantAuth,
-} from "@/lib/middleware/tenant-isolation";
+import { NotFoundError, ValidationError, BusinessError } from "@/lib/errors";
 import { prisma } from "@/lib/prisma";
-import { validateRequest } from "@/lib/utils/validation-helper";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -32,66 +29,62 @@ const activateTrialSchema = z.object({
  * }
  */
 export async function POST(request: NextRequest) {
-    try {
-        // Authentification et récupération de l'entrepriseId
-        const { entrepriseId } = await requireTenantAuth();
+    return withApiHandler(
+        async (ctx) => {
+            // Validation du corps de la requête
+            const body = await request.json();
+            const result = activateTrialSchema.safeParse(body);
+            if (!result.success) {
+                throw new ValidationError(result.error.errors[0].message);
+            }
 
-        // Validation du corps de la requête
-        const body = await request.json();
-        const validationResult = validateRequest(activateTrialSchema, body);
-        if (!validationResult.success) return validationResult.response;
+            const { plan } = result.data;
 
-        const { plan } = validationResult.data;
+            // Vérifier que l'entreprise existe et récupérer son état
+            const entreprise = await prisma.entreprise.findUnique({
+                where: { id: ctx.entrepriseId },
+                select: { trialActive: true },
+            });
 
-        // Vérifier que l'entreprise existe et récupérer son état
-        const entreprise = await prisma.entreprise.findUnique({
-            where: { id: entrepriseId },
-            select: { trialActive: true },
-        });
+            if (!entreprise) {
+                throw new NotFoundError("Entreprise not found");
+            }
 
-        if (!entreprise) {
-            return NextResponse.json(
-                { error: "Entreprise not found" },
-                { status: 404 }
+            // Vérifier qu'il n'y a pas déjà un trial actif
+            if (entreprise.trialActive) {
+                throw new BusinessError("Trial already active");
+            }
+
+            // Calculer la date d'expiration
+            const now = new Date();
+            const trialExpiresAt = calculateTrialExpiration(
+                now,
+                plan as PlanAbonnement
             );
+
+            // Activer le trial
+            const updatedEntreprise = await prisma.entreprise.update({
+                where: { id: ctx.entrepriseId },
+                data: {
+                    trialActive: true,
+                    trialPlan: plan as PlanAbonnement,
+                    trialStartDate: now,
+                    trialExpiresAt,
+                },
+            });
+
+            return NextResponse.json({
+                success: true,
+                trial: {
+                    active: true,
+                    plan: updatedEntreprise.trialPlan,
+                    startDate: updatedEntreprise.trialStartDate,
+                    expiresAt: updatedEntreprise.trialExpiresAt,
+                },
+            });
+        },
+        {
+            context: { resourceName: "Trial", operation: "activate" },
         }
-
-        // Vérifier qu'il n'y a pas déjà un trial actif
-        if (entreprise.trialActive) {
-            return NextResponse.json(
-                { error: "Trial already active" },
-                { status: 400 }
-            );
-        }
-
-        // Calculer la date d'expiration
-        const now = new Date();
-        const trialExpiresAt = calculateTrialExpiration(
-            now,
-            plan as PlanAbonnement
-        );
-
-        // Activer le trial
-        const updatedEntreprise = await prisma.entreprise.update({
-            where: { id: entrepriseId },
-            data: {
-                trialActive: true,
-                trialPlan: plan as PlanAbonnement,
-                trialStartDate: now,
-                trialExpiresAt,
-            },
-        });
-
-        return NextResponse.json({
-            success: true,
-            trial: {
-                active: true,
-                plan: updatedEntreprise.trialPlan,
-                startDate: updatedEntreprise.trialStartDate,
-                expiresAt: updatedEntreprise.trialExpiresAt,
-            },
-        });
-    } catch (error) {
-        return handleTenantError(error);
-    }
+    );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { createStatusBadge } from "@/components/ui/status-badge";
-import { type PrioriteReparation } from "@/lib/generated/prisma/client";
+import { type PrioriteReparation } from "@/lib/generated/prisma";
 
 const PRIORITY_CONFIG: Record<
     PrioriteReparation,

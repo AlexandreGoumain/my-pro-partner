@@ -1,5 +1,5 @@
 import { withErrorHandling } from "@/lib/errors";
-import { Prisma } from "@/lib/generated/prisma/client";
+import { Prisma } from "@/lib/generated/prisma";
 import { requireCapability } from "@/lib/middleware/business-type-check";
 import {
     requireTenantAuth,

@@ -7,6 +7,6 @@ export const { GET, POST } = createCrudRoutes({
     createSchema: employeeCreateSchema,
     updateSchema: employeeUpdateSchema,
     searchFields: ["nom", "prenom", "email", "poste", "departement"],
-    limitKey: "maxEmployees",
+    limitKey: "maxUsers",
     orderBy: { dateEmbauche: "desc" },
 });

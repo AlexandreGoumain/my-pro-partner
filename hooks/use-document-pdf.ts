@@ -11,7 +11,7 @@ interface UseDocumentPdfProps {
 }
 
 interface UseDocumentPdfReturn {
-    contentRef: React.RefObject<HTMLDivElement>;
+    contentRef: React.RefObject<HTMLDivElement | null>;
     isDownloading: boolean;
     isSending: boolean;
     handleDownloadPdf: () => Promise<void>;

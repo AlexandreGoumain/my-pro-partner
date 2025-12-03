@@ -4,7 +4,7 @@ import { ENDPOINTS } from "@/lib/api/endpoints";
 import type { TravauxCopropriete, StatutTravauxCopro } from "@/lib/generated/prisma";
 
 // Types
-export interface TravauxWithRelations extends TravauxCopropriete {
+export interface TravauxWithRelations extends Omit<TravauxCopropriete, 'assembleeVote'> {
     copropriete?: {
         id: string;
         nom: string;

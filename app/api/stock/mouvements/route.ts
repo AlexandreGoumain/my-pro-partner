@@ -40,13 +40,14 @@ export const { GET, POST } = createCrudRoutes({
     }
 
     if (startDate || endDate) {
-      where.createdAt = {};
+      const createdAtFilter: { gte?: Date; lte?: Date } = {};
       if (startDate) {
-        where.createdAt.gte = new Date(startDate);
+        createdAtFilter.gte = new Date(startDate);
       }
       if (endDate) {
-        where.createdAt.lte = new Date(endDate);
+        createdAtFilter.lte = new Date(endDate);
       }
+      where.createdAt = createdAtFilter;
     }
 
     return where;

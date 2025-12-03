@@ -4,8 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { PlanType } from "@/lib/pricing-config";
-import { PLANS_CONFIG } from "@/lib/config/plans.config";
+import { PlanType, PLANS_CONFIG } from "@/lib/config/plans.config";
 
 interface UpgradeCardProps {
     message: string;

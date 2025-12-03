@@ -1,46 +1,42 @@
-import {
-    handleTenantError,
-    requireTenantAuth,
-} from "@/lib/middleware/tenant-isolation";
+import { withApiHandler } from "@/lib/api/api-handler";
+import { ValidationError } from "@/lib/errors";
 import { BankReconciliationService } from "@/lib/services/bank-reconciliation.service";
 import { NextRequest, NextResponse } from "next/server";
 
 /**
  * POST /api/bank/import
- * Importer un fichier CSV de relevé bancaire
+ * Import a CSV bank statement file
  */
 export async function POST(req: NextRequest) {
-    try {
-        const { entrepriseId } = await requireTenantAuth();
+    return withApiHandler(
+        async (ctx) => {
+            const formData = await req.formData();
+            const file = formData.get("file") as File;
 
-        const formData = await req.formData();
-        const file = formData.get("file") as File;
+            if (!file) {
+                throw new ValidationError("Fichier manquant");
+            }
 
-        if (!file) {
-            return NextResponse.json(
-                { error: "Fichier manquant" },
-                { status: 400 }
-            );
+            // Read file content
+            const csvContent = await file.text();
+
+            // Parse CSV
+            const transactions = BankReconciliationService.parseBankCSV(csvContent);
+
+            // Import transactions
+            const imported = await BankReconciliationService.importTransactions({
+                entrepriseId: ctx.entrepriseId,
+                transactions,
+            });
+
+            return NextResponse.json({
+                success: true,
+                imported: imported.length,
+                total: transactions.length,
+            });
+        },
+        {
+            context: { resourceName: "BankTransaction", operation: "import" },
         }
-
-        // Lire le contenu du fichier
-        const csvContent = await file.text();
-
-        // Parser le CSV
-        const transactions = BankReconciliationService.parseBankCSV(csvContent);
-
-        // Importer les transactions
-        const imported = await BankReconciliationService.importTransactions({
-            entrepriseId,
-            transactions,
-        });
-
-        return NextResponse.json({
-            success: true,
-            imported: imported.length,
-            total: transactions.length,
-        });
-    } catch (error) {
-        return handleTenantError(error);
-    }
+    );
 }

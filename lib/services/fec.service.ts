@@ -378,10 +378,11 @@ export class FECService {
 
   /**
    * Formate un montant au format FEC (avec virgule, 2 décimales)
+   * Accepte Decimal, number, ou string
    */
-  private static formatMontant(montant: string | number): string {
+  private static formatMontant(montant: unknown): string {
     const num = Number(montant);
-    if (num === 0) return "";
+    if (num === 0 || isNaN(num)) return "";
     return num.toFixed(2).replace(".", ",");
   }
 

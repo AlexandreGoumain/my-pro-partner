@@ -4,12 +4,13 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import type { ReactNode } from "react";
 
 export interface DialogHeaderSectionProps {
     /**
      * Titre du dialogue
      */
-    title: string;
+    title: ReactNode;
 
     /**
      * Description optionnelle du dialogue

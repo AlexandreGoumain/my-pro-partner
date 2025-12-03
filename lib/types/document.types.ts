@@ -9,7 +9,7 @@ export type DocumentStatus =
     | "ANNULE";
 
 export interface DocumentClient {
-    id?: string;
+    id: string;
     nom: string;
     prenom: string | null;
     email: string | null;
@@ -24,6 +24,9 @@ export interface Article {
     type: "PRODUIT" | "SERVICE";
     prix_ht: number;
     tva_taux: number;
+    // Aliases for LineItemsEditor compatibility
+    prix: number;
+    tva: number;
 }
 
 export interface DocumentFormData {

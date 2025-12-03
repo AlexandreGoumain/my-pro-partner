@@ -19,7 +19,7 @@ export class SyncManager {
       };
 
       request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
-        const db = event.target.result;
+        const db = (event.target as IDBOpenDBRequest).result;
 
         // Store pour les ventes en attente
         if (!db.objectStoreNames.contains('pending_sales')) {
@@ -107,21 +107,22 @@ export class SyncManager {
     const sales = await this.getAllFromStore(store);
 
     for (const sale of sales) {
+      const saleData = sale as { id: number; [key: string]: unknown };
       try {
         const response = await fetch('/api/documents', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(sale),
+          body: JSON.stringify(saleData),
         });
 
         if (response.ok) {
-          await this.removeSale(sale.id);
+          await this.removeSale(saleData.id);
         } else {
-          await this.incrementRetry('pending_sales', sale.id);
+          await this.incrementRetry('pending_sales', saleData.id);
         }
       } catch (error) {
         console.error('Failed to sync sale:', error);
-        await this.incrementRetry('pending_sales', sale.id);
+        await this.incrementRetry('pending_sales', saleData.id);
       }
     }
   }
@@ -137,21 +138,22 @@ export class SyncManager {
     const movements = await this.getAllFromStore(store);
 
     for (const movement of movements) {
+      const movementData = movement as { id: number; [key: string]: unknown };
       try {
         const response = await fetch('/api/stock/movements', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(movement),
+          body: JSON.stringify(movementData),
         });
 
         if (response.ok) {
-          await this.removeStockMovement(movement.id);
+          await this.removeStockMovement(movementData.id);
         } else {
-          await this.incrementRetry('pending_stock', movement.id);
+          await this.incrementRetry('pending_stock', movementData.id);
         }
       } catch (error) {
         console.error('Failed to sync stock:', error);
-        await this.incrementRetry('pending_stock', movement.id);
+        await this.incrementRetry('pending_stock', movementData.id);
       }
     }
   }

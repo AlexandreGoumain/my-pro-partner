@@ -13,7 +13,7 @@ import { usePageFiltersWithScroll } from "@/hooks/use-page-filters";
 import { useUrlFilter } from "@/hooks/use-page-navigation";
 import { useSegment, useSegmentClients } from "@/hooks/use-segments";
 import type { Segment } from "@/lib/generated/prisma";
-import type { PlanType } from "@/lib/pricing-config";
+import type { PlanType } from "@/lib/config/plans.config";
 import { ColumnDef } from "@tanstack/react-table";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";

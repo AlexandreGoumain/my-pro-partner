@@ -1,188 +1,184 @@
-import { authOptions } from "@/lib/auth";
-import { requireCapability } from "@/lib/middleware/business-type-check";
+import { withApiHandler } from "@/lib/api/api-handler";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
-// GET /api/fitness/stats - Statistiques du fitness
+/**
+ * GET /api/fitness/stats
+ * Get fitness statistics
+ */
 export async function GET() {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Non autorisé" },
-                { status: 401 }
+    return withApiHandler(
+        async (ctx) => {
+            const now = new Date();
+            const startOfDay = new Date(
+                now.getFullYear(),
+                now.getMonth(),
+                now.getDate()
             );
-        }
+            const startOfWeek = new Date(startOfDay);
+            startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(endOfWeek.getDate() + 7);
 
-        const capabilityCheck = await requireCapability("abonnements_fitness");
-        if (capabilityCheck) return capabilityCheck;
+            // Execute all queries in parallel
+            const [
+                // Subscriptions
+                totalAbonnements,
+                abonnementsActifs,
+                abonnementsSuspendus,
+                abonnementsExpires,
+                nouveauxMembresMois,
 
-        const entrepriseId = session.user.entrepriseId;
-        const now = new Date();
-        const startOfDay = new Date(
-            now.getFullYear(),
-            now.getMonth(),
-            now.getDate()
-        );
-        const startOfWeek = new Date(startOfDay);
-        startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const endOfWeek = new Date(startOfWeek);
-        endOfWeek.setDate(endOfWeek.getDate() + 7);
+                // Classes
+                totalCours,
+                coursActifs,
+                seancesSemaine,
 
-        // Exécuter toutes les requêtes en parallèle
-        const [
-            // Abonnements
-            totalAbonnements,
-            abonnementsActifs,
-            abonnementsSuspendus,
-            abonnementsExpires,
-            nouveauxMembresMois,
+                // Attendance
+                presencesJour,
+                presencesSemaine,
+                presencesMois,
 
-            // Cours
-            totalCours,
-            coursActifs,
-            seancesSemaine,
+                // Revenue
+                revenusData,
+            ] = await Promise.all([
+                // Subscriptions
+                prisma.abonnementFitness.count({
+                    where: { entrepriseId: ctx.entrepriseId },
+                }),
+                prisma.abonnementFitness.count({
+                    where: { entrepriseId: ctx.entrepriseId, statut: "ACTIF" },
+                }),
+                prisma.abonnementFitness.count({
+                    where: { entrepriseId: ctx.entrepriseId, statut: "SUSPENDU" },
+                }),
+                prisma.abonnementFitness.count({
+                    where: { entrepriseId: ctx.entrepriseId, statut: "EXPIRE" },
+                }),
+                prisma.abonnementFitness.count({
+                    where: {
+                        entrepriseId: ctx.entrepriseId,
+                        createdAt: { gte: startOfMonth },
+                    },
+                }),
 
-            // Présences
-            presencesJour,
-            presencesSemaine,
-            presencesMois,
+                // Classes
+                prisma.coursCollectif.count({
+                    where: { entrepriseId: ctx.entrepriseId },
+                }),
+                prisma.coursCollectif.count({
+                    where: { entrepriseId: ctx.entrepriseId, actif: true },
+                }),
+                prisma.seanceCours.count({
+                    where: {
+                        entrepriseId: ctx.entrepriseId,
+                        dateHeure: { gte: startOfWeek, lt: endOfWeek },
+                        statut: { not: "ANNULEE" },
+                    },
+                }),
 
-            // Revenus (somme des montants payés des abonnements actifs)
-            revenusData,
-        ] = await Promise.all([
-            // Abonnements
-            prisma.abonnementFitness.count({ where: { entrepriseId } }),
-            prisma.abonnementFitness.count({
-                where: { entrepriseId, statut: "ACTIF" },
-            }),
-            prisma.abonnementFitness.count({
-                where: { entrepriseId, statut: "SUSPENDU" },
-            }),
-            prisma.abonnementFitness.count({
-                where: { entrepriseId, statut: "EXPIRE" },
-            }),
-            prisma.abonnementFitness.count({
+                // Attendance
+                prisma.presenceFitness.count({
+                    where: {
+                        entrepriseId: ctx.entrepriseId,
+                        heureEntree: { gte: startOfDay },
+                    },
+                }),
+                prisma.presenceFitness.count({
+                    where: {
+                        entrepriseId: ctx.entrepriseId,
+                        heureEntree: { gte: startOfWeek },
+                    },
+                }),
+                prisma.presenceFitness.count({
+                    where: {
+                        entrepriseId: ctx.entrepriseId,
+                        heureEntree: { gte: startOfMonth },
+                    },
+                }),
+
+                // Revenue
+                prisma.abonnementFitness.aggregate({
+                    where: {
+                        entrepriseId: ctx.entrepriseId,
+                        statut: "ACTIF",
+                    },
+                    _sum: { montantPaye: true },
+                }),
+            ]);
+
+            // Calculate total revenue
+            const revenusTotal = Number(revenusData._sum.montantPaye || 0);
+
+            // Calculate class fill rate for the week
+            const seancesAvecReservations = await prisma.seanceCours.findMany({
                 where: {
-                    entrepriseId,
-                    createdAt: { gte: startOfMonth },
-                },
-            }),
-
-            // Cours
-            prisma.coursCollectif.count({ where: { entrepriseId } }),
-            prisma.coursCollectif.count({
-                where: { entrepriseId, actif: true },
-            }),
-            prisma.seanceCours.count({
-                where: {
-                    entrepriseId,
+                    entrepriseId: ctx.entrepriseId,
                     dateHeure: { gte: startOfWeek, lt: endOfWeek },
                     statut: { not: "ANNULEE" },
                 },
-            }),
-
-            // Présences
-            prisma.presenceFitness.count({
-                where: {
-                    entrepriseId,
-                    heureEntree: { gte: startOfDay },
+                include: {
+                    cours: { select: { capaciteMax: true } },
+                    _count: { select: { reservations: true } },
                 },
-            }),
-            prisma.presenceFitness.count({
-                where: {
-                    entrepriseId,
-                    heureEntree: { gte: startOfWeek },
-                },
-            }),
-            prisma.presenceFitness.count({
-                where: {
-                    entrepriseId,
-                    heureEntree: { gte: startOfMonth },
-                },
-            }),
+            });
 
-            // Revenus
-            prisma.abonnementFitness.aggregate({
-                where: {
-                    entrepriseId,
-                    statut: "ACTIF",
-                },
-                _sum: { montantPaye: true },
-            }),
-        ]);
+            let totalPlaces = 0;
+            let totalReservations = 0;
+            seancesAvecReservations.forEach((seance) => {
+                const capacite = seance.capaciteMax || seance.cours.capaciteMax;
+                totalPlaces += capacite;
+                totalReservations += seance._count.reservations;
+            });
 
-        // Calculer les revenus mensuels moyens
-        const revenusTotal = Number(revenusData._sum.montantPaye || 0);
+            const tauxRemplissageCours =
+                totalPlaces > 0
+                    ? Math.round((totalReservations / totalPlaces) * 100)
+                    : 0;
 
-        // Calculer le taux de remplissage des cours de la semaine
-        const seancesAvecReservations = await prisma.seanceCours.findMany({
-            where: {
-                entrepriseId,
-                dateHeure: { gte: startOfWeek, lt: endOfWeek },
-                statut: { not: "ANNULEE" },
-            },
-            include: {
-                cours: { select: { capaciteMax: true } },
-                _count: { select: { reservations: true } },
-            },
-        });
+            // Average attendance per day (for the month)
+            const joursEcoules = now.getDate();
+            const moyennePresencesJour =
+                joursEcoules > 0 ? Math.round(presencesMois / joursEcoules) : 0;
 
-        let totalPlaces = 0;
-        let totalReservations = 0;
-        seancesAvecReservations.forEach((seance) => {
-            const capacite = seance.capaciteMax || seance.cours.capaciteMax;
-            totalPlaces += capacite;
-            totalReservations += seance._count.reservations;
-        });
+            return NextResponse.json({
+                // Subscriptions
+                totalAbonnements,
+                abonnementsActifs,
+                abonnementsSuspendus,
+                abonnementsExpires,
 
-        const tauxRemplissageCours =
-            totalPlaces > 0
-                ? Math.round((totalReservations / totalPlaces) * 100)
-                : 0;
+                // Members
+                membresActifs: abonnementsActifs,
+                nouveauxMembresMois,
 
-        // Moyenne présences par jour (sur le mois)
-        const joursEcoules = now.getDate();
-        const moyennePresencesJour =
-            joursEcoules > 0 ? Math.round(presencesMois / joursEcoules) : 0;
+                // Revenue
+                revenusMensuels: revenusTotal,
+                revenusAnnuels: revenusTotal * 12,
 
-        return NextResponse.json({
-            // Abonnements
-            totalAbonnements,
-            abonnementsActifs,
-            abonnementsSuspendus,
-            abonnementsExpires,
+                // Classes
+                totalCours,
+                coursActifs,
+                seancesSemaine,
 
-            // Membres
-            membresActifs: abonnementsActifs,
-            nouveauxMembresMois,
+                // Attendance
+                presencesJour,
+                presencesSemaine,
+                presencesMois,
+                moyennePresencesJour,
 
-            // Revenus
-            revenusMensuels: revenusTotal,
-            revenusAnnuels: revenusTotal * 12,
-
-            // Cours
-            totalCours,
-            coursActifs,
-            seancesSemaine,
-
-            // Présences
-            presencesJour,
-            presencesSemaine,
-            presencesMois,
-            moyennePresencesJour,
-
-            // Taux
-            tauxRemplissageCours,
-            tauxRetention:
-                abonnementsActifs > 0
-                    ? Math.round((abonnementsActifs / totalAbonnements) * 100)
-                    : 0,
-        });
-    } catch (error) {
-        console.error("Erreur GET fitness stats:", error);
-        return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
-    }
+                // Rates
+                tauxRemplissageCours,
+                tauxRetention:
+                    abonnementsActifs > 0
+                        ? Math.round((abonnementsActifs / totalAbonnements) * 100)
+                        : 0,
+            });
+        },
+        {
+            capability: "abonnements_fitness",
+            context: { resourceName: "FitnessStats", operation: "get" },
+        }
+    );
 }

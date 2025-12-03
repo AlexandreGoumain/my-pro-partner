@@ -749,3 +749,53 @@ export const PLAN_PRICING: Record<
         price: PLANS_CONFIG.ENTERPRISE.price,
     },
 };
+
+/**
+ * Liste des features pour chaque plan (pour affichage sur la landing page)
+ */
+export const PLAN_FEATURES = {
+    FREE: [
+        "50 clients max",
+        "50 articles",
+        "20 documents/mois",
+        "1 utilisateur",
+        "Gestion stock basique",
+        "Pas d'assistant IA",
+    ],
+    STARTER: [
+        "500 clients",
+        "200 articles",
+        "100 documents/mois",
+        "3 utilisateurs",
+        "Gestion stock avancée",
+        "Assistant IA (100 questions/mois)",
+        "Programme de fidélité",
+        "Support email",
+        "Export Excel/PDF",
+    ],
+    PRO: [
+        "5000 clients",
+        "1000 articles",
+        "500 documents/mois",
+        "10 utilisateurs",
+        "Assistant IA illimité",
+        "Programme de fidélité avancé",
+        "Segmentation clients",
+        "Campagnes marketing",
+        "Analytics avancées",
+        "Support prioritaire",
+        "API REST complète",
+    ],
+    ENTERPRISE: [
+        "Tout illimité",
+        "Utilisateurs illimités",
+        "Support dédié 24/7",
+        "Gestionnaire de compte",
+        "API avancée",
+        "SLA 99.9% garanti",
+        "Onboarding personnalisé",
+        "Formations incluses",
+        "Intégrations sur mesure",
+        "Accès early features",
+    ],
+} as const;

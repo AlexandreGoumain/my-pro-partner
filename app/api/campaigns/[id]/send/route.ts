@@ -1,10 +1,6 @@
+import { withApiHandler } from "@/lib/api/api-handler";
+import { BusinessError, NotFoundError } from "@/lib/errors";
 import { prisma } from "@/lib/prisma";
-import {
-  handleTenantError,
-  requireTenantAuth,
-  verifyResourceAccess,
-} from "@/lib/middleware/tenant-isolation";
-import { validateFeatureAccess } from "@/lib/middleware/feature-validation";
 import { NextRequest, NextResponse } from "next/server";
 import { applySegmentCriteria, type SegmentCriteria } from "@/lib/types/segment";
 import { emailService } from "@/lib/email/email-service";
@@ -18,163 +14,153 @@ import type { Client } from "@/lib/generated/prisma";
 // ============================================
 
 export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+    req: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const { entrepriseId, entreprise } = await requireTenantAuth();
+    return withApiHandler(
+        async (ctx) => {
+            const { id } = await params;
 
-    // Check if user's plan allows campaign creation/sending (PRO+ only)
-    const featureCheck = await validateFeatureAccess(entreprise.plan, "canCreateCampaigns");
-    if (featureCheck) return featureCheck;
+            const campaign = await prisma.campaign.findFirst({
+                where: { id, entrepriseId: ctx.entrepriseId },
+                include: { segment: true },
+            });
 
-    const { id } = await params;
+            if (!campaign) {
+                throw new NotFoundError("Campagne");
+            }
 
-    const { resource: campaign } = await verifyResourceAccess(
-      id,
-      (id) => prisma.campaign.findUnique({
-        where: { id },
-        include: { segment: true },
-      }),
-      'Campagne'
-    );
+            // Can only send draft or scheduled campaigns
+            if (campaign.statut !== "DRAFT" && campaign.statut !== "SCHEDULED") {
+                throw new BusinessError("Cette campagne ne peut pas être envoyée");
+            }
 
-    // Can only send draft or scheduled campaigns
-    if (campaign.statut !== "DRAFT" && campaign.statut !== "SCHEDULED") {
-      return NextResponse.json(
-        { message: "Cette campagne ne peut pas être envoyée" },
-        { status: 400 }
-      );
-    }
+            // Validate campaign has required fields
+            if (!campaign.subject || !campaign.body) {
+                throw new BusinessError(
+                    "La campagne doit avoir un sujet et un corps"
+                );
+            }
 
-    // Validate campaign has required fields
-    if (!campaign.subject || !campaign.body) {
-      return NextResponse.json(
-        { message: "La campagne doit avoir un sujet et un corps" },
-        { status: 400 }
-      );
-    }
+            // Get recipients
+            let recipients: Client[] = [];
+            if (campaign.segmentId && campaign.segment) {
+                const allClients = await prisma.client.findMany({
+                    where: { entrepriseId: ctx.entrepriseId },
+                });
 
-    // Get recipients
-    let recipients: Client[] = [];
-    if (campaign.segmentId && campaign.segment) {
-      const allClients = await prisma.client.findMany({
-        where: { entrepriseId },
-      });
+                recipients = applySegmentCriteria(
+                    allClients,
+                    campaign.segment.criteres as unknown as SegmentCriteria
+                );
+            } else {
+                recipients = await prisma.client.findMany({
+                    where: { entrepriseId: ctx.entrepriseId },
+                });
+            }
 
-      recipients = applySegmentCriteria(
-        allClients,
-        campaign.segment.criteres as unknown as SegmentCriteria
-      );
-    } else {
-      recipients = await prisma.client.findMany({
-        where: { entrepriseId },
-      });
-    }
+            // Filter recipients based on campaign type
+            if (campaign.type === "EMAIL") {
+                recipients = recipients.filter((c: Client) => c.email);
+            } else if (campaign.type === "SMS") {
+                recipients = recipients.filter((c: Client) => c.telephone);
+            }
 
-    // Filter recipients based on campaign type
-    if (campaign.type === "EMAIL") {
-      recipients = recipients.filter((c: Client) => c.email);
-    } else if (campaign.type === "SMS") {
-      recipients = recipients.filter((c: Client) => c.telephone);
-    }
+            // Update campaign status to sending
+            await prisma.campaign.update({
+                where: { id },
+                data: {
+                    statut: "SENDING",
+                    sentAt: new Date(),
+                },
+            });
 
-    // Update campaign status to sending
-    await prisma.campaign.update({
-      where: { id },
-      data: {
-        statut: "SENDING",
-        sentAt: new Date(),
-      },
-    });
+            // Get entreprise info for email branding
+            const entrepriseInfo = await prisma.entreprise.findUnique({
+                where: { id: ctx.entrepriseId },
+                select: { nom: true, email: true },
+            });
 
-    // Get entreprise info for email branding
-    const entrepriseInfo = await prisma.entreprise.findUnique({
-      where: { id: entrepriseId },
-      select: { nom: true, email: true },
-    });
+            // Send emails to all recipients
+            let successCount = 0;
+            let failureCount = 0;
 
-    // Send emails to all recipients
-    let successCount = 0;
-    let failureCount = 0;
+            for (const recipient of recipients) {
+                try {
+                    // Generate unsubscribe link
+                    const unsubscribeUrl = generateUnsubscribeLink(
+                        recipient.id,
+                        ctx.entrepriseId
+                    );
 
-    for (const recipient of recipients) {
-      try {
-        // Generate unsubscribe link
-        const unsubscribeUrl = generateUnsubscribeLink(recipient.id, entrepriseId);
+                    // Render email HTML from React template
+                    const emailHtml = await render(
+                        CampaignEmail({
+                            subject: campaign.subject!,
+                            body: campaign.body!,
+                            clientName: recipient.nom || "",
+                            clientFirstName: recipient.prenom || "",
+                            clientEmail: recipient.email || "",
+                            entrepriseName: entrepriseInfo?.nom || "MyProPartner",
+                            unsubscribeUrl,
+                        })
+                    );
 
-        // Render email HTML from React template
-        const emailHtml = await render(
-          CampaignEmail({
-            subject: campaign.subject!,
-            body: campaign.body!,
-            clientName: recipient.nom || '',
-            clientFirstName: recipient.prenom || '',
-            clientEmail: recipient.email || '',
-            entrepriseName: entrepriseInfo?.nom || 'MyProPartner',
-            unsubscribeUrl,
-          })
-        );
+                    // Send email
+                    const result = await emailService.sendEmail({
+                        to: recipient.email || "",
+                        subject: campaign.subject!,
+                        html: emailHtml,
+                        fromName: entrepriseInfo?.nom || "MyProPartner",
+                        replyTo: entrepriseInfo?.email || undefined,
+                    });
 
-        // Send email
-        const result = await emailService.sendEmail({
-          to: recipient.email || '',
-          subject: campaign.subject!,
-          html: emailHtml,
-          fromName: entrepriseInfo?.nom || 'MyProPartner',
-          replyTo: entrepriseInfo?.email || undefined,
-        });
+                    if (result.success) {
+                        successCount++;
+                    } else {
+                        failureCount++;
+                        console.error(
+                            `Failed to send email to ${recipient.email}:`,
+                            result.error
+                        );
+                    }
 
-        if (result.success) {
-          successCount++;
-        } else {
-          failureCount++;
-          console.error(`Failed to send email to ${recipient.email}:`, result.error);
-        }
+                    // Add small delay to avoid rate limiting (100ms between emails)
+                    await new Promise((resolve) => setTimeout(resolve, 100));
+                } catch (error) {
+                    failureCount++;
+                    console.error(`Error sending email to ${recipient.email}:`, error);
+                }
+            }
 
-        // Add small delay to avoid rate limiting (100ms between emails)
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      } catch (error) {
-        failureCount++;
-        console.error(`Error sending email to ${recipient.email}:`, error);
-      }
-    }
+            // Update campaign status to sent
+            const updatedCampaign = await prisma.campaign.update({
+                where: { id },
+                data: {
+                    statut: "SENT",
+                    sentCount: successCount,
+                },
+                include: {
+                    segment: {
+                        select: {
+                            id: true,
+                            nom: true,
+                            nombreClients: true,
+                        },
+                    },
+                },
+            });
 
-    // Update campaign status to sent
-    const updatedCampaign = await prisma.campaign.update({
-      where: { id },
-      data: {
-        statut: "SENT",
-        sentCount: successCount,
-      },
-      include: {
-        segment: {
-          select: {
-            id: true,
-            nom: true,
-            nombreClients: true,
-          },
+            return NextResponse.json({
+                campaign: updatedCampaign,
+                recipientsSent: successCount,
+                recipientsFailed: failureCount,
+                totalRecipients: recipients.length,
+                message: `Campagne envoyée à ${successCount} destinataire(s)${failureCount > 0 ? ` (${failureCount} échec(s))` : ""}`,
+            });
         },
-      },
-    });
-
-    return NextResponse.json({
-      campaign: updatedCampaign,
-      recipientsSent: successCount,
-      recipientsFailed: failureCount,
-      totalRecipients: recipients.length,
-      message: `Campagne envoyée à ${successCount} destinataire(s)${failureCount > 0 ? ` (${failureCount} échec(s))` : ''}`,
-    });
-  } catch (error) {
-    // If error occurs, mark campaign as failed
-    const { id } = await params;
-    await prisma.campaign.update({
-      where: { id },
-      data: {
-        statut: "CANCELLED",
-      },
-    });
-
-    return handleTenantError(error);
-  }
+        {
+            context: { resourceName: "Campaign", operation: "send" },
+        }
+    );
 }
