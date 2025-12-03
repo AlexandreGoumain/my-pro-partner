@@ -1,5 +1,5 @@
 import { PermissionName } from "@/lib/middleware/permissions";
-import { PlanLimits } from "@/lib/pricing-config";
+import { type PlanLimits } from "@/lib/config/plans.config";
 import { NextRequest } from "next/server";
 import { z } from "zod";
 
@@ -138,7 +138,7 @@ export interface CrudConfig<TData = any, TResource = any> {
      * Plan limit key (e.g., 'maxClients', 'maxProducts')
      * If provided, will check feature limits before creation
      */
-    limitKey?: keyof PlanLimits;
+    limitKey?: keyof PlanLimits | undefined;
 
     /**
      * Permissions configuration
