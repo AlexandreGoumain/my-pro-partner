@@ -168,6 +168,10 @@ model Entreprise {
   membresConseilSyndical  MembreConseilSyndical[] // Membres conseil
   ecrituresComptableCopro EcritureComptableCopro[] // Écritures comptables copro
 
+  // Relations pour sécurité chatbot
+  chatbotAuditLogs    ChatbotAuditLog[]
+  chatbotActionTokens ChatbotActionToken[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -620,6 +624,10 @@ model User {
 
   // Relations pour système juridique (cabinets d'avocats)
   diligences Diligence[] // Diligences effectuées par cet avocat
+
+  // Relations pour sécurité chatbot
+  chatbotAuditLogs   ChatbotAuditLog[]
+  chatbotActionTokens ChatbotActionToken[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1853,6 +1861,80 @@ enum MessageRole {
   USER
   ASSISTANT
   SYSTEM
+}
+
+// Audit log pour le chatbot (traçabilité des actions)
+model ChatbotAuditLog {
+  id String @id @default(cuid())
+
+  // Qui
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Quoi
+  eventType   String // MESSAGE_SENT, ACTION_EXECUTED, INJECTION_DETECTED, etc.
+  riskLevel   String // low, medium, high, critical
+  description String @db.Text
+  actionName  String? // Nom de l'action si applicable
+
+  // Contexte
+  conversationId String?
+  messageId      String?
+
+  // Résultat
+  result       String? // success, failure, blocked
+  errorMessage String? @db.Text
+
+  // Métadonnées
+  metadata  Json?
+  ipAddress String?
+  userAgent String?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([entrepriseId])
+  @@index([eventType])
+  @@index([riskLevel])
+  @@index([createdAt])
+}
+
+// Tokens de confirmation pour actions critiques
+model ChatbotActionToken {
+  id String @id @default(cuid())
+
+  // Token (hashé)
+  tokenHash String @unique
+
+  // Action à exécuter
+  actionName   String
+  actionParams String @db.Text // JSON des paramètres
+  riskLevel    String // low, medium, high, critical
+
+  // Qui
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Contexte
+  conversationId String
+
+  // État
+  used   Boolean   @default(false)
+  usedAt DateTime?
+
+  // Expiration
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([tokenHash])
+  @@index([userId])
+  @@index([entrepriseId])
+  @@index([expiresAt])
+  @@index([used])
 }
 
 // ============================================
