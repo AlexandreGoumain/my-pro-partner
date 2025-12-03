@@ -102,8 +102,20 @@ export async function createConfirmationToken(params: {
     const expiresAt = new Date(Date.now() + TOKEN_EXPIRY_MS);
 
     try {
-        // TODO: Stocker dans la base de données
-        // Pour l'instant, on log juste
+        // Stocker dans la base de données
+        await prisma.chatbotActionToken.create({
+            data: {
+                tokenHash,
+                actionName: params.actionName,
+                actionParams: JSON.stringify(params.actionParams),
+                riskLevel: params.riskLevel,
+                userId: params.userId,
+                entrepriseId: params.entrepriseId,
+                conversationId: params.conversationId,
+                expiresAt,
+            },
+        });
+
         logger.info("Confirmation token created", {
             actionName: params.actionName,
             riskLevel: params.riskLevel,
@@ -111,19 +123,6 @@ export async function createConfirmationToken(params: {
             entrepriseId: params.entrepriseId,
             expiresAt: expiresAt.toISOString(),
         });
-
-        // await prisma.actionConfirmationToken.create({
-        //     data: {
-        //         token: tokenHash,
-        //         actionName: params.actionName,
-        //         actionParams: JSON.stringify(params.actionParams),
-        //         riskLevel: params.riskLevel,
-        //         userId: params.userId,
-        //         entrepriseId: params.entrepriseId,
-        //         conversationId: params.conversationId,
-        //         expiresAt,
-        //     },
-        // });
 
         return { token, expiresAt };
     } catch (error) {
@@ -152,42 +151,35 @@ export async function verifyConfirmationToken(
     const tokenHash = hashToken(token);
 
     try {
-        // TODO: Récupérer depuis la base de données
-        // const confirmationToken = await prisma.actionConfirmationToken.findFirst({
-        //     where: {
-        //         token: tokenHash,
-        //         userId,
-        //         entrepriseId,
-        //         used: false,
-        //         expiresAt: {
-        //             gt: new Date(),
-        //         },
-        //     },
-        // });
-
-        // if (!confirmationToken) {
-        //     return null;
-        // }
-
-        // // Marquer comme utilisé
-        // await prisma.actionConfirmationToken.update({
-        //     where: { id: confirmationToken.id },
-        //     data: { used: true, usedAt: new Date() },
-        // });
-
-        // return {
-        //     actionName: confirmationToken.actionName,
-        //     actionParams: JSON.parse(confirmationToken.actionParams),
-        //     riskLevel: confirmationToken.riskLevel as RiskLevel,
-        //     conversationId: confirmationToken.conversationId,
-        // };
-
-        logger.warn("Token verification attempted but not implemented", {
-            userId,
-            entrepriseId,
+        // Récupérer depuis la base de données
+        const confirmationToken = await prisma.chatbotActionToken.findFirst({
+            where: {
+                tokenHash,
+                userId,
+                entrepriseId,
+                used: false,
+                expiresAt: {
+                    gt: new Date(),
+                },
+            },
         });
 
-        return null;
+        if (!confirmationToken) {
+            return null;
+        }
+
+        // Marquer comme utilisé
+        await prisma.chatbotActionToken.update({
+            where: { id: confirmationToken.id },
+            data: { used: true, usedAt: new Date() },
+        });
+
+        return {
+            actionName: confirmationToken.actionName,
+            actionParams: JSON.parse(confirmationToken.actionParams),
+            riskLevel: confirmationToken.riskLevel as RiskLevel,
+            conversationId: confirmationToken.conversationId,
+        };
     } catch (error) {
         logger.error("Failed to verify confirmation token", error, {
             userId,
@@ -203,22 +195,20 @@ export async function verifyConfirmationToken(
  */
 export async function cleanupExpiredTokens(): Promise<number> {
     try {
-        // TODO: Supprimer les tokens expirés
-        // const result = await prisma.actionConfirmationToken.deleteMany({
-        //     where: {
-        //         expiresAt: {
-        //             lt: new Date(),
-        //         },
-        //     },
-        // });
+        // Supprimer les tokens expirés
+        const result = await prisma.chatbotActionToken.deleteMany({
+            where: {
+                expiresAt: {
+                    lt: new Date(),
+                },
+            },
+        });
 
-        // logger.info("Cleaned up expired confirmation tokens", {
-        //     deletedCount: result.count,
-        // });
+        logger.info("Cleaned up expired confirmation tokens", {
+            deletedCount: result.count,
+        });
 
-        // return result.count;
-
-        return 0;
+        return result.count;
     } catch (error) {
         logger.error("Failed to cleanup expired tokens", error);
         return 0;
@@ -236,28 +226,27 @@ export async function cancelConfirmationToken(
     const tokenHash = hashToken(token);
 
     try {
-        // TODO: Marquer comme annulé
-        // const result = await prisma.actionConfirmationToken.updateMany({
-        //     where: {
-        //         token: tokenHash,
-        //         userId,
-        //         entrepriseId,
-        //         used: false,
-        //     },
-        //     data: {
-        //         used: true,
-        //         usedAt: new Date(),
-        //     },
-        // });
-
-        // return result.count > 0;
-
-        logger.info("Token cancellation attempted", {
-            userId,
-            entrepriseId,
+        // Marquer comme annulé (utilisé)
+        const result = await prisma.chatbotActionToken.updateMany({
+            where: {
+                tokenHash,
+                userId,
+                entrepriseId,
+                used: false,
+            },
+            data: {
+                used: true,
+                usedAt: new Date(),
+            },
         });
 
-        return true;
+        logger.info("Token cancelled", {
+            userId,
+            entrepriseId,
+            cancelled: result.count > 0,
+        });
+
+        return result.count > 0;
     } catch (error) {
         logger.error("Failed to cancel confirmation token", error, {
             userId,
@@ -275,31 +264,29 @@ export async function getPendingTokens(
     entrepriseId: string
 ): Promise<unknown[]> {
     try {
-        // TODO: Récupérer depuis la base
-        // const tokens = await prisma.actionConfirmationToken.findMany({
-        //     where: {
-        //         userId,
-        //         entrepriseId,
-        //         used: false,
-        //         expiresAt: {
-        //             gt: new Date(),
-        //         },
-        //     },
-        //     orderBy: {
-        //         createdAt: "desc",
-        //     },
-        //     select: {
-        //         id: true,
-        //         actionName: true,
-        //         riskLevel: true,
-        //         createdAt: true,
-        //         expiresAt: true,
-        //     },
-        // });
+        // Récupérer les tokens en attente
+        const tokens = await prisma.chatbotActionToken.findMany({
+            where: {
+                userId,
+                entrepriseId,
+                used: false,
+                expiresAt: {
+                    gt: new Date(),
+                },
+            },
+            orderBy: {
+                createdAt: "desc",
+            },
+            select: {
+                id: true,
+                actionName: true,
+                riskLevel: true,
+                createdAt: true,
+                expiresAt: true,
+            },
+        });
 
-        // return tokens;
-
-        return [];
+        return tokens;
     } catch (error) {
         logger.error("Failed to get pending tokens", error, {
             userId,
