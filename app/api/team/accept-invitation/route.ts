@@ -106,10 +106,6 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    console.log(
-      `[Team Invitation] New user created: ${invitation.email} for entreprise ${invitation.entrepriseId}`
-    );
-
     return NextResponse.json({
       message:
         "Votre compte a été créé avec succès ! Vous pouvez maintenant vous connecter.",

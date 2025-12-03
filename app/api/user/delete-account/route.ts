@@ -36,16 +36,6 @@ export async function DELETE(request: Request) {
       );
     }
 
-    // Log the deletion feedback for analytics
-    // You might want to create a separate table for this
-    console.log("Account deletion feedback:", {
-      userId: user.id,
-      email: user.email,
-      reason: validatedData.reason,
-      comment: validatedData.comment,
-      deletedAt: new Date(),
-    });
-
     // Delete the user (cascade deletes should handle related data)
     await prisma.user.delete({
       where: { id: user.id },

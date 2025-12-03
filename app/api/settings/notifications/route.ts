@@ -39,8 +39,6 @@ export async function PUT(req: NextRequest) {
         const body = await req.json();
 
         // TODO: Sauvegarder dans la base de données quand la table sera créée
-        // Pour l'instant, on retourne simplement les données reçues
-        console.log("Préférences de notifications (non sauvegardées):", body);
 
         return NextResponse.json({
             notifications: {

@@ -89,9 +89,6 @@ export async function POST(
                 clientName
             );
 
-            console.log(
-                `[Portal Activation] Welcome email sent to ${client.email}`
-            );
         }
 
         return NextResponse.json({

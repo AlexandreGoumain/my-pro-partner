@@ -25,8 +25,6 @@ export async function POST(_req: NextRequest) {
       },
     });
 
-    console.log(`[RESET_SUBSCRIPTION] ✅ Subscription reset for entreprise ${entrepriseId}`);
-
     return NextResponse.json({
       success: true,
       message: "Abonnement remis à zéro. Vous êtes maintenant en plan FREE.",

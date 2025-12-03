@@ -85,10 +85,6 @@ export async function POST(
                     });
             }
 
-            console.log(
-                `[Client Approval] Client ${client.email} approved by admin`
-            );
-
             return NextResponse.json({
                 message: "Client approuvé avec succès",
                 client: {
@@ -119,10 +115,6 @@ export async function POST(
             await prisma.client.delete({
                 where: { id: clientId },
             });
-
-            console.log(
-                `[Client Approval] Client ${client.email} rejected by admin`
-            );
 
             return NextResponse.json({
                 message: "Client rejeté",
