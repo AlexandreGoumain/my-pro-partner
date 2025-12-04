@@ -993,16 +993,36 @@ model ClientNotification {
 }
 
 enum NotificationType {
+  // Documents & Paiements
   NOUVEAU_DOCUMENT
+  PAIEMENT_RECU
+
+  // Fidélité
   POINTS_EXPIRATION
   NIVEAU_FIDELITE
-  PAIEMENT_RECU
-  GENERAL
+
+  // Rendez-vous
+  RDV_CONFIRME
+  RDV_RAPPEL
+  RDV_ANNULE
+  RDV_MODIFIE
+
+  // Interventions
+  INTERVENTION_PLANIFIEE
+  INTERVENTION_EN_ROUTE
+  INTERVENTION_EN_COURS
+  INTERVENTION_TERMINEE
+  INTERVENTION_ANNULEE
+
+  // Réparations
   REPARATION_DEPOSEE
   REPARATION_DIAGNOSTIC
   REPARATION_PRETE
   REPARATION_RETARD
   REPARATION_LIVREE
+
+  // Général
+  GENERAL
 }
 
 // ============================================
