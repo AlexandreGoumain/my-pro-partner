@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react";
+import type { Capability } from "./capability";
 
 // ============================================================================
 // Client Portal Dashboard Types
@@ -37,6 +38,39 @@ export interface DashboardClient {
 }
 
 /**
+ * Upcoming RDV for dashboard widget
+ */
+export interface DashboardUpcomingRdv {
+    id: string;
+    date: string;
+    heure: string;
+    statut: string;
+    prestation?: {
+        nom: string;
+        duree: number;
+    };
+    employe?: {
+        prenom: string;
+        nom: string;
+    };
+}
+
+/**
+ * Active intervention for dashboard widget
+ */
+export interface DashboardActiveIntervention {
+    id: string;
+    numero: string;
+    typeIntervention: string;
+    statut: string;
+    priorite: string;
+    datePrevisionnelle?: string;
+    plombier?: {
+        name: string;
+    };
+}
+
+/**
  * Complete dashboard statistics
  * Aggregated data for the client portal dashboard
  */
@@ -49,6 +83,12 @@ export interface DashboardStats {
     totalSpent: number;
     /** Points expiring soon */
     pointsExpiringSoon: number;
+    /** Business capabilities */
+    capabilities: Capability[];
+    /** Upcoming RDV (if agenda capability) */
+    upcomingRdv?: DashboardUpcomingRdv[];
+    /** Active interventions (if domicile/atelier capability) */
+    activeInterventions?: DashboardActiveIntervention[];
 }
 
 // ============================================================================
