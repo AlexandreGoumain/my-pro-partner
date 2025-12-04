@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import type { Capability } from "@/lib/types/capability";
+import type { BusinessType } from "@/lib/types/business";
+import type { BusinessCategory } from "@/lib/types/business-category";
 
 interface Client {
     id: string;
@@ -14,24 +17,54 @@ interface Client {
     };
 }
 
+interface Entreprise {
+    id: string;
+    nom: string;
+    businessType: BusinessType;
+    category: BusinessCategory;
+}
+
+interface PortalFeatures {
+    hasDocuments: boolean;
+    hasFidelite: boolean;
+    hasAgenda: boolean;
+    hasCreneaux: boolean;
+    hasInterventions: boolean;
+    hasContrats: boolean;
+    hasGaranties: boolean;
+    hasReservations: boolean;
+    hasMenu: boolean;
+    hasFitness: boolean;
+    hasCours: boolean;
+    hasImmobilier: boolean;
+    hasBaux: boolean;
+    hasCharges: boolean;
+}
+
 interface UseClientAuthReturn {
     client: Client | null;
     isLoading: boolean;
     isAuthenticated: boolean;
+    entreprise: Entreprise | null;
     entrepriseName: string;
     clientName: string;
     initials: string;
+    capabilities: Capability[];
+    features: PortalFeatures | null;
     logout: () => void;
 }
 
 /**
  * Custom hook for client authentication
  * Checks if client is authenticated and redirects to login if not
+ * Returns client info, capabilities and feature flags
  */
 export function useClientAuth(redirectIfNotAuth = true): UseClientAuthReturn {
     const router = useRouter();
     const [client, setClient] = useState<Client | null>(null);
-    const [entrepriseName, setEntrepriseName] = useState("");
+    const [entreprise, setEntreprise] = useState<Entreprise | null>(null);
+    const [capabilities, setCapabilities] = useState<Capability[]>([]);
+    const [features, setFeatures] = useState<PortalFeatures | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
@@ -62,7 +95,9 @@ export function useClientAuth(redirectIfNotAuth = true): UseClientAuthReturn {
 
                 const data = await res.json();
                 setClient(data.client);
-                setEntrepriseName(data.entreprise?.nom || "");
+                setEntreprise(data.entreprise || null);
+                setCapabilities(data.capabilities || []);
+                setFeatures(data.features || null);
             } catch (error) {
                 console.error("Auth check failed:", error);
                 if (redirectIfNotAuth) {
@@ -93,9 +128,12 @@ export function useClientAuth(redirectIfNotAuth = true): UseClientAuthReturn {
         client,
         isLoading,
         isAuthenticated: !!client,
-        entrepriseName,
+        entreprise,
+        entrepriseName: entreprise?.nom || "",
         clientName,
         initials,
+        capabilities,
+        features,
         logout,
     };
 }
