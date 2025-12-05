@@ -202,6 +202,7 @@ export interface SalesMetrics {
     invoicesPaid: number;
     invoicesPending: number;
     averageTicket: number;
+    averageTicketComparison: PeriodComparison;
 }
 
 /**
@@ -213,6 +214,7 @@ export interface StockMetrics {
     lowStock: number;
     stockValue: number;
     turnoverRate: number; // How fast stock moves
+    totalArticlesComparison: PeriodComparison;
 }
 
 /**
@@ -283,6 +285,8 @@ export interface BusinessHealth {
         conversion: number; // 0-100
         stock: number; // 0-100
     };
+    /** True when there's no data to calculate health (empty DB) */
+    isEmpty?: boolean;
 }
 
 /**
@@ -324,6 +328,8 @@ export interface ActivityEvent {
 
 /**
  * Goal tracking for objectives
+ * @deprecated Use GoalWithProgress from '@/lib/types/goals' instead.
+ * Goals are now managed via /api/goals endpoint and useGoals() hook.
  */
 export interface Goal {
     id: string;
@@ -354,7 +360,7 @@ export interface DashboardOverview {
     health: BusinessHealth;
     insights: Insight[];
     activities: ActivityEvent[];
-    goals: Goal[];
+    // Goals are now managed via /api/goals and useGoals() hook
 
     // Metadata
     lastUpdated: Date;
@@ -362,6 +368,9 @@ export interface DashboardOverview {
         start: Date;
         end: Date;
     };
+
+    /** True when there's no data in the database */
+    isEmpty: boolean;
 }
 
 /**
