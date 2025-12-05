@@ -8,11 +8,20 @@ import { ChatbotTypingIndicator } from "./chatbot-typing-indicator";
 import { ChatWelcomeScreen } from "./chat-welcome-screen";
 import { ChatErrorMessage } from "./chat-error-message";
 
+interface ToolInvocation {
+    toolCallId: string;
+    toolName: string;
+    args: Record<string, unknown>;
+    state: "pending" | "result" | "error";
+    result?: unknown;
+}
+
 export interface Message {
     id: string;
     role: "user" | "assistant" | "system";
     content: string;
     createdAt?: Date;
+    toolInvocations?: ToolInvocation[];
 }
 
 export interface ChatMessagesListProps {
@@ -57,20 +66,29 @@ export function ChatMessagesList({
                 />
             ) : (
                 <div className="px-4 py-4 space-y-4">
-                    {messages.map((message, index) => (
+                    {messages
+                        .filter((message) => message.role !== "system")
+                        .map((message, index) => (
                         <ChatbotMessageBubble
                             key={message.id || index}
-                            role={message.role}
+                            role={message.role as "user" | "assistant"}
                             content={message.content}
                             createdAt={message.createdAt}
                             messageId={message.id}
+                            toolInvocations={message.toolInvocations}
                             onFeedback={onFeedback}
                         />
                     ))}
 
                     {isLoading && <ChatbotTypingIndicator />}
 
-                    {error && <ChatErrorMessage error={error} onRetry={onRetry} />}
+                    {error && (
+                        <ChatErrorMessage
+                            error={error}
+                            onRetry={onRetry}
+                            onSuggestionClick={onSendMessage}
+                        />
+                    )}
 
                     <div ref={messagesEndRef} />
                 </div>

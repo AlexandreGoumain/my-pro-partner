@@ -1,7 +1,6 @@
-import { authOptions } from "@/lib/auth";
-import { requireCapability } from "@/lib/middleware/business-type-check";
+import { withApiHandler } from "@/lib/api/api-handler";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import { NotFoundError, ValidationError, BusinessError } from "@/lib/errors";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -40,176 +39,146 @@ const updateAbonnementSchema = z.object({
 
 type RouteParams = { params: Promise<{ id: string }> };
 
-// GET /api/fitness/abonnements/[id]
-export async function GET(request: NextRequest, { params }: RouteParams) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Non autorisé" },
-                { status: 401 }
-            );
-        }
+const abonnementInclude = {
+    client: {
+        select: {
+            id: true,
+            nom: true,
+            prenom: true,
+            email: true,
+            telephone: true,
+        },
+    },
+    typeAbonnement: true,
+} as const;
 
-        const { id } = await params;
+/**
+ * GET /api/fitness/abonnements/[id]
+ * Get a single subscription
+ */
+export async function GET(_request: NextRequest, { params }: RouteParams) {
+    return withApiHandler(
+        async (ctx) => {
+            const { id } = await params;
 
-        const abonnement = await prisma.abonnementFitness.findFirst({
-            where: {
-                id,
-                entrepriseId: session.user.entrepriseId,
-            },
-            include: {
-                client: {
-                    select: {
-                        id: true,
-                        nom: true,
-                        prenom: true,
-                        email: true,
-                        telephone: true,
+            const abonnement = await prisma.abonnementFitness.findFirst({
+                where: {
+                    id,
+                    entrepriseId: ctx.entrepriseId,
+                },
+                include: {
+                    ...abonnementInclude,
+                    presences: {
+                        orderBy: { heureEntree: "desc" },
+                        take: 20,
+                    },
+                    _count: {
+                        select: { presences: true },
                     },
                 },
-                typeAbonnement: true,
-                presences: {
-                    orderBy: { heureEntree: "desc" },
-                    take: 20,
-                },
-                _count: {
-                    select: { presences: true },
-                },
-            },
-        });
+            });
 
-        if (!abonnement) {
-            return NextResponse.json(
-                { error: "Abonnement non trouvé" },
-                { status: 404 }
-            );
+            if (!abonnement) {
+                throw new NotFoundError("Abonnement non trouvé");
+            }
+
+            return NextResponse.json(abonnement);
+        },
+        {
+            capability: "abonnements_fitness",
+            context: { resourceName: "AbonnementFitness", operation: "get" },
         }
-
-        return NextResponse.json(abonnement);
-    } catch (error) {
-        console.error("Erreur GET abonnement:", error);
-        return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
-    }
+    );
 }
 
-// PUT /api/fitness/abonnements/[id]
+/**
+ * PUT /api/fitness/abonnements/[id]
+ * Update a subscription
+ */
 export async function PUT(request: NextRequest, { params }: RouteParams) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Non autorisé" },
-                { status: 401 }
-            );
-        }
+    return withApiHandler(
+        async (ctx) => {
+            const { id } = await params;
 
-        const capabilityCheck = await requireCapability("abonnements_fitness");
-        if (capabilityCheck) return capabilityCheck;
-
-        const { id } = await params;
-
-        const existing = await prisma.abonnementFitness.findFirst({
-            where: {
-                id,
-                entrepriseId: session.user.entrepriseId,
-            },
-        });
-
-        if (!existing) {
-            return NextResponse.json(
-                { error: "Abonnement non trouvé" },
-                { status: 404 }
-            );
-        }
-
-        const body = await request.json();
-        const validatedData = updateAbonnementSchema.parse(body);
-
-        // Filtrer les valeurs undefined
-        const updateData = Object.fromEntries(
-            Object.entries(validatedData).filter(([, v]) => v !== undefined)
-        );
-
-        const abonnement = await prisma.abonnementFitness.update({
-            where: { id },
-            data: updateData,
-            include: {
-                client: {
-                    select: {
-                        id: true,
-                        nom: true,
-                        prenom: true,
-                        email: true,
-                        telephone: true,
-                    },
+            const existing = await prisma.abonnementFitness.findFirst({
+                where: {
+                    id,
+                    entrepriseId: ctx.entrepriseId,
                 },
-                typeAbonnement: true,
-            },
-        });
+            });
 
-        return NextResponse.json(abonnement);
-    } catch (error) {
-        if (error instanceof z.ZodError) {
-            return NextResponse.json(
-                { error: "Données invalides", details: error.errors },
-                { status: 400 }
+            if (!existing) {
+                throw new NotFoundError("Abonnement non trouvé");
+            }
+
+            const body = await request.json();
+            const validation = updateAbonnementSchema.safeParse(body);
+
+            if (!validation.success) {
+                throw new ValidationError(
+                    "Données invalides",
+                    validation.error.flatten().fieldErrors as Record<string, string[]>
+                );
+            }
+
+            // Filter undefined values
+            const updateData = Object.fromEntries(
+                Object.entries(validation.data).filter(([, v]) => v !== undefined)
             );
+
+            const abonnement = await prisma.abonnementFitness.update({
+                where: { id },
+                data: updateData,
+                include: abonnementInclude,
+            });
+
+            return NextResponse.json(abonnement);
+        },
+        {
+            capability: "abonnements_fitness",
+            context: { resourceName: "AbonnementFitness", operation: "update" },
         }
-        console.error("Erreur PUT abonnement:", error);
-        return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
-    }
+    );
 }
 
-// DELETE /api/fitness/abonnements/[id]
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Non autorisé" },
-                { status: 401 }
-            );
-        }
+/**
+ * DELETE /api/fitness/abonnements/[id]
+ * Delete a subscription
+ */
+export async function DELETE(_request: NextRequest, { params }: RouteParams) {
+    return withApiHandler(
+        async (ctx) => {
+            const { id } = await params;
 
-        const capabilityCheck = await requireCapability("abonnements_fitness");
-        if (capabilityCheck) return capabilityCheck;
-
-        const { id } = await params;
-
-        const existing = await prisma.abonnementFitness.findFirst({
-            where: {
-                id,
-                entrepriseId: session.user.entrepriseId,
-            },
-            include: {
-                _count: {
-                    select: { presences: true },
+            const existing = await prisma.abonnementFitness.findFirst({
+                where: {
+                    id,
+                    entrepriseId: ctx.entrepriseId,
                 },
-            },
-        });
-
-        if (!existing) {
-            return NextResponse.json(
-                { error: "Abonnement non trouvé" },
-                { status: 404 }
-            );
-        }
-
-        if (existing._count.presences > 0) {
-            return NextResponse.json(
-                {
-                    error: "Impossible de supprimer un abonnement avec des présences enregistrées. Résiliez-le plutôt.",
+                include: {
+                    _count: {
+                        select: { presences: true },
+                    },
                 },
-                { status: 400 }
-            );
+            });
+
+            if (!existing) {
+                throw new NotFoundError("Abonnement non trouvé");
+            }
+
+            if (existing._count.presences > 0) {
+                throw new BusinessError(
+                    "Impossible de supprimer un abonnement avec des présences enregistrées. Résiliez-le plutôt."
+                );
+            }
+
+            await prisma.abonnementFitness.delete({ where: { id } });
+
+            return NextResponse.json({ success: true });
+        },
+        {
+            capability: "abonnements_fitness",
+            context: { resourceName: "AbonnementFitness", operation: "delete" },
         }
-
-        await prisma.abonnementFitness.delete({ where: { id } });
-
-        return NextResponse.json({ success: true });
-    } catch (error) {
-        console.error("Erreur DELETE abonnement:", error);
-        return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
-    }
+    );
 }

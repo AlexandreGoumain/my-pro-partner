@@ -1,6 +1,5 @@
-import { PrismaClient, Segment } from "@/lib/generated/prisma/client";
-import { BaseRepository } from "./base.repository";
-import { PaginationParams } from "@/lib/types";
+import { PrismaClient, Segment } from "@/lib/generated/prisma";
+import { BaseRepository, PaginationParams } from "./base.repository";
 
 /**
  * Segment repository

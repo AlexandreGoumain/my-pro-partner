@@ -2,7 +2,7 @@ import { useStores, useCreateStore, useUpdateStore, useDeleteStore, type Store }
 import { useLimitDialog } from "@/components/providers/limit-dialog-provider";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useMemo, useCallback } from "react";
-import { type PlanLimits } from "@/lib/pricing-config";
+import { type LimitKey } from "@/hooks/use-plan-limits";
 import { mapStoreToDisplay, type StoreDisplay } from "@/lib/types/store";
 
 export interface StoresPageHandlers {
@@ -44,8 +44,8 @@ export interface StoresPageHandlers {
     };
 
     // Pricing
-    userPlan: Record<string, unknown>;
-    checkLimit: (limitKey: keyof PlanLimits, currentValue: number) => boolean;
+    userPlan: string;
+    checkLimit: (limitKey: LimitKey, currentValue: number) => boolean;
 }
 
 export function useStoresPage(): StoresPageHandlers {

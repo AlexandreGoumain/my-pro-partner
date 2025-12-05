@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { PlanType } from "@/lib/pricing-config";
+import { PlanType } from "@/lib/config/plans.config";
 
 type IntervalType = "month" | "year";
 

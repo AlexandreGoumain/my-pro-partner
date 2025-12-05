@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api/fetch-client";
 import { ENDPOINTS } from "@/lib/api/endpoints";
-import type { AppelCharges, StatutAppelCharges, TypeCharges } from "@/lib/generated/prisma";
+import type { AppelCharges, StatutAppelCharges, TypeAppelCharges } from "@/lib/generated/prisma";
 
 // Types
 export interface ChargeWithRelations extends AppelCharges {
@@ -17,7 +17,7 @@ export interface ChargeWithRelations extends AppelCharges {
 
 export interface ChargesFilters {
     coproprieteId?: string;
-    typeCharges?: TypeCharges | "ALL";
+    typeCharges?: TypeAppelCharges | "ALL";
     statut?: StatutAppelCharges | "ALL";
     trimestre?: number;
     annee?: number;
@@ -26,7 +26,7 @@ export interface ChargesFilters {
 
 export interface CreateChargeInput {
     coproprieteId: string;
-    typeCharges: TypeCharges;
+    typeCharges: TypeAppelCharges;
     trimestre: number;
     annee: number;
     montantTotal: number;

@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { articleRepository } from "@/lib/repositories";
 import { NotFoundError, BusinessError } from "@/lib/errors";
-import type { Article } from "@/lib/generated/prisma/client";
+import type { Article } from "@/lib/generated/prisma";
 
 /**
  * Options for creating an article
@@ -143,6 +143,8 @@ export class ArticleService {
         articleId: article.id,
         entrepriseId,
         quantite: finalStock,
+        stock_avant: 0,
+        stock_apres: finalStock,
         type: "ENTREE",
         motif: "INVENTAIRE",
         description: "Stock initial",
@@ -238,6 +240,8 @@ export class ArticleService {
       articleId,
       entrepriseId,
       quantite: Math.abs(quantity),
+      stock_avant: currentStock,
+      stock_apres: newStock,
       type: quantity > 0 ? "ENTREE" : "SORTIE",
       motif,
       description,
@@ -254,16 +258,15 @@ export class ArticleService {
     articleId: string;
     entrepriseId: string;
     quantite: number;
+    stock_avant: number;
+    stock_apres: number;
     type: "ENTREE" | "SORTIE";
     motif: StockMovementReason;
     description?: string;
     documentId?: string;
   }) {
     await prisma.mouvementStock.create({
-      data: {
-        ...data,
-        date: new Date(),
-      },
+      data,
     });
   }
 
@@ -415,7 +418,7 @@ export class ArticleService {
         articleId,
         entrepriseId,
       },
-      orderBy: { date: "desc" },
+      orderBy: { createdAt: "desc" },
       take: limit || 50,
     });
   }

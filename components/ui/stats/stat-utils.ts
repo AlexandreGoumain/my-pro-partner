@@ -22,11 +22,11 @@ export function formatStatValue(
     prefix?: string;
   }
 ): string {
-  const { decimals = 0, currency = "EUR", suffix = "", prefix = "" } = options || {};
+  const { decimals = 0, suffix = "", prefix = "" } = options || {};
 
   switch (format) {
     case "currency":
-      return formatCurrency(value, currency);
+      return formatCurrency(value);
 
     case "percent":
       return `${value.toFixed(decimals)}%`;

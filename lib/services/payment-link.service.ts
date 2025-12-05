@@ -169,7 +169,7 @@ export class PaymentLinkService {
             id: string;
             titre: string;
             description: string | null;
-            montant: number;
+            montant: number | Prisma.Decimal;
             devise: string;
             imageCouverture: string | null;
             entrepriseId: string;

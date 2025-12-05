@@ -124,15 +124,6 @@ export async function POST(req: NextRequest) {
         const invitationUrl = `${baseUrl}/accept-invitation?token=${token}`;
 
         // TODO: Send invitation email with invitationUrl
-        console.log(`[Technicien Created]
-            User ID: ${user.id}
-            Email: ${email}
-            Name: ${prenom} ${nom}
-            Phone: ${telephone}
-            Status: INVITED (pending activation)
-            Entreprise: ${entreprise?.nom}
-            Invitation URL: ${invitationUrl}
-        `);
 
         return NextResponse.json({
             success: true,

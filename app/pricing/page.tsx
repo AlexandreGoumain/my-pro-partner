@@ -6,8 +6,7 @@ import {
     PublicPricingHeader,
 } from "@/components/pricing";
 import { usePricingPage } from "@/hooks/use-pricing-page";
-import { PLAN_FEATURES, PlanType } from "@/lib/pricing-config";
-import { PLANS_CONFIG } from "@/lib/config/plans.config";
+import { PLAN_FEATURES, PlanType, PLANS_CONFIG } from "@/lib/config/plans.config";
 import { PlanFeature } from "@/lib/types/pricing";
 
 const PRICING_PLANS_DATA = [

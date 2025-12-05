@@ -1,5 +1,5 @@
 import { NotFoundError } from "@/lib/errors";
-import type { StatutReparation } from "@/lib/generated/prisma/client";
+import type { StatutReparation } from "@/lib/generated/prisma";
 import { prisma } from "@/lib/prisma";
 
 /**

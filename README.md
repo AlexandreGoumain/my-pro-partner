@@ -179,4 +179,33 @@ npx prisma studio  # Interface DB
 
 ---
 
+## Contribuer
+
+Les contributions sont les bienvenues ! Voici comment participer :
+
+1. **Fork** le repository
+2. **Clone** ton fork : `git clone https://github.com/TON-USERNAME/my-pro-partner.git`
+3. **Crée une branche** : `git checkout -b feature/ma-feature`
+4. **Commite** tes changements : `git commit -m "feat: description"`
+5. **Push** : `git push origin feature/ma-feature`
+6. **Ouvre une Pull Request** vers `develop`
+
+### Guidelines
+
+- Messages de commit en anglais (format conventionnel : `feat:`, `fix:`, `docs:`)
+- S'assurer que `npm run build` passe
+- Mettre à jour la documentation si nécessaire
+
+### Branches
+
+| Branche | Description |
+|---------|-------------|
+| `main` | Production |
+| `preprod` | Staging |
+| `develop` | **Cible pour les PR** |
+
+Voir la [documentation complète](docs/README.md) pour plus de détails.
+
+---
+
 **Projet portfolio production-ready** démontrant une maîtrise complète de l'écosystème Next.js et des architectures SaaS professionnelles.

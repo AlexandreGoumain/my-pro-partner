@@ -8,7 +8,7 @@ import { Send } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 export interface ChatInputAreaProps {
-    onSubmit: (message: string) => Promise<void>;
+    onSubmit: (message: string) => void | Promise<void>;
     disabled?: boolean;
 }
 

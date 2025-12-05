@@ -1,11 +1,8 @@
-import {
-    handleTenantError,
-    requireTenantAuth,
-} from "@/lib/middleware/tenant-isolation";
+import { withApiHandler } from "@/lib/api/api-handler";
+import { ValidationError } from "@/lib/errors";
 import { BankReconciliationService } from "@/lib/services/bank-reconciliation.service";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { validateRequest } from "@/lib/utils/validation-helper";
 
 const matchSchema = z.object({
     transactionId: z.string(),
@@ -14,23 +11,27 @@ const matchSchema = z.object({
 
 /**
  * POST /api/bank/match
- * Rapprocher manuellement une transaction avec une facture
+ * Manually match a transaction with an invoice
  */
 export async function POST(req: NextRequest) {
-    try {
-        await requireTenantAuth();
+    return withApiHandler(
+        async () => {
+            const body = await req.json();
+            const result = matchSchema.safeParse(body);
 
-        const body = await req.json();
-        const result = validateRequest(matchSchema, body);
-        if (!result.success) return result.response;
+            if (!result.success) {
+                throw new ValidationError(result.error.errors[0].message);
+            }
 
-        await BankReconciliationService.manualMatch({
-            transactionId: result.data.transactionId,
-            documentId: result.data.documentId,
-        });
+            await BankReconciliationService.manualMatch({
+                transactionId: result.data.transactionId,
+                documentId: result.data.documentId,
+            });
 
-        return NextResponse.json({ success: true });
-    } catch (error) {
-        return handleTenantError(error);
-    }
+            return NextResponse.json({ success: true });
+        },
+        {
+            context: { resourceName: "BankTransaction", operation: "manualMatch" },
+        }
+    );
 }

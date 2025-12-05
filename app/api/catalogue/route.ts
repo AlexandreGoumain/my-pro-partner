@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withErrorHandling } from "@/lib/errors";
 import { requireTenantAuth } from "@/lib/middleware/tenant-isolation";
 import { prisma } from "@/lib/prisma";
-import { ArticleType } from "@/lib/generated/prisma/client";
+import { ArticleType } from "@/lib/generated/prisma";
 
 // GET: List all catalogue items with filtering
 export async function GET(req: NextRequest) {

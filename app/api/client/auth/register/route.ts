@@ -141,10 +141,6 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    console.log(
-      `[Client Registration] New client registered: ${email} for entreprise ${entreprise.nom} (via invitation)`
-    );
-
     return NextResponse.json({
       message: "Votre compte a été créé avec succès ! Vous pouvez maintenant vous connecter.",
       client: {

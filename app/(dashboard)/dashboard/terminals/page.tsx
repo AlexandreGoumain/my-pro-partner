@@ -5,7 +5,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { GridSkeleton } from "@/components/ui/grid-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
 import { PrimaryActionButton } from "@/components/ui/primary-action-button";
-import { FEATURE_FLAGS } from "@/lib/config/features.config";
+import { GLOBAL_FEATURE_FLAGS } from "@/lib/config/plans.config";
 import { useTerminalsPage } from "@/hooks/use-terminals-page";
 import { Plus, WifiOff, Lock } from "lucide-react";
 
@@ -13,7 +13,7 @@ export default function TerminalsPage() {
     const page = useTerminalsPage();
 
     // Si la feature est désactivée, afficher un message
-    if (!FEATURE_FLAGS.ENABLE_PAYMENT_TERMINALS) {
+    if (!GLOBAL_FEATURE_FLAGS.ENABLE_PAYMENT_TERMINALS) {
         return (
             <div className="space-y-6">
                 <PageHeader

@@ -1,5 +1,5 @@
-import { PrismaClient, Article } from "@/lib/generated/prisma/client";
-import { BaseRepository } from "./base.repository";
+import { PrismaClient, Article } from "@/lib/generated/prisma";
+import { BaseRepository, PaginationParams } from "./base.repository";
 
 /**
  * Article repository
@@ -72,7 +72,7 @@ export class ArticleRepository extends BaseRepository<Article> {
 
     return this.findAll(
       where,
-      pagination,
+      pagination as PaginationParams | undefined,
       {
         categorie: true,
       },
@@ -86,9 +86,9 @@ export class ArticleRepository extends BaseRepository<Article> {
   async findProducts(
     entrepriseId: string,
     search?: string,
-    pagination?: Record<string, unknown>
+    pagination?: PaginationParams
   ) {
-    return this.findByEntreprise(entrepriseId, search, pagination, {
+    return this.findByEntreprise(entrepriseId, search, pagination as PaginationParams | undefined, {
       type: "PRODUIT",
     });
   }
@@ -99,9 +99,9 @@ export class ArticleRepository extends BaseRepository<Article> {
   async findServices(
     entrepriseId: string,
     search?: string,
-    pagination?: Record<string, unknown>
+    pagination?: PaginationParams
   ) {
-    return this.findByEntreprise(entrepriseId, search, pagination, {
+    return this.findByEntreprise(entrepriseId, search, pagination as PaginationParams | undefined, {
       type: "SERVICE",
     });
   }

@@ -1,184 +1,161 @@
-import { authOptions } from "@/lib/auth";
-import { requireAnyCapability } from "@/lib/middleware/business-type-check";
+import { withApiHandler } from "@/lib/api/api-handler";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import { ValidationError, NotFoundError } from "@/lib/errors";
 import { NextRequest, NextResponse } from "next/server";
 
-// GET /api/gestion-locative/incidents - List incidents
+/**
+ * GET /api/gestion-locative/incidents
+ * List incidents
+ */
 export async function GET(request: NextRequest) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Unauthorized" },
-                { status: 401 }
-            );
-        }
+    return withApiHandler(
+        async (ctx) => {
+            const searchParams = request.nextUrl.searchParams;
+            const bailId = searchParams.get("bailId");
+            const statut = searchParams.get("statut");
+            const categorie = searchParams.get("categorie");
+            const urgence = searchParams.get("urgence");
+            const search = searchParams.get("search");
 
-        const capabilityCheck = await requireAnyCapability("travaux_locatifs");
-        if (capabilityCheck) return capabilityCheck;
+            const where: Record<string, unknown> = {
+                entrepriseId: ctx.entrepriseId,
+            };
 
-        const searchParams = request.nextUrl.searchParams;
-        const bailId = searchParams.get("bailId");
-        const statut = searchParams.get("statut");
-        const categorie = searchParams.get("categorie");
-        const urgence = searchParams.get("urgence");
-        const search = searchParams.get("search");
+            if (bailId) {
+                where.bailId = bailId;
+            }
 
-        const where: any = {
-            entrepriseId: session.user.entrepriseId,
-        };
+            if (statut && statut !== "ALL") {
+                where.statut = statut;
+            }
 
-        if (bailId) {
-            where.bailId = bailId;
-        }
+            if (categorie) {
+                where.categorie = categorie;
+            }
 
-        if (statut && statut !== "ALL") {
-            where.statut = statut;
-        }
+            if (urgence) {
+                where.urgence = parseInt(urgence);
+            }
 
-        if (categorie) {
-            where.categorie = categorie;
-        }
+            if (search) {
+                where.OR = [
+                    { description: { contains: search, mode: "insensitive" } },
+                    { bail: { reference: { contains: search, mode: "insensitive" } } },
+                    { bail: { bien: { titre: { contains: search, mode: "insensitive" } } } },
+                    { bail: { locatairePrincipal: { nom: { contains: search, mode: "insensitive" } } } },
+                ];
+            }
 
-        if (urgence) {
-            where.urgence = parseInt(urgence);
-        }
-
-        if (search) {
-            where.OR = [
-                { description: { contains: search, mode: "insensitive" } },
-                { bail: { reference: { contains: search, mode: "insensitive" } } },
-                { bail: { bien: { titre: { contains: search, mode: "insensitive" } } } },
-                { bail: { locatairePrincipal: { nom: { contains: search, mode: "insensitive" } } } },
-            ];
-        }
-
-        const incidents = await prisma.incidentLocatif.findMany({
-            where,
-            include: {
-                bail: {
-                    select: {
-                        id: true,
-                        reference: true,
-                        bien: {
-                            select: {
-                                id: true,
-                                titre: true,
-                                ville: true,
-                                adresse: true,
+            const incidents = await prisma.incidentLocatif.findMany({
+                where,
+                include: {
+                    bail: {
+                        select: {
+                            id: true,
+                            reference: true,
+                            bien: {
+                                select: {
+                                    id: true,
+                                    titre: true,
+                                    ville: true,
+                                    adresse: true,
+                                },
                             },
-                        },
-                        locatairePrincipal: {
-                            select: {
-                                id: true,
-                                nom: true,
-                                prenom: true,
-                                telephone: true,
+                            locatairePrincipal: {
+                                select: {
+                                    id: true,
+                                    nom: true,
+                                    prenom: true,
+                                    telephone: true,
+                                },
                             },
-                        },
-                        proprietaire: {
-                            select: {
-                                id: true,
-                                nom: true,
-                                prenom: true,
+                            proprietaire: {
+                                select: {
+                                    id: true,
+                                    nom: true,
+                                    prenom: true,
+                                },
                             },
                         },
                     },
                 },
-            },
-            orderBy: [{ urgence: "asc" }, { dateSignalement: "desc" }],
-        });
+                orderBy: [{ urgence: "asc" }, { dateSignalement: "desc" }],
+            });
 
-        return NextResponse.json({ incidents });
-    } catch (error) {
-        console.error("Error fetching incidents:", error);
-        return NextResponse.json(
-            { error: "Failed to fetch incidents" },
-            { status: 500 }
-        );
-    }
+            return NextResponse.json({ incidents });
+        },
+        {
+            anyCapability: ["travaux_locatifs"],
+            context: { resourceName: "IncidentLocatif", operation: "list" },
+        }
+    );
 }
 
-// POST /api/gestion-locative/incidents - Create incident
+/**
+ * POST /api/gestion-locative/incidents
+ * Create incident
+ */
 export async function POST(request: NextRequest) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Unauthorized" },
-                { status: 401 }
-            );
-        }
+    return withApiHandler(
+        async (ctx) => {
+            const body = await request.json();
 
-        const capabilityCheck = await requireAnyCapability("travaux_locatifs");
-        if (capabilityCheck) return capabilityCheck;
+            if (!body.bailId || !body.description || !body.categorie) {
+                throw new ValidationError("Bail, description et catégorie requis");
+            }
 
-        const body = await request.json();
+            // Verify bail belongs to entreprise
+            const bail = await prisma.bailLocatif.findFirst({
+                where: {
+                    id: body.bailId,
+                    entrepriseId: ctx.entrepriseId,
+                },
+            });
 
-        if (!body.bailId || !body.description || !body.categorie) {
-            return NextResponse.json(
-                { error: "Bail, description et catégorie requis" },
-                { status: 400 }
-            );
-        }
+            if (!bail) {
+                throw new NotFoundError("Bail non trouvé");
+            }
 
-        // Verify bail belongs to entreprise
-        const bail = await prisma.bailLocatif.findFirst({
-            where: {
-                id: body.bailId,
-                entrepriseId: session.user.entrepriseId,
-            },
-        });
-
-        if (!bail) {
-            return NextResponse.json(
-                { error: "Bail not found" },
-                { status: 404 }
-            );
-        }
-
-        const incident = await prisma.incidentLocatif.create({
-            data: {
-                entrepriseId: session.user.entrepriseId,
-                bailId: body.bailId,
-                description: body.description,
-                categorie: body.categorie,
-                urgence: body.urgence || 3,
-                photos: body.photos,
-                notes: body.notes,
-                statut: "SIGNALE",
-            },
-            include: {
-                bail: {
-                    select: {
-                        id: true,
-                        reference: true,
-                        bien: {
-                            select: {
-                                id: true,
-                                titre: true,
-                                ville: true,
+            const incident = await prisma.incidentLocatif.create({
+                data: {
+                    entrepriseId: ctx.entrepriseId,
+                    bailId: body.bailId,
+                    description: body.description,
+                    categorie: body.categorie,
+                    urgence: body.urgence || 3,
+                    photos: body.photos,
+                    notes: body.notes,
+                    statut: "SIGNALE",
+                },
+                include: {
+                    bail: {
+                        select: {
+                            id: true,
+                            reference: true,
+                            bien: {
+                                select: {
+                                    id: true,
+                                    titre: true,
+                                    ville: true,
+                                },
                             },
-                        },
-                        locatairePrincipal: {
-                            select: {
-                                id: true,
-                                nom: true,
-                                prenom: true,
+                            locatairePrincipal: {
+                                select: {
+                                    id: true,
+                                    nom: true,
+                                    prenom: true,
+                                },
                             },
                         },
                     },
                 },
-            },
-        });
+            });
 
-        return NextResponse.json({ incident }, { status: 201 });
-    } catch (error) {
-        console.error("Error creating incident:", error);
-        return NextResponse.json(
-            { error: "Failed to create incident" },
-            { status: 500 }
-        );
-    }
+            return NextResponse.json({ incident }, { status: 201 });
+        },
+        {
+            anyCapability: ["travaux_locatifs"],
+            context: { resourceName: "IncidentLocatif", operation: "create" },
+        }
+    );
 }

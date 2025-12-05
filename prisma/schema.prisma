@@ -157,15 +157,23 @@ model Entreprise {
   incidentsLocatifs IncidentLocatif[] // Incidents/travaux
 
   // Relations pour syndic copropriété
-  coproprietes           Copropriete[] // Copropriétés gérées
-  lotsCopropriete        LotCopropriete[] // Lots de copropriété
-  appelsCharges          AppelCharges[] // Appels de charges
-  lignesAppelsCharges    LigneAppelCharges[] // Lignes d'appels
-  assembleesGenerales    AssembleeGenerale[] // Assemblées générales
-  resolutionsAG          ResolutionAG[] // Résolutions AG
-  travauxCopropriete     TravauxCopropriete[] // Travaux copropriété
-  comptesCopropriete     CompteCopropriete[] // Comptabilité copro
-  membresConseilSyndical MembreConseilSyndical[] // Membres conseil
+  coproprietes            Copropriete[] // Copropriétés gérées
+  lotsCopropriete         LotCopropriete[] // Lots de copropriété
+  appelsCharges           AppelCharges[] // Appels de charges
+  lignesAppelsCharges     LigneAppelCharges[] // Lignes d'appels
+  assembleesGenerales     AssembleeGenerale[] // Assemblées générales
+  resolutionsAG           ResolutionAG[] // Résolutions AG
+  travauxCopropriete      TravauxCopropriete[] // Travaux copropriété
+  comptesCopropriete      CompteCopropriete[] // Comptabilité copro
+  membresConseilSyndical  MembreConseilSyndical[] // Membres conseil
+  ecrituresComptableCopro EcritureComptableCopro[] // Écritures comptables copro
+
+  // Relations pour sécurité chatbot
+  chatbotAuditLogs    ChatbotAuditLog[]
+  chatbotActionTokens ChatbotActionToken[]
+
+  // Relations pour objectifs configurables
+  objectifs ObjectifEntreprise[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -620,6 +628,10 @@ model User {
   // Relations pour système juridique (cabinets d'avocats)
   diligences Diligence[] // Diligences effectuées par cet avocat
 
+  // Relations pour sécurité chatbot
+  chatbotAuditLogs   ChatbotAuditLog[]
+  chatbotActionTokens ChatbotActionToken[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -984,16 +996,36 @@ model ClientNotification {
 }
 
 enum NotificationType {
+  // Documents & Paiements
   NOUVEAU_DOCUMENT
+  PAIEMENT_RECU
+
+  // Fidélité
   POINTS_EXPIRATION
   NIVEAU_FIDELITE
-  PAIEMENT_RECU
-  GENERAL
+
+  // Rendez-vous
+  RDV_CONFIRME
+  RDV_RAPPEL
+  RDV_ANNULE
+  RDV_MODIFIE
+
+  // Interventions
+  INTERVENTION_PLANIFIEE
+  INTERVENTION_EN_ROUTE
+  INTERVENTION_EN_COURS
+  INTERVENTION_TERMINEE
+  INTERVENTION_ANNULEE
+
+  // Réparations
   REPARATION_DEPOSEE
   REPARATION_DIAGNOSTIC
   REPARATION_PRETE
   REPARATION_RETARD
   REPARATION_LIVREE
+
+  // Général
+  GENERAL
 }
 
 // ============================================
@@ -1520,6 +1552,63 @@ model ParametresEntreprise {
   @@index([entrepriseId])
 }
 
+// ============================================
+// OBJECTIFS CONFIGURABLES
+// ============================================
+
+enum GoalMetricType {
+  // Métriques prédéfinies (calcul automatique)
+  REVENUE_MONTHLY // CA mensuel
+  REVENUE_QUARTERLY // CA trimestriel
+  REVENUE_YEARLY // CA annuel
+  NEW_CLIENTS // Nouveaux clients
+  CONVERSION_RATE // Taux de conversion devis->facture
+  DOCUMENTS_CREATED // Documents créés
+  AVERAGE_TICKET // Panier moyen
+  // Métrique personnalisée (mise à jour manuelle)
+  CUSTOM
+}
+
+enum GoalPeriod {
+  WEEKLY // Hebdomadaire
+  MONTHLY // Mensuel
+  QUARTERLY // Trimestriel
+  YEARLY // Annuel
+}
+
+enum GoalUnit {
+  CURRENCY // Montant en euros
+  NUMBER // Nombre entier
+  PERCENTAGE // Pourcentage
+}
+
+model ObjectifEntreprise {
+  id          String         @id @default(cuid())
+  label       String // Nom de l'objectif
+  description String? // Description optionnelle
+  metricType  GoalMetricType // Type de métrique
+  period      GoalPeriod     @default(MONTHLY)
+  unit        GoalUnit       @default(NUMBER)
+
+  // Valeurs
+  targetValue  Decimal @db.Decimal(12, 2) // Valeur cible
+  currentValue Decimal @default(0) @db.Decimal(12, 2) // Valeur actuelle (pour CUSTOM)
+
+  // Configuration
+  enabled   Boolean @default(true) // Objectif actif ou non
+  sortOrder Int     @default(0) // Ordre d'affichage
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([entrepriseId, enabled])
+}
+
 // Séries de numérotation personnalisées pour les documents
 model SerieDocument {
   id          String  @id @default(cuid())
@@ -1852,6 +1941,80 @@ enum MessageRole {
   USER
   ASSISTANT
   SYSTEM
+}
+
+// Audit log pour le chatbot (traçabilité des actions)
+model ChatbotAuditLog {
+  id String @id @default(cuid())
+
+  // Qui
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Quoi
+  eventType   String // MESSAGE_SENT, ACTION_EXECUTED, INJECTION_DETECTED, etc.
+  riskLevel   String // low, medium, high, critical
+  description String @db.Text
+  actionName  String? // Nom de l'action si applicable
+
+  // Contexte
+  conversationId String?
+  messageId      String?
+
+  // Résultat
+  result       String? // success, failure, blocked
+  errorMessage String? @db.Text
+
+  // Métadonnées
+  metadata  Json?
+  ipAddress String?
+  userAgent String?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([entrepriseId])
+  @@index([eventType])
+  @@index([riskLevel])
+  @@index([createdAt])
+}
+
+// Tokens de confirmation pour actions critiques
+model ChatbotActionToken {
+  id String @id @default(cuid())
+
+  // Token (hashé)
+  tokenHash String @unique
+
+  // Action à exécuter
+  actionName   String
+  actionParams String @db.Text // JSON des paramètres
+  riskLevel    String // low, medium, high, critical
+
+  // Qui
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Contexte
+  conversationId String
+
+  // État
+  used   Boolean   @default(false)
+  usedAt DateTime?
+
+  // Expiration
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([tokenHash])
+  @@index([userId])
+  @@index([entrepriseId])
+  @@index([expiresAt])
+  @@index([used])
 }
 
 // ============================================
@@ -5392,12 +5555,13 @@ model Copropriete {
   entrepriseId String
 
   // Relations
-  lots            LotCopropriete[]
-  appelsCharges   AppelCharges[]
-  assemblees      AssembleeGenerale[]
-  travauxCopro    TravauxCopropriete[]
-  compteCopro     CompteCopropriete[]
-  conseilSyndical MembreConseilSyndical[]
+  lots                LotCopropriete[]
+  appelsCharges       AppelCharges[]
+  assemblees          AssembleeGenerale[]
+  travauxCopro        TravauxCopropriete[]
+  compteCopro         CompteCopropriete[]
+  conseilSyndical     MembreConseilSyndical[]
+  ecrituresComptables EcritureComptableCopro[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -5451,7 +5615,8 @@ model LotCopropriete {
   entrepriseId String
 
   // Relations
-  appelsCharges LigneAppelCharges[]
+  appelsCharges       LigneAppelCharges[]
+  ecrituresComptables EcritureComptableCopro[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -5460,6 +5625,51 @@ model LotCopropriete {
   @@index([entrepriseId])
   @@index([coproprieteId])
   @@index([coproprietaireId])
+}
+
+// ============================================
+// COMPTABILITE COPROPRIETE
+// ============================================
+
+enum TypeEcritureCopro {
+  DEBIT
+  CREDIT
+}
+
+model EcritureComptableCopro {
+  id String @id @default(cuid())
+
+  // Copropriété concernée
+  copropriete   Copropriete @relation(fields: [coproprieteId], references: [id], onDelete: Cascade)
+  coproprieteId String
+
+  // Lot concerné (optionnel)
+  lot   LotCopropriete? @relation(fields: [lotId], references: [id])
+  lotId String?
+
+  // Détails de l'écriture
+  dateEcriture      DateTime
+  libelle           String
+  montant           Decimal        @db.Decimal(10, 2)
+  typeEcriture      TypeEcritureCopro
+  compte            String // Numéro de compte comptable
+  categorieCharge   String? // Catégorie de charge (chauffage, ascenseur, etc.)
+  pieceJustificative String? // URL ou référence de la pièce
+  notes             String? @db.Text
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([coproprieteId])
+  @@index([lotId])
+  @@index([dateEcriture])
+  @@index([typeEcriture])
+  @@index([compte])
 }
 
 enum TypeAppelCharges {

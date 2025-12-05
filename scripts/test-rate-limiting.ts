@@ -10,7 +10,7 @@
  *   npx tsx scripts/test-rate-limiting.ts
  */
 
-import type { PlanAbonnement } from "@prisma/client";
+import type { PlanAbonnement } from "@/lib/generated/prisma";
 import {
     getRateLimitForPlan,
     getRateLimiterForPlan,

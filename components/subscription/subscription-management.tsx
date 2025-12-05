@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CardSection } from "@/components/ui/card-section";
 import { useSubscriptionStatus } from "@/hooks/use-subscription-status";
-import { PLAN_PRICING } from "@/lib/pricing-config";
+import { PLAN_PRICING } from "@/lib/config/plans.config";
 import {
   CheckCircle2,
   Settings,

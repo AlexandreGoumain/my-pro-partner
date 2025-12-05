@@ -1,4 +1,4 @@
-import { PlanType } from "@/lib/pricing-config";
+import { PlanType } from "@/lib/config/plans.config";
 import { Crown, Sparkles, Star, Zap } from "lucide-react";
 import type { ReactElement } from "react";
 

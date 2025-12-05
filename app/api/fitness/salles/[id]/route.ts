@@ -1,7 +1,6 @@
-import { authOptions } from "@/lib/auth";
-import { requireCapability } from "@/lib/middleware/business-type-check";
+import { withApiHandler } from "@/lib/api/api-handler";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import { NotFoundError, ValidationError, BusinessError } from "@/lib/errors";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -35,158 +34,135 @@ const updateSalleSchema = z.object({
 
 type RouteParams = { params: Promise<{ id: string }> };
 
-// GET /api/fitness/salles/[id]
-export async function GET(request: NextRequest, { params }: RouteParams) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Non autorisé" },
-                { status: 401 }
-            );
-        }
+/**
+ * GET /api/fitness/salles/[id]
+ * Get a single fitness room
+ */
+export async function GET(_request: NextRequest, { params }: RouteParams) {
+    return withApiHandler(
+        async (ctx) => {
+            const { id } = await params;
 
-        const { id } = await params;
-
-        const salle = await prisma.salleFitness.findFirst({
-            where: {
-                id,
-                entrepriseId: session.user.entrepriseId,
-            },
-            include: {
-                cours: {
-                    where: { actif: true },
-                    select: {
-                        id: true,
-                        nom: true,
-                        niveau: true,
-                        dureeMinutes: true,
+            const salle = await prisma.salleFitness.findFirst({
+                where: {
+                    id,
+                    entrepriseId: ctx.entrepriseId,
+                },
+                include: {
+                    cours: {
+                        where: { actif: true },
+                        select: {
+                            id: true,
+                            nom: true,
+                            niveau: true,
+                            dureeMinutes: true,
+                        },
+                    },
+                    _count: {
+                        select: {
+                            cours: true,
+                            seances: true,
+                            presences: true,
+                        },
                     },
                 },
-                _count: {
-                    select: {
-                        cours: true,
-                        seances: true,
-                        presences: true,
-                    },
-                },
-            },
-        });
+            });
 
-        if (!salle) {
-            return NextResponse.json(
-                { error: "Salle non trouvée" },
-                { status: 404 }
-            );
+            if (!salle) {
+                throw new NotFoundError("Salle non trouvée");
+            }
+
+            return NextResponse.json(salle);
+        },
+        {
+            capability: "salles_fitness",
+            context: { resourceName: "SalleFitness", operation: "get" },
         }
-
-        return NextResponse.json(salle);
-    } catch (error) {
-        console.error("Erreur GET salle:", error);
-        return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
-    }
+    );
 }
 
-// PUT /api/fitness/salles/[id]
+/**
+ * PUT /api/fitness/salles/[id]
+ * Update a fitness room
+ */
 export async function PUT(request: NextRequest, { params }: RouteParams) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Non autorisé" },
-                { status: 401 }
-            );
+    return withApiHandler(
+        async (ctx) => {
+            const { id } = await params;
+
+            const existing = await prisma.salleFitness.findFirst({
+                where: {
+                    id,
+                    entrepriseId: ctx.entrepriseId,
+                },
+            });
+
+            if (!existing) {
+                throw new NotFoundError("Salle non trouvée");
+            }
+
+            const body = await request.json();
+            const validation = updateSalleSchema.safeParse(body);
+
+            if (!validation.success) {
+                throw new ValidationError(
+                    "Données invalides",
+                    validation.error.flatten().fieldErrors as Record<string, string[]>
+                );
+            }
+
+            const salle = await prisma.salleFitness.update({
+                where: { id },
+                data: validation.data,
+            });
+
+            return NextResponse.json(salle);
+        },
+        {
+            capability: "salles_fitness",
+            context: { resourceName: "SalleFitness", operation: "update" },
         }
-
-        const capabilityCheck = await requireCapability("salles_fitness");
-        if (capabilityCheck) return capabilityCheck;
-
-        const { id } = await params;
-
-        const existing = await prisma.salleFitness.findFirst({
-            where: {
-                id,
-                entrepriseId: session.user.entrepriseId,
-            },
-        });
-
-        if (!existing) {
-            return NextResponse.json(
-                { error: "Salle non trouvée" },
-                { status: 404 }
-            );
-        }
-
-        const body = await request.json();
-        const validatedData = updateSalleSchema.parse(body);
-
-        const salle = await prisma.salleFitness.update({
-            where: { id },
-            data: validatedData,
-        });
-
-        return NextResponse.json(salle);
-    } catch (error) {
-        if (error instanceof z.ZodError) {
-            return NextResponse.json(
-                { error: "Données invalides", details: error.errors },
-                { status: 400 }
-            );
-        }
-        console.error("Erreur PUT salle:", error);
-        return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
-    }
+    );
 }
 
-// DELETE /api/fitness/salles/[id]
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Non autorisé" },
-                { status: 401 }
-            );
-        }
+/**
+ * DELETE /api/fitness/salles/[id]
+ * Delete a fitness room
+ */
+export async function DELETE(_request: NextRequest, { params }: RouteParams) {
+    return withApiHandler(
+        async (ctx) => {
+            const { id } = await params;
 
-        const capabilityCheck = await requireCapability("salles_fitness");
-        if (capabilityCheck) return capabilityCheck;
-
-        const { id } = await params;
-
-        const existing = await prisma.salleFitness.findFirst({
-            where: {
-                id,
-                entrepriseId: session.user.entrepriseId,
-            },
-            include: {
-                _count: {
-                    select: { seances: true },
+            const existing = await prisma.salleFitness.findFirst({
+                where: {
+                    id,
+                    entrepriseId: ctx.entrepriseId,
                 },
-            },
-        });
-
-        if (!existing) {
-            return NextResponse.json(
-                { error: "Salle non trouvée" },
-                { status: 404 }
-            );
-        }
-
-        if (existing._count.seances > 0) {
-            return NextResponse.json(
-                {
-                    error: "Impossible de supprimer une salle avec des séances planifiées. Désactivez-la plutôt.",
+                include: {
+                    _count: {
+                        select: { seances: true },
+                    },
                 },
-                { status: 400 }
-            );
+            });
+
+            if (!existing) {
+                throw new NotFoundError("Salle non trouvée");
+            }
+
+            if (existing._count.seances > 0) {
+                throw new BusinessError(
+                    "Impossible de supprimer une salle avec des séances planifiées. Désactivez-la plutôt."
+                );
+            }
+
+            await prisma.salleFitness.delete({ where: { id } });
+
+            return NextResponse.json({ success: true });
+        },
+        {
+            capability: "salles_fitness",
+            context: { resourceName: "SalleFitness", operation: "delete" },
         }
-
-        await prisma.salleFitness.delete({ where: { id } });
-
-        return NextResponse.json({ success: true });
-    } catch (error) {
-        console.error("Erreur DELETE salle:", error);
-        return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
-    }
+    );
 }

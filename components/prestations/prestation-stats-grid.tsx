@@ -17,22 +17,22 @@ export function PrestationStatsGrid({ stats }: PrestationStatsGridProps) {
         <StatsGrid
             stats={[
                 {
-                    title: "Total prestations",
+                    label: "Total prestations",
                     value: stats.total,
                     icon: Scissors,
                 },
                 {
-                    title: "Actives",
+                    label: "Actives",
                     value: stats.actives,
                     icon: CheckCircle,
                 },
                 {
-                    title: "Inactives",
+                    label: "Inactives",
                     value: stats.inactives,
                     icon: XCircle,
                 },
                 {
-                    title: "Catégories",
+                    label: "Catégories",
                     value: stats.categories,
                     icon: FolderOpen,
                 },

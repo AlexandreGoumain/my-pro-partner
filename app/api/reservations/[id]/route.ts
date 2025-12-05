@@ -1,11 +1,9 @@
-import { authOptions } from "@/lib/auth";
-import { requireCapability } from "@/lib/middleware/business-type-check";
+import { withApiHandler } from "@/lib/api/api-handler";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import { NotFoundError, ValidationError, BusinessError } from "@/lib/errors";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
-// Validation schema for update
 const reservationUpdateSchema = z.object({
     clientId: z.string().nullable().optional(),
     nomClient: z.string().min(1).optional(),
@@ -36,258 +34,202 @@ const reservationUpdateSchema = z.object({
         .optional(),
 });
 
-type Params = { params: Promise<{ id: string }> };
+type RouteParams = { params: Promise<{ id: string }> };
 
-// GET /api/reservations/[id] - Get reservation detail
-export async function GET(request: NextRequest, { params }: Params) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Unauthorized" },
-                { status: 401 }
-            );
-        }
+const reservationInclude = {
+    table: {
+        select: {
+            id: true,
+            numero: true,
+            nom: true,
+            zone: true,
+        },
+    },
+    client: {
+        select: {
+            id: true,
+            nom: true,
+            prenom: true,
+            telephone: true,
+            email: true,
+        },
+    },
+} as const;
 
-        const capabilityCheck = await requireCapability("agenda");
-        if (capabilityCheck) return capabilityCheck;
+/**
+ * GET /api/reservations/[id]
+ * Get reservation details
+ */
+export async function GET(_request: NextRequest, { params }: RouteParams) {
+    return withApiHandler(
+        async (ctx) => {
+            const { id } = await params;
 
-        const { id } = await params;
-
-        const reservation = await prisma.reservation.findFirst({
-            where: {
-                id,
-                entrepriseId: session.user.entrepriseId,
-            },
-            include: {
-                table: {
-                    select: {
-                        id: true,
-                        numero: true,
-                        nom: true,
-                        zone: true,
-                        capacite: true,
-                        statut: true,
-                    },
-                },
-                client: {
-                    select: {
-                        id: true,
-                        nom: true,
-                        prenom: true,
-                        telephone: true,
-                        email: true,
-                        adresse: true,
-                    },
-                },
-            },
-        });
-
-        if (!reservation) {
-            return NextResponse.json(
-                { error: "Réservation non trouvée" },
-                { status: 404 }
-            );
-        }
-
-        return NextResponse.json({ reservation });
-    } catch (error) {
-        console.error("Error fetching reservation:", error);
-        return NextResponse.json(
-            { error: "Failed to fetch reservation" },
-            { status: 500 }
-        );
-    }
-}
-
-// PUT /api/reservations/[id] - Update reservation
-export async function PUT(request: NextRequest, { params }: Params) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Unauthorized" },
-                { status: 401 }
-            );
-        }
-
-        const capabilityCheck = await requireCapability("agenda");
-        if (capabilityCheck) return capabilityCheck;
-
-        const { id } = await params;
-
-        // Check if reservation exists
-        const existingReservation = await prisma.reservation.findFirst({
-            where: {
-                id,
-                entrepriseId: session.user.entrepriseId,
-            },
-        });
-
-        if (!existingReservation) {
-            return NextResponse.json(
-                { error: "Réservation non trouvée" },
-                { status: 404 }
-            );
-        }
-
-        const body = await request.json();
-        const validation = reservationUpdateSchema.safeParse(body);
-
-        if (!validation.success) {
-            return NextResponse.json(
-                {
-                    error: "Validation failed",
-                    details: validation.error.errors,
-                },
-                { status: 400 }
-            );
-        }
-
-        const {
-            clientId,
-            nomClient,
-            telephone,
-            email,
-            date,
-            heure,
-            personnes,
-            tableId,
-            notes,
-            statut,
-        } = validation.data;
-
-        // If tableId is being set, verify it exists and check capacity
-        if (tableId !== undefined && tableId !== null) {
-            const table = await prisma.tableRestaurant.findFirst({
+            const reservation = await prisma.reservation.findFirst({
                 where: {
-                    id: tableId,
-                    entrepriseId: session.user.entrepriseId,
+                    id,
+                    entrepriseId: ctx.entrepriseId,
+                },
+                include: {
+                    table: {
+                        select: {
+                            id: true,
+                            numero: true,
+                            nom: true,
+                            zone: true,
+                            capacite: true,
+                            statut: true,
+                        },
+                    },
+                    client: {
+                        select: {
+                            id: true,
+                            nom: true,
+                            prenom: true,
+                            telephone: true,
+                            email: true,
+                            adresse: true,
+                        },
+                    },
                 },
             });
 
-            if (!table) {
-                return NextResponse.json(
-                    { error: "Table non trouvée" },
-                    { status: 400 }
-                );
+            if (!reservation) {
+                throw new NotFoundError("Réservation non trouvée");
             }
 
-            const checkPersonnes = personnes ?? existingReservation.personnes;
-            if (table.capacite < checkPersonnes) {
-                return NextResponse.json(
-                    {
-                        error: `La table a une capacité de ${table.capacite} personnes`,
-                    },
-                    { status: 400 }
-                );
-            }
+            return NextResponse.json({ reservation });
+        },
+        {
+            capability: "agenda",
+            context: { resourceName: "Reservation", operation: "get" },
         }
+    );
+}
 
-        // If clientId is being set, verify it exists
-        if (clientId !== undefined && clientId !== null) {
-            const client = await prisma.client.findFirst({
+/**
+ * PUT /api/reservations/[id]
+ * Update a reservation
+ */
+export async function PUT(request: NextRequest, { params }: RouteParams) {
+    return withApiHandler(
+        async (ctx) => {
+            const { id } = await params;
+
+            const existingReservation = await prisma.reservation.findFirst({
                 where: {
-                    id: clientId,
-                    entrepriseId: session.user.entrepriseId,
+                    id,
+                    entrepriseId: ctx.entrepriseId,
                 },
             });
 
-            if (!client) {
-                return NextResponse.json(
-                    { error: "Client non trouvé" },
-                    { status: 400 }
+            if (!existingReservation) {
+                throw new NotFoundError("Réservation non trouvée");
+            }
+
+            const body = await request.json();
+            const validation = reservationUpdateSchema.safeParse(body);
+
+            if (!validation.success) {
+                throw new ValidationError(
+                    "Données invalides",
+                    validation.error.flatten().fieldErrors as Record<string, string[]>
                 );
             }
+
+            const data = validation.data;
+
+            // If tableId is being set, verify it exists and check capacity
+            if (data.tableId !== undefined && data.tableId !== null) {
+                const table = await prisma.tableRestaurant.findFirst({
+                    where: {
+                        id: data.tableId,
+                        entrepriseId: ctx.entrepriseId,
+                    },
+                });
+
+                if (!table) {
+                    throw new NotFoundError("Table non trouvée");
+                }
+
+                const checkPersonnes = data.personnes ?? existingReservation.personnes;
+                if (table.capacite < checkPersonnes) {
+                    throw new BusinessError(
+                        `La table a une capacité de ${table.capacite} personnes`
+                    );
+                }
+            }
+
+            // If clientId is being set, verify it exists
+            if (data.clientId !== undefined && data.clientId !== null) {
+                const client = await prisma.client.findFirst({
+                    where: {
+                        id: data.clientId,
+                        entrepriseId: ctx.entrepriseId,
+                    },
+                });
+
+                if (!client) {
+                    throw new NotFoundError("Client non trouvé");
+                }
+            }
+
+            const updateData: Record<string, unknown> = {};
+            if (data.clientId !== undefined) updateData.clientId = data.clientId;
+            if (data.nomClient !== undefined) updateData.nomClient = data.nomClient;
+            if (data.telephone !== undefined) updateData.telephone = data.telephone;
+            if (data.email !== undefined) updateData.email = data.email || null;
+            if (data.date !== undefined) updateData.date = new Date(data.date);
+            if (data.heure !== undefined) updateData.heure = data.heure;
+            if (data.personnes !== undefined) updateData.personnes = data.personnes;
+            if (data.tableId !== undefined) updateData.tableId = data.tableId;
+            if (data.notes !== undefined) updateData.notes = data.notes;
+            if (data.statut !== undefined) updateData.statut = data.statut;
+
+            const reservation = await prisma.reservation.update({
+                where: { id },
+                data: updateData,
+                include: reservationInclude,
+            });
+
+            return NextResponse.json({ reservation });
+        },
+        {
+            capability: "agenda",
+            context: { resourceName: "Reservation", operation: "update" },
         }
-
-        const updateData: any = {};
-        if (clientId !== undefined) updateData.clientId = clientId;
-        if (nomClient !== undefined) updateData.nomClient = nomClient;
-        if (telephone !== undefined) updateData.telephone = telephone;
-        if (email !== undefined) updateData.email = email || null;
-        if (date !== undefined) updateData.date = new Date(date);
-        if (heure !== undefined) updateData.heure = heure;
-        if (personnes !== undefined) updateData.personnes = personnes;
-        if (tableId !== undefined) updateData.tableId = tableId;
-        if (notes !== undefined) updateData.notes = notes;
-        if (statut !== undefined) updateData.statut = statut;
-
-        const reservation = await prisma.reservation.update({
-            where: { id },
-            data: updateData,
-            include: {
-                table: {
-                    select: {
-                        id: true,
-                        numero: true,
-                        nom: true,
-                        zone: true,
-                    },
-                },
-                client: {
-                    select: {
-                        id: true,
-                        nom: true,
-                        prenom: true,
-                        telephone: true,
-                        email: true,
-                    },
-                },
-            },
-        });
-
-        return NextResponse.json({ reservation });
-    } catch (error) {
-        console.error("Error updating reservation:", error);
-        return NextResponse.json(
-            { error: "Failed to update reservation" },
-            { status: 500 }
-        );
-    }
+    );
 }
 
-// DELETE /api/reservations/[id] - Delete reservation
-export async function DELETE(request: NextRequest, { params }: Params) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Unauthorized" },
-                { status: 401 }
-            );
+/**
+ * DELETE /api/reservations/[id]
+ * Delete a reservation
+ */
+export async function DELETE(_request: NextRequest, { params }: RouteParams) {
+    return withApiHandler(
+        async (ctx) => {
+            const { id } = await params;
+
+            const existingReservation = await prisma.reservation.findFirst({
+                where: {
+                    id,
+                    entrepriseId: ctx.entrepriseId,
+                },
+            });
+
+            if (!existingReservation) {
+                throw new NotFoundError("Réservation non trouvée");
+            }
+
+            await prisma.reservation.delete({
+                where: { id },
+            });
+
+            return NextResponse.json({ success: true });
+        },
+        {
+            capability: "agenda",
+            context: { resourceName: "Reservation", operation: "delete" },
         }
-
-        const capabilityCheck = await requireCapability("agenda");
-        if (capabilityCheck) return capabilityCheck;
-
-        const { id } = await params;
-
-        // Check if reservation exists
-        const existingReservation = await prisma.reservation.findFirst({
-            where: {
-                id,
-                entrepriseId: session.user.entrepriseId,
-            },
-        });
-
-        if (!existingReservation) {
-            return NextResponse.json(
-                { error: "Réservation non trouvée" },
-                { status: 404 }
-            );
-        }
-
-        await prisma.reservation.delete({
-            where: { id },
-        });
-
-        return NextResponse.json({ success: true });
-    } catch (error) {
-        console.error("Error deleting reservation:", error);
-        return NextResponse.json(
-            { error: "Failed to delete reservation" },
-            { status: 500 }
-        );
-    }
+    );
 }

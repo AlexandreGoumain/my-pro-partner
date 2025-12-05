@@ -200,7 +200,10 @@ export function updateResourceCache<T>(
     id: string,
     updater: (oldData: T) => T
 ): void {
-    queryClient.setQueryData<T>([resource, id], updater);
+    queryClient.setQueryData<T>([resource, id], (oldData) => {
+        if (!oldData) return undefined as unknown as T;
+        return updater(oldData);
+    });
 
     // Met aussi à jour dans les listes si présent
     queryClient.setQueriesData<{ data?: T[] }>(

@@ -1,29 +1,30 @@
-import { NextRequest, NextResponse } from "next/server";
-import {
-    handleTenantError,
-    requireTenantAuth,
-} from "@/lib/middleware/tenant-isolation";
+import { withApiHandler } from "@/lib/api/api-handler";
 import { LoyaltyService } from "@/lib/services/loyalty.service";
+import { NextRequest, NextResponse } from "next/server";
+
+type RouteParams = { params: Promise<{ id: string }> };
 
 export async function GET(
-    req: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
+    _req: NextRequest,
+    { params }: RouteParams
 ) {
-    try {
-        const { entrepriseId } = await requireTenantAuth();
-        const { id: clientId } = await params;
+    return withApiHandler(
+        async (ctx) => {
+            const { id: clientId } = await params;
 
-        const nextLevelInfo = await LoyaltyService.getNextLevel(
-            clientId,
-            entrepriseId
-        );
+            const nextLevelInfo = await LoyaltyService.getNextLevel(
+                clientId,
+                ctx.entrepriseId
+            );
 
-        if (!nextLevelInfo) {
-            return NextResponse.json(null);
+            if (!nextLevelInfo) {
+                return NextResponse.json(null);
+            }
+
+            return NextResponse.json(nextLevelInfo);
+        },
+        {
+            context: { resourceName: "Client", operation: "nextLevel" },
         }
-
-        return NextResponse.json(nextLevelInfo);
-    } catch (error) {
-        return handleTenantError(error);
-    }
+    );
 }

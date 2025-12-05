@@ -19,6 +19,24 @@ export const strictLimiter = new Ratelimit({
   prefix: "@upstash/ratelimit/strict",
 });
 
+// Rate limiter pour les invitations clients (admin)
+// 20 invitations par heure par entreprise
+export const clientInviteLimiter = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.slidingWindow(20, "1 h"),
+  analytics: true,
+  prefix: "@upstash/ratelimit/client-invite",
+});
+
+// Rate limiter pour la vérification de tokens (public)
+// 5 tentatives par IP par 15 minutes (protection brute force)
+export const tokenVerifyLimiter = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.slidingWindow(5, "15 m"),
+  analytics: true,
+  prefix: "@upstash/ratelimit/token-verify",
+});
+
 /**
  * Récupère l'IP du client depuis les headers
  */

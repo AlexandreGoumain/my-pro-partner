@@ -1,11 +1,10 @@
-import {
-    handleTenantError,
-    requireTenantAuth,
-} from "@/lib/middleware/tenant-isolation";
+import { withApiHandler } from "@/lib/api/api-handler";
+import { ValidationError } from "@/lib/errors";
 import { BankReconciliationService } from "@/lib/services/bank-reconciliation.service";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { validateRequest } from "@/lib/utils/validation-helper";
+
+type RouteParams = { params: Promise<{ id: string }> };
 
 const anomalySchema = z.object({
     notes: z.string(),
@@ -13,27 +12,25 @@ const anomalySchema = z.object({
 
 /**
  * POST /api/bank/[id]/anomaly
- * Marquer une transaction comme anomalie
+ * Mark a transaction as anomaly
  */
-export async function POST(
-    req: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
-    try {
-        const { id } = await params;
-        await requireTenantAuth();
+export async function POST(req: NextRequest, { params }: RouteParams) {
+    return withApiHandler(
+        async () => {
+            const { id } = await params;
+            const body = await req.json();
+            const result = anomalySchema.safeParse(body);
 
-        const body = await req.json();
-        const result = validateRequest(anomalySchema, body);
-        if (!result.success) return result.response;
+            if (!result.success) {
+                throw new ValidationError(result.error.errors[0].message);
+            }
 
-        await BankReconciliationService.markAsAnomaly(
-            id,
-            result.data.notes
-        );
+            await BankReconciliationService.markAsAnomaly(id, result.data.notes);
 
-        return NextResponse.json({ success: true });
-    } catch (error) {
-        return handleTenantError(error);
-    }
+            return NextResponse.json({ success: true });
+        },
+        {
+            context: { resourceName: "BankTransaction", operation: "markAsAnomaly" },
+        }
+    );
 }

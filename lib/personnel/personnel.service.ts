@@ -980,7 +980,7 @@ function generateTemporaryPassword(): string {
  * Vérifier si l'entreprise peut ajouter un nouvel utilisateur (limite plan)
  */
 export async function canAddUser(entrepriseId: string): Promise<boolean> {
-    const { getPlanLimits } = await import("@/lib/pricing-config");
+    const { getPlanConfig } = await import("@/lib/config/plans.config");
     type PlanType = "FREE" | "STARTER" | "PRO" | "ENTERPRISE";
 
     const entreprise = await prisma.entreprise.findUnique({
@@ -995,8 +995,8 @@ export async function canAddUser(entrepriseId: string): Promise<boolean> {
     });
 
     // Utiliser la configuration centralisée du pricing
-    const planLimits = getPlanLimits(entreprise.plan as PlanType);
-    const limit = planLimits.maxUsers;
+    const planConfig = getPlanConfig(entreprise.plan as PlanType);
+    const limit = planConfig.limits.maxUsers;
 
     if (limit === -1) return true; // illimité
 

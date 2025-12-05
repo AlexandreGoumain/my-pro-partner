@@ -1,6 +1,5 @@
-import { PrismaClient, PaymentLink } from "@prisma/client";
-import { BaseRepository } from "./base.repository";
-import { PaginationParams } from "@/lib/types";
+import { PrismaClient, PaymentLink } from "@/lib/generated/prisma";
+import { BaseRepository, PaginationParams } from "./base.repository";
 
 export class PaymentLinkRepository extends BaseRepository<PaymentLink> {
   constructor(prisma: PrismaClient) {

@@ -1,9 +1,9 @@
 "use client";
 
 import { ClientSidebar } from "@/components/client-portal/layout/client-sidebar";
+import { NotificationBell } from "@/components/client-portal/notification-bell";
 import { useClientAuth } from "@/hooks/use-client-auth";
-import type { NavigationItem } from "@/lib/types/welcome";
-import { Award, FileText, Home, User } from "lucide-react";
+import { getFilteredNavigation } from "@/lib/client-portal";
 import { Inter } from "next/font/google";
 import { usePathname } from "next/navigation";
 import { useMemo } from "react";
@@ -19,45 +19,23 @@ export default function ClientPortalLayout({
 }: ClientPortalLayoutProps) {
     const pathname = usePathname();
 
-    // Use custom auth hook for authentication and client info
-    const { clientName, initials, logout } = useClientAuth(
-        !pathname.startsWith("/client/login")
-    );
-
-    // Define navigation items with memoization
-    const navigation: NavigationItem[] = useMemo(
-        () => [
-            {
-                name: "Tableau de bord",
-                href: "/client/dashboard",
-                icon: Home,
-            },
-            {
-                name: "Fidélité",
-                href: "/client/fidelite",
-                icon: Award,
-            },
-            {
-                name: "Mes documents",
-                href: "/client/documents",
-                icon: FileText,
-            },
-            {
-                name: "Mon profil",
-                href: "/client/profil",
-                icon: User,
-            },
-        ],
-        []
-    );
-
-    // Don't show layout on login, register, forgot-password, reset-password, and welcome pages
+    // Don't show layout or require auth on login, register, forgot-password, reset-password, and welcome pages
     const isAuthPage =
         pathname.startsWith("/client/login") ||
         pathname.startsWith("/client/register") ||
         pathname.startsWith("/client/forgot-password") ||
         pathname.startsWith("/client/reset-password") ||
         pathname === "/client/welcome";
+
+    // Use custom auth hook for authentication, client info and capabilities
+    // Only redirect to login if not on an auth page
+    const { clientName, initials, capabilities, logout } = useClientAuth(!isAuthPage);
+
+    // Build navigation based on client capabilities
+    const navigation = useMemo(
+        () => getFilteredNavigation(capabilities),
+        [capabilities]
+    );
 
     if (isAuthPage) {
         return (
@@ -80,8 +58,14 @@ export default function ClientPortalLayout({
                     />
 
                     {/* Main Content */}
-                    <div className="flex-1 overflow-auto">
-                        <main className="p-8">{children}</main>
+                    <div className="flex-1 flex flex-col overflow-hidden">
+                        {/* Top Header with Notifications */}
+                        <header className="h-16 border-b border-black/8 flex items-center justify-end px-6 flex-shrink-0">
+                            <NotificationBell />
+                        </header>
+
+                        {/* Page Content */}
+                        <main className="flex-1 overflow-auto p-8">{children}</main>
                     </div>
                 </div>
             </body>

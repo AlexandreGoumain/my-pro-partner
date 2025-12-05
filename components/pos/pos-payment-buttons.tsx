@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { PaymentMethod } from "@/lib/types/pos";
-import { FEATURE_FLAGS } from "@/lib/config/features.config";
+import { GLOBAL_FEATURE_FLAGS } from "@/lib/config/plans.config";
 import { Banknote, Check, CreditCard } from "lucide-react";
 
 export interface POSPaymentButtonsProps {
@@ -16,8 +16,8 @@ export function POSPaymentButtons({
 }: POSPaymentButtonsProps) {
     return (
         <div className="space-y-2">
-            {/* Bouton Terminal - Désactivé par défaut (nécessite matériel Stripe Terminal) */}
-            {FEATURE_FLAGS.ENABLE_PAYMENT_TERMINALS && (
+            {/* Bouton Terminal - Désactivé par défaut */}
+            {GLOBAL_FEATURE_FLAGS.ENABLE_PAYMENT_TERMINALS && (
                 <Button
                     onClick={onTerminalPayment}
                     disabled={processing}
@@ -28,7 +28,13 @@ export function POSPaymentButtons({
                 </Button>
             )}
 
-            <div className={FEATURE_FLAGS.ENABLE_PAYMENT_TERMINALS ? "grid grid-cols-2 gap-2" : "grid grid-cols-3 gap-2"}>
+            <div
+                className={
+                    GLOBAL_FEATURE_FLAGS.ENABLE_PAYMENT_TERMINALS
+                        ? "grid grid-cols-2 gap-2"
+                        : "grid grid-cols-3 gap-2"
+                }
+            >
                 <Button
                     onClick={() => onPayment("ESPECES")}
                     disabled={processing}

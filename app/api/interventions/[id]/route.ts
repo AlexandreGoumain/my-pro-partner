@@ -1,181 +1,157 @@
-import { authOptions } from "@/lib/auth";
-import { requireAnyCapability } from "@/lib/middleware/business-type-check";
+import { withApiHandler } from "@/lib/api/api-handler";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import { NotFoundError } from "@/lib/errors";
 import { NextRequest, NextResponse } from "next/server";
 
-// GET /api/interventions/[id] - Get intervention details
-export async function GET(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Unauthorized" },
-                { status: 401 }
-            );
-        }
+type RouteParams = { params: Promise<{ id: string }> };
 
-        // Allow both domicile (mobile work) and atelier (workshop) businesses
-        const capabilityCheck = await requireAnyCapability("domicile", "atelier");
-        if (capabilityCheck) return capabilityCheck;
+/**
+ * GET /api/interventions/[id]
+ * Get intervention details
+ */
+export async function GET(_request: NextRequest, { params }: RouteParams) {
+    return withApiHandler(
+        async (ctx) => {
+            const { id } = await params;
 
-        const { id } = await params;
-
-        const intervention = await prisma.intervention.findUnique({
-            where: {
-                id,
-                entrepriseId: session.user.entrepriseId,
-            },
-            include: {
-                client: true,
-                plombier: {
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                    },
+            const intervention = await prisma.intervention.findUnique({
+                where: {
+                    id,
+                    entrepriseId: ctx.entrepriseId,
                 },
-                camionnette: true,
-                materielUtilise: {
-                    include: {
-                        article: true,
-                        stockCamionnette: true,
-                    },
-                },
-                timeLogs: {
-                    include: {
-                        plombier: {
-                            select: {
-                                name: true,
-                            },
+                include: {
+                    client: true,
+                    plombier: {
+                        select: {
+                            id: true,
+                            name: true,
+                            email: true,
                         },
                     },
-                    orderBy: {
-                        dateDebut: "desc",
+                    camionnette: true,
+                    materielUtilise: {
+                        include: {
+                            article: true,
+                            stockCamionnette: true,
+                        },
                     },
-                },
-                historique: {
-                    orderBy: {
-                        createdAt: "desc",
+                    timeLogs: {
+                        include: {
+                            plombier: {
+                                select: {
+                                    name: true,
+                                },
+                            },
+                        },
+                        orderBy: {
+                            dateDebut: "desc",
+                        },
                     },
-                    take: 50,
+                    historique: {
+                        orderBy: {
+                            createdAt: "desc",
+                        },
+                        take: 50,
+                    },
+                    document: true,
+                    contrat: true,
                 },
-                document: true,
-                contrat: true,
-            },
-        });
+            });
 
-        if (!intervention) {
-            return NextResponse.json(
-                { error: "Intervention not found" },
-                { status: 404 }
-            );
+            if (!intervention) {
+                throw new NotFoundError("Intervention non trouvée");
+            }
+
+            return NextResponse.json({ intervention });
+        },
+        {
+            anyCapability: ["domicile", "atelier"],
+            context: { resourceName: "Intervention", operation: "get" },
         }
-
-        return NextResponse.json({ intervention });
-    } catch (error) {
-        console.error("Error fetching intervention:", error);
-        return NextResponse.json(
-            { error: "Failed to fetch intervention" },
-            { status: 500 }
-        );
-    }
+    );
 }
 
-// PUT /api/interventions/[id] - Update intervention
-export async function PUT(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Unauthorized" },
-                { status: 401 }
-            );
-        }
+/**
+ * PUT /api/interventions/[id]
+ * Update intervention
+ */
+export async function PUT(request: NextRequest, { params }: RouteParams) {
+    return withApiHandler(
+        async (ctx) => {
+            const { id } = await params;
+            const body = await request.json();
 
-        // Allow both domicile (mobile work) and atelier (workshop) businesses
-        const capabilityCheck = await requireAnyCapability("domicile", "atelier");
-        if (capabilityCheck) return capabilityCheck;
+            const existing = await prisma.intervention.findFirst({
+                where: {
+                    id,
+                    entrepriseId: ctx.entrepriseId,
+                },
+            });
 
-        const { id } = await params;
-        const body = await request.json();
+            if (!existing) {
+                throw new NotFoundError("Intervention non trouvée");
+            }
 
-        const intervention = await prisma.intervention.update({
-            where: {
-                id,
-                entrepriseId: session.user.entrepriseId,
-            },
-            data: body,
-            include: {
-                client: true,
-                plombier: {
-                    select: {
-                        name: true,
+            const intervention = await prisma.intervention.update({
+                where: { id },
+                data: body,
+                include: {
+                    client: true,
+                    plombier: {
+                        select: {
+                            name: true,
+                        },
                     },
                 },
-            },
-        });
+            });
 
-        // Log the update
-        await prisma.interventionHistorique.create({
-            data: {
-                interventionId: id,
-                action: "UPDATE",
-                description: "Intervention mise à jour",
-                metadata: body,
-                createdBy: session.user.id,
-            },
-        });
+            // Log the update
+            await prisma.interventionHistorique.create({
+                data: {
+                    interventionId: id,
+                    action: "UPDATE",
+                    description: "Intervention mise à jour",
+                    metadata: body,
+                    createdBy: ctx.userId,
+                },
+            });
 
-        return NextResponse.json({ intervention });
-    } catch (error) {
-        console.error("Error updating intervention:", error);
-        return NextResponse.json(
-            { error: "Failed to update intervention" },
-            { status: 500 }
-        );
-    }
+            return NextResponse.json({ intervention });
+        },
+        {
+            anyCapability: ["domicile", "atelier"],
+            context: { resourceName: "Intervention", operation: "update" },
+        }
+    );
 }
 
-// DELETE /api/interventions/[id] - Delete intervention
-export async function DELETE(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Unauthorized" },
-                { status: 401 }
-            );
+/**
+ * DELETE /api/interventions/[id]
+ * Delete intervention
+ */
+export async function DELETE(_request: NextRequest, { params }: RouteParams) {
+    return withApiHandler(
+        async (ctx) => {
+            const { id } = await params;
+
+            const existing = await prisma.intervention.findFirst({
+                where: {
+                    id,
+                    entrepriseId: ctx.entrepriseId,
+                },
+            });
+
+            if (!existing) {
+                throw new NotFoundError("Intervention non trouvée");
+            }
+
+            await prisma.intervention.delete({ where: { id } });
+
+            return NextResponse.json({ success: true });
+        },
+        {
+            anyCapability: ["domicile", "atelier"],
+            context: { resourceName: "Intervention", operation: "delete" },
         }
-
-        // Allow both domicile (mobile work) and atelier (workshop) businesses
-        const capabilityCheck = await requireAnyCapability("domicile", "atelier");
-        if (capabilityCheck) return capabilityCheck;
-
-        const { id } = await params;
-
-        await prisma.intervention.delete({
-            where: {
-                id,
-                entrepriseId: session.user.entrepriseId,
-            },
-        });
-
-        return NextResponse.json({ success: true });
-    } catch (error) {
-        console.error("Error deleting intervention:", error);
-        return NextResponse.json(
-            { error: "Failed to delete intervention" },
-            { status: 500 }
-        );
-    }
+    );
 }

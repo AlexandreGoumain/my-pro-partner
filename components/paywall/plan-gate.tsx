@@ -1,8 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
-import { PlanType, PlanLimits } from "@/lib/pricing-config";
-import { usePlanLimits } from "@/hooks/use-plan-limits";
+import { usePlanLimits, type PlanType, type CombinedKey } from "@/hooks/use-plan-limits";
 import { UpgradeCard } from "./upgrade-card";
 
 interface PlanGateProps {
@@ -14,7 +13,7 @@ interface PlanGateProps {
     /**
      * Fonctionnalité requise pour afficher le contenu
      */
-    feature: keyof PlanLimits;
+    feature: CombinedKey;
 
     /**
      * Contenu à afficher si l'utilisateur a accès
@@ -42,7 +41,7 @@ interface PlanGateProps {
  *
  * @example
  * ```tsx
- * <PlanGate userPlan={user.plan} feature="canSegmentClients">
+ * <PlanGate userPlan={user.plan} feature="clientSegmentation">
  *   <ClientSegmentation />
  * </PlanGate>
  * ```

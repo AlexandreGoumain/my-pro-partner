@@ -1,38 +1,41 @@
-import { NextRequest, NextResponse } from "next/server";
-import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
+import { withApiHandler } from "@/lib/api/api-handler";
+import { NotFoundError } from "@/lib/errors";
 import { PaymentLinkService } from "@/lib/services/payment-link.service";
 import { prisma } from "@/lib/prisma";
+import { NextRequest, NextResponse } from "next/server";
 
 /**
  * DELETE /api/payment-links/[id]
  * Supprimer un lien de paiement
  */
 export async function DELETE(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+    _req: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const { entrepriseId } = await requireTenantAuth();
-    const { id: paymentLinkId } = await params;
+    return withApiHandler(
+        async (ctx) => {
+            const { id: paymentLinkId } = await params;
 
-    // Vérifier que le lien appartient à l'entreprise
-    const paymentLink = await prisma.paymentLink.findFirst({
-      where: {
-        id: paymentLinkId,
-        entrepriseId,
-      },
-    });
+            // Vérifier que le lien appartient à l'entreprise
+            const paymentLink = await prisma.paymentLink.findFirst({
+                where: {
+                    id: paymentLinkId,
+                    entrepriseId: ctx.entrepriseId,
+                },
+            });
 
-    if (!paymentLink) {
-      return NextResponse.json({ error: "Lien introuvable" }, { status: 404 });
-    }
+            if (!paymentLink) {
+                throw new NotFoundError("Lien de paiement");
+            }
 
-    await PaymentLinkService.deletePaymentLink(paymentLinkId);
+            await PaymentLinkService.deletePaymentLink(paymentLinkId);
 
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    return handleTenantError(error);
-  }
+            return NextResponse.json({ success: true });
+        },
+        {
+            context: { resourceName: "PaymentLink", operation: "delete" },
+        }
+    );
 }
 
 /**
@@ -40,30 +43,32 @@ export async function DELETE(
  * Désactiver/activer un lien de paiement
  */
 export async function PATCH(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+    req: NextRequest,
+    { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const { entrepriseId } = await requireTenantAuth();
-    const { id } = await params;
+    return withApiHandler(
+        async (ctx) => {
+            const { id } = await params;
 
-    const body = await req.json();
-    const { actif } = body;
+            const body = await req.json();
+            const { actif } = body;
 
-    const paymentLink = await prisma.paymentLink.updateMany({
-      where: {
-        id,
-        entrepriseId,
-      },
-      data: { actif },
-    });
+            const paymentLink = await prisma.paymentLink.updateMany({
+                where: {
+                    id,
+                    entrepriseId: ctx.entrepriseId,
+                },
+                data: { actif },
+            });
 
-    if (paymentLink.count === 0) {
-      return NextResponse.json({ error: "Lien introuvable" }, { status: 404 });
-    }
+            if (paymentLink.count === 0) {
+                throw new NotFoundError("Lien de paiement");
+            }
 
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    return handleTenantError(error);
-  }
+            return NextResponse.json({ success: true });
+        },
+        {
+            context: { resourceName: "PaymentLink", operation: "update" },
+        }
+    );
 }

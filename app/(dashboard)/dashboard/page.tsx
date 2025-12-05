@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { ActivityTimelineCard } from "@/components/dashboard/activity-timeline-card";
 import { BusinessHealthScore } from "@/components/dashboard/business-health-score";
 import { ConsultingDashboardSection } from "@/components/dashboard/consulting-dashboard-section";
@@ -7,6 +8,7 @@ import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { DashboardSkeleton } from "@/components/dashboard/dashboard-skeleton";
 import { DocumentPipelineCard } from "@/components/dashboard/document-pipeline-card";
 import { GoalProgressCard } from "@/components/dashboard/goal-progress-card";
+import { GoalEditDialog } from "@/components/dashboard/goals";
 import { ImmobilierDashboardSection } from "@/components/dashboard/immobilier";
 import { MetricComparisonCard } from "@/components/dashboard/metric-comparison-card";
 import { PeriodSelector } from "@/components/dashboard/period-selector";
@@ -18,9 +20,12 @@ import { TodayTasksCard } from "@/components/dashboard/today-tasks-card";
 import { TopPerformersCard } from "@/components/dashboard/top-performers-card";
 import { Button } from "@/components/ui/button";
 import { useDashboardPage } from "@/hooks/use-dashboard-page";
+import { useEnabledGoals } from "@/hooks/use-goals";
 import { CreditCard, FileText, Package, Users } from "lucide-react";
 
 export default function Dashboard() {
+    const [isGoalsDialogOpen, setIsGoalsDialogOpen] = useState(false);
+
     const {
         selectedPeriod,
         handlePeriodChange,
@@ -36,6 +41,9 @@ export default function Dashboard() {
         error,
         handleRefresh,
     } = useDashboardPage();
+
+    // Fetch user's configured goals
+    const { data: userGoals = [] } = useEnabledGoals();
 
     return (
         <div className="space-y-6">
@@ -101,7 +109,10 @@ export default function Dashboard() {
                     <div className="grid gap-5 lg:grid-cols-3">
                         <BusinessHealthScore health={data.health} />
                         <RevenueOverviewCard revenue={data.revenue} />
-                        <GoalProgressCard goals={data.goals} />
+                        <GoalProgressCard
+                            goals={userGoals}
+                            onConfigureClick={() => setIsGoalsDialogOpen(true)}
+                        />
                     </div>
 
                     {/* ===== SECTION 2: KPIs GRID ===== */}
@@ -112,6 +123,7 @@ export default function Dashboard() {
                             value={data.clients.new}
                             comparison={data.clients.newComparison}
                             icon={Users}
+                            isEmpty={data.isEmpty}
                         />
 
                         <MetricComparisonCard
@@ -120,32 +132,25 @@ export default function Dashboard() {
                             value={`${data.sales.conversionRate}%`}
                             comparison={data.sales.conversionRateComparison}
                             icon={FileText}
+                            isEmpty={data.isEmpty}
                         />
 
                         <MetricComparisonCard
                             title="Panier Moyen"
                             description="Par transaction"
                             value={`${data.sales.averageTicket.toFixed(0)}€`}
-                            comparison={{
-                                current: data.sales.averageTicket,
-                                previous: data.sales.averageTicket * 0.95,
-                                change: 5,
-                                trend: "up",
-                            }}
+                            comparison={data.sales.averageTicketComparison}
                             icon={CreditCard}
+                            isEmpty={data.isEmpty}
                         />
 
                         <MetricComparisonCard
                             title="Stock Total"
                             description="Articles actifs"
                             value={data.stock.totalArticles}
-                            comparison={{
-                                current: data.stock.totalArticles,
-                                previous: data.stock.totalArticles - 5,
-                                change: 2,
-                                trend: "stable",
-                            }}
+                            comparison={data.stock.totalArticlesComparison}
                             icon={Package}
+                            isEmpty={data.isEmpty}
                         />
                     </div>
 
@@ -170,6 +175,12 @@ export default function Dashboard() {
                     <ActivityTimelineCard activities={data.activities} />
                 </>
             )}
+
+            {/* Goals Configuration Dialog */}
+            <GoalEditDialog
+                open={isGoalsDialogOpen}
+                onOpenChange={setIsGoalsDialogOpen}
+            />
         </div>
     );
 }

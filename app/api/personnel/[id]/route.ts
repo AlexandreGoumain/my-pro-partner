@@ -6,35 +6,38 @@
  * DELETE /api/personnel/[id] - Supprimer un employé
  */
 
-import { NextRequest, NextResponse } from "next/server";
-import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
+import { withApiHandler } from "@/lib/api/api-handler";
+import { ValidationError, BusinessError } from "@/lib/errors";
 import {
-  getUserById,
-  updateUser,
-  deleteUser,
-  toggleUserStatus,
-  userHasPermission,
+    getUserById,
+    updateUser,
+    deleteUser,
+    toggleUserStatus,
+    userHasPermission,
 } from "@/lib/personnel/personnel.service";
-import { UserStatus } from "@/lib/generated/prisma";
+import { UserStatus } from "@/lib/personnel/roles-config";
+import { NextRequest, NextResponse } from "next/server";
+
+type RouteParams = { params: Promise<{ id: string }> };
 
 /**
  * GET /api/personnel/[id]
  * Récupérer les informations détaillées d'un employé
  */
 export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+    _req: NextRequest,
+    { params }: RouteParams
 ) {
-  try {
-    const { entrepriseId } = await requireTenantAuth();
-    const { id } = await params;
-
-    const user = await getUserById(id, entrepriseId);
-
-    return NextResponse.json({ user });
-  } catch (error: unknown) {
-    return handleTenantError(error);
-  }
+    return withApiHandler(
+        async (ctx) => {
+            const { id } = await params;
+            const user = await getUserById(id, ctx.entrepriseId);
+            return NextResponse.json({ user });
+        },
+        {
+            context: { resourceName: "Personnel", operation: "get" },
+        }
+    );
 }
 
 /**
@@ -42,74 +45,73 @@ export async function GET(
  * Mettre à jour les informations d'un employé
  */
 export async function PATCH(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+    req: NextRequest,
+    { params }: RouteParams
 ) {
-  try {
-    const { entrepriseId, userId } = await requireTenantAuth();
-    const { id } = await params;
+    return withApiHandler(
+        async (ctx) => {
+            const { id } = await params;
 
-    // Vérifier les permissions
-    const hasPermission = await userHasPermission(userId, "canManageUsers");
-    if (!hasPermission) {
-      return NextResponse.json(
-        { error: "Vous n'avez pas la permission de gérer les utilisateurs" },
-        { status: 403 }
-      );
-    }
+            // Vérifier les permissions
+            const hasPermission = await userHasPermission(ctx.userId, "canManageUsers");
+            if (!hasPermission) {
+                throw new BusinessError("Vous n'avez pas la permission de gérer les utilisateurs");
+            }
 
-    const body = await req.json();
+            const body = await req.json();
 
-    // Si c'est un changement de statut uniquement
-    if (body.status && Object.keys(body).length === 1) {
-      const user = await toggleUserStatus(
-        id,
-        entrepriseId,
-        body.status as UserStatus,
-        userId
-      );
-      return NextResponse.json({ user });
-    }
+            // Si c'est un changement de statut uniquement
+            if (body.status && Object.keys(body).length === 1) {
+                const user = await toggleUserStatus(
+                    id,
+                    ctx.entrepriseId,
+                    body.status as UserStatus,
+                    ctx.userId
+                );
+                return NextResponse.json({ user });
+            }
 
-    // Mise à jour complète
-    const updateData: Record<string, unknown> = {};
+            // Mise à jour complète
+            const updateData: Record<string, unknown> = {};
 
-    if (body.name !== undefined) updateData.name = body.name;
-    if (body.prenom !== undefined) updateData.prenom = body.prenom;
-    if (body.email !== undefined) updateData.email = body.email;
-    if (body.role !== undefined) updateData.role = body.role;
-    if (body.status !== undefined) updateData.status = body.status;
-    if (body.telephone !== undefined) updateData.telephone = body.telephone;
-    if (body.dateNaissance !== undefined) {
-      updateData.dateNaissance = body.dateNaissance ? new Date(body.dateNaissance) : null;
-    }
-    if (body.adresse !== undefined) updateData.adresse = body.adresse;
-    if (body.codePostal !== undefined) updateData.codePostal = body.codePostal;
-    if (body.ville !== undefined) updateData.ville = body.ville;
-    if (body.photoUrl !== undefined) updateData.photoUrl = body.photoUrl;
-    if (body.poste !== undefined) updateData.poste = body.poste;
-    if (body.departement !== undefined) updateData.departement = body.departement;
-    if (body.dateEmbauche !== undefined) {
-      updateData.dateEmbauche = body.dateEmbauche ? new Date(body.dateEmbauche) : null;
-    }
-    if (body.dateFinContrat !== undefined) {
-      updateData.dateFinContrat = body.dateFinContrat ? new Date(body.dateFinContrat) : null;
-    }
-    if (body.salaireHoraire !== undefined) updateData.salaireHoraire = body.salaireHoraire;
-    if (body.numeroSecu !== undefined) updateData.numeroSecu = body.numeroSecu;
-    if (body.iban !== undefined) updateData.iban = body.iban;
+            if (body.name !== undefined) updateData.name = body.name;
+            if (body.prenom !== undefined) updateData.prenom = body.prenom;
+            if (body.email !== undefined) updateData.email = body.email;
+            if (body.role !== undefined) updateData.role = body.role;
+            if (body.status !== undefined) updateData.status = body.status;
+            if (body.telephone !== undefined) updateData.telephone = body.telephone;
+            if (body.dateNaissance !== undefined) {
+                updateData.dateNaissance = body.dateNaissance ? new Date(body.dateNaissance) : null;
+            }
+            if (body.adresse !== undefined) updateData.adresse = body.adresse;
+            if (body.codePostal !== undefined) updateData.codePostal = body.codePostal;
+            if (body.ville !== undefined) updateData.ville = body.ville;
+            if (body.photoUrl !== undefined) updateData.photoUrl = body.photoUrl;
+            if (body.poste !== undefined) updateData.poste = body.poste;
+            if (body.departement !== undefined) updateData.departement = body.departement;
+            if (body.dateEmbauche !== undefined) {
+                updateData.dateEmbauche = body.dateEmbauche ? new Date(body.dateEmbauche) : null;
+            }
+            if (body.dateFinContrat !== undefined) {
+                updateData.dateFinContrat = body.dateFinContrat ? new Date(body.dateFinContrat) : null;
+            }
+            if (body.salaireHoraire !== undefined) updateData.salaireHoraire = body.salaireHoraire;
+            if (body.numeroSecu !== undefined) updateData.numeroSecu = body.numeroSecu;
+            if (body.iban !== undefined) updateData.iban = body.iban;
 
-    const user = await updateUser(
-      id,
-      entrepriseId,
-      updateData,
-      userId
+            const user = await updateUser(
+                id,
+                ctx.entrepriseId,
+                updateData,
+                ctx.userId
+            );
+
+            return NextResponse.json({ user });
+        },
+        {
+            context: { resourceName: "Personnel", operation: "update" },
+        }
     );
-
-    return NextResponse.json({ user });
-  } catch (error: unknown) {
-    return handleTenantError(error);
-  }
 }
 
 /**
@@ -117,34 +119,30 @@ export async function PATCH(
  * Supprimer un employé
  */
 export async function DELETE(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+    _req: NextRequest,
+    { params }: RouteParams
 ) {
-  try {
-    const { entrepriseId, userId } = await requireTenantAuth();
-    const { id } = await params;
+    return withApiHandler(
+        async (ctx) => {
+            const { id } = await params;
 
-    // Vérifier les permissions
-    const hasPermission = await userHasPermission(userId, "canManageUsers");
-    if (!hasPermission) {
-      return NextResponse.json(
-        { error: "Vous n'avez pas la permission de gérer les utilisateurs" },
-        { status: 403 }
-      );
-    }
+            // Vérifier les permissions
+            const hasPermission = await userHasPermission(ctx.userId, "canManageUsers");
+            if (!hasPermission) {
+                throw new BusinessError("Vous n'avez pas la permission de gérer les utilisateurs");
+            }
 
-    // Ne pas permettre de se supprimer soi-même
-    if (id === userId) {
-      return NextResponse.json(
-        { error: "Vous ne pouvez pas vous supprimer vous-même" },
-        { status: 400 }
-      );
-    }
+            // Ne pas permettre de se supprimer soi-même
+            if (id === ctx.userId) {
+                throw new ValidationError("Vous ne pouvez pas vous supprimer vous-même");
+            }
 
-    await deleteUser(id, entrepriseId, userId);
+            await deleteUser(id, ctx.entrepriseId, ctx.userId);
 
-    return NextResponse.json({ success: true });
-  } catch (error: unknown) {
-    return handleTenantError(error);
-  }
+            return NextResponse.json({ success: true });
+        },
+        {
+            context: { resourceName: "Personnel", operation: "delete" },
+        }
+    );
 }

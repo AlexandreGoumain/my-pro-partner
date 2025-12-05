@@ -132,13 +132,17 @@ export function secureLog(
     const sanitizedData = sanitizeLogData(data);
     const sanitizedContext = sanitizeLogData(context);
 
-    const logEntry = {
+    const logEntry: Record<string, unknown> = {
         timestamp: new Date().toISOString(),
         level,
         message,
-        ...(sanitizedContext as object),
-        ...(sanitizedData && { data: sanitizedData }),
     };
+    if (sanitizedContext && typeof sanitizedContext === 'object') {
+        Object.assign(logEntry, sanitizedContext);
+    }
+    if (sanitizedData) {
+        logEntry.data = sanitizedData;
+    }
 
     // En production, utiliser un format JSON structuré
     if (process.env.NODE_ENV === "production") {

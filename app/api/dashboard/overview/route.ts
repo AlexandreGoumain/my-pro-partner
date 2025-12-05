@@ -1,7 +1,4 @@
-import {
-    handleTenantError,
-    requireTenantAuth,
-} from "@/lib/middleware/tenant-isolation";
+import { withApiHandler } from "@/lib/api/api-handler";
 import { prisma } from "@/lib/prisma";
 import type {
     ActivityEvent,
@@ -9,7 +6,6 @@ import type {
     ClientMetrics,
     DashboardOverview,
     DocumentPipeline,
-    Goal,
     Insight,
     PaymentMetrics,
     PeriodComparison,
@@ -26,37 +22,36 @@ import { NextRequest, NextResponse } from "next/server";
  * Returns all metrics, insights, and business intelligence
  */
 export async function GET(req: NextRequest) {
-    try {
-        const { entrepriseId } = await requireTenantAuth();
+    return withApiHandler(
+        async (ctx) => {
+            // Get period from query params (default: last 30 days)
+                const searchParams = req.nextUrl.searchParams;
+            const periodDays = parseInt(searchParams.get("period") || "30");
 
-        // Get period from query params (default: last 30 days)
-        const searchParams = req.nextUrl.searchParams;
-        const periodDays = parseInt(searchParams.get("period") || "30");
+            const now = new Date();
+            const periodStart = new Date(now);
+            periodStart.setDate(periodStart.getDate() - periodDays);
 
-        const now = new Date();
-        const periodStart = new Date(now);
-        periodStart.setDate(periodStart.getDate() - periodDays);
+            // Define date ranges for comparisons
+            const firstDayThisMonth = new Date(
+                now.getFullYear(),
+                now.getMonth(),
+                1
+            );
+            const firstDayLastMonth = new Date(
+                now.getFullYear(),
+                now.getMonth() - 1,
+                1
+            );
+            const firstDayThisYear = new Date(now.getFullYear(), 0, 1);
+            const thirtyDaysAgo = new Date(now);
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-        // Define date ranges for comparisons
-        const firstDayThisMonth = new Date(
-            now.getFullYear(),
-            now.getMonth(),
-            1
-        );
-        const firstDayLastMonth = new Date(
-            now.getFullYear(),
-            now.getMonth() - 1,
-            1
-        );
-        const firstDayThisYear = new Date(now.getFullYear(), 0, 1);
-        const thirtyDaysAgo = new Date(now);
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-        // Fetch all data in parallel for performance
-        const [documents, clients, articles, mouvementsStock, paiements] =
-            await Promise.all([
-                prisma.document.findMany({
-                    where: { entrepriseId },
+            // Fetch all data in parallel for performance
+            const [documents, clients, articles, mouvementsStock, paiements] =
+                await Promise.all([
+                    prisma.document.findMany({
+                        where: { entrepriseId: ctx.entrepriseId },
                     select: {
                         id: true,
                         type: true,
@@ -89,8 +84,8 @@ export async function GET(req: NextRequest) {
                         },
                     },
                 }),
-                prisma.client.findMany({
-                    where: { entrepriseId },
+                    prisma.client.findMany({
+                        where: { entrepriseId: ctx.entrepriseId },
                     select: {
                         id: true,
                         nom: true,
@@ -106,8 +101,8 @@ export async function GET(req: NextRequest) {
                         },
                     },
                 }),
-                prisma.article.findMany({
-                    where: { entrepriseId },
+                    prisma.article.findMany({
+                        where: { entrepriseId: ctx.entrepriseId },
                     select: {
                         id: true,
                         reference: true,
@@ -117,11 +112,12 @@ export async function GET(req: NextRequest) {
                         stock_actuel: true,
                         stock_min: true,
                         valeurEstimee: true,
+                        createdAt: true,
                     },
                 }),
-                prisma.mouvementStock.findMany({
-                    where: {
-                        article: { entrepriseId },
+                    prisma.mouvementStock.findMany({
+                        where: {
+                            article: { entrepriseId: ctx.entrepriseId },
                         createdAt: { gte: periodStart },
                     },
                     select: {
@@ -130,10 +126,10 @@ export async function GET(req: NextRequest) {
                         createdAt: true,
                     },
                 }),
-                prisma.paiement.findMany({
-                    where: {
-                        document: { entrepriseId },
-                    },
+                    prisma.paiement.findMany({
+                        where: {
+                            document: { entrepriseId: ctx.entrepriseId },
+                        },
                     select: {
                         montant: true,
                         date_paiement: true,
@@ -164,7 +160,9 @@ export async function GET(req: NextRequest) {
         const stock = calculateStockMetrics(
             articles,
             mouvementsStock,
-            periodDays
+            periodDays,
+            firstDayThisMonth,
+            firstDayLastMonth
         );
         const topPerformers = calculateTopPerformers(
             clients,
@@ -172,12 +170,17 @@ export async function GET(req: NextRequest) {
             articles
         );
         const pipeline = calculateDocumentPipeline(documents);
+
+        // Check if database has any meaningful data
+        const hasData = documents.length > 0 || clients.length > 0 || articles.length > 0;
+
         const health = calculateBusinessHealth(
             revenue,
             payments,
             clientMetrics,
             sales,
-            stock
+            stock,
+            hasData
         );
         const insights = generateInsights(
             documents,
@@ -192,7 +195,6 @@ export async function GET(req: NextRequest) {
             clients,
             mouvementsStock
         );
-        const goals = calculateGoals(revenue, sales, clientMetrics);
 
         const overview: DashboardOverview = {
             revenue,
@@ -205,18 +207,20 @@ export async function GET(req: NextRequest) {
             health,
             insights,
             activities,
-            goals,
             lastUpdated: now,
             period: {
                 start: periodStart,
                 end: now,
             },
+            isEmpty: !hasData,
         };
 
-        return NextResponse.json({ success: true, data: overview });
-    } catch (error) {
-        return handleTenantError(error);
-    }
+            return NextResponse.json({ success: true, data: overview });
+        },
+        {
+            context: { resourceName: "Dashboard", operation: "overview" },
+        }
+    );
 }
 
 // ============================================================================
@@ -537,7 +541,30 @@ function calculateSalesMetrics(
         (i) => i.statut !== "PAYE" && i.statut !== "ANNULE"
     ).length;
 
-    // Average ticket
+    // Average ticket this month
+    const paidInvoicesThisMonth = invoices.filter(
+        (i) => i.statut === "PAYE" && new Date(i.dateEmission) >= firstDayThisMonth
+    );
+    const averageTicketThisMonth =
+        paidInvoicesThisMonth.length > 0
+            ? paidInvoicesThisMonth.reduce((sum, i) => sum + Number(i.total_ttc), 0) /
+              paidInvoicesThisMonth.length
+            : 0;
+
+    // Average ticket last month
+    const paidInvoicesLastMonth = invoices.filter(
+        (i) =>
+            i.statut === "PAYE" &&
+            new Date(i.dateEmission) >= firstDayLastMonth &&
+            new Date(i.dateEmission) < firstDayThisMonth
+    );
+    const averageTicketLastMonth =
+        paidInvoicesLastMonth.length > 0
+            ? paidInvoicesLastMonth.reduce((sum, i) => sum + Number(i.total_ttc), 0) /
+              paidInvoicesLastMonth.length
+            : 0;
+
+    // Average ticket (all time)
     const averageTicket =
         invoicesPaid > 0
             ? invoices
@@ -545,6 +572,23 @@ function calculateSalesMetrics(
                   .reduce((sum, i) => sum + Number(i.total_ttc), 0) /
               invoicesPaid
             : 0;
+
+    const averageTicketChange =
+        averageTicketLastMonth > 0
+            ? ((averageTicketThisMonth - averageTicketLastMonth) / averageTicketLastMonth) * 100
+            : 0;
+
+    const averageTicketComparison: PeriodComparison = {
+        current: averageTicketThisMonth,
+        previous: averageTicketLastMonth,
+        change: Math.round(averageTicketChange * 10) / 10,
+        trend:
+            averageTicketChange > 2
+                ? "up"
+                : averageTicketChange < -2
+                  ? "down"
+                  : "stable",
+    };
 
     return {
         quotesCreated,
@@ -554,6 +598,7 @@ function calculateSalesMetrics(
         invoicesPaid,
         invoicesPending,
         averageTicket,
+        averageTicketComparison,
     };
 }
 
@@ -564,7 +609,9 @@ function calculateSalesMetrics(
 function calculateStockMetrics(
     articles: any[],
     mouvements: any[],
-    periodDays: number
+    periodDays: number,
+    firstDayThisMonth: Date,
+    firstDayLastMonth: Date
 ): StockMetrics {
     const totalArticles = articles.length;
 
@@ -589,12 +636,43 @@ function calculateStockMetrics(
     const turnoverRate =
         periodDays > 0 ? (totalMovements / periodDays) * 30 : 0;
 
+    // Articles created this month vs last month
+    const articlesThisMonth = articles.filter(
+        (a) => new Date(a.createdAt) >= firstDayThisMonth
+    ).length;
+
+    const articlesLastMonth = articles.filter(
+        (a) =>
+            new Date(a.createdAt) >= firstDayLastMonth &&
+            new Date(a.createdAt) < firstDayThisMonth
+    ).length;
+
+    const articlesChange =
+        articlesLastMonth > 0
+            ? ((articlesThisMonth - articlesLastMonth) / articlesLastMonth) * 100
+            : articlesThisMonth > 0
+              ? 100
+              : 0;
+
+    const totalArticlesComparison: PeriodComparison = {
+        current: totalArticles,
+        previous: totalArticles - articlesThisMonth,
+        change: Math.round(articlesChange * 10) / 10,
+        trend:
+            articlesChange > 5
+                ? "up"
+                : articlesChange < -5
+                  ? "down"
+                  : "stable",
+    };
+
     return {
         totalArticles,
         outOfStock,
         lowStock,
         stockValue,
         turnoverRate: Math.round(turnoverRate * 10) / 10,
+        totalArticlesComparison,
     };
 }
 
@@ -735,8 +813,25 @@ function calculateBusinessHealth(
     payments: PaymentMetrics,
     clients: ClientMetrics,
     sales: SalesMetrics,
-    stock: StockMetrics
+    stock: StockMetrics,
+    hasData: boolean
 ): BusinessHealth {
+    // Return empty state if no data
+    if (!hasData) {
+        return {
+            score: 0,
+            level: "critical",
+            factors: {
+                revenue: 0,
+                cashflow: 0,
+                clientGrowth: 0,
+                conversion: 0,
+                stock: 0,
+            },
+            isEmpty: true,
+        };
+    }
+
     // Revenue factor (0-100)
     const revenueFactor = Math.min(
         100,
@@ -791,6 +886,7 @@ function calculateBusinessHealth(
             conversion: Math.round(conversionFactor),
             stock: Math.round(stockFactor),
         },
+        isEmpty: false,
     };
 }
 
@@ -1038,66 +1134,4 @@ function generateActivityTimeline(
     return activities
         .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
         .slice(0, 15);
-}
-
-// ============================================================================
-// Helper Functions - Goals
-// ============================================================================
-
-function calculateGoals(
-    revenue: RevenueMetrics,
-    sales: SalesMetrics,
-    clients: ClientMetrics
-): Goal[] {
-    const goals: Goal[] = [];
-
-    // Revenue goal (example: 50k per month)
-    const revenueTarget = 50000;
-    const revenueProgress = Math.min(
-        100,
-        (revenue.thisMonth / revenueTarget) * 100
-    );
-    goals.push({
-        id: "goal-revenue",
-        label: "Chiffre d'affaires mensuel",
-        target: revenueTarget,
-        current: revenue.thisMonth,
-        unit: "currency",
-        period: "month",
-        progress: Math.round(revenueProgress),
-        onTrack: revenueProgress >= 80,
-    });
-
-    // New clients goal (example: 10 per month)
-    const clientTarget = 10;
-    const clientProgress = Math.min(100, (clients.new / clientTarget) * 100);
-    goals.push({
-        id: "goal-clients",
-        label: "Nouveaux clients",
-        target: clientTarget,
-        current: clients.new,
-        unit: "number",
-        period: "month",
-        progress: Math.round(clientProgress),
-        onTrack: clientProgress >= 80,
-    });
-
-    // Conversion rate goal (example: 60%)
-    const conversionTarget = 60;
-    const conversionProgress = Math.min(
-        100,
-        (sales.conversionRate / conversionTarget) * 100
-    );
-    goals.push({
-        id: "goal-conversion",
-        label: "Taux de conversion",
-        target: conversionTarget,
-        current: Math.round(sales.conversionRate),
-        unit: "percentage",
-        period: "month",
-        progress: Math.round(conversionProgress),
-        onTrack: conversionProgress >= 80,
-    });
-
-    return goals;
 }

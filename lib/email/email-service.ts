@@ -218,6 +218,12 @@ export class EmailService {
     role: string,
     invitationLink: string
   ): string {
+    // Escape user-provided data to prevent XSS
+    const safeInviteeName = EmailService.escapeHtml(inviteeName);
+    const safeInviterName = EmailService.escapeHtml(inviterName);
+    const safeEntrepriseName = EmailService.escapeHtml(entrepriseName);
+    const safeRole = EmailService.escapeHtml(role);
+
     return `
 <!DOCTYPE html>
 <html lang="fr">
@@ -236,11 +242,11 @@ export class EmailService {
         <!-- Content -->
         <div style="background-color: #fafafa; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; padding: 32px;">
             <p style="font-size: 15px; line-height: 1.6; color: rgba(0,0,0,0.8); margin: 0 0 20px 0;">
-                Bonjour${inviteeName ? ' ' + inviteeName : ''},
+                Bonjour${safeInviteeName ? ' ' + safeInviteeName : ''},
             </p>
 
             <p style="font-size: 15px; line-height: 1.6; color: rgba(0,0,0,0.8); margin: 0 0 24px 0;">
-                <strong>${inviterName}</strong> vous invite à rejoindre <strong>${entrepriseName}</strong> sur MyProPartner en tant que <strong>${role}</strong>.
+                <strong>${safeInviterName}</strong> vous invite à rejoindre <strong>${safeEntrepriseName}</strong> sur MyProPartner en tant que <strong>${safeRole}</strong>.
             </p>
 
             <!-- Info Box -->
@@ -250,11 +256,11 @@ export class EmailService {
                 </p>
                 <div style="margin-bottom: 12px;">
                     <p style="font-size: 12px; color: rgba(0,0,0,0.5); margin: 0 0 4px 0;">Entreprise</p>
-                    <p style="font-size: 14px; color: #000000; font-weight: 500; margin: 0;">${entrepriseName}</p>
+                    <p style="font-size: 14px; color: #000000; font-weight: 500; margin: 0;">${safeEntrepriseName}</p>
                 </div>
                 <div>
                     <p style="font-size: 12px; color: rgba(0,0,0,0.5); margin: 0 0 4px 0;">Rôle</p>
-                    <p style="font-size: 14px; color: #000000; font-weight: 500; margin: 0;">${role}</p>
+                    <p style="font-size: 14px; color: #000000; font-weight: 500; margin: 0;">${safeRole}</p>
                 </div>
             </div>
 
@@ -396,6 +402,10 @@ export class EmailService {
    * Client approval email template
    */
   private getClientApprovalTemplate(clientName: string, entrepriseName: string, loginUrl: string): string {
+    // Escape user-provided data to prevent XSS
+    const safeClientName = EmailService.escapeHtml(clientName);
+    const safeEntrepriseName = EmailService.escapeHtml(entrepriseName);
+
     return `
 <!DOCTYPE html>
 <html lang="fr">
@@ -412,11 +422,11 @@ export class EmailService {
 
         <div style="background-color: #fafafa; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; padding: 32px;">
             <p style="font-size: 15px; line-height: 1.6; color: rgba(0,0,0,0.8); margin: 0 0 20px 0;">
-                Bonjour${clientName ? ' ' + clientName : ''},
+                Bonjour${safeClientName ? ' ' + safeClientName : ''},
             </p>
 
             <p style="font-size: 15px; line-height: 1.6; color: rgba(0,0,0,0.8); margin: 0 0 24px 0;">
-                Bonne nouvelle ! Votre compte client chez <strong>${entrepriseName}</strong> a été approuvé et activé.
+                Bonne nouvelle ! Votre compte client chez <strong>${safeEntrepriseName}</strong> a été approuvé et activé.
             </p>
 
             <p style="font-size: 15px; line-height: 1.6; color: rgba(0,0,0,0.8); margin: 0 0 24px 0;">
@@ -451,6 +461,11 @@ export class EmailService {
    * Client rejection email template
    */
   private getClientRejectionTemplate(clientName: string, entrepriseName: string, reason?: string): string {
+    // Escape user-provided data to prevent XSS
+    const safeClientName = EmailService.escapeHtml(clientName);
+    const safeEntrepriseName = EmailService.escapeHtml(entrepriseName);
+    const safeReason = EmailService.escapeHtml(reason);
+
     return `
 <!DOCTYPE html>
 <html lang="fr">
@@ -467,18 +482,18 @@ export class EmailService {
 
         <div style="background-color: #fafafa; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; padding: 32px;">
             <p style="font-size: 15px; line-height: 1.6; color: rgba(0,0,0,0.8); margin: 0 0 20px 0;">
-                Bonjour${clientName ? ' ' + clientName : ''},
+                Bonjour${safeClientName ? ' ' + safeClientName : ''},
             </p>
 
             <p style="font-size: 15px; line-height: 1.6; color: rgba(0,0,0,0.8); margin: 0 0 24px 0;">
-                Nous avons examiné votre demande d'inscription chez <strong>${entrepriseName}</strong>.
+                Nous avons examiné votre demande d'inscription chez <strong>${safeEntrepriseName}</strong>.
             </p>
 
-            ${reason ? `
+            ${safeReason ? `
             <div style="background-color: rgba(0,0,0,0.03); border-radius: 6px; padding: 16px; margin: 24px 0;">
                 <p style="font-size: 13px; color: rgba(0,0,0,0.5); margin: 0 0 8px 0; font-weight: 500;">MOTIF</p>
                 <p style="font-size: 14px; line-height: 1.6; color: rgba(0,0,0,0.8); margin: 0;">
-                    ${reason}
+                    ${safeReason}
                 </p>
             </div>
             ` : ''}
@@ -490,7 +505,7 @@ export class EmailService {
 
         <div style="text-align: center; margin-top: 40px;">
             <p style="font-size: 12px; color: rgba(0,0,0,0.4); margin: 0;">
-                Cordialement, l'équipe ${entrepriseName}
+                Cordialement, l'équipe ${safeEntrepriseName}
             </p>
         </div>
     </div>
@@ -503,6 +518,10 @@ export class EmailService {
    * Client invitation email template
    */
   private getClientInvitationTemplate(clientName: string | undefined, entrepriseName: string, invitationLink: string): string {
+    // Escape user-provided data to prevent XSS
+    const safeClientName = EmailService.escapeHtml(clientName);
+    const safeEntrepriseName = EmailService.escapeHtml(entrepriseName);
+
     return `
 <!DOCTYPE html>
 <html lang="fr">
@@ -519,11 +538,11 @@ export class EmailService {
 
         <div style="background-color: #fafafa; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; padding: 32px;">
             <p style="font-size: 15px; line-height: 1.6; color: rgba(0,0,0,0.8); margin: 0 0 20px 0;">
-                Bonjour${clientName ? ' ' + clientName : ''},
+                Bonjour${safeClientName ? ' ' + safeClientName : ''},
             </p>
 
             <p style="font-size: 15px; line-height: 1.6; color: rgba(0,0,0,0.8); margin: 0 0 24px 0;">
-                <strong>${entrepriseName}</strong> vous invite à créer votre espace client pour profiter de nombreux avantages :
+                <strong>${safeEntrepriseName}</strong> vous invite à créer votre espace client pour profiter de nombreux avantages :
             </p>
 
             <ul style="font-size: 15px; line-height: 1.8; color: rgba(0,0,0,0.8); margin: 0 0 24px 0;">
@@ -563,6 +582,10 @@ export class EmailService {
    * Client welcome email template
    */
   private getClientWelcomeTemplate(clientName: string, entrepriseName: string, loginUrl: string): string {
+    // Escape user-provided data to prevent XSS
+    const safeClientName = EmailService.escapeHtml(clientName);
+    const safeEntrepriseName = EmailService.escapeHtml(entrepriseName);
+
     return `
 <!DOCTYPE html>
 <html lang="fr">
@@ -579,11 +602,11 @@ export class EmailService {
 
         <div style="background-color: #fafafa; border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; padding: 32px;">
             <p style="font-size: 15px; line-height: 1.6; color: rgba(0,0,0,0.8); margin: 0 0 20px 0;">
-                Bonjour${clientName ? ' ' + clientName : ''},
+                Bonjour${safeClientName ? ' ' + safeClientName : ''},
             </p>
 
             <p style="font-size: 15px; line-height: 1.6; color: rgba(0,0,0,0.8); margin: 0 0 24px 0;">
-                Bienvenue chez <strong>${entrepriseName}</strong> ! Votre compte client a été créé avec succès.
+                Bienvenue chez <strong>${safeEntrepriseName}</strong> ! Votre compte client a été créé avec succès.
             </p>
 
             <p style="font-size: 15px; line-height: 1.6; color: rgba(0,0,0,0.8); margin: 0 0 24px 0;">
@@ -632,6 +655,19 @@ export class EmailService {
       .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
       .replace(/on\w+="[^"]*"/gi, '')
       .replace(/on\w+='[^']*'/gi, '');
+  }
+
+  /**
+   * Escape HTML special characters to prevent XSS injection in email templates
+   */
+  static escapeHtml(text: string | undefined | null): string {
+    if (!text) return '';
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
   }
 }
 

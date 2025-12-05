@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
-import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
+import { withApiHandler } from "@/lib/api/api-handler";
 import { prisma } from "@/lib/prisma";
+import { NextRequest, NextResponse } from "next/server";
 
 /**
  * POST /api/subscription/reset
@@ -9,35 +9,34 @@ import { prisma } from "@/lib/prisma";
  * À utiliser UNIQUEMENT en cas d'état incohérent
  */
 export async function POST(_req: NextRequest) {
-  try {
-    const { entrepriseId } = await requireTenantAuth();
+    return withApiHandler(
+        async (ctx) => {
+            // 1. Supprimer toutes les subscriptions dans la DB
+            await prisma.subscription.deleteMany({
+                where: { entrepriseId: ctx.entrepriseId },
+            });
 
-    // 1. Supprimer toutes les subscriptions dans la DB
-    await prisma.subscription.deleteMany({
-      where: { entrepriseId },
-    });
+            // 2. Remettre l'entreprise en FREE
+            await prisma.entreprise.update({
+                where: { id: ctx.entrepriseId },
+                data: {
+                    plan: "FREE",
+                },
+            });
 
-    // 2. Remettre l'entreprise en FREE
-    await prisma.entreprise.update({
-      where: { id: entrepriseId },
-      data: {
-        plan: "FREE",
-      },
-    });
-
-    console.log(`[RESET_SUBSCRIPTION] ✅ Subscription reset for entreprise ${entrepriseId}`);
-
-    return NextResponse.json({
-      success: true,
-      message: "Abonnement remis à zéro. Vous êtes maintenant en plan FREE.",
-      actions: [
-        "✅ Toutes les subscriptions supprimées de la DB",
-        "✅ Entreprise remise en plan FREE",
-        "✅ IDs Stripe supprimés",
-        "ℹ️  Vous pouvez maintenant souscrire à nouveau à un plan",
-      ],
-    });
-  } catch (error) {
-    return handleTenantError(error);
-  }
+            return NextResponse.json({
+                success: true,
+                message: "Abonnement remis à zéro. Vous êtes maintenant en plan FREE.",
+                actions: [
+                    "✅ Toutes les subscriptions supprimées de la DB",
+                    "✅ Entreprise remise en plan FREE",
+                    "✅ IDs Stripe supprimés",
+                    "ℹ️  Vous pouvez maintenant souscrire à nouveau à un plan",
+                ],
+            });
+        },
+        {
+            context: { resourceName: "Subscription", operation: "reset" },
+        }
+    );
 }

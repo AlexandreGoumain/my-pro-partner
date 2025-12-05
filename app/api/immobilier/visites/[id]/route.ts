@@ -1,237 +1,171 @@
-import { authOptions } from "@/lib/auth";
-import { requireAnyCapability } from "@/lib/middleware/business-type-check";
+import { withApiHandler } from "@/lib/api/api-handler";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import { NotFoundError } from "@/lib/errors";
 import { NextRequest, NextResponse } from "next/server";
 
-// GET /api/immobilier/visites/[id] - Get single visite
-export async function GET(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Unauthorized" },
-                { status: 401 }
-            );
+type RouteParams = { params: Promise<{ id: string }> };
+
+/**
+ * GET /api/immobilier/visites/[id]
+ * Get single visite
+ */
+export async function GET(_request: NextRequest, { params }: RouteParams) {
+    return withApiHandler(
+        async (ctx) => {
+            const { id } = await params;
+
+            const visite = await prisma.visiteImmobilier.findFirst({
+                where: {
+                    id,
+                    entrepriseId: ctx.entrepriseId,
+                },
+                include: {
+                    bien: {
+                        select: {
+                            id: true,
+                            reference: true,
+                            titre: true,
+                            typeBien: true,
+                            ville: true,
+                            adresse: true,
+                            photos: true,
+                            prixVente: true,
+                        },
+                    },
+                    visiteur: {
+                        select: {
+                            id: true,
+                            nom: true,
+                            prenom: true,
+                            telephone: true,
+                            email: true,
+                        },
+                    },
+                    agent: {
+                        select: {
+                            id: true,
+                            prenom: true,
+                            nom: true,
+                        },
+                    },
+                    mandat: {
+                        select: {
+                            id: true,
+                            numero: true,
+                        },
+                    },
+                },
+            });
+
+            if (!visite) {
+                throw new NotFoundError("Visite non trouvée");
+            }
+
+            return NextResponse.json({ visite });
+        },
+        {
+            anyCapability: ["visites_immo"],
+            context: { resourceName: "VisiteImmobilier", operation: "get" },
         }
-
-        const capabilityCheck = await requireAnyCapability("visites_immo");
-        if (capabilityCheck) return capabilityCheck;
-
-        const { id } = await params;
-
-        const visite = await prisma.visiteImmobilier.findFirst({
-            where: {
-                id,
-                entrepriseId: session.user.entrepriseId,
-            },
-            include: {
-                bien: {
-                    select: {
-                        id: true,
-                        reference: true,
-                        titre: true,
-                        typeBien: true,
-                        ville: true,
-                        adresse: true,
-                        photos: true,
-                        prixVente: true,
-                    },
-                },
-                visiteur: {
-                    select: {
-                        id: true,
-                        nom: true,
-                        prenom: true,
-                        telephone: true,
-                        email: true,
-                    },
-                },
-                agent: {
-                    select: {
-                        id: true,
-                        prenom: true,
-                        nom: true,
-                    },
-                },
-                mandat: {
-                    select: {
-                        id: true,
-                        numero: true,
-                    },
-                },
-            },
-        });
-
-        if (!visite) {
-            return NextResponse.json(
-                { error: "Visite non trouvée" },
-                { status: 404 }
-            );
-        }
-
-        return NextResponse.json({ visite });
-    } catch (error) {
-        console.error("Error fetching visite:", error);
-        return NextResponse.json(
-            { error: "Failed to fetch visite" },
-            { status: 500 }
-        );
-    }
+    );
 }
 
-// PATCH /api/immobilier/visites/[id] - Update visite
-export async function PATCH(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Unauthorized" },
-                { status: 401 }
-            );
-        }
+/**
+ * PATCH /api/immobilier/visites/[id]
+ * Update visite
+ */
+export async function PATCH(request: NextRequest, { params }: RouteParams) {
+    return withApiHandler(
+        async (ctx) => {
+            const { id } = await params;
+            const body = await request.json();
 
-        const capabilityCheck = await requireAnyCapability("visites_immo");
-        if (capabilityCheck) return capabilityCheck;
+            const existing = await prisma.visiteImmobilier.findFirst({
+                where: {
+                    id,
+                    entrepriseId: ctx.entrepriseId,
+                },
+            });
 
-        const { id } = await params;
-        const body = await request.json();
+            if (!existing) {
+                throw new NotFoundError("Visite non trouvée");
+            }
 
-        // Verify visite exists and belongs to entreprise
-        const existing = await prisma.visiteImmobilier.findFirst({
-            where: {
-                id,
-                entrepriseId: session.user.entrepriseId,
-            },
-        });
+            const updateData: Record<string, unknown> = {};
 
-        if (!existing) {
-            return NextResponse.json(
-                { error: "Visite non trouvée" },
-                { status: 404 }
-            );
-        }
+            if (body.statut !== undefined) updateData.statut = body.statut;
+            if (body.dateVisite !== undefined) updateData.dateVisite = new Date(body.dateVisite);
+            if (body.duree !== undefined) updateData.duree = body.duree;
+            if (body.agentId !== undefined) updateData.agentId = body.agentId;
+            if (body.compteRendu !== undefined) updateData.compteRendu = body.compteRendu;
+            if (body.noteInteret !== undefined) updateData.noteInteret = body.noteInteret;
+            if (body.notes !== undefined) updateData.notes = body.notes;
 
-        // Build update data
-        const updateData: any = {};
-
-        if (body.statut !== undefined) {
-            updateData.statut = body.statut;
-        }
-
-        if (body.dateVisite !== undefined) {
-            updateData.dateVisite = new Date(body.dateVisite);
-        }
-
-        if (body.duree !== undefined) {
-            updateData.duree = body.duree;
-        }
-
-        if (body.agentId !== undefined) {
-            updateData.agentId = body.agentId;
-        }
-
-        if (body.compteRendu !== undefined) {
-            updateData.compteRendu = body.compteRendu;
-        }
-
-        if (body.noteInteret !== undefined) {
-            updateData.noteInteret = body.noteInteret;
-        }
-
-        if (body.notes !== undefined) {
-            updateData.notes = body.notes;
-        }
-
-        const visite = await prisma.visiteImmobilier.update({
-            where: { id },
-            data: updateData,
-            include: {
-                bien: {
-                    select: {
-                        id: true,
-                        reference: true,
-                        titre: true,
+            const visite = await prisma.visiteImmobilier.update({
+                where: { id },
+                data: updateData,
+                include: {
+                    bien: {
+                        select: {
+                            id: true,
+                            reference: true,
+                            titre: true,
+                        },
+                    },
+                    visiteur: {
+                        select: {
+                            id: true,
+                            nom: true,
+                            prenom: true,
+                            telephone: true,
+                        },
+                    },
+                    agent: {
+                        select: {
+                            id: true,
+                            prenom: true,
+                            nom: true,
+                        },
                     },
                 },
-                visiteur: {
-                    select: {
-                        id: true,
-                        nom: true,
-                        prenom: true,
-                        telephone: true,
-                    },
-                },
-                agent: {
-                    select: {
-                        id: true,
-                        prenom: true,
-                        nom: true,
-                    },
-                },
-            },
-        });
+            });
 
-        return NextResponse.json({ visite });
-    } catch (error) {
-        console.error("Error updating visite:", error);
-        return NextResponse.json(
-            { error: "Failed to update visite" },
-            { status: 500 }
-        );
-    }
+            return NextResponse.json({ visite });
+        },
+        {
+            anyCapability: ["visites_immo"],
+            context: { resourceName: "VisiteImmobilier", operation: "update" },
+        }
+    );
 }
 
-// DELETE /api/immobilier/visites/[id] - Delete visite
-export async function DELETE(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Unauthorized" },
-                { status: 401 }
-            );
+/**
+ * DELETE /api/immobilier/visites/[id]
+ * Delete visite
+ */
+export async function DELETE(_request: NextRequest, { params }: RouteParams) {
+    return withApiHandler(
+        async (ctx) => {
+            const { id } = await params;
+
+            const existing = await prisma.visiteImmobilier.findFirst({
+                where: {
+                    id,
+                    entrepriseId: ctx.entrepriseId,
+                },
+            });
+
+            if (!existing) {
+                throw new NotFoundError("Visite non trouvée");
+            }
+
+            await prisma.visiteImmobilier.delete({ where: { id } });
+
+            return NextResponse.json({ success: true });
+        },
+        {
+            anyCapability: ["visites_immo"],
+            context: { resourceName: "VisiteImmobilier", operation: "delete" },
         }
-
-        const capabilityCheck = await requireAnyCapability("visites_immo");
-        if (capabilityCheck) return capabilityCheck;
-
-        const { id } = await params;
-
-        // Verify visite exists and belongs to entreprise
-        const existing = await prisma.visiteImmobilier.findFirst({
-            where: {
-                id,
-                entrepriseId: session.user.entrepriseId,
-            },
-        });
-
-        if (!existing) {
-            return NextResponse.json(
-                { error: "Visite non trouvée" },
-                { status: 404 }
-            );
-        }
-
-        await prisma.visiteImmobilier.delete({
-            where: { id },
-        });
-
-        return NextResponse.json({ success: true });
-    } catch (error) {
-        console.error("Error deleting visite:", error);
-        return NextResponse.json(
-            { error: "Failed to delete visite" },
-            { status: 500 }
-        );
-    }
+    );
 }

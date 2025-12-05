@@ -10,8 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { PlanType } from "@/lib/pricing-config";
-import { PLANS_CONFIG } from "@/lib/config/plans.config";
+import { PlanType, PLANS_CONFIG } from "@/lib/config/plans.config";
 import { useSubscription } from "@/hooks/use-subscription";
 import { useSubscriptionStatus } from "@/hooks/use-subscription-status";
 import { ArrowRight, AlertCircle, CheckCircle2, ExternalLink } from "lucide-react";

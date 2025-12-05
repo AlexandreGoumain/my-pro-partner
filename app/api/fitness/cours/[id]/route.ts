@@ -1,7 +1,6 @@
-import { authOptions } from "@/lib/auth";
-import { requireCapability } from "@/lib/middleware/business-type-check";
+import { withApiHandler } from "@/lib/api/api-handler";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import { NotFoundError, ValidationError, BusinessError } from "@/lib/errors";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -25,191 +24,170 @@ const updateCoursSchema = z.object({
 
 type RouteParams = { params: Promise<{ id: string }> };
 
-// GET /api/fitness/cours/[id]
-export async function GET(request: NextRequest, { params }: RouteParams) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Non autorisé" },
-                { status: 401 }
-            );
+const coursInclude = {
+    instructeur: {
+        select: {
+            id: true,
+            nom: true,
+            prenom: true,
+            couleur: true,
+        },
+    },
+    salle: {
+        select: {
+            id: true,
+            nom: true,
+            type: true,
+        },
+    },
+} as const;
+
+/**
+ * GET /api/fitness/cours/[id]
+ * Get a single group class
+ */
+export async function GET(_request: NextRequest, { params }: RouteParams) {
+    return withApiHandler(
+        async (ctx) => {
+            const { id } = await params;
+
+            const cours = await prisma.coursCollectif.findFirst({
+                where: {
+                    id,
+                    entrepriseId: ctx.entrepriseId,
+                },
+                include: {
+                    instructeur: {
+                        select: {
+                            id: true,
+                            nom: true,
+                            prenom: true,
+                            couleur: true,
+                            specialites: true,
+                            bio: true,
+                        },
+                    },
+                    salle: {
+                        select: {
+                            id: true,
+                            nom: true,
+                            type: true,
+                            capacite: true,
+                        },
+                    },
+                    seances: {
+                        where: {
+                            dateHeure: { gte: new Date() },
+                            statut: { not: "ANNULEE" },
+                        },
+                        orderBy: { dateHeure: "asc" },
+                        take: 10,
+                        include: {
+                            _count: { select: { reservations: true } },
+                        },
+                    },
+                    _count: {
+                        select: { seances: true },
+                    },
+                },
+            });
+
+            if (!cours) {
+                throw new NotFoundError("Cours non trouvé");
+            }
+
+            return NextResponse.json(cours);
+        },
+        {
+            capability: "cours_collectifs",
+            context: { resourceName: "CoursCollectif", operation: "get" },
         }
-
-        const { id } = await params;
-
-        const cours = await prisma.coursCollectif.findFirst({
-            where: {
-                id,
-                entrepriseId: session.user.entrepriseId,
-            },
-            include: {
-                instructeur: {
-                    select: {
-                        id: true,
-                        nom: true,
-                        prenom: true,
-                        couleur: true,
-                        specialites: true,
-                        bio: true,
-                    },
-                },
-                salle: {
-                    select: {
-                        id: true,
-                        nom: true,
-                        type: true,
-                        capacite: true,
-                    },
-                },
-                seances: {
-                    where: {
-                        dateHeure: { gte: new Date() },
-                        statut: { not: "ANNULEE" },
-                    },
-                    orderBy: { dateHeure: "asc" },
-                    take: 10,
-                    include: {
-                        _count: { select: { reservations: true } },
-                    },
-                },
-                _count: {
-                    select: { seances: true },
-                },
-            },
-        });
-
-        if (!cours) {
-            return NextResponse.json(
-                { error: "Cours non trouvé" },
-                { status: 404 }
-            );
-        }
-
-        return NextResponse.json(cours);
-    } catch (error) {
-        console.error("Erreur GET cours:", error);
-        return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
-    }
+    );
 }
 
-// PUT /api/fitness/cours/[id]
+/**
+ * PUT /api/fitness/cours/[id]
+ * Update a group class
+ */
 export async function PUT(request: NextRequest, { params }: RouteParams) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Non autorisé" },
-                { status: 401 }
-            );
-        }
+    return withApiHandler(
+        async (ctx) => {
+            const { id } = await params;
 
-        const capabilityCheck = await requireCapability("cours_collectifs");
-        if (capabilityCheck) return capabilityCheck;
-
-        const { id } = await params;
-
-        const existing = await prisma.coursCollectif.findFirst({
-            where: {
-                id,
-                entrepriseId: session.user.entrepriseId,
-            },
-        });
-
-        if (!existing) {
-            return NextResponse.json(
-                { error: "Cours non trouvé" },
-                { status: 404 }
-            );
-        }
-
-        const body = await request.json();
-        const validatedData = updateCoursSchema.parse(body);
-
-        const cours = await prisma.coursCollectif.update({
-            where: { id },
-            data: validatedData,
-            include: {
-                instructeur: {
-                    select: {
-                        id: true,
-                        nom: true,
-                        prenom: true,
-                        couleur: true,
-                    },
+            const existing = await prisma.coursCollectif.findFirst({
+                where: {
+                    id,
+                    entrepriseId: ctx.entrepriseId,
                 },
-                salle: {
-                    select: {
-                        id: true,
-                        nom: true,
-                        type: true,
-                    },
-                },
-            },
-        });
+            });
 
-        return NextResponse.json(cours);
-    } catch (error) {
-        if (error instanceof z.ZodError) {
-            return NextResponse.json(
-                { error: "Données invalides", details: error.errors },
-                { status: 400 }
-            );
+            if (!existing) {
+                throw new NotFoundError("Cours non trouvé");
+            }
+
+            const body = await request.json();
+            const validation = updateCoursSchema.safeParse(body);
+
+            if (!validation.success) {
+                throw new ValidationError(
+                    "Données invalides",
+                    validation.error.flatten().fieldErrors as Record<string, string[]>
+                );
+            }
+
+            const cours = await prisma.coursCollectif.update({
+                where: { id },
+                data: validation.data,
+                include: coursInclude,
+            });
+
+            return NextResponse.json(cours);
+        },
+        {
+            capability: "cours_collectifs",
+            context: { resourceName: "CoursCollectif", operation: "update" },
         }
-        console.error("Erreur PUT cours:", error);
-        return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
-    }
+    );
 }
 
-// DELETE /api/fitness/cours/[id]
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Non autorisé" },
-                { status: 401 }
-            );
-        }
+/**
+ * DELETE /api/fitness/cours/[id]
+ * Delete a group class
+ */
+export async function DELETE(_request: NextRequest, { params }: RouteParams) {
+    return withApiHandler(
+        async (ctx) => {
+            const { id } = await params;
 
-        const capabilityCheck = await requireCapability("cours_collectifs");
-        if (capabilityCheck) return capabilityCheck;
-
-        const { id } = await params;
-
-        const existing = await prisma.coursCollectif.findFirst({
-            where: {
-                id,
-                entrepriseId: session.user.entrepriseId,
-            },
-            include: {
-                _count: {
-                    select: { seances: true },
+            const existing = await prisma.coursCollectif.findFirst({
+                where: {
+                    id,
+                    entrepriseId: ctx.entrepriseId,
                 },
-            },
-        });
-
-        if (!existing) {
-            return NextResponse.json(
-                { error: "Cours non trouvé" },
-                { status: 404 }
-            );
-        }
-
-        if (existing._count.seances > 0) {
-            return NextResponse.json(
-                {
-                    error: "Impossible de supprimer un cours avec des séances planifiées. Désactivez-le plutôt.",
+                include: {
+                    _count: {
+                        select: { seances: true },
+                    },
                 },
-                { status: 400 }
-            );
+            });
+
+            if (!existing) {
+                throw new NotFoundError("Cours non trouvé");
+            }
+
+            if (existing._count.seances > 0) {
+                throw new BusinessError(
+                    "Impossible de supprimer un cours avec des séances planifiées. Désactivez-le plutôt."
+                );
+            }
+
+            await prisma.coursCollectif.delete({ where: { id } });
+
+            return NextResponse.json({ success: true });
+        },
+        {
+            capability: "cours_collectifs",
+            context: { resourceName: "CoursCollectif", operation: "delete" },
         }
-
-        await prisma.coursCollectif.delete({ where: { id } });
-
-        return NextResponse.json({ success: true });
-    } catch (error) {
-        console.error("Erreur DELETE cours:", error);
-        return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
-    }
+    );
 }

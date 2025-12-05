@@ -16,7 +16,7 @@ export class BankReconciliationService {
         delimiter: ";", // Format français courant
       });
 
-      return records.map((record: Record<string, string>) => ({
+      return (records as Record<string, string>[]).map((record) => ({
         date: this.parseDate(record.Date || record.date),
         libelle: record.Libellé || record.libelle || record.description || "",
         montant: this.parseMontant(record.Montant || record.montant || record.amount),
@@ -116,7 +116,12 @@ export class BankReconciliationService {
     });
 
     for (const transaction of pendingTransactions) {
-      const match = await this.findMatch(entrepriseId, transaction);
+      const match = await this.findMatch(entrepriseId, {
+        id: transaction.id,
+        montant: Number(transaction.montant),
+        date: transaction.date,
+        libelle: transaction.libelle,
+      });
 
       if (match) {
         await prisma.bankTransaction.update({

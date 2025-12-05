@@ -3,18 +3,18 @@
  * GET /api/personnel/stats - Récupérer les statistiques
  */
 
-import { NextRequest, NextResponse } from "next/server";
-import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
+import { withApiHandler } from "@/lib/api/api-handler";
 import { getPersonnelStats } from "@/lib/personnel/personnel.service";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(_req: NextRequest) {
-  try {
-    const { entrepriseId } = await requireTenantAuth();
-
-    const stats = await getPersonnelStats(entrepriseId);
-
-    return NextResponse.json({ stats });
-  } catch (error) {
-    return handleTenantError(error);
-  }
+    return withApiHandler(
+        async (ctx) => {
+            const stats = await getPersonnelStats(ctx.entrepriseId);
+            return NextResponse.json({ stats });
+        },
+        {
+            context: { resourceName: "Personnel", operation: "stats" },
+        }
+    );
 }

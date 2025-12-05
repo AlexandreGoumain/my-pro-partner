@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useUserPlan } from "./use-user-plan";
-import { PlanType } from "@/lib/pricing-config";
+import { PlanType } from "@/lib/config/plans.config";
 
 export type SubscriptionStatus =
   | "free"           // Aucun abonnement

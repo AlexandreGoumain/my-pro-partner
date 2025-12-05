@@ -18,7 +18,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { ArticleType } from "@/lib/generated/prisma/client";
+import { ArticleType } from "@/lib/generated/prisma";
 import { useQuery } from "@tanstack/react-query";
 import { Edit, Eye, MoreHorizontal, Trash2 } from "lucide-react";
 import Link from "next/link";

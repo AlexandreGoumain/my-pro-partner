@@ -1,13 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
-import { requireTenantAuth, handleTenantError } from "@/lib/middleware/tenant-isolation";
+import { withApiHandler } from "@/lib/api/api-handler";
+import { ValidationError } from "@/lib/errors";
 import { SubscriptionService } from "@/lib/services/subscription.service";
-import { validateRequest } from "@/lib/utils/validation-helper";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 const changePlanSchema = z.object({
-  plan: z.enum(["STARTER", "PRO", "ENTERPRISE"]),
-  interval: z.enum(["month", "year"]),
-  prorate: z.boolean().optional().default(true),
+    plan: z.enum(["STARTER", "PRO", "ENTERPRISE"]),
+    interval: z.enum(["month", "year"]),
+    prorate: z.boolean().optional().default(true),
 });
 
 /**
@@ -15,27 +15,30 @@ const changePlanSchema = z.object({
  * Changer de plan (upgrade ou downgrade)
  */
 export async function POST(req: NextRequest) {
-  try {
-    const { entrepriseId } = await requireTenantAuth();
+    return withApiHandler(
+        async (ctx) => {
+            const body = await req.json();
+            const result = changePlanSchema.safeParse(body);
+            if (!result.success) {
+                throw new ValidationError(result.error.errors[0].message);
+            }
 
-    const body = await req.json();
-    const result = validateRequest(changePlanSchema, body);
-    if (!result.success) return result.response;
+            const { plan, interval, prorate } = result.data;
 
-    const { plan, interval, prorate } = result.data;
+            await SubscriptionService.changePlan({
+                entrepriseId: ctx.entrepriseId,
+                newPlan: plan,
+                newInterval: interval,
+                prorate,
+            });
 
-    await SubscriptionService.changePlan({
-      entrepriseId,
-      newPlan: plan,
-      newInterval: interval,
-      prorate,
-    });
-
-    return NextResponse.json({
-      success: true,
-      message: "Plan modifié avec succès",
-    });
-  } catch (error) {
-    return handleTenantError(error);
-  }
+            return NextResponse.json({
+                success: true,
+                message: "Plan modifié avec succès",
+            });
+        },
+        {
+            context: { resourceName: "Subscription", operation: "changePlan" },
+        }
+    );
 }

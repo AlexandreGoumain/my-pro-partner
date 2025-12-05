@@ -1,7 +1,6 @@
-import { authOptions } from "@/lib/auth";
-import { requireCapability } from "@/lib/middleware/business-type-check";
+import { withApiHandler } from "@/lib/api/api-handler";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
+import { NotFoundError, ValidationError, ConflictError } from "@/lib/errors";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -11,226 +10,191 @@ const createReservationSchema = z.object({
     notes: z.string().optional().nullable(),
 });
 
-// GET /api/fitness/reservations - Liste des réservations
-export async function GET(request: NextRequest) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Non autorisé" },
-                { status: 401 }
-            );
-        }
-
-        const capabilityCheck = await requireCapability("cours_collectifs");
-        if (capabilityCheck) return capabilityCheck;
-
-        const { searchParams } = new URL(request.url);
-        const page = parseInt(searchParams.get("page") || "1");
-        const limit = parseInt(searchParams.get("limit") || "50");
-        const seanceId = searchParams.get("seanceId");
-        const clientId = searchParams.get("clientId");
-        const statut = searchParams.get("statut");
-
-        const where = {
-            entrepriseId: session.user.entrepriseId,
-            ...(seanceId && { seanceId }),
-            ...(clientId && { clientId }),
-            ...(statut && {
-                statut: statut as
-                    | "CONFIRMEE"
-                    | "EN_ATTENTE"
-                    | "ANNULEE"
-                    | "NO_SHOW"
-                    | "PRESENTE",
-            }),
-        };
-
-        const [reservations, total] = await Promise.all([
-            prisma.reservationCours.findMany({
-                where,
-                orderBy: [{ createdAt: "desc" }],
-                skip: (page - 1) * limit,
-                take: limit,
-                include: {
-                    seance: {
-                        include: {
-                            cours: {
-                                select: {
-                                    id: true,
-                                    nom: true,
-                                    couleur: true,
-                                },
-                            },
-                        },
-                    },
-                    client: {
-                        select: {
-                            id: true,
-                            nom: true,
-                            prenom: true,
-                            email: true,
-                            telephone: true,
-                        },
-                    },
+const reservationInclude = {
+    seance: {
+        include: {
+            cours: {
+                select: {
+                    id: true,
+                    nom: true,
+                    couleur: true,
                 },
-            }),
-            prisma.reservationCours.count({ where }),
-        ]);
-
-        return NextResponse.json({
-            data: reservations,
-            pagination: {
-                page,
-                limit,
-                total,
-                totalPages: Math.ceil(total / limit),
             },
-        });
-    } catch (error) {
-        console.error("Erreur GET reservations:", error);
-        return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
-    }
+        },
+    },
+    client: {
+        select: {
+            id: true,
+            nom: true,
+            prenom: true,
+            email: true,
+            telephone: true,
+        },
+    },
+} as const;
+
+/**
+ * GET /api/fitness/reservations
+ * List reservations
+ */
+export async function GET(request: NextRequest) {
+    return withApiHandler(
+        async (ctx) => {
+            const { searchParams } = new URL(request.url);
+            const page = parseInt(searchParams.get("page") || "1");
+            const limit = parseInt(searchParams.get("limit") || "50");
+            const seanceId = searchParams.get("seanceId");
+            const clientId = searchParams.get("clientId");
+            const statut = searchParams.get("statut");
+
+            const where = {
+                entrepriseId: ctx.entrepriseId,
+                ...(seanceId && { seanceId }),
+                ...(clientId && { clientId }),
+                ...(statut && {
+                    statut: statut as
+                        | "CONFIRMEE"
+                        | "EN_ATTENTE"
+                        | "ANNULEE"
+                        | "NO_SHOW"
+                        | "PRESENTE",
+                }),
+            };
+
+            const [reservations, total] = await Promise.all([
+                prisma.reservationCours.findMany({
+                    where,
+                    orderBy: [{ createdAt: "desc" }],
+                    skip: (page - 1) * limit,
+                    take: limit,
+                    include: reservationInclude,
+                }),
+                prisma.reservationCours.count({ where }),
+            ]);
+
+            return NextResponse.json({
+                data: reservations,
+                pagination: {
+                    page,
+                    limit,
+                    total,
+                    totalPages: Math.ceil(total / limit),
+                },
+            });
+        },
+        {
+            capability: "cours_collectifs",
+            context: { resourceName: "ReservationCours", operation: "list" },
+        }
+    );
 }
 
-// POST /api/fitness/reservations - Créer une réservation
+/**
+ * POST /api/fitness/reservations
+ * Create a reservation
+ */
 export async function POST(request: NextRequest) {
-    try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user?.entrepriseId) {
-            return NextResponse.json(
-                { error: "Non autorisé" },
-                { status: 401 }
-            );
-        }
+    return withApiHandler(
+        async (ctx) => {
+            const body = await request.json();
+            const validation = createReservationSchema.safeParse(body);
 
-        const capabilityCheck = await requireCapability("cours_collectifs");
-        if (capabilityCheck) return capabilityCheck;
+            if (!validation.success) {
+                throw new ValidationError(
+                    "Données invalides",
+                    validation.error.flatten().fieldErrors as Record<string, string[]>
+                );
+            }
 
-        const body = await request.json();
-        const validatedData = createReservationSchema.parse(body);
+            const data = validation.data;
 
-        // Vérifier que la séance existe et n'est pas annulée
-        const seance = await prisma.seanceCours.findFirst({
-            where: {
-                id: validatedData.seanceId,
-                entrepriseId: session.user.entrepriseId,
-                statut: { not: "ANNULEE" },
-            },
-            include: {
-                cours: true,
-                _count: { select: { reservations: true } },
-            },
-        });
-
-        if (!seance) {
-            return NextResponse.json(
-                { error: "Séance non trouvée ou annulée" },
-                { status: 404 }
-            );
-        }
-
-        // Vérifier que le client existe
-        const client = await prisma.client.findFirst({
-            where: {
-                id: validatedData.clientId,
-                entrepriseId: session.user.entrepriseId,
-            },
-        });
-
-        if (!client) {
-            return NextResponse.json(
-                { error: "Client non trouvé" },
-                { status: 404 }
-            );
-        }
-
-        // Vérifier si le client n'est pas déjà inscrit
-        const existingReservation = await prisma.reservationCours.findUnique({
-            where: {
-                seanceId_clientId: {
-                    seanceId: validatedData.seanceId,
-                    clientId: validatedData.clientId,
-                },
-            },
-        });
-
-        if (existingReservation) {
-            return NextResponse.json(
-                { error: "Ce client est déjà inscrit à cette séance" },
-                { status: 400 }
-            );
-        }
-
-        // Vérifier la capacité
-        const capaciteMax = seance.capaciteMax || seance.cours.capaciteMax;
-        const isListeAttente = seance._count.reservations >= capaciteMax;
-
-        // Calculer la position en liste d'attente si nécessaire
-        let positionAttente: number | null = null;
-        if (isListeAttente) {
-            const lastInQueue = await prisma.reservationCours.findFirst({
+            // Check that the session exists and is not cancelled
+            const seance = await prisma.seanceCours.findFirst({
                 where: {
-                    seanceId: validatedData.seanceId,
-                    statut: "EN_ATTENTE",
+                    id: data.seanceId,
+                    entrepriseId: ctx.entrepriseId,
+                    statut: { not: "ANNULEE" },
                 },
-                orderBy: { positionAttente: "desc" },
+                include: {
+                    cours: true,
+                    _count: { select: { reservations: true } },
+                },
             });
-            positionAttente = (lastInQueue?.positionAttente || 0) + 1;
-        }
 
-        const reservation = await prisma.reservationCours.create({
-            data: {
-                ...validatedData,
-                statut: isListeAttente ? "EN_ATTENTE" : "CONFIRMEE",
-                positionAttente,
-                entrepriseId: session.user.entrepriseId,
-            },
-            include: {
-                seance: {
-                    include: {
-                        cours: {
-                            select: {
-                                id: true,
-                                nom: true,
-                                couleur: true,
-                            },
-                        },
+            if (!seance) {
+                throw new NotFoundError("Séance non trouvée ou annulée");
+            }
+
+            // Check that the client exists
+            const client = await prisma.client.findFirst({
+                where: {
+                    id: data.clientId,
+                    entrepriseId: ctx.entrepriseId,
+                },
+            });
+
+            if (!client) {
+                throw new NotFoundError("Client non trouvé");
+            }
+
+            // Check if the client is not already registered
+            const existingReservation = await prisma.reservationCours.findUnique({
+                where: {
+                    seanceId_clientId: {
+                        seanceId: data.seanceId,
+                        clientId: data.clientId,
                     },
                 },
-                client: {
-                    select: {
-                        id: true,
-                        nom: true,
-                        prenom: true,
-                        email: true,
-                        telephone: true,
+            });
+
+            if (existingReservation) {
+                throw new ConflictError("Ce client est déjà inscrit à cette séance");
+            }
+
+            // Check capacity
+            const capaciteMax = seance.capaciteMax || seance.cours.capaciteMax;
+            const isListeAttente = seance._count.reservations >= capaciteMax;
+
+            // Calculate wait list position if necessary
+            let positionAttente: number | null = null;
+            if (isListeAttente) {
+                const lastInQueue = await prisma.reservationCours.findFirst({
+                    where: {
+                        seanceId: data.seanceId,
+                        statut: "EN_ATTENTE",
                     },
+                    orderBy: { positionAttente: "desc" },
+                });
+                positionAttente = (lastInQueue?.positionAttente || 0) + 1;
+            }
+
+            const reservation = await prisma.reservationCours.create({
+                data: {
+                    ...data,
+                    statut: isListeAttente ? "EN_ATTENTE" : "CONFIRMEE",
+                    positionAttente,
+                    entrepriseId: ctx.entrepriseId,
                 },
-            },
-        });
+                include: reservationInclude,
+            });
 
-        // Mettre à jour le compteur de places réservées
-        await prisma.seanceCours.update({
-            where: { id: validatedData.seanceId },
-            data: {
-                placesReservees: { increment: isListeAttente ? 0 : 1 },
-                statut:
-                    seance._count.reservations + 1 >= capaciteMax
-                        ? "COMPLETE"
-                        : undefined,
-            },
-        });
+            // Update reserved seats counter
+            await prisma.seanceCours.update({
+                where: { id: data.seanceId },
+                data: {
+                    placesReservees: { increment: isListeAttente ? 0 : 1 },
+                    statut:
+                        seance._count.reservations + 1 >= capaciteMax
+                            ? "COMPLETE"
+                            : undefined,
+                },
+            });
 
-        return NextResponse.json(reservation, { status: 201 });
-    } catch (error) {
-        if (error instanceof z.ZodError) {
-            return NextResponse.json(
-                { error: "Données invalides", details: error.errors },
-                { status: 400 }
-            );
+            return NextResponse.json(reservation, { status: 201 });
+        },
+        {
+            capability: "cours_collectifs",
+            context: { resourceName: "ReservationCours", operation: "create" },
         }
-        console.error("Erreur POST reservation:", error);
-        return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
-    }
+    );
 }

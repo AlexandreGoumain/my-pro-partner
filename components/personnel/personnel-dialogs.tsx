@@ -74,7 +74,7 @@ export function PersonnelDialogs({
                         descriptionClassName="text-[14px] text-black/60"
                     />
                     <UserForm
-                        onSubmit={onCreateSubmit}
+                        onSubmit={(data) => onCreateSubmit(data as CreateUserInput)}
                         onCancel={() => onCreateDialogChange(false)}
                         loading={creating}
                     />

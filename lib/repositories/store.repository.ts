@@ -1,6 +1,5 @@
-import { PrismaClient, Store, StoreStatus, Register } from "@prisma/client";
-import { BaseRepository } from "./base.repository";
-import { PaginationParams } from "@/lib/types";
+import { PrismaClient, Store, StoreStatus, Register } from "@/lib/generated/prisma";
+import { BaseRepository, PaginationParams } from "./base.repository";
 
 export interface StoreWithRelations extends Store {
   registers?: Register[];

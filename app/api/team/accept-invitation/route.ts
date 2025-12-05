@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { validateRequest } from "@/lib/utils/validation-helper";
+import { UserRole } from "@/lib/personnel/roles-config";
 
 const acceptInvitationSchema = z.object({
   token: z.string().min(1, "Le token est requis"),
@@ -68,6 +69,7 @@ export async function POST(req: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Créer l'utilisateur
+    const userRole = invitation.role as UserRole;
     const user = await prisma.user.create({
       data: {
         email: invitation.email,
@@ -75,7 +77,7 @@ export async function POST(req: NextRequest) {
         name: name || invitation.name || "",
         prenom: prenom || invitation.prenom || "",
         telephone: telephone || "",
-        role: invitation.role,
+        role: userRole,
         status: "ACTIVE",
         entrepriseId: invitation.entrepriseId,
         onboardingComplete: true,
@@ -86,7 +88,7 @@ export async function POST(req: NextRequest) {
     const { getDefaultPermissions } = await import(
       "@/lib/personnel/roles-config"
     );
-    const defaultPerms = getDefaultPermissions(invitation.role);
+    const defaultPerms = getDefaultPermissions(userRole);
 
     await prisma.userPermissions.create({
       data: {
@@ -103,10 +105,6 @@ export async function POST(req: NextRequest) {
         usedAt: new Date(),
       },
     });
-
-    console.log(
-      `[Team Invitation] New user created: ${invitation.email} for entreprise ${invitation.entrepriseId}`
-    );
 
     return NextResponse.json({
       message:
