@@ -181,4 +181,210 @@ export class NotificationService {
             },
         });
     }
+
+    // === RDV Notifications ===
+
+    static async notifyRdvConfirmed(
+        clientId: string,
+        rdvId: string,
+        prestationNom: string,
+        date: string,
+        heure: string,
+        employeNom?: string
+    ) {
+        const withEmployee = employeNom ? ` avec ${employeNom}` : "";
+        return this.createNotification({
+            clientId,
+            type: "RDV_CONFIRME",
+            titre: "Rendez-vous confirmé",
+            message: `Votre rendez-vous pour "${prestationNom}" le ${date} à ${heure}${withEmployee} est confirmé.`,
+            metadata: {
+                rdvId,
+                prestationNom,
+                date,
+                heure,
+                employeNom,
+            },
+        });
+    }
+
+    static async notifyRdvReminder(
+        clientId: string,
+        rdvId: string,
+        prestationNom: string,
+        date: string,
+        heure: string,
+        hoursUntil: number
+    ) {
+        const timeLabel = hoursUntil === 24 ? "demain" : `dans ${hoursUntil}h`;
+        return this.createNotification({
+            clientId,
+            type: "RDV_RAPPEL",
+            titre: "Rappel de rendez-vous",
+            message: `Rappel : votre rendez-vous "${prestationNom}" est prévu ${timeLabel} à ${heure}.`,
+            metadata: {
+                rdvId,
+                prestationNom,
+                date,
+                heure,
+                hoursUntil,
+            },
+        });
+    }
+
+    static async notifyRdvCancelled(
+        clientId: string,
+        rdvId: string,
+        prestationNom: string,
+        date: string,
+        heure: string,
+        reason?: string
+    ) {
+        const reasonText = reason ? ` Motif : ${reason}` : "";
+        return this.createNotification({
+            clientId,
+            type: "RDV_ANNULE",
+            titre: "Rendez-vous annulé",
+            message: `Votre rendez-vous "${prestationNom}" du ${date} à ${heure} a été annulé.${reasonText}`,
+            metadata: {
+                rdvId,
+                prestationNom,
+                date,
+                heure,
+                reason,
+            },
+        });
+    }
+
+    static async notifyRdvModified(
+        clientId: string,
+        rdvId: string,
+        prestationNom: string,
+        oldDate: string,
+        oldHeure: string,
+        newDate: string,
+        newHeure: string
+    ) {
+        return this.createNotification({
+            clientId,
+            type: "RDV_MODIFIE",
+            titre: "Rendez-vous modifié",
+            message: `Votre rendez-vous "${prestationNom}" a été déplacé du ${oldDate} à ${oldHeure} vers le ${newDate} à ${newHeure}.`,
+            metadata: {
+                rdvId,
+                prestationNom,
+                oldDate,
+                oldHeure,
+                newDate,
+                newHeure,
+            },
+        });
+    }
+
+    // === Intervention Notifications ===
+
+    static async notifyInterventionPlanifiee(
+        clientId: string,
+        interventionId: string,
+        numero: string,
+        datePrevisionnelle: string,
+        technicienNom?: string
+    ) {
+        const withTech = technicienNom ? ` ${technicienNom} interviendra` : "Un technicien interviendra";
+        return this.createNotification({
+            clientId,
+            type: "INTERVENTION_PLANIFIEE",
+            titre: "Intervention planifiée",
+            message: `${withTech} le ${datePrevisionnelle} pour l'intervention ${numero}.`,
+            metadata: {
+                interventionId,
+                numero,
+                datePrevisionnelle,
+                technicienNom,
+            },
+        });
+    }
+
+    static async notifyInterventionEnRoute(
+        clientId: string,
+        interventionId: string,
+        numero: string,
+        technicienNom?: string,
+        estimatedArrival?: string
+    ) {
+        const tech = technicienNom || "Le technicien";
+        const arrival = estimatedArrival ? ` Arrivée estimée : ${estimatedArrival}.` : "";
+        return this.createNotification({
+            clientId,
+            type: "INTERVENTION_EN_ROUTE",
+            titre: "Technicien en route",
+            message: `${tech} est en route pour l'intervention ${numero}.${arrival}`,
+            metadata: {
+                interventionId,
+                numero,
+                technicienNom,
+                estimatedArrival,
+            },
+        });
+    }
+
+    static async notifyInterventionEnCours(
+        clientId: string,
+        interventionId: string,
+        numero: string,
+        technicienNom?: string
+    ) {
+        const tech = technicienNom || "Le technicien";
+        return this.createNotification({
+            clientId,
+            type: "INTERVENTION_EN_COURS",
+            titre: "Intervention en cours",
+            message: `${tech} a commencé l'intervention ${numero}.`,
+            metadata: {
+                interventionId,
+                numero,
+                technicienNom,
+            },
+        });
+    }
+
+    static async notifyInterventionTerminee(
+        clientId: string,
+        interventionId: string,
+        numero: string,
+        documentId?: string
+    ) {
+        const docText = documentId ? " Un document est disponible dans votre espace." : "";
+        return this.createNotification({
+            clientId,
+            type: "INTERVENTION_TERMINEE",
+            titre: "Intervention terminée",
+            message: `L'intervention ${numero} est terminée.${docText}`,
+            metadata: {
+                interventionId,
+                numero,
+                documentId,
+            },
+        });
+    }
+
+    static async notifyInterventionAnnulee(
+        clientId: string,
+        interventionId: string,
+        numero: string,
+        reason?: string
+    ) {
+        const reasonText = reason ? ` Motif : ${reason}` : "";
+        return this.createNotification({
+            clientId,
+            type: "INTERVENTION_ANNULEE",
+            titre: "Intervention annulée",
+            message: `L'intervention ${numero} a été annulée.${reasonText}`,
+            metadata: {
+                interventionId,
+                numero,
+                reason,
+            },
+        });
+    }
 }

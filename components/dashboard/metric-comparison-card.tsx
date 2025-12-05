@@ -15,6 +15,8 @@ export interface MetricComparisonCardProps {
     comparison: PeriodComparison;
     icon?: LucideIcon;
     className?: string;
+    /** True when there's no data to display */
+    isEmpty?: boolean;
 }
 
 // ============================================================================
@@ -28,6 +30,7 @@ export function MetricComparisonCard({
     comparison,
     icon: Icon,
     className,
+    isEmpty,
 }: MetricComparisonCardProps) {
     // Trend icon and styling
     const TrendIcon =
@@ -50,6 +53,40 @@ export function MetricComparisonCard({
             : comparison.trend === "down"
             ? "bg-black/3"
             : "bg-black/3";
+
+    // Empty state
+    if (isEmpty) {
+        return (
+            <Card className={`group relative p-6 overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500 ${className || ""}`}>
+                <div className="relative">
+                    {/* Header with icon */}
+                    <div className="flex items-center gap-2.5 mb-4">
+                        {Icon && <Icon className="w-4 h-4 text-black/20" strokeWidth={2} />}
+                        <div>
+                            <h3 className="text-[13px] font-medium tracking-[-0.01em] text-black">
+                                {title}
+                            </h3>
+                            {description && (
+                                <p className="text-[11px] text-black/40 mt-0.5">{description}</p>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Empty value */}
+                    <div className="mb-2">
+                        <div className="text-[28px] font-semibold tracking-[-0.02em] text-black/20 leading-none">
+                            --
+                        </div>
+                    </div>
+
+                    {/* Empty comparison */}
+                    <div className="text-[12px] text-black/30">
+                        Pas encore de données
+                    </div>
+                </div>
+            </Card>
+        );
+    }
 
     return (
         <Card className={`group relative p-6 overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500 ${className || ""}`}>

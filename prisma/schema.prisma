@@ -172,6 +172,9 @@ model Entreprise {
   chatbotAuditLogs    ChatbotAuditLog[]
   chatbotActionTokens ChatbotActionToken[]
 
+  // Relations pour objectifs configurables
+  objectifs ObjectifEntreprise[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -993,16 +996,36 @@ model ClientNotification {
 }
 
 enum NotificationType {
+  // Documents & Paiements
   NOUVEAU_DOCUMENT
+  PAIEMENT_RECU
+
+  // Fidélité
   POINTS_EXPIRATION
   NIVEAU_FIDELITE
-  PAIEMENT_RECU
-  GENERAL
+
+  // Rendez-vous
+  RDV_CONFIRME
+  RDV_RAPPEL
+  RDV_ANNULE
+  RDV_MODIFIE
+
+  // Interventions
+  INTERVENTION_PLANIFIEE
+  INTERVENTION_EN_ROUTE
+  INTERVENTION_EN_COURS
+  INTERVENTION_TERMINEE
+  INTERVENTION_ANNULEE
+
+  // Réparations
   REPARATION_DEPOSEE
   REPARATION_DIAGNOSTIC
   REPARATION_PRETE
   REPARATION_RETARD
   REPARATION_LIVREE
+
+  // Général
+  GENERAL
 }
 
 // ============================================
@@ -1527,6 +1550,63 @@ model ParametresEntreprise {
   updatedAt DateTime @updatedAt
 
   @@index([entrepriseId])
+}
+
+// ============================================
+// OBJECTIFS CONFIGURABLES
+// ============================================
+
+enum GoalMetricType {
+  // Métriques prédéfinies (calcul automatique)
+  REVENUE_MONTHLY // CA mensuel
+  REVENUE_QUARTERLY // CA trimestriel
+  REVENUE_YEARLY // CA annuel
+  NEW_CLIENTS // Nouveaux clients
+  CONVERSION_RATE // Taux de conversion devis->facture
+  DOCUMENTS_CREATED // Documents créés
+  AVERAGE_TICKET // Panier moyen
+  // Métrique personnalisée (mise à jour manuelle)
+  CUSTOM
+}
+
+enum GoalPeriod {
+  WEEKLY // Hebdomadaire
+  MONTHLY // Mensuel
+  QUARTERLY // Trimestriel
+  YEARLY // Annuel
+}
+
+enum GoalUnit {
+  CURRENCY // Montant en euros
+  NUMBER // Nombre entier
+  PERCENTAGE // Pourcentage
+}
+
+model ObjectifEntreprise {
+  id          String         @id @default(cuid())
+  label       String // Nom de l'objectif
+  description String? // Description optionnelle
+  metricType  GoalMetricType // Type de métrique
+  period      GoalPeriod     @default(MONTHLY)
+  unit        GoalUnit       @default(NUMBER)
+
+  // Valeurs
+  targetValue  Decimal @db.Decimal(12, 2) // Valeur cible
+  currentValue Decimal @default(0) @db.Decimal(12, 2) // Valeur actuelle (pour CUSTOM)
+
+  // Configuration
+  enabled   Boolean @default(true) // Objectif actif ou non
+  sortOrder Int     @default(0) // Ordre d'affichage
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([entrepriseId, enabled])
 }
 
 // Séries de numérotation personnalisées pour les documents
