@@ -42,6 +42,9 @@ jobs:
             git checkout preprod
             git pull origin preprod
 
+            echo "=== Preparing build environment ==="
+            cp .env.build.staging .env
+
             echo "=== Building staging container ==="
             docker-compose -f docker-compose.staging.yml build --no-cache
 
