@@ -35,9 +35,9 @@ RUN apt-get update && \
     apt-get install -y openssl && \
     rm -rf /var/lib/apt/lists/*
 
-# Create a non-root user for security
+# Create a non-root user for security with home directory
 RUN groupadd --system --gid 1001 nodejs
-RUN useradd --system --uid 1001 --gid nodejs nextjs
+RUN useradd --system --uid 1001 --gid nodejs --create-home nextjs
 
 # Copy necessary files from builder
 COPY --from=builder /app/public ./public
