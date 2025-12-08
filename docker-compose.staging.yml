@@ -6,6 +6,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_DASHBOARD_ENABLED=true
+        - NEXT_PUBLIC_APP_URL=https://staging.mypropartner.fr
     container_name: my-pro-partner-staging
     restart: unless-stopped
     ports:

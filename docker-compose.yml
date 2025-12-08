@@ -4,6 +4,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_DASHBOARD_ENABLED=false
+        - NEXT_PUBLIC_APP_URL=https://mypropartner.fr
     container_name: my-pro-partner-prod
     restart: unless-stopped
     ports:

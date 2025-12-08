@@ -8,10 +8,16 @@
 FROM node:20 AS builder
 WORKDIR /app
 
+# Build arguments for NEXT_PUBLIC_* variables (needed at build time for middleware)
+ARG NEXT_PUBLIC_DASHBOARD_ENABLED=false
+ARG NEXT_PUBLIC_APP_URL
+
 # Set environment variables BEFORE npm ci (needed for postinstall script)
 # Use a placeholder DATABASE_URL for Prisma generation (not used during build, only at runtime)
 ENV DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder?schema=public"
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_PUBLIC_DASHBOARD_ENABLED=$NEXT_PUBLIC_DASHBOARD_ENABLED
+ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
 
 # Copy all application files (needed for Prisma schema before npm ci)
 COPY . .
