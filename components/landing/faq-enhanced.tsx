@@ -10,6 +10,7 @@ import {
 import { HelpCircle, Sparkles, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { PLANS_CONFIG } from "@/lib/config/plans.config";
 
 interface FAQCategory {
     title: string;
@@ -29,7 +30,7 @@ const faqCategories: FAQCategory[] = [
             },
             {
                 question: "Comment fonctionne la tarification ?",
-                answer: "Nous proposons 4 plans : Gratuit (pour toujours), Starter à 29€/mois, Pro à 79€/mois et Enterprise sur devis. Vous pouvez payer mensuellement ou annuellement avec 18% de réduction. Tous les prix sont transparents, sans frais cachés, et vous pouvez changer de plan à tout moment."
+                answer: `Nous proposons 4 plans : Gratuit (pour toujours), Starter à ${PLANS_CONFIG.STARTER.price.monthly}€/mois, Pro à ${PLANS_CONFIG.PRO.price.monthly}€/mois et Enterprise à ${PLANS_CONFIG.ENTERPRISE.price.monthly}€/mois. Vous pouvez payer mensuellement ou annuellement avec 17% de réduction. Tous les prix sont transparents, sans frais cachés, et vous pouvez changer de plan à tout moment.`
             },
             {
                 question: "Puis-je changer de plan à tout moment ?",
