@@ -14,7 +14,7 @@ export interface UseClientLoginReturn {
 
 /**
  * Custom hook for client login
- * Handles authentication API call and token storage
+ * Handles authentication API call - token is now stored in HttpOnly cookie
  */
 export function useClientLogin(): UseClientLoginReturn {
     const router = useRouter();
@@ -27,11 +27,13 @@ export function useClientLogin(): UseClientLoginReturn {
             setIsLoading(true);
 
             try {
+                // Security: Use credentials: 'include' to receive HttpOnly cookie
                 const res = await fetch("/api/client/auth/login", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                     },
+                    credentials: "include",
                     body: JSON.stringify(data),
                 });
 
@@ -44,9 +46,7 @@ export function useClientLogin(): UseClientLoginReturn {
                     return false;
                 }
 
-                // Store token
-                localStorage.setItem("clientToken", responseData.token);
-
+                // Token is now set as HttpOnly cookie by the server
                 // Redirect to dashboard
                 router.push("/client/dashboard");
 

@@ -3,6 +3,7 @@
  */
 
 import { z } from "zod";
+import { phoneSchema, postalCodeFrSchema } from "./patterns";
 
 // Category schemas
 export const categorieBaseSchema = z.object({
@@ -39,21 +40,15 @@ export const clientBaseSchema = z.object({
         .optional()
         .or(z.literal("")),
     email: z.string().email("Email invalide").optional().or(z.literal("")),
-    telephone: z
-        .string()
-        .max(20, "Le téléphone ne peut pas dépasser 20 caractères")
-        .optional()
-        .or(z.literal("")),
+    // Security: Validate phone format to prevent injection attacks
+    telephone: phoneSchema,
     adresse: z
         .string()
         .max(200, "L'adresse ne peut pas dépasser 200 caractères")
         .optional()
         .or(z.literal("")),
-    codePostal: z
-        .string()
-        .max(10, "Le code postal ne peut pas dépasser 10 caractères")
-        .optional()
-        .or(z.literal("")),
+    // Security: Validate postal code format (French 5-digit format)
+    codePostal: postalCodeFrSchema,
     ville: z
         .string()
         .max(100, "La ville ne peut pas dépasser 100 caractères")

@@ -1,28 +1,29 @@
-import { CLIENT_STORAGE_KEYS } from "@/lib/constants/client-storage";
-
 /**
  * Base fetch wrapper for client portal API calls
- * Automatically includes authentication token
+ * Security: Uses HttpOnly cookies for authentication (credentials: 'include')
  */
 export async function clientApiFetch<T>(
     endpoint: string,
     options?: RequestInit
 ): Promise<T> {
-    const token = localStorage.getItem(CLIENT_STORAGE_KEYS.AUTH_TOKEN);
-
-    if (!token) {
-        throw new Error("No authentication token found");
-    }
-
+    // Security: Use credentials: 'include' to send HttpOnly cookies
     const response = await fetch(endpoint, {
         ...options,
+        credentials: "include",
         headers: {
             ...options?.headers,
-            Authorization: `Bearer ${token}`,
         },
     });
 
     if (!response.ok) {
+        // Handle 401 specifically for redirect to login
+        if (response.status === 401) {
+            // Redirect to login page if unauthorized
+            if (typeof window !== "undefined") {
+                window.location.href = "/client/login";
+            }
+            throw new Error("Session expirée. Veuillez vous reconnecter.");
+        }
         throw new Error(
             `API request failed: ${response.status} ${response.statusText}`
         );

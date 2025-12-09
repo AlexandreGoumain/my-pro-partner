@@ -1,40 +1,45 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { withApiHandler } from "@/lib/api/api-handler";
+import { verifyResourceAccess } from "@/lib/middleware/tenant-isolation";
 
 /**
  * GET /api/pos/ticket/[id]
  * Générer un ticket de caisse en HTML pour impression
+ * SECURED: Requires authentication and verifies document ownership
  */
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
+  return withApiHandler(async (ctx) => {
     const { id } = await params;
-    const document = await prisma.document.findUnique({
-      where: { id },
-      include: {
-        client: true,
-        entreprise: {
-          include: {
-            parametres: true,
-          },
-        },
-        lignes: {
-          include: {
-            article: true,
-          },
-          orderBy: {
-            ordre: "asc",
-          },
-        },
-        paiements: true,
-      },
-    });
 
-    if (!document) {
-      return NextResponse.json({ error: "Document introuvable" }, { status: 404 });
-    }
+    // Verify document belongs to the authenticated user's business
+    const { resource: document } = await verifyResourceAccess(
+      id,
+      (docId) => prisma.document.findUnique({
+        where: { id: docId },
+        include: {
+          client: true,
+          entreprise: {
+            include: {
+              parametres: true,
+            },
+          },
+          lignes: {
+            include: {
+              article: true,
+            },
+            orderBy: {
+              ordre: "asc",
+            },
+          },
+          paiements: true,
+        },
+      }),
+      "Document"
+    );
 
     const paiement = document.paiements[0];
 
@@ -253,11 +258,5 @@ export async function GET(
         "Content-Type": "text/html",
       },
     });
-  } catch (error) {
-    console.error("[TICKET_GENERATION_ERROR]", error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Erreur lors de la génération du ticket" },
-      { status: 500 }
-    );
-  }
+  });
 }

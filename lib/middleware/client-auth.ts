@@ -1,30 +1,38 @@
 import { NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { jwtVerify } from "jose";
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+// Sécurité: Vérifier que le secret JWT est défini
 const CLIENT_JWT_SECRET = process.env.CLIENT_JWT_SECRET || process.env.NEXTAUTH_SECRET;
+if (!CLIENT_JWT_SECRET) {
+    throw new Error("CLIENT_JWT_SECRET or NEXTAUTH_SECRET must be defined");
+}
 
 /**
- * Verify client authentication from JWT token
+ * Verify client authentication from JWT token (HttpOnly cookie or Authorization header)
  * Returns client info if authenticated, throws error otherwise
  */
 export async function requireClientAuth(req: NextRequest) {
     try {
-        // Get token from Authorization header
-        const authHeader = req.headers.get("authorization");
-        const token = authHeader?.replace("Bearer ", "");
+        // Security: Prefer HttpOnly cookie, fallback to Authorization header for backwards compatibility
+        let token = req.cookies.get("clientToken")?.value;
+
+        // Fallback to Authorization header (will be deprecated)
+        if (!token) {
+            const authHeader = req.headers.get("authorization");
+            token = authHeader?.replace("Bearer ", "");
+        }
 
         if (!token) {
             throw new Error("No authentication token provided");
         }
 
-        // Verify JWT token (using next-auth's getToken for consistency)
-        const decoded = await getToken({
-            req,
-            secret: CLIENT_JWT_SECRET,
-            secureCookie: process.env.NODE_ENV === "production",
-        });
+        // Verify JWT token using jose
+        const { payload: decoded } = await jwtVerify(
+            token,
+            new TextEncoder().encode(CLIENT_JWT_SECRET)
+        );
 
         if (!decoded || !decoded.clientId) {
             throw new Error("Invalid or expired token");

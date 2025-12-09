@@ -895,6 +895,9 @@ model Client {
   lotsLocataire          LotCopropriete[]        @relation("LotsLocataire")
   membresConseilSyndical MembreConseilSyndical[] @relation("MembresConseilSyndical")
 
+  // Security: Password reset tokens
+  passwordResetTokens PasswordResetToken[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -914,17 +917,21 @@ model Client {
 
 // Tokens de réinitialisation de mot de passe pour le portail client
 model PasswordResetToken {
-  id        String    @id @default(cuid())
-  token     String    @unique
-  clientId  String
-  email     String
-  expiresAt DateTime
-  used      Boolean   @default(false)
-  usedAt    DateTime?
+  id           String    @id @default(cuid())
+  token        String    @unique
+  sessionToken String?   @unique // Security: Short-lived session token for secure form submission
+  clientId     String
+  email        String
+  expiresAt    DateTime
+  used         Boolean   @default(false)
+  usedAt       DateTime?
 
   createdAt DateTime @default(now())
 
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
   @@index([token])
+  @@index([sessionToken])
   @@index([clientId])
   @@index([email])
   @@index([expiresAt])

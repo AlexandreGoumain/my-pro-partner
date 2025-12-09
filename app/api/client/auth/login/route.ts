@@ -4,8 +4,13 @@ import bcrypt from "bcryptjs";
 import { SignJWT } from "jose";
 import { z } from "zod";
 import { validateRequest } from "@/lib/utils/validation-helper";
+import { tokenVerifyLimiter, getClientIp } from "@/lib/rate-limit";
 
-const CLIENT_JWT_SECRET = process.env.CLIENT_JWT_SECRET || process.env.NEXTAUTH_SECRET || "secret";
+// Sécurité: Ne jamais utiliser de fallback "secret" - lever une erreur si non défini
+const CLIENT_JWT_SECRET = process.env.CLIENT_JWT_SECRET || process.env.NEXTAUTH_SECRET;
+if (!CLIENT_JWT_SECRET) {
+    throw new Error("CLIENT_JWT_SECRET or NEXTAUTH_SECRET must be defined");
+}
 
 const loginSchema = z.object({
     email: z.string().email("Email invalide"),
@@ -18,6 +23,17 @@ const loginSchema = z.object({
  */
 export async function POST(req: NextRequest) {
     try {
+        // Rate limiting: 5 tentatives par 15 minutes par IP
+        const ip = getClientIp(req);
+        const { success: rateLimitSuccess } = await tokenVerifyLimiter.limit(ip);
+
+        if (!rateLimitSuccess) {
+            return NextResponse.json(
+                { message: "Trop de tentatives. Réessayez dans 15 minutes." },
+                { status: 429 }
+            );
+        }
+
         const body = await req.json();
         const result = validateRequest(loginSchema, body);
         if (!result.success) return result.response;
@@ -91,10 +107,22 @@ export async function POST(req: NextRequest) {
         // Return client info (without password)
         const { password: _password, ...clientWithoutPassword } = client;
 
-        return NextResponse.json({
-            token,
+        // Security: Set JWT as HttpOnly cookie instead of returning in body
+        const response = NextResponse.json({
             client: clientWithoutPassword,
         });
+
+        // Set secure HttpOnly cookie
+        const isProduction = process.env.NODE_ENV === "production";
+        response.cookies.set("clientToken", token, {
+            httpOnly: true,
+            secure: isProduction,
+            sameSite: "lax",
+            path: "/",
+            maxAge: 60 * 60 * 24 * 7, // 7 days
+        });
+
+        return response;
     } catch (error) {
         console.error("[Client Login] Error:", error);
         return NextResponse.json(

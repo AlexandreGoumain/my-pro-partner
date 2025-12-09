@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { EQUIPEMENTS_CONTROLE_OBLIGATOIRE } from "@/lib/types/equipement";
+import { requireCapability } from "@/lib/middleware/business-type-check";
 import { addYears } from "date-fns";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -14,6 +15,10 @@ export async function GET(request: NextRequest) {
                 { status: 401 }
             );
         }
+
+        // Security: Check capability for equipment tracking
+        const capabilityCheck = await requireCapability("suivi_bien");
+        if (capabilityCheck) return capabilityCheck;
 
         const { searchParams } = new URL(request.url);
         const clientId = searchParams.get("clientId");
@@ -77,6 +82,10 @@ export async function POST(request: NextRequest) {
                 { status: 401 }
             );
         }
+
+        // Security: Check capability for equipment tracking
+        const capabilityCheck = await requireCapability("suivi_bien");
+        if (capabilityCheck) return capabilityCheck;
 
         const body = await request.json();
         const {

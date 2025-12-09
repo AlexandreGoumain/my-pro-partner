@@ -157,3 +157,24 @@ export {
     type TypeAbonnementCreateInput,
     type TypeAbonnementUpdateInput,
 } from "./fitness";
+
+// Validation patterns (security-focused regex patterns)
+export {
+    PHONE_REGEX,
+    PHONE_FR_REGEX,
+    POSTAL_CODE_FR_REGEX,
+    POSTAL_CODE_FLEXIBLE_REGEX,
+    SIRET_REGEX,
+    SIREN_REGEX,
+    UUID_REGEX,
+    CUID_REGEX,
+    ID_REGEX,
+    phoneSchema,
+    phoneFrSchema,
+    postalCodeFrSchema,
+    postalCodeSchema,
+    idSchema,
+    optionalIdSchema,
+    siretSchema,
+    sirenSchema,
+} from "./patterns";

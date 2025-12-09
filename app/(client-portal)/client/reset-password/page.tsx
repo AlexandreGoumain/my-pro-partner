@@ -16,19 +16,16 @@ import {
 import { LoadingState } from "@/components/ui/loading-state";
 import { SuspensePage } from "@/components/ui/suspense-page";
 import { useResetPassword } from "@/hooks/use-reset-password";
+import { useVerifyResetToken } from "@/hooks/use-verify-reset-token";
 import { resetPasswordSchema, type ResetPasswordInput } from "@/lib/validation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CheckCircle2, Lock } from "lucide-react";
+import { CheckCircle2, Lock, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 function ResetPasswordForm() {
-    const searchParams = useSearchParams();
-    const token = searchParams.get("token");
-
+    const { isVerifying, isValid } = useVerifyResetToken();
     const { isLoading, success, resetPassword } = useResetPassword();
 
     const form = useForm<ResetPasswordInput>({
@@ -39,25 +36,31 @@ function ResetPasswordForm() {
         },
     });
 
-    useEffect(() => {
-        if (!token) {
-            toast.error("Token invalide. Veuillez refaire une demande.");
-        }
-    }, [token]);
-
     async function onSubmit(values: ResetPasswordInput) {
-        if (!token) {
-            toast.error("Token manquant");
+        if (!isValid) {
+            toast.error("Session invalide");
             return;
         }
 
         await resetPassword({
-            token,
             newPassword: values.newPassword,
         });
     }
 
-    if (!token) {
+    // Show loading state while verifying token
+    if (isVerifying) {
+        return (
+            <div className="min-h-screen bg-white flex items-center justify-center p-4">
+                <div className="text-center">
+                    <Loader2 className="h-8 w-8 animate-spin text-black/40 mx-auto mb-4" />
+                    <p className="text-[14px] text-black/60">Vérification du lien...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Show error if token is invalid
+    if (!isValid) {
         return (
             <StatusCard
                 type="error"
