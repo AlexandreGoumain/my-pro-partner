@@ -3,7 +3,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 export interface ResetPasswordData {
-    token: string;
     newPassword: string;
 }
 
@@ -15,7 +14,7 @@ export interface UseResetPasswordReturn {
 
 /**
  * Custom hook for resetting client password
- * Handles password reset API call and redirects on success
+ * Security: Uses HttpOnly session cookie for authentication
  */
 export function useResetPassword(): UseResetPasswordReturn {
     const router = useRouter();
@@ -24,21 +23,17 @@ export function useResetPassword(): UseResetPasswordReturn {
 
     const resetPassword = useCallback(
         async (data: ResetPasswordData): Promise<boolean> => {
-            if (!data.token) {
-                toast.error("Token manquant");
-                return false;
-            }
-
             setIsLoading(true);
 
             try {
+                // Security: Use credentials: 'include' to send HttpOnly session cookie
                 const res = await fetch("/api/client/auth/reset-password", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                     },
+                    credentials: "include",
                     body: JSON.stringify({
-                        token: data.token,
                         newPassword: data.newPassword,
                     }),
                 });

@@ -1,3 +1,5 @@
+import { PLANS_CONFIG } from "@/lib/config/plans.config";
+
 export interface PlanFeatureItem {
     text: string;
     available: boolean;
@@ -21,13 +23,17 @@ export interface PlanDetails {
 }
 
 export type PricingPlans = {
-    [K in "demarrage" | "pro" | "entreprise"]: PlanDetails;
+    [K in "starter" | "pro" | "entreprise"]: PlanDetails;
 };
 
+/**
+ * Données marketing pour les pages de pricing détaillées.
+ * Les prix sont synchronisés depuis PLANS_CONFIG (source de vérité).
+ */
 export const pricingDetails: PricingPlans = {
-    demarrage: {
-        name: "Démarrage",
-        basePrice: 49,
+    starter: {
+        name: PLANS_CONFIG.STARTER.name,
+        basePrice: PLANS_CONFIG.STARTER.price.monthly,
         description: "Idéal pour démarrer votre activité",
         tagline: "Tout ce dont vous avez besoin pour lancer votre entreprise",
         badge: undefined,
@@ -172,8 +178,8 @@ export const pricingDetails: PricingPlans = {
         ],
     },
     pro: {
-        name: "Pro",
-        basePrice: 99,
+        name: PLANS_CONFIG.PRO.name,
+        basePrice: PLANS_CONFIG.PRO.price.monthly,
         description: "Pour développer votre activité",
         tagline:
             "Toutes les fonctionnalités pour faire grandir votre entreprise",
@@ -384,8 +390,8 @@ export const pricingDetails: PricingPlans = {
         ],
     },
     entreprise: {
-        name: "Entreprise",
-        basePrice: 199,
+        name: PLANS_CONFIG.ENTERPRISE.name,
+        basePrice: PLANS_CONFIG.ENTERPRISE.price.monthly,
         description: "Pour les équipes qui grandissent",
         tagline: "Solution enterprise avec tout ce qu'il vous faut",
         badge: undefined,

@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireTenantAuth } from "@/lib/middleware/tenant-isolation";
+import { requireAdmin } from "@/lib/middleware/tenant-isolation";
 import { NextResponse } from "next/server";
 import { withErrorHandling } from "@/lib/errors";
 
@@ -13,7 +13,7 @@ export async function DELETE() {
                 );
             }
 
-            const { entrepriseId } = await requireTenantAuth();
+            const { entrepriseId } = await requireAdmin();
 
             // Delete line items first (foreign key constraint)
             await prisma.ligneDocument.deleteMany({

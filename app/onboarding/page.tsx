@@ -1,20 +1,24 @@
 "use client";
 
+import { useState } from "react";
 import { AuthError } from "@/components/auth";
-import { OnboardingHeader } from "@/components/onboarding/onboarding-header";
-import { OnboardingNavigation } from "@/components/onboarding/onboarding-navigation";
-import { OnboardingStepBusinessType } from "@/components/onboarding/onboarding-step-business-type";
-import { OnboardingStepCompany } from "@/components/onboarding/onboarding-step-company";
-import { OnboardingStepDetails } from "@/components/onboarding/onboarding-step-details";
-import { OnboardingStepPlan } from "@/components/onboarding/onboarding-step-plan";
-import { OnboardingStepper } from "@/components/onboarding/onboarding-stepper";
+import {
+    OnboardingHeader,
+    OnboardingNavigation,
+    OnboardingProgressBar,
+    OnboardingStepCompany,
+    OnboardingStepPlan,
+} from "@/components/onboarding";
 import { Card, CardContent } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
-import { Separator } from "@/components/ui/separator";
-import { useBusinessTemplateSelection } from "@/hooks/use-business-template-selection";
 import { useOnboardingPage } from "@/hooks/use-onboarding-page";
+import type { BusinessTemplate } from "@/lib/services/business-template.service";
 import { BusinessType } from "@/lib/types/business";
-import { ONBOARDING_STEPS } from "@/lib/types/onboarding";
+
+const ONBOARDING_STEPS = [
+    { number: 1, title: "Votre entreprise" },
+    { number: 2, title: "Votre plan" },
+];
 
 export default function OnboardingPage() {
     const {
@@ -23,6 +27,7 @@ export default function OnboardingPage() {
         error,
         onSubmit,
         step,
+        totalSteps,
         prevStep,
         canGoNext,
         handleNext,
@@ -30,30 +35,28 @@ export default function OnboardingPage() {
         setSelectedPlan,
     } = useOnboardingPage();
 
-    const {
-        templates,
-        isLoading: isLoadingTemplates,
-        selectedTemplate,
-        setSelectedTemplate,
-    } = useBusinessTemplateSelection();
+    // State local pour le template sélectionné (pas besoin d'API)
+    const [selectedTemplate, setSelectedTemplate] =
+        useState<BusinessTemplate | null>(null);
 
     return (
-        <div className="min-h-screen bg-white py-8 px-4 sm:py-12">
+        <div className="min-h-screen bg-gradient-to-b from-white to-black/[0.02] py-8 px-4 sm:py-12">
             <div className="container max-w-6xl mx-auto">
                 {/* Header */}
-                <OnboardingHeader className="text-center mb-8" />
+                <OnboardingHeader className="text-center mb-6" />
 
-                {/* Stepper */}
+                {/* Progress Bar */}
                 <div className="mb-8">
-                    <OnboardingStepper
+                    <OnboardingProgressBar
                         currentStep={step}
+                        totalSteps={totalSteps}
                         steps={ONBOARDING_STEPS}
                     />
                 </div>
 
                 {/* Main Card */}
-                <Card className="shadow-sm border-black/10">
-                    <CardContent className="p-6 sm:p-8">
+                <Card className="shadow-sm border-black/5 bg-white/80 backdrop-blur-sm">
+                    <CardContent className="p-6 sm:p-8 lg:p-10">
                         {error && (
                             <div className="mb-6">
                                 <AuthError error={error} />
@@ -62,70 +65,58 @@ export default function OnboardingPage() {
 
                         <Form {...form}>
                             <form
-                                onSubmit={form.handleSubmit(onSubmit)}
+                                onSubmit={(e) => e.preventDefault()}
                                 className="space-y-8"
                             >
-                                {/* Step 1: Informations de base */}
+                                {/* Step 1: Entreprise + Type d'activité */}
                                 {step === 1 && (
-                                    <OnboardingStepCompany
-                                        form={form}
-                                        className="space-y-6 animate-in fade-in duration-300"
-                                    />
-                                )}
-
-                                {/* Step 2: Sélection du type d'activité */}
-                                {step === 2 && (
-                                    <OnboardingStepBusinessType
-                                        form={form}
-                                        templates={templates}
-                                        isLoading={isLoadingTemplates}
-                                        selectedTemplate={selectedTemplate}
-                                        onSelectTemplate={setSelectedTemplate}
-                                        className="space-y-6 animate-in fade-in duration-300"
-                                    />
-                                )}
-
-                                {/* Step 3: Sélection du plan */}
-                                {step === 3 && (
-                                    <OnboardingStepPlan
-                                        businessType={
-                                            form.watch(
-                                                "businessType"
-                                            ) as BusinessType | null
-                                        }
-                                        selectedPlan={selectedPlan}
-                                        onSelectPlan={setSelectedPlan}
-                                        onNext={handleNext}
-                                        onBack={prevStep}
-                                        canGoNext={canGoNext}
-                                    />
-                                )}
-
-                                {/* Step 4: Informations complémentaires */}
-                                {step === 4 && (
-                                    <OnboardingStepDetails
-                                        form={form}
-                                        selectedTemplate={selectedTemplate}
-                                        className="space-y-6 animate-in fade-in duration-300"
-                                    />
-                                )}
-
-                                {/* Navigation buttons - Cachée pour step 3 (gérée dans OnboardingStepPlan) */}
-                                {step !== 3 && (
-                                    <>
-                                        <Separator />
-                                        <OnboardingNavigation
-                                            step={step}
-                                            isLoading={isLoading}
-                                            canGoNext={canGoNext}
+                                    <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+                                        <OnboardingStepCompany
+                                            form={form}
                                             selectedTemplate={selectedTemplate}
-                                            onPrevStep={prevStep}
-                                            onNextStep={() =>
-                                                handleNext(selectedTemplate)
-                                            }
-                                            className="flex items-center justify-between"
+                                            onSelectTemplate={setSelectedTemplate}
                                         />
-                                    </>
+
+                                        {/* Navigation Step 1 */}
+                                        <div className="mt-8 pt-6 border-t border-black/5">
+                                            <OnboardingNavigation
+                                                step={step}
+                                                isLoading={isLoading}
+                                                canGoNext={canGoNext}
+                                                selectedTemplate={selectedTemplate}
+                                                onPrevStep={prevStep}
+                                                onNextStep={() =>
+                                                    handleNext(selectedTemplate)
+                                                }
+                                                className="flex items-center justify-end"
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Step 2: Sélection du plan */}
+                                {step === 2 && (
+                                    <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+                                        <OnboardingStepPlan
+                                            businessType={
+                                                form.watch(
+                                                    "businessType"
+                                                ) as BusinessType | null
+                                            }
+                                            companyName={form.watch("nomEntreprise") || ""}
+                                            selectedPlan={selectedPlan}
+                                            onSelectPlan={setSelectedPlan}
+                                            onSubmit={async (billingPeriod) => {
+                                                const isValid = await form.trigger();
+                                                if (isValid) {
+                                                    const data = form.getValues();
+                                                    await onSubmit(data, billingPeriod);
+                                                }
+                                            }}
+                                            onBack={prevStep}
+                                            isLoading={isLoading}
+                                        />
+                                    </div>
                                 )}
                             </form>
                         </Form>
@@ -133,8 +124,8 @@ export default function OnboardingPage() {
                 </Card>
 
                 {/* Footer */}
-                <p className="text-center text-[12px] text-black/40 mt-6">
-                    Vous pourrez modifier toutes ces informations plus tard dans
+                <p className="text-center text-[12px] text-black/30 mt-6">
+                    Vous pourrez modifier ces informations à tout moment dans
                     les paramètres
                 </p>
             </div>

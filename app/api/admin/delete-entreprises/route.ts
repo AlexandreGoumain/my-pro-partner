@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireTenantAuth } from "@/lib/middleware/tenant-isolation";
+import { requireAdmin } from "@/lib/middleware/tenant-isolation";
 import { NextResponse } from "next/server";
 import { withErrorHandling } from "@/lib/errors";
 
@@ -13,17 +13,19 @@ export async function DELETE() {
                 );
             }
 
-            // Require authentication even in development
-            await requireTenantAuth();
+            // Require admin role and get entrepriseId
+            const { entrepriseId } = await requireAdmin();
 
-            // This deletes ALL enterprises (not tenant-scoped)
-            const result = await prisma.entreprise.deleteMany({});
+            // Security: Only delete the current user's enterprise (NOT all enterprises!)
+            const result = await prisma.entreprise.delete({
+                where: { id: entrepriseId },
+            });
 
             return NextResponse.json({
-                message: `${result.count} entreprise${result.count > 1 ? "s" : ""} supprimée${result.count > 1 ? "s" : ""}`,
-                deleted: result.count,
+                message: `Entreprise "${result.nom}" supprimée`,
+                deleted: 1,
             });
         },
-        { resourceName: "Entreprises", operation: "delete-all" }
+        { resourceName: "Entreprises", operation: "delete" }
     );
 }

@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef } from "react";
 import type { Capability } from "@/lib/types/capability";
 import type { BusinessType } from "@/lib/types/business";
 import type { BusinessCategory } from "@/lib/types/business-category";
@@ -41,6 +42,13 @@ interface PortalFeatures {
     hasCharges: boolean;
 }
 
+interface ClientAuthData {
+    client: Client;
+    entreprise: Entreprise | null;
+    capabilities: Capability[];
+    features: PortalFeatures | null;
+}
+
 interface UseClientAuthReturn {
     client: Client | null;
     isLoading: boolean;
@@ -54,6 +62,18 @@ interface UseClientAuthReturn {
     logout: () => void;
 }
 
+async function fetchClientAuth(): Promise<ClientAuthData> {
+    const res = await fetch("/api/client/auth/me", {
+        credentials: "include",
+    });
+
+    if (!res.ok) {
+        throw new Error("Not authenticated");
+    }
+
+    return res.json();
+}
+
 /**
  * Custom hook for client authentication
  * Checks if client is authenticated and redirects to login if not
@@ -61,60 +81,43 @@ interface UseClientAuthReturn {
  */
 export function useClientAuth(redirectIfNotAuth = true): UseClientAuthReturn {
     const router = useRouter();
-    const [client, setClient] = useState<Client | null>(null);
-    const [entreprise, setEntreprise] = useState<Entreprise | null>(null);
-    const [capabilities, setCapabilities] = useState<Capability[]>([]);
-    const [features, setFeatures] = useState<PortalFeatures | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const queryClient = useQueryClient();
+    const hasRedirected = useRef(false);
 
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ["client-auth"],
+        queryFn: fetchClientAuth,
+        staleTime: 5 * 60 * 1000, // 5 minutes
+        retry: false,
+        refetchOnWindowFocus: true,
+    });
+
+    // Handle redirect on auth failure
     useEffect(() => {
-        const checkAuth = async () => {
-            try {
-                const token = localStorage.getItem("clientToken");
+        if (isError && redirectIfNotAuth && !hasRedirected.current) {
+            hasRedirected.current = true;
+            router.push("/client/login");
+        }
+    }, [isError, redirectIfNotAuth, router]);
 
-                if (!token) {
-                    if (redirectIfNotAuth) {
-                        router.push("/client/login");
-                    }
-                    return;
-                }
+    const logout = useCallback(async () => {
+        try {
+            await fetch("/api/client/auth/logout", {
+                method: "POST",
+                credentials: "include",
+            });
+        } catch (error) {
+            console.error("Logout error:", error);
+        } finally {
+            queryClient.removeQueries({ queryKey: ["client-auth"] });
+            router.push("/client/login");
+        }
+    }, [queryClient, router]);
 
-                const res = await fetch("/api/client/auth/me", {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
-
-                if (!res.ok) {
-                    localStorage.removeItem("clientToken");
-                    if (redirectIfNotAuth) {
-                        router.push("/client/login");
-                    }
-                    return;
-                }
-
-                const data = await res.json();
-                setClient(data.client);
-                setEntreprise(data.entreprise || null);
-                setCapabilities(data.capabilities || []);
-                setFeatures(data.features || null);
-            } catch (error) {
-                console.error("Auth check failed:", error);
-                if (redirectIfNotAuth) {
-                    router.push("/client/login");
-                }
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        checkAuth();
-    }, [router, redirectIfNotAuth]);
-
-    const logout = () => {
-        localStorage.removeItem("clientToken");
-        router.push("/client/login");
-    };
+    const client = data?.client ?? null;
+    const entreprise = data?.entreprise ?? null;
+    const capabilities = data?.capabilities ?? [];
+    const features = data?.features ?? null;
 
     // Compute client name and initials from client data
     const clientName = client
