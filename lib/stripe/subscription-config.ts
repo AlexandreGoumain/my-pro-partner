@@ -70,14 +70,14 @@ export const STRIPE_SUBSCRIPTION_PRICES: Record<"STARTER" | "PRO" | "ENTERPRISE"
     productId: process.env.STRIPE_PRODUCT_ENTERPRISE,
     monthly: {
       priceId: process.env.STRIPE_PRICE_ENTERPRISE_MONTHLY || "price_enterprise_monthly_placeholder",
-      amount: 29900, // 299€
+      amount: 19900, // 199€
       currency: "eur",
       interval: "month",
       trialDays: 30, // 30 jours d'essai pour Enterprise
     },
     annual: {
       priceId: process.env.STRIPE_PRICE_ENTERPRISE_ANNUAL || "price_enterprise_annual_placeholder",
-      amount: 299000, // 2990€ (économie de 2 mois)
+      amount: 199000, // 1990€ (économie de 2 mois)
       currency: "eur",
       interval: "year",
       trialDays: 30,

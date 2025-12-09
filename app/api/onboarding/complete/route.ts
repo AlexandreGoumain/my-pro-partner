@@ -106,8 +106,8 @@ export async function POST(req: NextRequest) {
             });
 
             // Apply business template variant selon le plan (categories, loyalty levels, etc.)
+            let templateWarning: string | null = null;
             try {
-                // Utiliser applyTemplateVariant au lieu de applyTemplate
                 await BusinessTemplateService.applyTemplateVariant(
                     ctx.entrepriseId,
                     businessType as BusinessType,
@@ -116,12 +116,13 @@ export async function POST(req: NextRequest) {
                 );
             } catch (error) {
                 console.error("Erreur lors de l'application du template:", error);
-                // Continue even if template application fails
+                templateWarning = "Certaines configurations initiales n'ont pas pu être appliquées.";
             }
 
             return NextResponse.json(
                 {
                     message: "Onboarding complété avec succès",
+                    warning: templateWarning,
                     user: {
                         id: transactionResult.user.id,
                         email: transactionResult.user.email,

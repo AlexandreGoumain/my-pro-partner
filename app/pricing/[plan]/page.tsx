@@ -10,7 +10,7 @@ import { pricingDetails } from "@/lib/constants/pricing-plans";
 import { notFound } from "next/navigation";
 
 export function generateStaticParams() {
-    return [{ plan: "demarrage" }, { plan: "pro" }, { plan: "entreprise" }];
+    return [{ plan: "starter" }, { plan: "pro" }, { plan: "entreprise" }];
 }
 
 export default async function PricingDetailPage({

@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Check, X, Sparkles, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { PLANS_CONFIG } from "@/lib/config/plans.config";
 
 interface CompetitorFeature {
     category: string;
@@ -22,7 +23,7 @@ const comparisonData: CompetitorFeature[] = [
         features: [
             {
                 name: "Prix mensuel (plan Pro)",
-                myProPartner: "79€",
+                myProPartner: `${PLANS_CONFIG.PRO.price.monthly}€`,
                 competitor1: "149€",
                 competitor2: "199€",
                 competitor3: "Devis uniquement"

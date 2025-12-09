@@ -799,3 +799,126 @@ export const PLAN_FEATURES = {
         "Accès early features",
     ],
 } as const;
+
+// ============================================
+// PRICING HELPERS (Single Source of Truth)
+// ============================================
+
+/**
+ * Configuration des jours d'essai par plan
+ */
+export const TRIAL_DAYS: Record<PlanType, number> = {
+    FREE: 0,
+    STARTER: 14,
+    PRO: 14,
+    ENTERPRISE: 30,
+};
+
+/**
+ * Formate un prix en euros avec le symbole €
+ * @param price Prix en euros (number)
+ * @param interval Période de facturation (optionnel)
+ */
+export function formatPrice(
+    price: number,
+    interval?: "month" | "year"
+): string {
+    if (price === 0) return "Gratuit";
+    const suffix = interval === "month" ? "/mois" : interval === "year" ? "/an" : "";
+    return `${price}€${suffix}`;
+}
+
+/**
+ * Formate le prix d'un plan pour l'affichage
+ * @param planType Type de plan
+ * @param interval Période de facturation
+ */
+export function formatPlanPrice(
+    planType: PlanType,
+    interval: "month" | "year"
+): string {
+    const plan = PLANS_CONFIG[planType];
+    const price = interval === "month" ? plan.price.monthly : plan.price.yearly;
+    return formatPrice(price, interval);
+}
+
+/**
+ * Obtient les détails de prix pour l'affichage (nom, prix formaté, période)
+ */
+export function getPlanPriceDetails(
+    planType: PlanType,
+    interval: "month" | "year"
+): {
+    planName: string;
+    price: string;
+    billingPeriod: string;
+    trialDays: number;
+    rawPrice: number;
+} {
+    const plan = PLANS_CONFIG[planType];
+    const rawPrice = interval === "month" ? plan.price.monthly : plan.price.yearly;
+
+    return {
+        planName: plan.name,
+        price: formatPrice(rawPrice, interval),
+        billingPeriod: interval === "year" ? "Facturation annuelle" : "Facturation mensuelle",
+        trialDays: TRIAL_DAYS[planType],
+        rawPrice,
+    };
+}
+
+/**
+ * Mapping des prix pour tous les plans (utile pour les composants qui affichent tous les prix)
+ */
+export function getAllPlanPrices(): Record<
+    PlanType,
+    { month: string; year: string; monthlyRaw: number; yearlyRaw: number }
+> {
+    return {
+        FREE: {
+            month: formatPrice(PLANS_CONFIG.FREE.price.monthly, "month"),
+            year: formatPrice(PLANS_CONFIG.FREE.price.yearly, "year"),
+            monthlyRaw: PLANS_CONFIG.FREE.price.monthly,
+            yearlyRaw: PLANS_CONFIG.FREE.price.yearly,
+        },
+        STARTER: {
+            month: formatPrice(PLANS_CONFIG.STARTER.price.monthly, "month"),
+            year: formatPrice(PLANS_CONFIG.STARTER.price.yearly, "year"),
+            monthlyRaw: PLANS_CONFIG.STARTER.price.monthly,
+            yearlyRaw: PLANS_CONFIG.STARTER.price.yearly,
+        },
+        PRO: {
+            month: formatPrice(PLANS_CONFIG.PRO.price.monthly, "month"),
+            year: formatPrice(PLANS_CONFIG.PRO.price.yearly, "year"),
+            monthlyRaw: PLANS_CONFIG.PRO.price.monthly,
+            yearlyRaw: PLANS_CONFIG.PRO.price.yearly,
+        },
+        ENTERPRISE: {
+            month: formatPrice(PLANS_CONFIG.ENTERPRISE.price.monthly, "month"),
+            year: formatPrice(PLANS_CONFIG.ENTERPRISE.price.yearly, "year"),
+            monthlyRaw: PLANS_CONFIG.ENTERPRISE.price.monthly,
+            yearlyRaw: PLANS_CONFIG.ENTERPRISE.price.yearly,
+        },
+    };
+}
+
+/**
+ * Calcul des économies annuelles
+ */
+export function getAnnualSavings(planType: PlanType): {
+    amount: number;
+    percentage: number;
+    formatted: string;
+} {
+    const plan = PLANS_CONFIG[planType];
+    const monthlyAnnualized = plan.price.monthly * 12;
+    const yearlyPrice = plan.price.yearly;
+    const savings = monthlyAnnualized - yearlyPrice;
+    const percentage = Math.round((savings / monthlyAnnualized) * 100);
+
+    return {
+        amount: savings,
+        percentage,
+        formatted: savings > 0 ? `Économisez ${savings}€/an` : "",
+    };
+}
