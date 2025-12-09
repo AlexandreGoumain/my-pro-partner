@@ -3,34 +3,33 @@ import { prisma } from "@/lib/prisma";
 import { stripe } from "@/lib/stripe/stripe-config";
 import { STRIPE_CONFIG, STRIPE_URLS, STRIPE_ERRORS } from "@/lib/stripe/stripe-constants";
 import { eurosToCents, toNumber, calculateRemainingAmount } from "@/lib/utils/payment-utils";
+import { withApiHandler } from "@/lib/api/api-handler";
+import { verifyResourceAccess } from "@/lib/middleware/tenant-isolation";
 
 /**
  * POST /api/documents/[id]/payment
  * Create a Stripe checkout session for invoice payment
+ * SECURED: Requires authentication and verifies document ownership
  */
 export async function POST(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
-    try {
+    return withApiHandler(async (ctx) => {
         const { id } = await params;
 
-        // Fetch document with related data
-        const document = await prisma.document.findUnique({
-            where: { id },
-            include: {
-                client: true,
-                entreprise: true,
-            },
-        });
-
-        // Validate document existence
-        if (!document) {
-            return NextResponse.json(
-                { message: "Document non trouvé" },
-                { status: 404 }
-            );
-        }
+        // Verify document belongs to the authenticated user's business
+        const { resource: document } = await verifyResourceAccess(
+            id,
+            (docId) => prisma.document.findUnique({
+                where: { id: docId },
+                include: {
+                    client: true,
+                    entreprise: true,
+                },
+            }),
+            "Document"
+        );
 
         // Validate document type
         if (document.type !== "FACTURE") {
@@ -92,15 +91,5 @@ export async function POST(
             sessionId: session.id,
             url: session.url,
         });
-    } catch (error) {
-        console.error("[Payment API] Error creating Stripe session:", error);
-
-        return NextResponse.json(
-            {
-                success: false,
-                message: error instanceof Error ? error.message : STRIPE_ERRORS.SESSION_CREATION_FAILED,
-            },
-            { status: 500 }
-        );
-    }
+    });
 }

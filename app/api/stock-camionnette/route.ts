@@ -81,7 +81,26 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        // Security: Check capability
+        const capabilityCheck = await requireCapability("stock_camionnette");
+        if (capabilityCheck) return capabilityCheck;
+
         const body = await request.json();
+
+        // Security: Verify camionnette belongs to this enterprise
+        const camionnette = await prisma.camionnette.findFirst({
+            where: {
+                id: body.camionnetteId,
+                entrepriseId: session.user.entrepriseId,
+            },
+        });
+
+        if (!camionnette) {
+            return NextResponse.json(
+                { error: "Camionnette non trouvée" },
+                { status: 404 }
+            );
+        }
 
         const stockItem = await prisma.stockCamionnette.create({
             data: {

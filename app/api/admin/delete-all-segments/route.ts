@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { requireTenantAuth } from "@/lib/middleware/tenant-isolation";
+import { requireAdmin } from "@/lib/middleware/tenant-isolation";
 import { NextResponse } from "next/server";
 import { withErrorHandling } from "@/lib/errors";
 
@@ -22,7 +22,7 @@ export async function DELETE() {
                 );
             }
 
-            const { entrepriseId } = await requireTenantAuth();
+            const { entrepriseId } = await requireAdmin();
 
             // Delete all segments for the current enterprise
             const result = await prisma.segment.deleteMany({

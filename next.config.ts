@@ -28,8 +28,13 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline'", // unsafe-inline needed for styled-components
               "img-src 'self' data: https:",
               "font-src 'self' data:",
-              "connect-src 'self' https://api.openai.com",
+              "connect-src 'self' https://api.openai.com https://*.stripe.com",
+              "frame-src 'self' https://*.stripe.com", // Stripe checkout iframe
               "frame-ancestors 'none'",
+              "form-action 'self'", // Security: Prevent form submissions to external sites
+              "base-uri 'self'", // Security: Prevent base tag hijacking
+              "object-src 'none'", // Security: Prevent plugins (Flash, Java, etc.)
+              "upgrade-insecure-requests", // Security: Upgrade HTTP to HTTPS
             ].join('; '),
           },
           {

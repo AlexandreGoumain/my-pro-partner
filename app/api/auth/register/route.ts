@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { NextRequest, NextResponse } from "next/server";
 import { validateRequest } from "@/lib/utils/validation-helper";
 import { checkDashboardEnabled } from "@/lib/dashboard-enabled";
+import { strictLimiter, getClientIp } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
     // Vérifier si le dashboard est activé
@@ -11,6 +12,17 @@ export async function POST(req: NextRequest) {
     if (dashboardCheck) return dashboardCheck;
 
     try {
+        // Rate limiting: 10 inscriptions par heure par IP
+        const ip = getClientIp(req);
+        const { success: rateLimitSuccess } = await strictLimiter.limit(ip);
+
+        if (!rateLimitSuccess) {
+            return NextResponse.json(
+                { message: "Trop de tentatives d'inscription. Réessayez plus tard." },
+                { status: 429 }
+            );
+        }
+
         const body = await req.json();
 
         const validationResult = validateRequest(registerBackendSchema, body);

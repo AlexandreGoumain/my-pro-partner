@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { documentKeys } from "@/hooks/use-documents";
+import DOMPurify from "dompurify";
 
 interface UseDocumentPdfProps {
     documentId: string;
@@ -83,10 +84,31 @@ export function useDocumentPdf({
         const printWindow = window.open("", "", "width=800,height=600");
         if (!printWindow) return;
 
+        // Security: Sanitize HTML content to prevent XSS attacks
+        const sanitizedContent = DOMPurify.sanitize(printContent.innerHTML, {
+            ALLOWED_TAGS: [
+                "div", "span", "p", "h1", "h2", "h3", "h4", "h5", "h6",
+                "table", "thead", "tbody", "tr", "th", "td",
+                "ul", "ol", "li", "br", "hr", "strong", "b", "em", "i",
+                "img", "svg", "path", "rect", "circle", "line", "polyline", "polygon",
+            ],
+            ALLOWED_ATTR: [
+                "class", "style", "src", "alt", "width", "height",
+                "colspan", "rowspan", "viewBox", "d", "fill", "stroke",
+                "stroke-width", "cx", "cy", "r", "x", "y", "x1", "y1", "x2", "y2",
+                "points", "transform",
+            ],
+            ALLOW_DATA_ATTR: false,
+        });
+
+        // Also sanitize dynamic values in the title
+        const safeDocumentType = DOMPurify.sanitize(documentType);
+        const safeDocumentNumero = DOMPurify.sanitize(documentNumero);
+
         printWindow.document.write(`
             <html>
                 <head>
-                    <title>${documentType} ${documentNumero}</title>
+                    <title>${safeDocumentType} ${safeDocumentNumero}</title>
                     <style>
                         @media print {
                             @page {
@@ -103,7 +125,7 @@ export function useDocumentPdf({
                     </style>
                 </head>
                 <body>
-                    ${printContent.innerHTML}
+                    ${sanitizedContent}
                 </body>
             </html>
         `);

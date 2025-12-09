@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 import { validateRequest } from "@/lib/utils/validation-helper";
 
 const resetPasswordSchema = z.object({
-    token: z.string().min(1, "Token requis"),
+    token: z.string().optional(), // Optional: fallback for backwards compatibility
     newPassword: z
         .string()
         .min(8, "Le mot de passe doit contenir au moins 8 caractères"),
@@ -13,7 +13,7 @@ const resetPasswordSchema = z.object({
 
 /**
  * POST /api/client/auth/reset-password
- * Reset password with valid token
+ * Security: Reset password using secure session cookie (preferred) or token (fallback)
  */
 export async function POST(req: NextRequest) {
     try {
@@ -21,12 +21,24 @@ export async function POST(req: NextRequest) {
         const result = validateRequest(resetPasswordSchema, body);
         if (!result.success) return result.response;
 
-        const { token, newPassword } = result.data;
+        const { token: bodyToken, newPassword } = result.data;
 
-        // Find the reset token
-        const resetToken = await prisma.passwordResetToken.findUnique({
-            where: { token },
-        });
+        // Security: Prefer session cookie over token in body
+        const sessionToken = req.cookies.get("resetSession")?.value;
+
+        let resetToken;
+
+        if (sessionToken) {
+            // Use secure session token from HttpOnly cookie
+            resetToken = await prisma.passwordResetToken.findUnique({
+                where: { sessionToken },
+            });
+        } else if (bodyToken) {
+            // Fallback to token in body (for backwards compatibility)
+            resetToken = await prisma.passwordResetToken.findUnique({
+                where: { token: bodyToken },
+            });
+        }
 
         if (!resetToken) {
             return NextResponse.json(
@@ -68,14 +80,26 @@ export async function POST(req: NextRequest) {
                 data: {
                     used: true,
                     usedAt: new Date(),
+                    sessionToken: null, // Clear session token
                 },
             }),
         ]);
 
-        return NextResponse.json({
+        // Security: Clear the session cookie
+        const response = NextResponse.json({
             message:
                 "Mot de passe réinitialisé avec succès. Vous pouvez maintenant vous connecter.",
         });
+
+        response.cookies.set("resetSession", "", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "strict",
+            path: "/client/reset-password",
+            maxAge: 0, // Expire immediately
+        });
+
+        return response;
     } catch (error) {
         console.error("[Reset Password API] Error:", error);
         return NextResponse.json(

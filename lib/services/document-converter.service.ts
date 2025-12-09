@@ -37,6 +37,11 @@ export class DocumentConverterService {
             throw new Error("Devis non trouvé");
         }
 
+        // Security: Verify quote belongs to the requesting company
+        if (devis.entrepriseId !== entrepriseId) {
+            throw new Error("Accès non autorisé à ce devis");
+        }
+
         // Validate it's a quote
         if (devis.type !== "DEVIS") {
             throw new Error("Ce document n'est pas un devis");
