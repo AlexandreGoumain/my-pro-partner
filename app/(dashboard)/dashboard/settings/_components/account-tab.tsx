@@ -40,6 +40,13 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
+// Vérifie si on est en développement local (localhost)
+function getIsDevelopment() {
+    if (typeof window === "undefined") return false;
+    const hostname = window.location.hostname;
+    return hostname === "localhost" || hostname === "127.0.0.1";
+}
+
 interface AccountTabProps {
     user?: UserSettings | null;
 }
@@ -268,6 +275,7 @@ const dataTypeOptions: DeleteOption[] = [
 
 export function AccountTab({ user = null }: AccountTabProps) {
     const [isChangingPassword, setIsChangingPassword] = useState(false);
+    const showDangerZone = getIsDevelopment();
 
     return (
         <div className="space-y-6">
@@ -402,89 +410,91 @@ export function AccountTab({ user = null }: AccountTabProps) {
                 </div>
             </SettingsSection>
 
-            <SettingsSection
-                icon={Trash2}
-                title="Zone danger"
-                description="Actions irréversibles (développement uniquement)"
-            >
-                <div className="max-w-4xl">
-                    <div className="rounded-lg border border-black/[0.08] bg-white p-6 shadow-sm">
-                        <div className="space-y-6">
-                            {/* Mes données personnelles */}
-                            <div>
-                                <div className="text-[14px] font-semibold text-black">
-                                    Supprimer toutes mes données
+            {showDangerZone && (
+                <SettingsSection
+                    icon={Trash2}
+                    title="Zone danger"
+                    description="Actions irréversibles (développement uniquement)"
+                >
+                    <div className="max-w-4xl">
+                        <div className="rounded-lg border border-black/[0.08] bg-white p-6 shadow-sm">
+                            <div className="space-y-6">
+                                {/* Mes données personnelles */}
+                                <div>
+                                    <div className="text-[14px] font-semibold text-black">
+                                        Supprimer toutes mes données
+                                    </div>
+                                    <p className="mt-2 text-[13px] text-black/70">
+                                        Supprime toutes vos données personnelles de
+                                        manière irréversible.
+                                    </p>
+                                    <div className="mt-3">
+                                        <DeleteAllDataDialog />
+                                    </div>
                                 </div>
-                                <p className="mt-2 text-[13px] text-black/70">
-                                    Supprime toutes vos données personnelles de
-                                    manière irréversible.
-                                </p>
-                                <div className="mt-3">
-                                    <DeleteAllDataDialog />
-                                </div>
-                            </div>
 
-                            {/* Suppression par type de données */}
-                            <div className="pt-4 border-t border-black/[0.08]">
-                                <div className="text-[15px] font-semibold text-black mb-3">
-                                    Supprimer des types de données
+                                {/* Suppression par type de données */}
+                                <div className="pt-4 border-t border-black/[0.08]">
+                                    <div className="text-[15px] font-semibold text-black mb-3">
+                                        Supprimer des types de données
+                                    </div>
+                                    <p className="text-[13px] text-black/70 mb-4">
+                                        Supprimez sélectivement des types de données
+                                        de votre entreprise.
+                                    </p>
+                                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                                        {dataTypeOptions.map((option) => (
+                                            <DeleteDataTypeDialog
+                                                key={option.type}
+                                                type={option.type}
+                                                title={option.title}
+                                                description={option.description}
+                                                buttonLabel={option.buttonLabel}
+                                                confirmMessage={
+                                                    option.confirmMessage
+                                                }
+                                                icon={option.icon}
+                                                apiEndpoint={option.apiEndpoint}
+                                                color={option.color}
+                                            />
+                                        ))}
+                                    </div>
                                 </div>
-                                <p className="text-[13px] text-black/70 mb-4">
-                                    Supprimez sélectivement des types de données
-                                    de votre entreprise.
-                                </p>
-                                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                                    {dataTypeOptions.map((option) => (
+
+                                {/* Actions globales dangereuses */}
+                                <div className="pt-4 border-t border-black/[0.08]">
+                                    <div className="text-[15px] font-bold text-black mb-3">
+                                        Actions globales extrêmement dangereuses
+                                    </div>
+                                    <p className="text-[13px] text-black/70 mb-4">
+                                        Ces actions affectent TOUTES les
+                                        entreprises, pas seulement la vôtre.
+                                    </p>
+                                    <div className="grid gap-3 sm:grid-cols-2">
                                         <DeleteDataTypeDialog
-                                            key={option.type}
-                                            type={option.type}
-                                            title={option.title}
-                                            description={option.description}
-                                            buttonLabel={option.buttonLabel}
-                                            confirmMessage={
-                                                option.confirmMessage
-                                            }
-                                            icon={option.icon}
-                                            apiEndpoint={option.apiEndpoint}
-                                            color={option.color}
+                                            type="entreprises"
+                                            title="Supprimer TOUTES les entreprises ?"
+                                            description="DANGER EXTRÊME - Cette action supprimera TOUTES les entreprises de la base de données, pas seulement la vôtre."
+                                            buttonLabel="Toutes les entreprises"
+                                            confirmMessage="Je comprends que TOUTES les entreprises seront supprimées"
+                                            icon={Building2}
+                                            apiEndpoint="/api/admin/delete-entreprises"
+                                            color="red"
                                         />
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Actions globales dangereuses */}
-                            <div className="pt-4 border-t border-black/[0.08]">
-                                <div className="text-[15px] font-bold text-black mb-3">
-                                    Actions globales extrêmement dangereuses
-                                </div>
-                                <p className="text-[13px] text-black/70 mb-4">
-                                    Ces actions affectent TOUTES les
-                                    entreprises, pas seulement la vôtre.
-                                </p>
-                                <div className="grid gap-3 sm:grid-cols-2">
-                                    <DeleteDataTypeDialog
-                                        type="entreprises"
-                                        title="Supprimer TOUTES les entreprises ?"
-                                        description="DANGER EXTRÊME - Cette action supprimera TOUTES les entreprises de la base de données, pas seulement la vôtre."
-                                        buttonLabel="Toutes les entreprises"
-                                        confirmMessage="Je comprends que TOUTES les entreprises seront supprimées"
-                                        icon={Building2}
-                                        apiEndpoint="/api/admin/delete-entreprises"
-                                        color="red"
-                                    />
-                                    <div>
-                                        <div className="text-[13px] text-black/70 mb-2">
-                                            Réinitialisation complète de
-                                            l&apos;application
+                                        <div>
+                                            <div className="text-[13px] text-black/70 mb-2">
+                                                Réinitialisation complète de
+                                                l&apos;application
+                                            </div>
+                                            <DeleteEntireDbDialog />
                                         </div>
-                                        <DeleteEntireDbDialog />
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </SettingsSection>
+                </SettingsSection>
+            )}
         </div>
     );
 }
