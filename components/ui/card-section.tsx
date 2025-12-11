@@ -1,3 +1,4 @@
+import { Badge } from "@/components/ui/badge";
 import {
     Card,
     CardContent,
@@ -5,7 +6,6 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { LucideIcon } from "lucide-react";
 import { ReactNode } from "react";
@@ -108,17 +108,21 @@ export function CardSection({
 
         const titleContent = (
             <>
-                {Icon && <Icon className="h-5 w-5 text-black/60" strokeWidth={2} />}
+                {Icon && (
+                    <Icon className="h-5 w-5 text-black/60" strokeWidth={2} />
+                )}
                 {displayTitle}
-                {badge && (
-                    typeof badge === "string" ? (
-                        <Badge variant="secondary" className="text-xs font-normal">
+                {badge &&
+                    (typeof badge === "string" ? (
+                        <Badge
+                            variant="secondary"
+                            className="text-xs font-normal"
+                        >
                             {badge}
                         </Badge>
                     ) : (
                         badge
-                    )
-                )}
+                    ))}
             </>
         );
 
@@ -136,7 +140,12 @@ export function CardSection({
     };
 
     return (
-        <Card className={cn("group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500", className)}>
+        <Card
+            className={cn(
+                "group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-sm transition-all duration-300",
+                className
+            )}
+        >
             <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             <div className="relative">
                 {hasHeader && (
@@ -177,7 +186,9 @@ export function CardSection({
                         )}
                     </CardHeader>
                 )}
-                <CardContent className={contentClassName}>{children}</CardContent>
+                <CardContent className={contentClassName}>
+                    {children}
+                </CardContent>
             </div>
         </Card>
     );

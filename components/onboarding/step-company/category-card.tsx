@@ -1,7 +1,7 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import type { BusinessCategory } from "@/lib/config/business-categories";
+import { cn } from "@/lib/utils";
 import { ChevronRight } from "lucide-react";
 
 interface CategoryCardProps {
@@ -27,7 +27,7 @@ export function CategoryCard({
             onClick={onClick}
             className={cn(
                 "group relative w-full overflow-hidden rounded-2xl border p-6 text-left transition-all duration-300",
-                "hover:shadow-lg hover:-translate-y-1",
+                "hover:shadow-sm hover:-translate-y-0.5",
                 isSelected
                     ? "border-black bg-black text-white shadow-xl scale-[1.02]"
                     : "border-black/10 bg-white hover:border-black/20"

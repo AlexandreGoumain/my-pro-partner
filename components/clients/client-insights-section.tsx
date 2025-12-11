@@ -1,8 +1,7 @@
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { SectionHeader } from "@/components/ui/section-header";
+import { Card } from "@/components/ui/card";
 import { ProgressBar } from "@/components/ui/progress-bar";
-import { Users, TrendingUp, ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, TrendingUp, Users } from "lucide-react";
 
 export interface ClientInsightsSectionProps {
     completionRate: number;
@@ -22,7 +21,7 @@ export function ClientInsightsSection({
     return (
         <div className="grid gap-5 md:grid-cols-2">
             {/* Qualité des données */}
-            <Card className="group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500">
+            <Card className="group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-sm transition-all duration-300">
                 <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="relative p-6">
                     <div className="mb-6">
@@ -57,7 +56,7 @@ export function ClientInsightsSection({
             </Card>
 
             {/* Actions rapides */}
-            <Card className="group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500">
+            <Card className="group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-sm transition-all duration-300">
                 <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <div className="relative p-6">
                     <div className="mb-6">

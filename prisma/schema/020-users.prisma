@@ -1,0 +1,366 @@
+// USER & AUTH MODELS
+
+model User {
+  id       String  @id @default(cuid())
+  email    String  @unique
+  password String
+  name     String?
+
+  // Rôle et statut
+  role   UserRole   @default(EMPLOYEE)
+  status UserStatus @default(INVITED)
+
+  // Multi-tenant: chaque user appartient à une entreprise
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Informations personnelles
+  prenom        String?
+  telephone     String?
+  dateNaissance DateTime? @db.Date
+  adresse       String?
+  codePostal    String?
+  ville         String?
+  photoUrl      String?
+
+  // Informations professionnelles
+  poste          String? // Titre du poste (ex: "Chef de caisse", "Vendeur")
+  departement    String? // Département (ex: "Ventes", "Comptabilité")
+  dateEmbauche   DateTime? @db.Date
+  dateFinContrat DateTime? @db.Date // Pour CDD
+  salaireHoraire Decimal?  @db.Decimal(10, 2) // Pour calcul des commissions
+  numeroSecu     String? // Numéro de sécurité sociale
+  iban           String? // Pour virements salaire
+
+  // Permissions détaillées
+  permissions UserPermissions?
+
+  // Horaires et planning
+  schedules UserSchedule[]
+
+  // Tracking temps de travail
+  timeEntries TimeEntry[]
+
+  // Activité
+  lastLoginAt    DateTime?
+  lastActivityAt DateTime?
+
+  // Onboarding: tracking si l'utilisateur a complété son profil
+  onboardingComplete Boolean @default(false)
+
+  // Préférences de notifications
+  emailNotifications Boolean @default(true) // Notifications importantes par email
+  newsUpdates        Boolean @default(false) // Actualités et mises à jour
+
+  // Relations
+  conversations        Conversation[]
+  mouvementsStock      MouvementStock[]         @relation("UserStockMovements")
+  activitiesCreated    UserActivity[]           @relation("CreatedActivities")
+  reparationsAssignees Reparation[]             @relation("ReparationTechnicien")
+  interventions        ReparationIntervention[] @relation("InterventionTechnicien")
+  employee             Employee? // Lien optionnel avec le profil employé
+
+  // Relations pour système plomberie/chauffage
+  interventionsPlombier Intervention[]        @relation("InterventionPlombier")
+  interventionsTime     InterventionTimeLog[] @relation("InterventionPlombierTime")
+  camionnettes          Camionnette[] // Camionnettes dont ce user est plombier principal
+  entretiensAssignes    EntretienPrevu[]
+  certificatsRealises   CertificatEntretien[] // Certificats réalisés par ce technicien
+
+  // Relations pour système consulting / services intellectuels
+  entreesTemps EntreeTemps[] // Entrées de temps sur missions
+
+  // Relations pour système juridique (cabinets d'avocats)
+  diligences Diligence[] // Diligences effectuées par cet avocat
+
+  // Relations pour sécurité chatbot
+  chatbotAuditLogs   ChatbotAuditLog[]
+  chatbotActionTokens ChatbotActionToken[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([email])
+  @@index([role])
+  @@index([status])
+  @@index([entrepriseId, status])
+  @@index([entrepriseId, role])
+}
+
+// Permissions granulaires par utilisateur
+model UserPermissions {
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @unique
+
+  // Permissions Clients
+  canViewClients   Boolean @default(false)
+  canCreateClients Boolean @default(false)
+  canEditClients   Boolean @default(false)
+  canDeleteClients Boolean @default(false)
+
+  // Permissions Documents (Devis, Factures)
+  canViewDocuments     Boolean @default(false)
+  canCreateDocuments   Boolean @default(false)
+  canEditDocuments     Boolean @default(false)
+  canDeleteDocuments   Boolean @default(false)
+  canValidateDocuments Boolean @default(false) // Valider/Accepter devis
+
+  // Permissions Stock
+  canViewStock   Boolean @default(false)
+  canEditStock   Boolean @default(false)
+  canManageStock Boolean @default(false) // Mouvements stock
+
+  // Permissions Produits/Services
+  canViewProducts   Boolean @default(false)
+  canCreateProducts Boolean @default(false)
+  canEditProducts   Boolean @default(false)
+  canDeleteProducts Boolean @default(false)
+
+  // Permissions Finances
+  canViewFinances   Boolean @default(false)
+  canManagePayments Boolean @default(false)
+  canViewReports    Boolean @default(false)
+  canExportData     Boolean @default(false)
+
+  // Permissions Personnel
+  canViewUsers        Boolean @default(false)
+  canManageUsers      Boolean @default(false) // Créer/Modifier users
+  canViewTimeTracking Boolean @default(false)
+
+  // Permissions Paramètres
+  canViewSettings Boolean @default(false)
+  canEditSettings Boolean @default(false)
+
+  // Permissions Avancées
+  canAccessAPI     Boolean @default(false)
+  canManageBilling Boolean @default(false) // Gérer abonnement
+  canViewAuditLog  Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// Horaires de travail (planning)
+model UserSchedule {
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  // Jour de la semaine (0 = Dimanche, 1 = Lundi, ..., 6 = Samedi)
+  dayOfWeek Int
+
+  // Heures de travail
+  startTime String // Format "HH:mm" (ex: "09:00")
+  endTime   String // Format "HH:mm" (ex: "18:00")
+
+  // Pause déjeuner
+  breakStart String? // Format "HH:mm"
+  breakEnd   String? // Format "HH:mm"
+
+  // Actif ou non (pour gérer les exceptions)
+  active Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, dayOfWeek])
+  @@index([userId])
+  @@index([dayOfWeek])
+}
+
+// Suivi du temps de travail (pointage)
+model TimeEntry {
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  // Date et heures
+  date     DateTime  @db.Date
+  clockIn  DateTime // Heure d'arrivée
+  clockOut DateTime? // Heure de départ (null si en cours)
+
+  // Pause
+  breakDuration Int @default(0) // Durée de pause en minutes
+
+  // Heures travaillées (calculé automatiquement)
+  hoursWorked Decimal? @db.Decimal(5, 2) // Ex: 8.50 heures
+
+  // Notes
+  notes String?
+
+  // Type de journée
+  type TimeEntryType @default(REGULAR)
+
+  // Validation
+  validated   Boolean   @default(false)
+  validatedBy String? // ID du manager qui a validé
+  validatedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([date])
+  @@index([userId, date])
+  @@index([validated])
+}
+
+// Log d'activité utilisateur
+model UserActivity {
+  id         String       @id @default(cuid())
+  user       User         @relation("CreatedActivities", fields: [userId], references: [id], onDelete: Cascade)
+  userId     String
+  action     ActivityType
+  resource   String? // Type de ressource (ex: "Client", "Document", "Article")
+  resourceId String? // ID de la ressource
+  details    Json? // Détails additionnels
+  ipAddress  String?
+  userAgent  String?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@index([userId, createdAt])
+}
+
+// Tokens de réinitialisation de mot de passe pour le portail client
+model PasswordResetToken {
+  id           String    @id @default(cuid())
+  token        String    @unique
+  sessionToken String?   @unique // Security: Short-lived session token for secure form submission
+  clientId     String
+  email        String
+  expiresAt    DateTime
+  used         Boolean   @default(false)
+  usedAt       DateTime?
+
+  createdAt DateTime @default(now())
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([sessionToken])
+  @@index([clientId])
+  @@index([email])
+  @@index([expiresAt])
+}
+
+// Tokens d'invitation pour créer un compte portail client
+model InvitationToken {
+  id           String    @id @default(cuid())
+  token        String    @unique
+  email        String
+  nom          String?
+  prenom       String?
+  telephone    String?
+  entrepriseId String
+  expiresAt    DateTime
+  used         Boolean   @default(false)
+  usedAt       DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([email])
+  @@index([entrepriseId])
+  @@index([expiresAt])
+}
+
+// Tokens d'invitation pour les collaborateurs (équipe)
+model UserInvitationToken {
+  id           String    @id @default(cuid())
+  token        String    @unique
+  email        String
+  name         String?
+  prenom       String?
+  role         String // UserRole as string
+  entrepriseId String
+  invitedBy    String // User ID qui a envoyé l'invitation
+  expiresAt    DateTime
+  used         Boolean   @default(false)
+  usedAt       DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([token])
+  @@index([email])
+  @@index([entrepriseId])
+  @@index([expiresAt])
+  @@index([used])
+}
+
+model Employee {
+  id String @id @default(cuid())
+
+  // Relation avec l'entreprise
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Informations personnelles
+  prenom        String
+  nom           String
+  email         String
+  telephone     String?
+  dateNaissance DateTime?
+  adresse       String?
+  ville         String?
+  codePostal    String?
+  pays          String?   @default("France")
+
+  // Photo de profil
+  photoUrl String?
+
+  // Informations professionnelles
+  poste       String // Titre du poste (ex: Technicien, Vendeur, Manager)
+  departement String? // Département ou service
+  statut      StatutEmploye @default(ACTIF)
+  typeContrat TypeContrat   @default(CDI)
+
+  // Dates importantes
+  dateEmbauche DateTime
+  dateFin      DateTime? // Date de fin si contrat CDD ou départ
+
+  // Salaire et compensation
+  salaireBrut Decimal @db.Decimal(10, 2)
+  devise      String  @default("EUR")
+
+  // Horaires et planning
+  heuresHebdo  Int?    @default(35) // Heures de travail par semaine
+  joursTravail String? // Jours de travail (ex: "Lun-Ven")
+
+  // Documents et notes
+  notes String? @db.Text
+
+  // Compétences et qualifications
+  competences String? @db.Text // JSON array de compétences
+
+  // Congés
+  congesRestants Int @default(25) // Jours de congés restants
+  congesPris     Int @default(0) // Jours de congés pris cette année
+
+  // Relation avec User (optionnel - si l'employé a un compte utilisateur)
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId String? @unique
+
+  // Relations pour système immobilier
+  mandatsImmo     MandatImmobilier[] @relation("MandatAgent")
+  visitesImmo     VisiteImmobilier[] @relation("VisiteAgent")
+  estimationsImmo EstimationBien[]   @relation("EstimationAgent")
+  leadsImmo       LeadPortail[]      @relation("LeadAgentResponsable")
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([entrepriseId, email])
+  @@index([entrepriseId])
+  @@index([email])
+  @@index([statut])
+  @@index([dateEmbauche])
+}

@@ -1,7 +1,8 @@
 import { Card } from "@/components/ui/card";
-import { QuickActionButton, QuickActionButtonProps } from "./quick-action-button";
-import { cn } from "@/lib/utils";
-import { DS } from "@/lib/constants/design-system";
+import {
+    QuickActionButton,
+    QuickActionButtonProps,
+} from "./quick-action-button";
 
 export interface QuickActionsCardProps {
     actions: QuickActionButtonProps[];
@@ -14,9 +15,14 @@ export interface QuickActionsCardProps {
  * Card displaying quick action buttons for common tasks.
  * Uses Design System constants for consistent styling.
  */
-export function QuickActionsCard({ actions, className }: QuickActionsCardProps) {
+export function QuickActionsCard({
+    actions,
+    className,
+}: QuickActionsCardProps) {
     return (
-        <Card className={`group relative p-6 overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500 ${className || ""}`}>
+        <Card
+            className={`group relative p-6 overflow-hidden border-black/[0.08] bg-white hover:shadow-sm transition-all duration-300 ${className || ""}`}
+        >
             {/* Subtle hover effect */}
             <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 

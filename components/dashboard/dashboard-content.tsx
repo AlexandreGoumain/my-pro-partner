@@ -1,8 +1,14 @@
 "use client";
 
-import { ChatbotWidget } from "@/components/chatbot/chatbot-widget";
 import { LayoutHeader } from "@/components/dashboard/layout-header";
 import { SidebarInset } from "@/components/ui/sidebar";
+import dynamic from "next/dynamic";
+
+// Lazy load chatbot - heavy component with AI SDK
+const ChatbotWidget = dynamic(
+    () => import("@/components/chatbot/chatbot-widget").then((mod) => mod.ChatbotWidget),
+    { ssr: false }
+);
 
 interface DashboardContentProps {
     children: React.ReactNode;

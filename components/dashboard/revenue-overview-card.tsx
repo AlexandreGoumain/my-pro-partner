@@ -1,9 +1,25 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
-import { MiniChart, type MiniChartData } from "@/components/ui/mini-chart";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { RevenueMetrics } from "@/lib/types/dashboard";
-import { TrendingUp, TrendingDown, Minus, Sparkles } from "lucide-react";
+import { Minus, Sparkles, TrendingDown, TrendingUp } from "lucide-react";
+import dynamic from "next/dynamic";
+
+// Export type for external use
+export type { MiniChartData } from "@/components/ui/mini-chart";
+
+// Lazy load Recharts-based chart - heavy dependency
+const MiniChart = dynamic(
+    () => import("@/components/ui/mini-chart").then((mod) => mod.MiniChart),
+    {
+        ssr: false,
+        loading: () => <Skeleton className="h-[80px] w-full rounded-md" />,
+    }
+);
+
+// Re-export type for use in this file
+type MiniChartData = { label: string; value: number };
 
 // ============================================================================
 // Types
@@ -32,8 +48,17 @@ function formatCurrency(value: number): string {
 // Component
 // ============================================================================
 
-export function RevenueOverviewCard({ revenue, className }: RevenueOverviewCardProps) {
-    const { thisMonth, comparison, trend, averageTransaction, projectedEndOfMonth } = revenue;
+export function RevenueOverviewCard({
+    revenue,
+    className,
+}: RevenueOverviewCardProps) {
+    const {
+        thisMonth,
+        comparison,
+        trend,
+        averageTransaction,
+        projectedEndOfMonth,
+    } = revenue;
 
     // Prepare chart data
     const chartData: MiniChartData[] = trend.map((item) => ({
@@ -46,8 +71,8 @@ export function RevenueOverviewCard({ revenue, className }: RevenueOverviewCardP
         comparison.trend === "up"
             ? TrendingUp
             : comparison.trend === "down"
-            ? TrendingDown
-            : Minus;
+              ? TrendingDown
+              : Minus;
 
     const trendConfig = {
         up: {
@@ -71,7 +96,7 @@ export function RevenueOverviewCard({ revenue, className }: RevenueOverviewCardP
 
     return (
         <Card
-            className={`group relative p-6 overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500 ${
+            className={`group relative p-6 overflow-hidden border-black/[0.08] bg-white hover:shadow-sm transition-all duration-300 ${
                 className || ""
             }`}
         >
@@ -89,15 +114,22 @@ export function RevenueOverviewCard({ revenue, className }: RevenueOverviewCardP
                                 Chiffre d'affaires
                             </h3>
                         </div>
-                        <p className="text-[13px] text-black/40 ml-3">Ce mois-ci</p>
+                        <p className="text-[13px] text-black/40 ml-3">
+                            Ce mois-ci
+                        </p>
                     </div>
 
                     {/* Enhanced Trend badge */}
                     <div
                         className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border ${currentTrend.bg} ${currentTrend.borderColor} backdrop-blur-sm transition-all duration-200`}
                     >
-                        <TrendIcon className={`w-3.5 h-3.5 ${currentTrend.color}`} strokeWidth={2.5} />
-                        <span className={`text-[12px] font-semibold ${currentTrend.color} tabular-nums`}>
+                        <TrendIcon
+                            className={`w-3.5 h-3.5 ${currentTrend.color}`}
+                            strokeWidth={2.5}
+                        />
+                        <span
+                            className={`text-[12px] font-semibold ${currentTrend.color} tabular-nums`}
+                        >
                             {comparison.change > 0 ? "+" : ""}
                             {comparison.change}%
                         </span>
@@ -116,14 +148,20 @@ export function RevenueOverviewCard({ revenue, className }: RevenueOverviewCardP
                     </div>
                     <div className="flex items-center gap-2">
                         <span className="text-[13px] text-black/40">
-                            vs {formatCurrency(comparison.previous)} le mois dernier
+                            vs {formatCurrency(comparison.previous)} le mois
+                            dernier
                         </span>
                     </div>
                 </div>
 
                 {/* Mini chart with wrapper */}
                 <div className="mb-6 p-3 -mx-3 bg-black/[0.01] rounded-lg">
-                    <MiniChart data={chartData} type="line" height={80} color="#000" />
+                    <MiniChart
+                        data={chartData}
+                        type="line"
+                        height={80}
+                        color="#000"
+                    />
                 </div>
 
                 {/* Stats grid */}
@@ -137,7 +175,9 @@ export function RevenueOverviewCard({ revenue, className }: RevenueOverviewCardP
                         <div className="text-[16px] font-semibold tracking-[-0.01em] text-black tabular-nums">
                             {formatCurrency(projectedEndOfMonth)}
                         </div>
-                        <div className="text-[10px] text-black/30 mt-0.5">fin de mois</div>
+                        <div className="text-[10px] text-black/30 mt-0.5">
+                            fin de mois
+                        </div>
                     </div>
                     <div className="group/stat p-3 -mx-1 rounded-lg hover:bg-black/[0.02] transition-all duration-200">
                         <div className="flex items-center gap-1.5 mb-2">
@@ -148,7 +188,9 @@ export function RevenueOverviewCard({ revenue, className }: RevenueOverviewCardP
                         <div className="text-[16px] font-semibold tracking-[-0.01em] text-black tabular-nums">
                             {formatCurrency(averageTransaction)}
                         </div>
-                        <div className="text-[10px] text-black/30 mt-0.5">par transaction</div>
+                        <div className="text-[10px] text-black/30 mt-0.5">
+                            par transaction
+                        </div>
                     </div>
                 </div>
             </div>

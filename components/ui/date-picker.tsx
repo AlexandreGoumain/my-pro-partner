@@ -13,6 +13,17 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
+/**
+ * Normalize a date to noon local time to avoid timezone issues
+ * This prevents the date from shifting when converted to/from UTC
+ */
+function normalizeDate(date: Date | undefined): Date | undefined {
+    if (!date) return undefined;
+    const normalized = new Date(date);
+    normalized.setHours(12, 0, 0, 0);
+    return normalized;
+}
+
 interface DatePickerProps {
     date?: Date;
     onSelect?: (date: Date | undefined) => void;
@@ -32,6 +43,11 @@ export function DatePicker({
     fromDate,
     toDate,
 }: DatePickerProps) {
+    // Handle date selection with timezone normalization
+    const handleSelect = (selectedDate: Date | undefined) => {
+        onSelect?.(normalizeDate(selectedDate));
+    };
+
     return (
         <Popover>
             <PopoverTrigger asChild>
@@ -54,7 +70,7 @@ export function DatePicker({
                 <Calendar
                     mode="single"
                     selected={date}
-                    onSelect={onSelect}
+                    onSelect={handleSelect}
                     disabled={disabled}
                     fromDate={fromDate}
                     toDate={toDate}
@@ -86,9 +102,13 @@ export function DateRangePicker({
     // Derive range directly from props instead of using useEffect
     const range = { from, to };
 
+    // Handle date selection with timezone normalization
     const handleSelect = (newRange: { from?: Date; to?: Date } | undefined) => {
         if (newRange) {
-            onSelect?.(newRange);
+            onSelect?.({
+                from: normalizeDate(newRange.from),
+                to: normalizeDate(newRange.to),
+            });
         }
     };
 

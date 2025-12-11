@@ -1,30 +1,35 @@
 "use client";
 
-import { useMemo } from "react";
 import {
-    LoyaltyInfoCard,
+    EnhancedStatsGrid,
+    LoyaltyProgressWidget,
     ProfileCompletionBanner,
-    QuickActionsCard,
-    StatsGrid,
+    QuickActionsWidget,
+    WelcomeHero,
 } from "@/components/client/dashboard";
 import {
-    UpcomingRdvWidget,
+    ActivityTimelineWidget,
     InterventionStatusWidget,
+    UpcomingRdvWidget,
 } from "@/components/client/dashboard/widgets";
 import { FirstTimeGuide } from "@/components/client/first-time-guide";
 import { ClientTabSkeleton } from "@/components/ui/client-tab-skeleton";
 import { ConditionalSkeleton } from "@/components/ui/conditional-skeleton";
-import { PageHeader } from "@/components/ui/page-header";
 import { useClientDashboardStats } from "@/hooks/use-client-dashboard-stats";
 import { useProfileCompletionBanner } from "@/hooks/use-profile-completion-banner";
-import { getClientDisplayName } from "@/lib/utils/client-helpers";
 import type { Capability } from "@/lib/types/capability";
+import type { EnhancedDashboardStats } from "@/lib/types/dashboard";
+import { getClientDisplayName } from "@/lib/utils/client-helpers";
+import { useMemo } from "react";
 
 function hasCapability(capabilities: Capability[], cap: Capability): boolean {
     return capabilities.includes(cap);
 }
 
-function hasAnyCapability(capabilities: Capability[], caps: Capability[]): boolean {
+function hasAnyCapability(
+    capabilities: Capability[],
+    caps: Capability[]
+): boolean {
     return caps.some((cap) => capabilities.includes(cap));
 }
 
@@ -36,6 +41,9 @@ export default function ClientDashboardPage() {
 
     const userName = getClientDisplayName(stats?.client);
     const capabilities = stats?.capabilities ?? [];
+
+    // Cast stats to enhanced type
+    const enhancedStats = stats as EnhancedDashboardStats | null;
 
     // Compute which widgets to show based on capabilities
     const showRdvWidget = useMemo(
@@ -56,38 +64,76 @@ export default function ClientDashboardPage() {
                 <FirstTimeGuide userName={userName} />
 
                 <div className="space-y-6">
+                    {/* Profile completion banner */}
                     {showBanner && (
                         <ProfileCompletionBanner onDismiss={dismissBanner} />
                     )}
 
-                    <PageHeader
-                        title={`Bienvenue, ${userName} !`}
-                        description="Voici un aperçu de votre espace client"
+                    {/* Welcome hero with personalized greeting */}
+                    <WelcomeHero
+                        userName={userName}
+                        lastUpdated={
+                            enhancedStats?.lastUpdated
+                                ? new Date(enhancedStats.lastUpdated as string)
+                                : undefined
+                        }
                     />
 
-                    <StatsGrid stats={stats} />
+                    {/* Enhanced KPI cards with micro-visualizations */}
+                    <EnhancedStatsGrid stats={enhancedStats} />
 
-                    {/* Capability-based widgets */}
-                    <div className="grid gap-6 md:grid-cols-2">
-                        {showRdvWidget && (
-                            <UpcomingRdvWidget
-                                rdvList={stats?.upcomingRdv ?? []}
+                    {/* Main content grid */}
+                    <div className="grid gap-6 lg:grid-cols-2">
+                        {/* Left column - Capability widgets + Activity */}
+                        <div className="space-y-6">
+                            {/* Capability-based widgets */}
+                            {showRdvWidget && (
+                                <UpcomingRdvWidget
+                                    rdvList={enhancedStats?.upcomingRdv ?? []}
+                                />
+                            )}
+                            {showInterventionsWidget && (
+                                <InterventionStatusWidget
+                                    interventions={
+                                        enhancedStats?.activeInterventions ?? []
+                                    }
+                                />
+                            )}
+
+                            {/* Activity timeline */}
+                            <ActivityTimelineWidget
+                                activities={
+                                    enhancedStats?.recentActivities ?? []
+                                }
                             />
-                        )}
-                        {showInterventionsWidget && (
-                            <InterventionStatusWidget
-                                interventions={stats?.activeInterventions ?? []}
+                        </div>
+
+                        {/* Right column - Loyalty + Quick actions */}
+                        <div className="space-y-6">
+                            {/* Loyalty progress widget */}
+                            <LoyaltyProgressWidget
+                                currentLevel={
+                                    enhancedStats?.client.niveauFidelite
+                                        ? {
+                                              nom: enhancedStats.client
+                                                  .niveauFidelite.nom,
+                                              couleur:
+                                                  enhancedStats.client
+                                                      .niveauFidelite.couleur,
+                                              seuilPoints: 0,
+                                          }
+                                        : null
+                                }
+                                nextLevel={enhancedStats?.nextLevel || null}
+                                currentPoints={
+                                    enhancedStats?.client.points_solde || 0
+                                }
                             />
-                        )}
+
+                            {/* Quick actions grid */}
+                            <QuickActionsWidget capabilities={capabilities} />
+                        </div>
                     </div>
-
-                    <QuickActionsCard capabilities={capabilities} />
-
-                    {stats?.client.niveauFidelite && (
-                        <LoyaltyInfoCard
-                            loyaltyLevel={stats.client.niveauFidelite}
-                        />
-                    )}
                 </div>
             </>
         </ConditionalSkeleton>

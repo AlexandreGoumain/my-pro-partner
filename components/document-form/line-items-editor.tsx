@@ -3,8 +3,8 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { ArticleCombobox } from "./article-combobox";
 import { Plus, Trash2 } from "lucide-react";
+import { ArticleCombobox } from "./article-combobox";
 
 export interface LineItem {
     id?: string;
@@ -79,7 +79,11 @@ export function LineItemsEditor({
         onChange(lines.filter((_, i) => i !== index));
     };
 
-    const handleLineChange = (index: number, field: keyof LineItem, value: LineItem[keyof LineItem]) => {
+    const handleLineChange = (
+        index: number,
+        field: keyof LineItem,
+        value: LineItem[keyof LineItem]
+    ) => {
         const newLines = [...lines];
         const updatedLine = { ...newLines[index], [field]: value };
         newLines[index] = calculateLineAmounts(updatedLine);
@@ -102,7 +106,7 @@ export function LineItemsEditor({
     };
 
     return (
-        <Card className="group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500">
+        <Card className="group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-sm transition-all duration-300">
             <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             <div className="relative p-6 space-y-4">
                 <div className="flex items-center justify-between">
@@ -131,7 +135,9 @@ export function LineItemsEditor({
                             Aucun produit ou service disponible
                         </p>
                         <p className="text-[13px] text-black/40">
-                            Vous devez d&apos;abord créer des articles (produits ou services) avant de pouvoir ajouter des lignes au document.
+                            Vous devez d&apos;abord créer des articles (produits
+                            ou services) avant de pouvoir ajouter des lignes au
+                            document.
                         </p>
                     </div>
                 ) : (
@@ -139,121 +145,180 @@ export function LineItemsEditor({
                         <div className="overflow-x-auto">
                             <table className="w-full text-[13px]">
                                 <thead className="bg-black/[0.02] border-b border-black/[0.08]">
-                                <tr>
-                                    <th className="text-left p-3 font-medium text-black/60">Désignation</th>
-                                    <th className="text-right p-3 font-medium text-black/60 w-24">Quantité</th>
-                                    <th className="text-right p-3 font-medium text-black/60 w-32">Prix unitaire HT</th>
-                                    <th className="text-right p-3 font-medium text-black/60 w-24">TVA (%)</th>
-                                    <th className="text-right p-3 font-medium text-black/60 w-28">Remise (%)</th>
-                                    <th className="text-right p-3 font-medium text-black/60 w-32">Total TTC</th>
-                                    <th className="w-12 p-3"></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {lines.length === 0 ? (
                                     <tr>
-                                        <td colSpan={7} className="text-center p-8 text-black/40">
-                                            Aucune ligne ajoutée. Cliquez sur &quot;Ajouter une ligne&quot; pour commencer.
-                                        </td>
+                                        <th className="text-left p-3 font-medium text-black/60">
+                                            Désignation
+                                        </th>
+                                        <th className="text-right p-3 font-medium text-black/60 w-24">
+                                            Quantité
+                                        </th>
+                                        <th className="text-right p-3 font-medium text-black/60 w-32">
+                                            Prix unitaire HT
+                                        </th>
+                                        <th className="text-right p-3 font-medium text-black/60 w-24">
+                                            TVA (%)
+                                        </th>
+                                        <th className="text-right p-3 font-medium text-black/60 w-28">
+                                            Remise (%)
+                                        </th>
+                                        <th className="text-right p-3 font-medium text-black/60 w-32">
+                                            Total TTC
+                                        </th>
+                                        <th className="w-12 p-3"></th>
                                     </tr>
-                                ) : (
-                                    lines.map((line, index) => (
-                                        <tr key={index} className="border-b border-black/[0.05] last:border-0 hover:bg-black/[0.02] transition-colors">
-                                            <td className="p-2">
-                                                <ArticleCombobox
-                                                    articles={articles}
-                                                    value={line.articleId || ""}
-                                                    onValueChange={(value) =>
-                                                        handleArticleSelect(index, value)
-                                                    }
-                                                    placeholder="Choisir un article..."
-                                                    triggerClassName="h-9 text-[13px] border-black/10"
-                                                />
-                                            </td>
-                                        <td className="p-2">
-                                            <Input
-                                                type="number"
-                                                step="0.01"
-                                                value={line.quantite}
-                                                onChange={(e) =>
-                                                    handleLineChange(
-                                                        index,
-                                                        "quantite",
-                                                        parseFloat(e.target.value) || 0
-                                                    )
-                                                }
-                                                className="h-9 text-[13px] text-right border-black/10"
-                                            />
-                                        </td>
-                                        <td className="p-2">
-                                            <Input
-                                                type="number"
-                                                step="0.01"
-                                                value={line.prix_unitaire_ht}
-                                                onChange={(e) =>
-                                                    handleLineChange(
-                                                        index,
-                                                        "prix_unitaire_ht",
-                                                        parseFloat(e.target.value) || 0
-                                                    )
-                                                }
-                                                disabled={!!line.articleId}
-                                                className="h-9 text-[13px] text-right border-black/10 disabled:opacity-70 disabled:cursor-not-allowed"
-                                            />
-                                        </td>
-                                        <td className="p-2">
-                                            <Input
-                                                type="number"
-                                                step="0.01"
-                                                value={line.tva_taux}
-                                                onChange={(e) =>
-                                                    handleLineChange(
-                                                        index,
-                                                        "tva_taux",
-                                                        parseFloat(e.target.value) || 0
-                                                    )
-                                                }
-                                                disabled={!!line.articleId}
-                                                className="h-9 text-[13px] text-right border-black/10 disabled:opacity-70 disabled:cursor-not-allowed"
-                                            />
-                                        </td>
-                                        <td className="p-2">
-                                            <Input
-                                                type="number"
-                                                step="0.01"
-                                                value={line.remise_pourcent}
-                                                onChange={(e) =>
-                                                    handleLineChange(
-                                                        index,
-                                                        "remise_pourcent",
-                                                        parseFloat(e.target.value) || 0
-                                                    )
-                                                }
-                                                disabled={!!line.articleId}
-                                                className="h-9 text-[13px] text-right border-black/10 disabled:opacity-70 disabled:cursor-not-allowed"
-                                            />
-                                        </td>
-                                        <td className="p-2 text-right font-medium">
-                                            {Number(line.montant_ttc || 0).toFixed(2)} €
-                                        </td>
-                                        <td className="p-2 text-center">
-                                            <Button
-                                                type="button"
-                                                onClick={() => handleRemoveLine(index)}
-                                                variant="ghost"
-                                                size="sm"
-                                                className="h-8 w-8 p-0 hover:bg-black/5 text-black/60 hover:text-black"
+                                </thead>
+                                <tbody>
+                                    {lines.length === 0 ? (
+                                        <tr>
+                                            <td
+                                                colSpan={7}
+                                                className="text-center p-8 text-black/40"
                                             >
-                                                <Trash2 className="w-4 h-4" strokeWidth={2} />
-                                            </Button>
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                            </tbody>
-                        </table>
+                                                Aucune ligne ajoutée. Cliquez
+                                                sur &quot;Ajouter une
+                                                ligne&quot; pour commencer.
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        lines.map((line, index) => (
+                                            <tr
+                                                key={index}
+                                                className="border-b border-black/[0.05] last:border-0 hover:bg-black/[0.02] transition-colors"
+                                            >
+                                                <td className="p-2">
+                                                    <ArticleCombobox
+                                                        articles={articles}
+                                                        value={
+                                                            line.articleId || ""
+                                                        }
+                                                        onValueChange={(
+                                                            value
+                                                        ) =>
+                                                            handleArticleSelect(
+                                                                index,
+                                                                value
+                                                            )
+                                                        }
+                                                        placeholder="Choisir un article..."
+                                                        triggerClassName="h-9 text-[13px] border-black/10"
+                                                    />
+                                                </td>
+                                                <td className="p-2">
+                                                    <Input
+                                                        type="number"
+                                                        step="0.01"
+                                                        value={line.quantite}
+                                                        onChange={(e) =>
+                                                            handleLineChange(
+                                                                index,
+                                                                "quantite",
+                                                                parseFloat(
+                                                                    e.target
+                                                                        .value
+                                                                ) || 0
+                                                            )
+                                                        }
+                                                        className="h-9 text-[13px] text-right border-black/10"
+                                                    />
+                                                </td>
+                                                <td className="p-2">
+                                                    <Input
+                                                        type="number"
+                                                        step="0.01"
+                                                        value={
+                                                            line.prix_unitaire_ht
+                                                        }
+                                                        onChange={(e) =>
+                                                            handleLineChange(
+                                                                index,
+                                                                "prix_unitaire_ht",
+                                                                parseFloat(
+                                                                    e.target
+                                                                        .value
+                                                                ) || 0
+                                                            )
+                                                        }
+                                                        disabled={
+                                                            !!line.articleId
+                                                        }
+                                                        className="h-9 text-[13px] text-right border-black/10 disabled:opacity-70 disabled:cursor-not-allowed"
+                                                    />
+                                                </td>
+                                                <td className="p-2">
+                                                    <Input
+                                                        type="number"
+                                                        step="0.01"
+                                                        value={line.tva_taux}
+                                                        onChange={(e) =>
+                                                            handleLineChange(
+                                                                index,
+                                                                "tva_taux",
+                                                                parseFloat(
+                                                                    e.target
+                                                                        .value
+                                                                ) || 0
+                                                            )
+                                                        }
+                                                        disabled={
+                                                            !!line.articleId
+                                                        }
+                                                        className="h-9 text-[13px] text-right border-black/10 disabled:opacity-70 disabled:cursor-not-allowed"
+                                                    />
+                                                </td>
+                                                <td className="p-2">
+                                                    <Input
+                                                        type="number"
+                                                        step="0.01"
+                                                        value={
+                                                            line.remise_pourcent
+                                                        }
+                                                        onChange={(e) =>
+                                                            handleLineChange(
+                                                                index,
+                                                                "remise_pourcent",
+                                                                parseFloat(
+                                                                    e.target
+                                                                        .value
+                                                                ) || 0
+                                                            )
+                                                        }
+                                                        disabled={
+                                                            !!line.articleId
+                                                        }
+                                                        className="h-9 text-[13px] text-right border-black/10 disabled:opacity-70 disabled:cursor-not-allowed"
+                                                    />
+                                                </td>
+                                                <td className="p-2 text-right font-medium">
+                                                    {Number(
+                                                        line.montant_ttc || 0
+                                                    ).toFixed(2)}{" "}
+                                                    €
+                                                </td>
+                                                <td className="p-2 text-center">
+                                                    <Button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            handleRemoveLine(
+                                                                index
+                                                            )
+                                                        }
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="h-8 w-8 p-0 hover:bg-black/5 text-black/60 hover:text-black"
+                                                    >
+                                                        <Trash2
+                                                            className="w-4 h-4"
+                                                            strokeWidth={2}
+                                                        />
+                                                    </Button>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
                 )}
             </div>
         </Card>

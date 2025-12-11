@@ -20,7 +20,7 @@ const Form = FormProvider;
 
 type FormFieldContextValue<
     TFieldValues extends FieldValues = FieldValues,
-    TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
+    TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 > = {
     name: TName;
 };
@@ -31,7 +31,7 @@ const FormFieldContext = React.createContext<FormFieldContextValue>(
 
 const FormField = <
     TFieldValues extends FieldValues = FieldValues,
-    TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
+    TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 >({
     ...props
 }: ControllerProps<TFieldValues, TName>) => {
@@ -87,20 +87,36 @@ function FormItem({ className, ...props }: React.ComponentProps<"div">) {
     );
 }
 
+interface FormLabelProps
+    extends React.ComponentProps<typeof LabelPrimitive.Root> {
+    /** Mark field as required - adds asterisk and aria-required */
+    required?: boolean;
+}
+
 function FormLabel({
     className,
+    required,
+    children,
     ...props
-}: React.ComponentProps<typeof LabelPrimitive.Root>) {
+}: FormLabelProps) {
     const { error, formItemId } = useFormField();
 
     return (
         <Label
             data-slot="form-label"
             data-error={!!error}
+            aria-required={required}
             className={cn("data-[error=true]:text-destructive", className)}
             htmlFor={formItemId}
             {...props}
-        />
+        >
+            {children}
+            {required && (
+                <span className="text-destructive ml-0.5" aria-hidden="true">
+                    *
+                </span>
+            )}
+        </Label>
     );
 }
 

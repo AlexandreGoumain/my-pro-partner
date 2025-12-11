@@ -1,0 +1,81 @@
+// MARKETING & AUTOMATION MODELS
+
+model Automation {
+  id          String  @id @default(cuid())
+  nom         String
+  description String?
+  actif       Boolean @default(true)
+
+  // Trigger
+  triggerType   TriggerType
+  triggerConfig Json // Configuration du trigger
+
+  // Action
+  actionType   ActionType
+  actionConfig Json // Configuration de l'action
+
+  // Statistiques
+  derniereExecution DateTime?
+  nombreExecutions  Int       @default(0)
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  executions AutomationExecution[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([actif])
+  @@index([triggerType])
+}
+
+model AutomationExecution {
+  id           String     @id @default(cuid())
+  automation   Automation @relation(fields: [automationId], references: [id], onDelete: Cascade)
+  automationId String
+
+  clientId String?
+  statut   ExecutionStatut
+  resultat String?
+  erreur   String?
+
+  executedAt DateTime @default(now())
+
+  @@index([automationId])
+  @@index([statut])
+  @@index([executedAt])
+}
+
+model Campaign {
+  id          String         @id @default(cuid())
+  nom         String
+  description String?
+  type        CampaignType   @default(EMAIL)
+  statut      CampaignStatut @default(DRAFT)
+
+  segment   Segment? @relation(fields: [segmentId], references: [id])
+  segmentId String?
+  subject   String?
+  body      String?
+
+  scheduledAt DateTime?
+  sentAt      DateTime?
+
+  recipientsCount Int @default(0)
+  sentCount       Int @default(0)
+  openedCount     Int @default(0)
+  clickedCount    Int @default(0)
+
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([statut])
+  @@index([scheduledAt])
+}

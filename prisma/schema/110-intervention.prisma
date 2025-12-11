@@ -1,0 +1,632 @@
+// INTERVENTION MODELS - Plomberie, Chauffage, Maintenance
+
+// ============================================
+// INTERVENTIONS - Gestion des interventions
+// ============================================
+
+model Intervention {
+  id        String  @id @default(cuid())
+  numero    String  @unique // INT-001, INT-002, etc.
+  reference String? // Optional client reference
+
+  // Client information
+  client   Client @relation(fields: [clientId], references: [id])
+  clientId String
+
+  // Intervention type and priority
+  typeIntervention TypeIntervention
+  priorite         PrioriteIntervention @default(NORMALE)
+
+  // Location (geocoding for route optimization)
+  adresse           String
+  codePostal        String
+  ville             String
+  complementAdresse String? // Apartment number, building, etc.
+  latitude          Float?
+  longitude         Float?
+
+  // Issue description
+  description      String          @db.Text // Customer complaint
+  equipement       TypeEquipement?
+  marqueEquipement String? // Equipment brand
+  modeleEquipement String? // Equipment model
+  anneeInstall     Int? // Installation year
+
+  // Diagnostic
+  diagnosticEffectue Boolean   @default(false)
+  diagnosticDetail   String?   @db.Text
+  diagnosticDate     DateTime?
+  diagnosticParId    String? // User ID who performed diagnostic
+  photosAvant        Json? // Array of photo URLs taken before work
+
+  // Scheduling
+  dateDemande        DateTime  @default(now())
+  datePrevisionnelle DateTime? // Expected date/time
+  dateDebut          DateTime? // Actual start
+  dateFin            DateTime? // Actual completion
+  dureeEstimeeH      Float? // Estimated duration in hours
+  dureeReelleH       Float? // Actual duration in hours
+
+  // Status and workflow
+  statut           StatutIntervention @default(DEMANDE)
+  statutChangeLogs Json? // History of status changes
+
+  // Plumber assignment
+  plombier   User?   @relation("InterventionPlombier", fields: [plombierId], references: [id])
+  plombierId String?
+
+  // Camionnette assignment (which vehicle/team)
+  camionnette   Camionnette? @relation(fields: [camionnetteId], references: [id])
+  camionnetteId String?
+
+  // Costs and billing
+  devisEstime     Decimal @default(0) @db.Decimal(10, 2) // Estimated cost
+  coutMain        Decimal @default(0) @db.Decimal(10, 2) // Labor cost
+  coutMateriel    Decimal @default(0) @db.Decimal(10, 2) // Materials cost (auto-calculated)
+  coutTotal       Decimal @default(0) @db.Decimal(10, 2) // Total cost
+  coutDeplacement Decimal @default(0) @db.Decimal(10, 2) // Travel cost
+
+  // Linked document (quote or invoice)
+  document   Document? @relation("InterventionDocument", fields: [documentId], references: [id])
+  documentId String?
+
+  // Contract link (if part of maintenance contract)
+  contrat   ContratEntretien? @relation(fields: [contratId], references: [id])
+  contratId String?
+
+  // Internal notes
+  notesInternes String? @db.Text
+  notesPlombier String? @db.Text
+  photosApres   Json? // Array of photo URLs taken after work
+
+  // Payment on site
+  payeSurPlace  Boolean        @default(false)
+  moyenPaiement MoyenPaiement?
+  datePaiement  DateTime?
+
+  // Warranty
+  garantieMois    Int? // Warranty period in months
+  dateFinGarantie DateTime? // Warranty end date
+
+  // Real-time notifications
+  notificationsEnvoyees Json? // Track which notifications were sent to client
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Relations
+  materielUtilise InterventionMateriel[] // Materials used
+  timeLogs        InterventionTimeLog[] // Time tracking per plumber
+  historique      InterventionHistorique[] // Complete history log
+
+  createdBy String? // User ID who created the intervention
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([entrepriseId, numero])
+  @@index([entrepriseId])
+  @@index([clientId])
+  @@index([statut])
+  @@index([plombierId])
+  @@index([camionnetteId])
+  @@index([dateDemande])
+  @@index([datePrevisionnelle])
+  @@index([entrepriseId, statut])
+  @@index([entrepriseId, dateDemande])
+  @@index([priorite])
+  @@index([typeIntervention])
+  @@index([ville])
+  @@index([codePostal])
+}
+
+// Materials used in intervention
+model InterventionMateriel {
+  id String @id @default(cuid())
+
+  intervention   Intervention @relation(fields: [interventionId], references: [id], onDelete: Cascade)
+  interventionId String
+
+  // Link to article or camionnette stock
+  article   Article? @relation(fields: [articleId], references: [id])
+  articleId String?
+
+  stockCamionnette   StockCamionnette? @relation(fields: [stockCamionnetteId], references: [id])
+  stockCamionnetteId String?
+
+  designation  String
+  quantite     Int
+  prixUnitaire Decimal @db.Decimal(10, 2)
+  montant      Decimal @db.Decimal(10, 2)
+
+  createdAt DateTime @default(now())
+
+  @@index([interventionId])
+  @@index([articleId])
+  @@index([stockCamionnetteId])
+}
+
+// Time tracking for plumbers during interventions
+model InterventionTimeLog {
+  id String @id @default(cuid())
+
+  intervention   Intervention @relation(fields: [interventionId], references: [id], onDelete: Cascade)
+  interventionId String
+
+  plombier   User   @relation("InterventionPlombierTime", fields: [plombierId], references: [id])
+  plombierId String
+
+  dateDebut    DateTime
+  dateFin      DateTime?
+  dureeMinutes Int? // Auto-calculated duration
+
+  description String @db.Text
+  type        String @default("TRAVAUX") // DEPLACEMENT, DIAGNOSTIC, TRAVAUX, TEST
+
+  // Location tracking (optional)
+  latitudeDebut  Float?
+  longitudeDebut Float?
+  latitudeFin    Float?
+  longitudeFin   Float?
+
+  createdAt DateTime @default(now())
+
+  @@index([interventionId])
+  @@index([plombierId])
+  @@index([dateDebut])
+}
+
+// Complete history log for interventions
+model InterventionHistorique {
+  id String @id @default(cuid())
+
+  intervention   Intervention @relation(fields: [interventionId], references: [id], onDelete: Cascade)
+  interventionId String
+
+  action      String // "STATUS_CHANGE", "MATERIEL_ADDED", "NOTE_ADDED", "ASSIGNED", etc.
+  description String @db.Text
+  metadata    Json? // Additional data (old/new values)
+
+  createdBy String? // User ID
+  createdAt DateTime @default(now())
+
+  @@index([interventionId])
+  @@index([createdAt])
+  @@index([action])
+}
+
+// ============================================
+// CAMIONNETTES - Gestion de la flotte
+// ============================================
+
+// Camionnette (van/vehicle for mobile stock)
+model Camionnette {
+  id              String  @id @default(cuid())
+  nom             String? // Name (optional, generated from immatriculation if not provided)
+  immatriculation String  @unique
+  marque          String? // Brand (Renault, Peugeot, etc.)
+  modele          String? // Model
+  annee           Int? // Year
+
+  // Assignment
+  plombierPrincipal   User?   @relation(fields: [plombierPrincipalId], references: [id])
+  plombierPrincipalId String?
+
+  // Status
+  actif Boolean @default(true)
+
+  // Tracking
+  dernierePosition  Json? // { latitude, longitude, timestamp }
+  dernierEntretien  DateTime?
+  prochainEntretien DateTime?
+  kilometres        Int       @default(0)
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Relations
+  stock         StockCamionnette[]
+  interventions Intervention[]
+  entretiens    EntretienVehicule[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([entrepriseId, immatriculation])
+  @@index([entrepriseId])
+  @@index([plombierPrincipalId])
+  @@index([actif])
+}
+
+// Entretien de véhicule
+model EntretienVehicule {
+  id String @id @default(cuid())
+
+  // Véhicule concerné
+  camionnette   Camionnette @relation(fields: [camionnetteId], references: [id], onDelete: Cascade)
+  camionnetteId String
+
+  // Type d'entretien
+  type TypeEntretienVehicule
+
+  // Détails
+  description String?  @db.Text
+  kilometrage Int? // Kilométrage au moment de l'entretien
+  cout        Decimal? @db.Decimal(10, 2)
+
+  // Dates
+  dateEntretien DateTime
+  dateProchain  DateTime? // Prochaine date d'entretien recommandée
+
+  // Prestataire
+  prestataire   String? // Nom du garage/prestataire
+  numeroFacture String?
+
+  // Notes
+  notes String? @db.Text
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([camionnetteId])
+  @@index([entrepriseId])
+  @@index([dateEntretien])
+  @@index([type])
+}
+
+// Stock mobile in each van
+model StockCamionnette {
+  id String @id @default(cuid())
+
+  camionnette   Camionnette @relation(fields: [camionnetteId], references: [id], onDelete: Cascade)
+  camionnetteId String
+
+  // Material info (could link to Article or be standalone)
+  article   Article? @relation(fields: [articleId], references: [id])
+  articleId String?
+
+  designation String
+  reference   String?
+  categorie   String? // VANNE, TUYAU, JOINT, RACCORD, etc.
+
+  // Stock levels
+  quantite     Int
+  seuilAlerte  Int     @default(2) // Alert when below this quantity
+  prixUnitaire Decimal @db.Decimal(10, 2)
+
+  // Specifications (for plumbing parts)
+  diametre String? // Diameter (12mm, 15/21, etc.)
+  materiau String? // Material (cuivre, PER, PVC, laiton)
+  longueur Float? // Length if applicable (meters)
+
+  // Multi-tenant (inherited from camionnette, but useful for queries)
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Relations
+  mouvements            MouvementStockCamionnette[]
+  interventionsMateriel InterventionMateriel[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([camionnetteId])
+  @@index([articleId])
+  @@index([entrepriseId])
+  @@index([quantite]) // For low stock alerts
+  @@index([categorie])
+}
+
+model MouvementStockCamionnette {
+  id String @id @default(cuid())
+
+  stockCamionnette   StockCamionnette @relation(fields: [stockCamionnetteId], references: [id], onDelete: Cascade)
+  stockCamionnetteId String
+
+  type       TypeMouvementCamionnette
+  quantite   Int
+  stockAvant Int
+  stockApres Int
+  motif      String?
+  reference  String? // Intervention number if used in intervention
+
+  // User who performed the movement
+  createdBy String? // User ID
+  createdAt DateTime @default(now())
+
+  @@index([stockCamionnetteId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+// ============================================
+// CONTRATS - Maintenance et entretien
+// ============================================
+
+model ContratEntretien {
+  id        String  @id @default(cuid())
+  numero    String  @unique // CONT-001, CONT-002, etc.
+  reference String? // Optional client reference
+
+  // Client
+  client   Client @relation(fields: [clientId], references: [id])
+  clientId String
+
+  // Contract details
+  typeContrat TypeContratEntretien
+  nom         String // Contract name
+  description String?              @db.Text
+
+  // Equipment covered
+  equipements Json // Array of equipment with details
+  adresse     String
+  codePostal  String
+  ville       String
+
+  // Contract terms
+  dateDebut   DateTime
+  dateFin     DateTime
+  dureeAnnees Int           @default(1)
+  statut      StatutContrat @default(ACTIF)
+
+  // Pricing
+  montantHT        Decimal            @db.Decimal(10, 2)
+  montantTTC       Decimal            @db.Decimal(10, 2)
+  periodicite      PeriodiciteContrat @default(ANNUEL)
+  prochainPaiement DateTime?
+
+  // Recurring billing
+  facturationAuto Boolean @default(false)
+  jourFacturation Int? // Day of month for billing
+
+  // Included services
+  nombreRevisionsAn      Int      @default(1) // Number of annual reviews
+  interventionsIncluses  Int      @default(0) // Included interventions per year
+  interventionsUtilisees Int      @default(0) // Used interventions
+  tarifHoraire           Decimal? @db.Decimal(10, 2) // Hourly rate for extra work
+  remisePieces           Decimal  @default(0) @db.Decimal(5, 2) // Discount on parts
+
+  // Notifications and reminders
+  rappelAvantJours  Int       @default(30) // Remind client X days before
+  derniereRevision  DateTime?
+  prochaineRevision DateTime?
+
+  // Notes
+  notes                String? @db.Text
+  clausesParticulieres String? @db.Text
+
+  // Renewal
+  renouvellementAuto Boolean   @default(true)
+  dateResiliation    DateTime?
+  motifResiliation   String?
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Relations
+  interventions     Intervention[] // Linked interventions
+  entretiensEnCours EntretienPrevu[] // Scheduled maintenances
+
+  createdBy String? // User ID
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([entrepriseId, numero])
+  @@index([entrepriseId])
+  @@index([clientId])
+  @@index([statut])
+  @@index([dateDebut])
+  @@index([dateFin])
+  @@index([prochaineRevision])
+  @@index([entrepriseId, statut])
+}
+
+model EntretienPrevu {
+  id String @id @default(cuid())
+
+  contrat   ContratEntretien @relation(fields: [contratId], references: [id], onDelete: Cascade)
+  contratId String
+
+  // Scheduling
+  datePrevue    DateTime
+  dateEffectuee DateTime?
+  statut        StatutEntretien @default(PLANIFIE)
+
+  // Assignment
+  plombier   User?   @relation(fields: [plombierId], references: [id])
+  plombierId String?
+
+  // Equipments to check
+  equipements Json // Which equipment to service
+
+  // Results
+  compteRendu        String? @db.Text
+  anomaliesDetectees String? @db.Text
+  recommandations    String? @db.Text
+  photos             Json? // Array of photo URLs
+
+  // Next maintenance
+  prochaineDate DateTime?
+
+  // Notifications
+  rappelEnvoye       Boolean   @default(false)
+  dateRappel         DateTime?
+  confirmationClient Boolean   @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([contratId])
+  @@index([datePrevue])
+  @@index([statut])
+  @@index([plombierId])
+}
+
+// ============================================
+// PARC ÉQUIPEMENTS CLIENTS (Chauffage/Plomberie)
+// ============================================
+
+// Équipement installé chez un client
+model EquipementClient {
+  id String @id @default(cuid())
+
+  // Client owner
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId String
+
+  // Equipment identification
+  type        TypeEquipement
+  marque      String
+  modele      String?
+  numeroSerie String?
+  puissanceKw Decimal?       @db.Decimal(10, 2) // Power in kW
+  typeEnergie TypeEnergie?
+
+  // Installation details
+  dateInstallation  DateTime?
+  dateMiseEnService DateTime?
+  installePar       String? // Company name or "Nous"
+  garantieJusquau   DateTime?
+
+  // Location at client's premises
+  emplacement   String? // "Garage", "Sous-sol", "Combles"...
+  adresse       String? // If different from client address
+  codePostal    String?
+  ville         String?
+  accessibilite String? // Access notes for technician
+
+  // Current status
+  statut            StatutEquipement @default(EN_SERVICE)
+  dernierEntretien  DateTime?
+  prochainEntretien DateTime? // Next scheduled maintenance
+
+  // Regulatory compliance (for boilers, etc.)
+  controleObligatoire     Boolean   @default(false)
+  frequenceControleAnnuel Int       @default(1) // Number of mandatory checks per year
+  dernierControleAnnuel   DateTime?
+  prochainControleAnnuel  DateTime?
+  certificatValide        Boolean   @default(false)
+
+  // Performance tracking
+  rendementPourcent Decimal?  @db.Decimal(5, 2) // Efficiency %
+  emissionsCO       Decimal?  @db.Decimal(10, 2) // CO emissions (ppm)
+  dateReleve        DateTime?
+
+  // Notes
+  notes         String? @db.Text
+  documentsUrls Json? // Array of document URLs (manuals, certificates)
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Relations
+  certificats             CertificatEntretien[]
+  historiqueInterventions Json? // Snapshot of intervention IDs for this equipment
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([clientId])
+  @@index([type])
+  @@index([statut])
+  @@index([prochainEntretien])
+  @@index([prochainControleAnnuel])
+  @@index([entrepriseId, prochainControleAnnuel])
+  @@index([entrepriseId, statut])
+}
+
+// Certificat d'entretien (obligatoire pour chaudières gaz/fioul)
+model CertificatEntretien {
+  id String @id @default(cuid())
+
+  // Equipment
+  equipement   EquipementClient @relation(fields: [equipementId], references: [id], onDelete: Cascade)
+  equipementId String
+
+  // Certificate details
+  numero           String   @unique
+  dateIntervention DateTime
+  dateValidite     DateTime // Usually 1 year after intervention
+
+  // Technician
+  technicien    User?   @relation(fields: [technicienId], references: [id])
+  technicienId  String?
+  nomTechnicien String // Stored for PDF even if user deleted
+
+  // Equipment state at time of maintenance
+  typeEquipement    String
+  marque            String
+  modele            String?
+  numeroSerie       String?
+  puissanceKw       Decimal? @db.Decimal(10, 2)
+  typeEnergie       String?
+  anneeInstallation Int?
+
+  // Measurements & checks (for official certificate)
+  temperatureFumees   Decimal? @db.Decimal(5, 1) // °C
+  temperatureAmbiante Decimal? @db.Decimal(5, 1) // °C
+  tauxCO              Decimal? @db.Decimal(10, 2) // ppm
+  tauxCO2             Decimal? @db.Decimal(5, 2) // %
+  rendementCombustion Decimal? @db.Decimal(5, 2) // %
+  tirage              Decimal? @db.Decimal(5, 2) // Pa
+  pressionGaz         Decimal? @db.Decimal(5, 2) // mbar
+  debitGaz            Decimal? @db.Decimal(10, 2) // m³/h
+
+  // Checklist items
+  verificationBruleur     Boolean @default(false)
+  verificationVeilleuse   Boolean @default(false)
+  nettoyageCorpChauffe    Boolean @default(false)
+  verificationEtancheite  Boolean @default(false)
+  verificationEvacuation  Boolean @default(false)
+  verificationVentilation Boolean @default(false)
+  verificationSecurites   Boolean @default(false)
+  verificationRegulation  Boolean @default(false)
+  nettoyageConduitFumee   Boolean @default(false)
+  controleCircuitEau      Boolean @default(false)
+  controleVaseExpansion   Boolean @default(false)
+  controleCirculateur     Boolean @default(false)
+  purgeRadiateurs         Boolean @default(false)
+
+  // Observations & recommendations
+  anomaliesConstatees   String? @db.Text
+  recommandations       String? @db.Text
+  travauxPreconises     String? @db.Text
+  observationsGenerales String? @db.Text
+
+  // Compliance
+  conformeReglementation Boolean @default(true)
+  motifNonConformite     String? @db.Text
+  dangerImmediat         Boolean @default(false)
+
+  // Client signature
+  signatureClient String? // Base64 or URL
+  dateSignature   DateTime?
+  nomSignataire   String?
+
+  // PDF
+  pdfUrl          String?
+  envoiClient     Boolean   @default(false)
+  dateEnvoiClient DateTime?
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([equipementId])
+  @@index([dateIntervention])
+  @@index([dateValidite])
+  @@index([technicienId])
+  @@index([entrepriseId, dateValidite])
+}

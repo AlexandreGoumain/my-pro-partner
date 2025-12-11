@@ -1,0 +1,231 @@
+// STORE & POS MODELS - Multi-magasins, Caisses
+
+model Store {
+  id   String @id @default(cuid())
+  nom  String
+  code String // Code court du magasin (ex: "PAR01", "LYO01")
+
+  // Localisation
+  adresse    String?
+  codePostal String?
+  ville      String?
+  pays       String  @default("France")
+  latitude   Float?
+  longitude  Float?
+
+  // Contact
+  telephone String?
+  email     String?
+
+  // Configuration
+  isMainStore Boolean     @default(false) // Magasin principal
+  status      StoreStatus @default(ACTIVE)
+  timezone    String      @default("Europe/Paris")
+
+  // Horaires d'ouverture (JSON)
+  // Format: { "1": { "open": "09:00", "close": "19:00" }, ... }
+  openingHours Json?
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Relations
+  registers       Register[] // Caisses de ce magasin
+  documents       Document[] // Documents émis depuis ce magasin
+  mouvementsStock MouvementStock[] // Mouvements de stock de ce magasin
+  stockItems      StoreStockItem[] // Stock par magasin
+  transfersFrom   StockTransfer[]  @relation("TransferFrom")
+  transfersTo     StockTransfer[]  @relation("TransferTo")
+  reparations     Reparation[] // Réparations reçues dans ce magasin
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([entrepriseId, code])
+  @@index([entrepriseId])
+  @@index([status])
+  @@index([isMainStore])
+}
+
+model Register {
+  id   String @id @default(cuid())
+  nom  String // Nom de la caisse (ex: "Caisse 1", "Caisse principale")
+  code String // Code court (ex: "C01", "C02")
+
+  // Configuration
+  status     RegisterStatus @default(OFFLINE)
+  isActive   Boolean        @default(true)
+  deviceId   String?        @unique // ID unique de l'appareil
+  ipAddress  String?
+  terminalId String?        @unique // ID du terminal Stripe/physique associé
+
+  // Options
+  canProcessCash    Boolean @default(true)
+  canProcessCard    Boolean @default(true)
+  canProcessCheck   Boolean @default(true)
+  requiresSignature Boolean @default(false)
+
+  // Multi-tenant
+  store   Store  @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  storeId String
+
+  // Relations
+  documents   Document[] // Documents créés depuis cette caisse
+  sessions    RegisterSession[] // Sessions d'ouverture/fermeture de caisse
+  reparations Reparation[] // Réparations créées depuis cette caisse
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([storeId, code])
+  @@index([storeId])
+  @@index([status])
+  @@index([deviceId])
+  @@index([isActive])
+}
+
+// Session de caisse (ouverture/fermeture)
+model RegisterSession {
+  id String @id @default(cuid())
+
+  register   Register @relation(fields: [registerId], references: [id], onDelete: Cascade)
+  registerId String
+
+  // Session info
+  openedBy String // User ID
+  closedBy String? // User ID
+  openedAt DateTime  @default(now())
+  closedAt DateTime?
+
+  // Montants
+  startingCash Decimal  @default(0) @db.Decimal(10, 2) // Fond de caisse
+  expectedCash Decimal? @db.Decimal(10, 2) // Attendu (calculé)
+  actualCash   Decimal? @db.Decimal(10, 2) // Réel (compté)
+  difference   Decimal? @db.Decimal(10, 2) // Écart
+
+  // Statistiques de la session
+  totalSales        Decimal @default(0) @db.Decimal(10, 2)
+  totalTransactions Int     @default(0)
+  cashSales         Decimal @default(0) @db.Decimal(10, 2)
+  cardSales         Decimal @default(0) @db.Decimal(10, 2)
+  checkSales        Decimal @default(0) @db.Decimal(10, 2)
+
+  // Notes
+  openingNotes String?
+  closingNotes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([registerId])
+  @@index([openedAt])
+  @@index([closedAt])
+}
+
+// Stock par magasin (pour gérer le stock indépendamment par magasin)
+model StoreStockItem {
+  id String @id @default(cuid())
+
+  store   Store  @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  storeId String
+
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  articleId String
+
+  // Quantités
+  quantite Int @default(0)
+  stockMin Int @default(0) // Seuil d'alerte spécifique au magasin
+  stockMax Int @default(0) // Stock maximum recommandé
+
+  // Emplacement dans le magasin
+  emplacement  String? // Ex: "Rayon A - Étagère 3"
+  zoneStockage String? // Ex: "Réserve", "Vitrine"
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([storeId, articleId])
+  @@index([storeId])
+  @@index([articleId])
+  @@index([quantite]) // Pour les alertes de stock bas
+  @@index([storeId, articleId])
+}
+
+// Transferts de stock entre magasins
+model StockTransfer {
+  id        String  @id @default(cuid())
+  numero    String  @unique // Numéro de transfert (auto-généré)
+  reference String? // Référence externe
+
+  // Magasins
+  fromStore   Store  @relation("TransferFrom", fields: [fromStoreId], references: [id])
+  fromStoreId String
+
+  toStore   Store  @relation("TransferTo", fields: [toStoreId], references: [id])
+  toStoreId String
+
+  // Statut
+  status TransferStatus @default(PENDING)
+
+  // Dates
+  requestedAt DateTime  @default(now())
+  approvedAt  DateTime?
+  shippedAt   DateTime?
+  receivedAt  DateTime?
+  rejectedAt  DateTime?
+  cancelledAt DateTime?
+
+  // Utilisateurs
+  requestedBy String // User ID
+  approvedBy  String? // User ID
+  receivedBy  String? // User ID
+
+  // Informations de transport
+  trackingNumber    String?
+  carrier           String? // Transporteur
+  estimatedDelivery DateTime?
+
+  // Notes
+  notes           String?
+  rejectionReason String?
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Relations
+  items StockTransferItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([fromStoreId])
+  @@index([toStoreId])
+  @@index([status])
+  @@index([requestedAt])
+}
+
+// Articles dans un transfert
+model StockTransferItem {
+  id String @id @default(cuid())
+
+  transfer   StockTransfer @relation(fields: [transferId], references: [id], onDelete: Cascade)
+  transferId String
+
+  article   Article @relation(fields: [articleId], references: [id])
+  articleId String
+
+  quantiteRequested Int // Quantité demandée
+  quantiteSent      Int @default(0) // Quantité expédiée
+  quantiteReceived  Int @default(0) // Quantité reçue
+
+  notes String? // Notes spécifiques à cet article
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([transferId])
+  @@index([articleId])
+}

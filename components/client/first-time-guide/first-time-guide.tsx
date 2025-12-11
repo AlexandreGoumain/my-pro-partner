@@ -33,7 +33,7 @@ export function FirstTimeGuide({ userName: _userName }: FirstTimeGuideProps) {
 
     return (
         <GuideOverlay>
-            <Card className="w-full max-w-md border-black/10 shadow-lg animate-in slide-in-from-bottom-4 duration-300">
+            <Card className="w-full max-w-md border-black/10 shadow-sm animate-in slide-in-from-bottom-4 duration-300">
                 <div className="p-6 sm:p-8">
                     <GuideHeader
                         currentTip={currentTip}

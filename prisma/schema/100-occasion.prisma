@@ -1,0 +1,288 @@
+// OCCASION & REPAIR MODELS - Boutiques Informatique
+
+// Model pour tracer les rachats d'articles d'occasion
+model RachatArticle {
+  id            String             @id @default(cuid())
+  articleId     String             @unique
+  clientId      String?
+  prixRachat    Decimal            @db.Decimal(10, 2)
+  etat          EtatOccasion
+  provenance    ProvenanceOccasion
+  numeroSerie   String?
+  dureeGarantie Int? // Durée en mois (3, 6, 12, 24)
+  notes         String?
+  dateRachat    DateTime           @default(now())
+
+  // Relations
+  article      Article    @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  client       Client?    @relation(fields: [clientId], references: [id])
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  createdBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([clientId])
+  @@index([dateRachat])
+}
+
+// Model pour tracer les démontages d'articles d'occasion
+model DemontageArticle {
+  id              String   @id @default(cuid())
+  articleSourceId String   @unique
+  dateDemontage   DateTime @default(now())
+  motif           String?
+  notes           String?
+
+  // Relations
+  articleSource Article            @relation("ArticleDemonte", fields: [articleSourceId], references: [id], onDelete: Cascade)
+  ressources    RessourceAtelier[]
+
+  entrepriseId String
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  createdBy    String?
+  createdAt    DateTime   @default(now())
+
+  @@index([entrepriseId])
+  @@index([articleSourceId])
+}
+
+// Model pour les ressources d'atelier (pièces récupérées)
+model RessourceAtelier {
+  id String @id @default(cuid())
+
+  // Type et description
+  typeRessource TypeRessource
+  nom           String
+  description   String?
+  etat          EtatOccasion
+
+  // Stock
+  quantite Int    @default(1)
+  unite    String @default("unité")
+
+  // Provenance
+  demontageId      String?
+  demontage        DemontageArticle? @relation(fields: [demontageId], references: [id])
+  articleOrigineId String?
+  articleOrigine   Article?          @relation("PieceOrigine", fields: [articleOrigineId], references: [id])
+
+  // Compatibilité (pour recherche)
+  marque    String?
+  modele    String?
+  reference String?
+
+  // Utilisation
+  utiliseDansReparation Boolean   @default(false)
+  dateUtilisation       DateTime?
+  reparationId          String?
+
+  // Valeur (pour calcul marge)
+  valeurEstimee Decimal? @db.Decimal(10, 2)
+
+  // Multi-tenant
+  entrepriseId String
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+
+  // Relations
+  lignesReparation ReparationLignePiece[] // Utilisations dans des réparations
+
+  createdBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([typeRessource])
+  @@index([nom])
+  @@index([marque])
+  @@index([modele])
+  @@index([demontageId])
+  @@index([utiliseDansReparation])
+}
+
+model Reparation {
+  id        String  @id @default(cuid())
+  numero    String  @unique // REP-001, REP-002, etc.
+  reference String? // Référence client optionnelle
+
+  // Client information
+  client   Client @relation(fields: [clientId], references: [id])
+  clientId String
+
+  // Device information
+  typeAppareil        TypeAppareil
+  marque              String? // Brand (Apple, Dell, HP, etc.)
+  modele              String? // Model
+  numeroSerie         String? // Serial number
+  motAuthentification String?      @db.Text // Device password/PIN if needed
+
+  // Reported issue
+  panne       String  @db.Text // Customer complaint/issue description
+  etatVisuel  String? @db.Text // Visual condition notes
+  accessoires String? @db.Text // Included accessories (charger, case, etc.)
+
+  // Diagnostic
+  diagnosticEffectue Boolean   @default(false)
+  diagnosticDetail   String?   @db.Text
+  diagnosticDate     DateTime?
+  diagnosticParId    String? // User ID who performed diagnostic
+
+  // Priority and deadlines
+  priorite          PrioriteReparation @default(NORMALE)
+  dateDepot         DateTime           @default(now())
+  dateEstimeeRetour DateTime?
+  dateRetourReel    DateTime?
+  delaiReparation   Int? // Estimated repair time in hours
+
+  // Status and workflow
+  statut           StatutReparation @default(DEPOSE)
+  statutChangeLogs Json? // History of status changes [{statut, date, userId}]
+
+  // Technician assignment
+  technicien   User?   @relation("ReparationTechnicien", fields: [technicienId], references: [id])
+  technicienId String?
+
+  // Store/Register
+  store   Store?  @relation(fields: [storeId], references: [id])
+  storeId String? // Store where repair was received
+
+  register   Register? @relation(fields: [registerId], references: [id])
+  registerId String? // Register where repair was created
+
+  // Costs and billing
+  devisEstime Decimal @default(0) @db.Decimal(10, 2) // Estimated cost
+  coutMain    Decimal @default(0) @db.Decimal(10, 2) // Labor cost
+  coutPieces  Decimal @default(0) @db.Decimal(10, 2) // Parts cost (auto-calculated)
+  coutTotal   Decimal @default(0) @db.Decimal(10, 2) // Total cost
+
+  // Linked document (quote or invoice)
+  document   Document? @relation(fields: [documentId], references: [id])
+  documentId String?
+
+  // Internal notes
+  notesInternes   String? @db.Text
+  notesTechnicien String? @db.Text
+
+  // Warranty
+  sousGarantie    Boolean   @default(false)
+  dateFinGarantie DateTime? // Warranty end date after repair
+
+  // Notifications sent
+  notificationsEnvoyees Json? // Track which notifications were sent
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Relations
+  lignesPieces  ReparationLignePiece[] // Parts used
+  interventions ReparationIntervention[] // Intervention logs
+  photos        ReparationPhoto[] // Photos (optional)
+  historique    ReparationHistorique[] // Complete history log
+
+  createdBy String? // User ID who created the repair ticket
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([entrepriseId, numero])
+  @@index([entrepriseId])
+  @@index([clientId])
+  @@index([statut])
+  @@index([technicienId])
+  @@index([storeId])
+  @@index([dateDepot])
+  @@index([dateEstimeeRetour])
+  @@index([entrepriseId, statut])
+  @@index([entrepriseId, dateDepot])
+  @@index([priorite])
+}
+
+// Parts/pieces used in repair
+model ReparationLignePiece {
+  id String @id @default(cuid())
+
+  reparation   Reparation @relation(fields: [reparationId], references: [id], onDelete: Cascade)
+  reparationId String
+
+  // Link to article (could be Article or RessourceAtelier)
+  article   Article? @relation(fields: [articleId], references: [id])
+  articleId String?
+
+  ressourceAtelier   RessourceAtelier? @relation(fields: [ressourceAtelierId], references: [id])
+  ressourceAtelierId String?
+
+  designation  String
+  quantite     Int
+  prixUnitaire Decimal @db.Decimal(10, 2)
+  montant      Decimal @db.Decimal(10, 2)
+
+  createdAt DateTime @default(now())
+
+  @@index([reparationId])
+  @@index([articleId])
+  @@index([ressourceAtelierId])
+}
+
+// Intervention logs (time tracking for technicians)
+model ReparationIntervention {
+  id String @id @default(cuid())
+
+  reparation   Reparation @relation(fields: [reparationId], references: [id], onDelete: Cascade)
+  reparationId String
+
+  technicien   User   @relation("InterventionTechnicien", fields: [technicienId], references: [id])
+  technicienId String
+
+  dateDebut    DateTime
+  dateFin      DateTime?
+  dureeMinutes Int? // Auto-calculated duration
+
+  description String @db.Text
+  type        String @default("REPARATION") // DIAGNOSTIC, REPARATION, TEST, NETTOYAGE
+
+  createdAt DateTime @default(now())
+
+  @@index([reparationId])
+  @@index([technicienId])
+  @@index([dateDebut])
+}
+
+// Photos attached to repair (optional feature)
+model ReparationPhoto {
+  id String @id @default(cuid())
+
+  reparation   Reparation @relation(fields: [reparationId], references: [id], onDelete: Cascade)
+  reparationId String
+
+  url     String
+  legende String?
+  type    String  @default("AVANT") // AVANT, APRES, DIAGNOSTIC, PIECE_DEFECTUEUSE
+  ordre   Int     @default(0)
+
+  uploadedBy String? // User ID
+  createdAt  DateTime @default(now())
+
+  @@index([reparationId])
+  @@index([type])
+}
+
+// Complete history log for auditing
+model ReparationHistorique {
+  id String @id @default(cuid())
+
+  reparation   Reparation @relation(fields: [reparationId], references: [id], onDelete: Cascade)
+  reparationId String
+
+  action      String // "STATUS_CHANGE", "PIECE_ADDED", "NOTE_ADDED", "ASSIGNED", etc.
+  description String @db.Text
+  metadata    Json? // Additional data (old/new values)
+
+  createdBy String? // User ID
+  createdAt DateTime @default(now())
+
+  @@index([reparationId])
+  @@index([createdAt])
+  @@index([action])
+}

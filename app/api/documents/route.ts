@@ -178,7 +178,8 @@ export async function POST(req: NextRequest) {
                     dateEcheance: documentData.dateEcheance || null,
                     statut: documentData.statut,
                     notes: documentData.notes || null,
-                    conditions_paiement: documentData.conditions_paiement || null,
+                    conditions_paiement:
+                        documentData.conditions_paiement || null,
                     validite_jours: documentData.validite_jours,
                     total_ht: documentData.total_ht,
                     total_tva: documentData.total_tva,
@@ -199,6 +200,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ document }, { status: 201 });
         },
         {
+            limitKey: "maxDocumentsPerMonth",
             context: { resourceName: "Document", operation: "create" },
         }
     );

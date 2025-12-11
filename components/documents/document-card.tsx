@@ -28,13 +28,7 @@ export interface DocumentBase {
     id: string;
     numero: string;
     dateEmission: Date;
-    statut:
-        | "BROUILLON"
-        | "ENVOYE"
-        | "ACCEPTE"
-        | "REFUSE"
-        | "PAYE"
-        | "ANNULE";
+    statut: "BROUILLON" | "ENVOYE" | "ACCEPTE" | "REFUSE" | "PAYE" | "ANNULE";
     client: {
         nom: string;
         prenom: string | null;
@@ -89,7 +83,7 @@ export const DocumentCard = memo(function DocumentCard({
 
     return (
         <Card
-            className={`group overflow-hidden hover:shadow-lg transition-all ${config.borderClass}`}
+            className={`group overflow-hidden hover:shadow-sm transition-all duration-300 ${config.borderClass}`}
         >
             {/* Header with icon */}
             <div className={`relative p-6 ${config.bgClass}`}>

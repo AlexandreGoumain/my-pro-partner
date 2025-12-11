@@ -92,6 +92,64 @@ export interface DashboardStats {
 }
 
 // ============================================================================
+// Enhanced Client Portal Dashboard Types (2025 Design)
+// ============================================================================
+
+/**
+ * Activity item for client portal timeline
+ */
+export interface ActivityItem {
+    id: string;
+    type:
+        | "document"
+        | "rdv"
+        | "intervention"
+        | "points"
+        | "loyalty"
+        | "notification";
+    title: string;
+    description?: string;
+    timestamp: Date | string;
+    href?: string;
+    metadata?: {
+        documentNumber?: string;
+        pointsAmount?: number;
+        rdvDate?: string;
+    };
+}
+
+/**
+ * Next loyalty level information
+ */
+export interface NextLevelInfo {
+    nom: string;
+    couleur: string;
+    seuilPoints: number;
+}
+
+/**
+ * Enhanced dashboard statistics with micro-visualizations data
+ * Extends base DashboardStats with trend data and activity timeline
+ */
+export interface EnhancedDashboardStats
+    extends Omit<DashboardStats, "totalSpent"> {
+    /** Points history for sparkline (last 6 months cumulative) */
+    pointsHistory?: number[];
+    /** Progress to next loyalty level (0-100) */
+    progressToNextLevel?: number;
+    /** Next loyalty level info */
+    nextLevel?: NextLevelInfo | null;
+    /** Documents created in last 30 days */
+    recentDocumentsCount?: number;
+    /** Days until next points expiration */
+    daysUntilNextExpiry?: number;
+    /** Recent activities for timeline widget */
+    recentActivities?: ActivityItem[];
+    /** Last update timestamp */
+    lastUpdated?: Date | string;
+}
+
+// ============================================================================
 // Admin Dashboard Types
 // ============================================================================
 
@@ -152,7 +210,7 @@ export interface PeriodComparison {
     current: number;
     previous: number;
     change: number; // Percentage change
-    trend: 'up' | 'down' | 'stable';
+    trend: "up" | "down" | "stable";
 }
 
 /**
@@ -277,7 +335,7 @@ export interface DocumentPipeline {
  */
 export interface BusinessHealth {
     score: number; // 0-100
-    level: 'critical' | 'poor' | 'good' | 'excellent';
+    level: "critical" | "poor" | "good" | "excellent";
     factors: {
         revenue: number; // 0-100
         cashflow: number; // 0-100
@@ -294,8 +352,8 @@ export interface BusinessHealth {
  */
 export interface Insight {
     id: string;
-    type: 'alert' | 'opportunity' | 'warning' | 'info';
-    priority: 'high' | 'medium' | 'low';
+    type: "alert" | "opportunity" | "warning" | "info";
+    priority: "high" | "medium" | "low";
     title: string;
     description: string;
     action?: {
@@ -314,7 +372,7 @@ export interface Insight {
  */
 export interface ActivityEvent {
     id: string;
-    type: 'client' | 'document' | 'payment' | 'stock' | 'campaign';
+    type: "client" | "document" | "payment" | "stock" | "campaign";
     action: string;
     description: string;
     timestamp: Date;
@@ -336,8 +394,8 @@ export interface Goal {
     label: string;
     target: number;
     current: number;
-    unit: 'currency' | 'number' | 'percentage';
-    period: 'day' | 'week' | 'month' | 'year';
+    unit: "currency" | "number" | "percentage";
+    period: "day" | "week" | "month" | "year";
     progress: number; // 0-100
     onTrack: boolean;
 }

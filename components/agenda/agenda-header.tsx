@@ -47,6 +47,7 @@ export function AgendaHeader({
                         size="icon"
                         onClick={onPrevious}
                         className="h-9 w-9"
+                        aria-label="Période précédente"
                     >
                         <ChevronLeft className="w-4 h-4" />
                     </Button>
@@ -55,6 +56,7 @@ export function AgendaHeader({
                         size="icon"
                         onClick={onNext}
                         className="h-9 w-9"
+                        aria-label="Période suivante"
                     >
                         <ChevronRight className="w-4 h-4" />
                     </Button>

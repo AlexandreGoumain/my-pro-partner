@@ -1,0 +1,15 @@
+// ============================================
+// PRISMA CONFIGURATION
+// ============================================
+// Ce fichier contient la configuration du générateur Prisma
+// et la source de données (base de données)
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}

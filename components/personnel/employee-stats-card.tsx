@@ -21,7 +21,7 @@ export function EmployeeStatsCard({
     trend,
 }: EmployeeStatsCardProps) {
     return (
-        <div className="group relative overflow-hidden bg-white border border-black/[0.08] rounded-lg p-6 hover:shadow-lg hover:shadow-black/5 transition-all duration-500">
+        <div className="group relative overflow-hidden bg-white border border-black/[0.08] rounded-lg p-6 hover:shadow-sm transition-all duration-300">
             <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
             <div className="relative flex items-start justify-between">
@@ -44,7 +44,13 @@ export function EmployeeStatsCard({
                         )}
                         {trend && (
                             <p className="text-[13px] text-black/60">
-                                <span className={trend.value >= 0 ? "text-black" : "text-black/40"}>
+                                <span
+                                    className={
+                                        trend.value >= 0
+                                            ? "text-black"
+                                            : "text-black/40"
+                                    }
+                                >
                                     {trend.value >= 0 ? "+" : ""}
                                     {trend.value}
                                 </span>{" "}
