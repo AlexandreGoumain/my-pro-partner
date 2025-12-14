@@ -7,7 +7,6 @@ import {
     DocumentSummaryCard,
 } from "@/components/document-detail";
 import { DocumentStatusManager } from "@/components/documents/document-status-manager";
-import { DocumentPdfDialog } from "@/components/pdf/document-pdf-dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ConditionalSkeleton } from "@/components/ui/conditional-skeleton";
@@ -17,7 +16,17 @@ import { useDocumentDetail } from "@/hooks/use-document-detail";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { ArrowLeft, Download, Trash2 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { useParams, useRouter } from "next/navigation";
+
+// Lazy load PDF dialog - heavy component with @react-pdf/renderer
+const DocumentPdfDialog = dynamic(
+    () =>
+        import("@/components/pdf/document-pdf-dialog").then(
+            (mod) => mod.DocumentPdfDialog
+        ),
+    { ssr: false }
+);
 
 export default function CreditNoteDetailPage() {
     const params = useParams();
@@ -54,9 +63,15 @@ export default function CreditNoteDetailPage() {
                             { locale: fr }
                         )}`}
                         breadcrumbs={[
-                            { label: "Documents", href: "/dashboard/documents/credits" },
-                            { label: "Avoirs", href: "/dashboard/documents/credits" },
-                            { label: credit.numero }
+                            {
+                                label: "Documents",
+                                href: "/dashboard/documents/credits",
+                            },
+                            {
+                                label: "Avoirs",
+                                href: "/dashboard/documents/credits",
+                            },
+                            { label: credit.numero },
                         ]}
                         actions={
                             <>

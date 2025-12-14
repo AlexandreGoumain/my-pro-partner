@@ -1,9 +1,8 @@
 "use client";
 
-import { memo, useCallback } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -12,18 +11,19 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { MandatWithRelations } from "@/hooks/immobilier/use-mandats";
+import { differenceInDays, format, isPast } from "date-fns";
+import { fr } from "date-fns/locale";
 import {
-    FileSignature,
-    MoreHorizontal,
+    AlertTriangle,
+    Calendar,
     Edit,
     Eye,
-    Calendar,
-    User,
+    FileSignature,
     Home,
-    AlertTriangle,
+    MoreHorizontal,
+    User,
 } from "lucide-react";
-import { format, differenceInDays, isPast } from "date-fns";
-import { fr } from "date-fns/locale";
+import { memo, useCallback } from "react";
 
 interface MandatCardProps {
     mandat: MandatWithRelations;
@@ -103,12 +103,15 @@ export const MandatCard = memo(function MandatCard({
         ? differenceInDays(new Date(mandat.dateFin), new Date())
         : null;
 
-    const isExpiringSoon = daysUntilExpiry !== null && daysUntilExpiry > 0 && daysUntilExpiry <= 30;
+    const isExpiringSoon =
+        daysUntilExpiry !== null &&
+        daysUntilExpiry > 0 &&
+        daysUntilExpiry <= 30;
     const isExpired = mandat.dateFin && isPast(new Date(mandat.dateFin));
 
     return (
         <Card
-            className="group relative cursor-pointer overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500"
+            className="group relative cursor-pointer overflow-hidden border-black/[0.08] bg-white hover:shadow-sm transition-all duration-300"
             onClick={handleView}
         >
             <div className="relative p-5">
@@ -116,7 +119,10 @@ export const MandatCard = memo(function MandatCard({
                 <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-lg bg-black/5 flex items-center justify-center">
-                            <FileSignature className="h-5 w-5 text-black/60" strokeWidth={2} />
+                            <FileSignature
+                                className="h-5 w-5 text-black/60"
+                                strokeWidth={2}
+                            />
                         </div>
                         <div>
                             <p className="text-[11px] text-black/40 font-medium">
@@ -125,17 +131,21 @@ export const MandatCard = memo(function MandatCard({
                             <div className="flex items-center gap-2 mt-0.5">
                                 <Badge
                                     className={`text-[10px] font-medium border ${
-                                        TYPE_MANDAT_COLORS[mandat.typeMandat] || "bg-black/5"
+                                        TYPE_MANDAT_COLORS[mandat.typeMandat] ||
+                                        "bg-black/5"
                                     }`}
                                 >
-                                    {TYPE_MANDAT_LABELS[mandat.typeMandat] || mandat.typeMandat}
+                                    {TYPE_MANDAT_LABELS[mandat.typeMandat] ||
+                                        mandat.typeMandat}
                                 </Badge>
                                 <Badge
                                     className={`text-[10px] font-medium border ${
-                                        STATUT_COLORS[mandat.statut] || "bg-black/5"
+                                        STATUT_COLORS[mandat.statut] ||
+                                        "bg-black/5"
                                     }`}
                                 >
-                                    {STATUT_LABELS[mandat.statut] || mandat.statut}
+                                    {STATUT_LABELS[mandat.statut] ||
+                                        mandat.statut}
                                 </Badge>
                             </div>
                         </div>
@@ -149,23 +159,44 @@ export const MandatCard = memo(function MandatCard({
                                 className="h-8 w-8 hover:bg-black/5 transition-all duration-200"
                                 onClick={(e) => e.stopPropagation()}
                             >
-                                <MoreHorizontal className="h-4 w-4 text-black/60" strokeWidth={2} />
+                                <MoreHorizontal
+                                    className="h-4 w-4 text-black/60"
+                                    strokeWidth={2}
+                                />
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48 bg-white border-black/10">
-                            <DropdownMenuItem onClick={handleView} className="cursor-pointer">
+                        <DropdownMenuContent
+                            align="end"
+                            className="w-48 bg-white border-black/10"
+                        >
+                            <DropdownMenuItem
+                                onClick={handleView}
+                                className="cursor-pointer"
+                            >
                                 <Eye className="mr-2 h-4 w-4" strokeWidth={2} />
                                 Voir détails
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={handleEdit} className="cursor-pointer">
-                                <Edit className="mr-2 h-4 w-4" strokeWidth={2} />
+                            <DropdownMenuItem
+                                onClick={handleEdit}
+                                className="cursor-pointer"
+                            >
+                                <Edit
+                                    className="mr-2 h-4 w-4"
+                                    strokeWidth={2}
+                                />
                                 Modifier
                             </DropdownMenuItem>
                             {isExpiringSoon && onRenew && (
                                 <>
                                     <DropdownMenuSeparator />
-                                    <DropdownMenuItem onClick={handleRenew} className="cursor-pointer">
-                                        <Calendar className="mr-2 h-4 w-4" strokeWidth={2} />
+                                    <DropdownMenuItem
+                                        onClick={handleRenew}
+                                        className="cursor-pointer"
+                                    >
+                                        <Calendar
+                                            className="mr-2 h-4 w-4"
+                                            strokeWidth={2}
+                                        />
                                         Renouveler
                                     </DropdownMenuItem>
                                 </>
@@ -177,7 +208,10 @@ export const MandatCard = memo(function MandatCard({
                 {/* Bien */}
                 {mandat.bien && (
                     <div className="flex items-center gap-2 p-3 bg-black/[0.02] rounded-lg mb-3">
-                        <Home className="h-4 w-4 text-black/40" strokeWidth={2} />
+                        <Home
+                            className="h-4 w-4 text-black/40"
+                            strokeWidth={2}
+                        />
                         <div className="flex-1 min-w-0">
                             <p className="text-[13px] font-medium text-black truncate">
                                 {mandat.bien.titre}
@@ -195,7 +229,10 @@ export const MandatCard = memo(function MandatCard({
                 {/* Mandant */}
                 {mandat.mandant && (
                     <div className="flex items-center gap-2 mb-3">
-                        <User className="h-4 w-4 text-black/40" strokeWidth={2} />
+                        <User
+                            className="h-4 w-4 text-black/40"
+                            strokeWidth={2}
+                        />
                         <p className="text-[13px] text-black/60">
                             {mandat.mandant.prenom} {mandat.mandant.nom}
                         </p>
@@ -207,21 +244,37 @@ export const MandatCard = memo(function MandatCard({
                     <div className="flex items-center gap-1.5">
                         <Calendar className="h-3.5 w-3.5" strokeWidth={2} />
                         <span>
-                            {format(new Date(mandat.dateDebut), "dd MMM yyyy", { locale: fr })}
+                            {format(new Date(mandat.dateDebut), "dd MMM yyyy", {
+                                locale: fr,
+                            })}
                         </span>
                     </div>
                     <span>→</span>
-                    <span className={isExpired ? "text-red-600" : isExpiringSoon ? "text-amber-600" : ""}>
-                        {format(new Date(mandat.dateFin), "dd MMM yyyy", { locale: fr })}
+                    <span
+                        className={
+                            isExpired
+                                ? "text-red-600"
+                                : isExpiringSoon
+                                  ? "text-amber-600"
+                                  : ""
+                        }
+                    >
+                        {format(new Date(mandat.dateFin), "dd MMM yyyy", {
+                            locale: fr,
+                        })}
                     </span>
                 </div>
 
                 {/* Alerte expiration */}
                 {isExpiringSoon && !isExpired && (
                     <div className="flex items-center gap-2 p-2.5 bg-amber-50 border border-amber-200 rounded-lg">
-                        <AlertTriangle className="h-4 w-4 text-amber-600" strokeWidth={2} />
+                        <AlertTriangle
+                            className="h-4 w-4 text-amber-600"
+                            strokeWidth={2}
+                        />
                         <p className="text-[12px] text-amber-700 font-medium">
-                            Expire dans {daysUntilExpiry} jour{daysUntilExpiry > 1 ? "s" : ""}
+                            Expire dans {daysUntilExpiry} jour
+                            {daysUntilExpiry > 1 ? "s" : ""}
                         </p>
                     </div>
                 )}
@@ -229,7 +282,9 @@ export const MandatCard = memo(function MandatCard({
                 {/* Agent */}
                 {mandat.agent && (
                     <div className="flex items-center justify-between pt-3 border-t border-black/5 mt-3">
-                        <p className="text-[11px] text-black/40">Agent responsable</p>
+                        <p className="text-[11px] text-black/40">
+                            Agent responsable
+                        </p>
                         <p className="text-[12px] font-medium text-black/60">
                             {mandat.agent.prenom} {mandat.agent.nom}
                         </p>

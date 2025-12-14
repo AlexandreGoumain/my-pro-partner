@@ -36,6 +36,8 @@ interface DataTableProps<TData, TValue> {
     onRowClick?: (row: TData) => void;
     itemLabel?: string;
     columnLabels?: Record<string, string>;
+    /** Caption for screen readers - describes what the table contains */
+    caption?: string;
 }
 
 export function DataTable<TData, TValue>({
@@ -48,6 +50,7 @@ export function DataTable<TData, TValue>({
     onRowClick,
     itemLabel = "élément(s)",
     columnLabels,
+    caption,
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = React.useState<SortingState>([]);
     const [columnFilters, setColumnFilters] =
@@ -93,20 +96,38 @@ export function DataTable<TData, TValue>({
             <DataTableToolbar table={table} columnLabels={columnLabels} />
             <div className="rounded-lg border border-black/8 bg-white">
                 <Table>
+                    {caption && (
+                        <caption className="sr-only">{caption}</caption>
+                    )}
                     <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
-                                {headerGroup.headers.map((header) => (
-                                    <TableHead key={header.id} className="h-10">
-                                        {header.isPlaceholder
-                                            ? null
-                                            : flexRender(
-                                                  header.column.columnDef
-                                                      .header,
-                                                  header.getContext()
-                                              )}
-                                    </TableHead>
-                                ))}
+                                {headerGroup.headers.map((header) => {
+                                    const isSorted =
+                                        header.column.getIsSorted();
+                                    const ariaSortValue = isSorted
+                                        ? isSorted === "asc"
+                                            ? "ascending"
+                                            : "descending"
+                                        : undefined;
+
+                                    return (
+                                        <TableHead
+                                            key={header.id}
+                                            className="h-10"
+                                            scope="col"
+                                            aria-sort={ariaSortValue}
+                                        >
+                                            {header.isPlaceholder
+                                                ? null
+                                                : flexRender(
+                                                      header.column.columnDef
+                                                          .header,
+                                                      header.getContext()
+                                                  )}
+                                        </TableHead>
+                                    );
+                                })}
                             </TableRow>
                         ))}
                     </TableHeader>

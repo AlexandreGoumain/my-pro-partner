@@ -1,0 +1,87 @@
+// RESTAURANT MODELS - Tables, Réservations, Menu
+
+model TableRestaurant {
+  id       String      @id @default(cuid())
+  numero   Int
+  nom      String? // "Table 1", "Terrasse 3", etc.
+  capacite Int         @default(4)
+  zone     String      @default("Salle principale")
+  statut   TableStatut @default(LIBRE)
+
+  // Relations
+  entrepriseId String
+  entreprise   Entreprise    @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  reservations Reservation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([entrepriseId, numero])
+  @@index([entrepriseId])
+  @@index([statut])
+  @@index([zone])
+  @@index([entrepriseId, statut])
+}
+
+model Reservation {
+  id String @id @default(cuid())
+
+  // Client (peut être un client existant ou juste un nom)
+  clientId  String?
+  client    Client? @relation(fields: [clientId], references: [id])
+  nomClient String // Nom si pas de client lié
+  telephone String?
+  email     String?
+
+  // Détails réservation
+  date      DateTime
+  heure     String // "19:30"
+  personnes Int
+  statut    ReservationStatut @default(EN_ATTENTE)
+  notes     String?
+
+  // Table assignée (optionnel à la création)
+  tableId String?
+  table   TableRestaurant? @relation(fields: [tableId], references: [id])
+
+  // Tenant
+  entrepriseId String
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([date])
+  @@index([statut])
+  @@index([clientId])
+  @@index([tableId])
+  @@index([entrepriseId, date])
+  @@index([entrepriseId, statut])
+}
+
+model MenuItem {
+  id               String  @id @default(cuid())
+  nom              String
+  description      String?
+  prix             Decimal @db.Decimal(10, 2)
+  categorie        String  @default("Plats") // Entrées, Plats, Desserts, Boissons, Formules, etc.
+  allergenes       Json?   @default("[]") // Array of allergens
+  tempsPreparation Int? // Temps en minutes
+  disponible       Boolean @default(true)
+  imageUrl         String?
+  ordre            Int     @default(0) // Pour trier dans la catégorie
+
+  // Tenant
+  entrepriseId String
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([categorie])
+  @@index([disponible])
+  @@index([entrepriseId, categorie])
+  @@index([entrepriseId, disponible])
+}

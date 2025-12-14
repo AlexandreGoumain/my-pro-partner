@@ -38,7 +38,7 @@ export function ArticleFiltersBar({
     return (
         <div
             className={cn(
-                "group relative overflow-hidden flex flex-col lg:flex-row gap-4 p-4 bg-white rounded-lg border border-black/[0.08] hover:shadow-lg hover:shadow-black/5 transition-all duration-300",
+                "group relative overflow-hidden flex flex-col lg:flex-row gap-4 p-4 bg-white rounded-lg border border-black/[0.08] hover:shadow-sm transition-all duration-300",
                 className
             )}
         >

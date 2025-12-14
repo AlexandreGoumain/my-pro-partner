@@ -1,0 +1,210 @@
+// GESTION LOCATIVE MODELS - Baux, Loyers
+
+model BailLocatif {
+  id        String @id @default(cuid())
+  reference String
+
+  // Type et statut
+  typeBail TypeBail
+  statut   StatutBail @default(EN_COURS)
+
+  // Bien loué
+  bien   BienImmobilier @relation(fields: [bienId], references: [id])
+  bienId String
+
+  // Locataire principal
+  locatairePrincipal Client @relation("BauxLocataire", fields: [locataireId], references: [id])
+  locataireId        String
+
+  // Propriétaire (si gestion pour compte)
+  proprietaire   Client? @relation("BauxProprietaire", fields: [proprietaireId], references: [id])
+  proprietaireId String?
+
+  // Dates
+  dateSignature DateTime
+  dateDebut     DateTime
+  dateFin       DateTime? // null si bail reconductible
+  dureeMois     Int // 12, 36, etc.
+
+  // Loyer
+  loyerHC    Decimal @db.Decimal(10, 2) // Hors charges
+  provisions Decimal @db.Decimal(10, 2) // Provisions sur charges
+  loyerCC    Decimal @db.Decimal(10, 2) // Charges comprises (calculé)
+
+  // Dépôt de garantie
+  depotGarantie      Decimal   @db.Decimal(10, 2)
+  depotRecu          Boolean   @default(false)
+  dateReceptionDepot DateTime?
+
+  // Révision
+  indiceReference String? // IRL
+  dateRevision    DateTime? // Date de révision annuelle
+
+  // Preavis
+  dureePreavisMois Int       @default(3) // 1, 3 ou 6 mois
+  dateCongeRecu    DateTime?
+  dateFinPreavis   DateTime?
+
+  // Assurance
+  assuranceLocataire   Boolean @default(false)
+  attestationAssurance String?
+
+  // Documents
+  documentBailUrl String?
+
+  notes String? @db.Text
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Relations
+  loyers     AppelLoyer[]
+  etatsLieux EtatDesLieux[]
+  incidents  IncidentLocatif[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([entrepriseId, reference])
+  @@index([entrepriseId])
+  @@index([statut])
+  @@index([locataireId])
+  @@index([bienId])
+}
+
+model AppelLoyer {
+  id     String @id @default(cuid())
+  numero String
+
+  // Bail concerné
+  bail   BailLocatif @relation(fields: [bailId], references: [id])
+  bailId String
+
+  // Période
+  mois         Int // 1-12
+  annee        Int
+  dateEcheance DateTime
+
+  // Montants
+  loyerHC    Decimal @db.Decimal(10, 2)
+  provisions Decimal @db.Decimal(10, 2)
+  totalDu    Decimal @db.Decimal(10, 2)
+
+  // Paiement
+  statut       StatutLoyer @default(A_ENVOYER)
+  montantPaye  Decimal     @default(0) @db.Decimal(10, 2)
+  datePaiement DateTime?
+  modePaiement String? // Virement, prélèvement, chèque
+
+  // Quittance
+  quittanceGeneree   Boolean   @default(false)
+  quittanceUrl       String?
+  dateEnvoiQuittance DateTime?
+
+  // Relances
+  nbRelances      Int       @default(0)
+  derniereRelance DateTime?
+
+  notes String?
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([bailId, mois, annee])
+  @@index([entrepriseId])
+  @@index([statut])
+  @@index([dateEcheance])
+}
+
+model EtatDesLieux {
+  id String @id @default(cuid())
+
+  // Bail concerné
+  bail   BailLocatif @relation(fields: [bailId], references: [id])
+  bailId String
+
+  // Type et date
+  typeEtat TypeEtatLieux
+  dateEtat DateTime
+
+  // Relevés compteurs
+  releveEau  Decimal? @db.Decimal(10, 2)
+  releveElec Decimal? @db.Decimal(10, 2)
+  releveGaz  Decimal? @db.Decimal(10, 2)
+
+  // Constatations par pièce (JSON)
+  constatations Json? // { "salon": { "etat": "bon", "remarques": "..." }, ... }
+
+  // Photos
+  photos Json? // Array of URLs
+
+  // Signatures
+  signatureLocataire    String? // URL signature
+  signatureProprietaire String?
+  dateSignature         DateTime?
+
+  // Retenue sur dépôt (sortie uniquement)
+  retenueDepot Decimal? @db.Decimal(10, 2)
+  motifRetenue String?  @db.Text
+
+  // Document
+  documentUrl String?
+
+  notes String? @db.Text
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([bailId])
+  @@index([typeEtat])
+}
+
+model IncidentLocatif {
+  id String @id @default(cuid())
+
+  // Bail concerné
+  bail   BailLocatif @relation(fields: [bailId], references: [id])
+  bailId String
+
+  // Incident
+  dateSignalement DateTime @default(now())
+  description     String   @db.Text
+  categorie       String // Plomberie, Électricité, Chauffage, etc.
+  urgence         Int      @default(3) // 1=urgent, 5=non urgent
+
+  // Statut
+  statut StatutIncident @default(SIGNALE)
+
+  // Photos
+  photos Json?
+
+  // Intervention
+  dateIntervention DateTime?
+  prestataire      String?
+  coutEstime       Decimal?  @db.Decimal(10, 2)
+  coutReel         Decimal?  @db.Decimal(10, 2)
+  aChargeDe        String? // "locataire" ou "proprietaire"
+
+  notes String? @db.Text
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([bailId])
+  @@index([statut])
+}

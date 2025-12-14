@@ -8,7 +8,6 @@ import {
     DocumentPaymentHistory,
     DocumentSummaryCard,
 } from "@/components/document-detail";
-import { DocumentPdfDialog } from "@/components/pdf/document-pdf-dialog";
 import { Card } from "@/components/ui/card";
 import { ConditionalSkeleton } from "@/components/ui/conditional-skeleton";
 import { PageHeader } from "@/components/ui/page-header";
@@ -16,7 +15,17 @@ import { useCompanySettings } from "@/hooks/use-company-settings";
 import { useDocumentDetail } from "@/hooks/use-document-detail";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import dynamic from "next/dynamic";
 import { useParams, useRouter } from "next/navigation";
+
+// Lazy load PDF dialog - heavy component with @react-pdf/renderer
+const DocumentPdfDialog = dynamic(
+    () =>
+        import("@/components/pdf/document-pdf-dialog").then(
+            (mod) => mod.DocumentPdfDialog
+        ),
+    { ssr: false }
+);
 
 export default function InvoiceDetailPage() {
     const params = useParams();

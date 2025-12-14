@@ -8,11 +8,11 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import { DocumentTemplate } from "./document-template";
-import { Download, Printer, Send } from "lucide-react";
 import { useDocumentPdf } from "@/hooks/use-document-pdf";
 import type { Document } from "@/lib/types/document.types";
 import type { CompanySettings } from "@/lib/types/settings";
+import { Download, Printer, Send } from "lucide-react";
+import { DocumentTemplate } from "./document-template";
 
 interface DocumentPdfDialogProps {
     isOpen: boolean;
@@ -69,8 +69,13 @@ export function DocumentPdfDialog({
                             variant="outline"
                             className="h-10 px-4 text-[14px] font-medium border-black/10 hover:bg-black/5"
                         >
-                            <Download className="w-4 h-4 mr-2" strokeWidth={2} />
-                            {isDownloading ? "Génération..." : "Télécharger PDF"}
+                            <Download
+                                className="w-4 h-4 mr-2"
+                                strokeWidth={2}
+                            />
+                            {isDownloading
+                                ? "Génération..."
+                                : "Télécharger PDF"}
                         </Button>
                         <Button
                             onClick={handlePrint}
@@ -85,15 +90,22 @@ export function DocumentPdfDialog({
 
                     <div
                         ref={contentRef}
-                        className="border border-gray-200 rounded-lg overflow-hidden shadow-lg"
+                        className="border border-black/10 rounded-lg overflow-hidden shadow-sm"
                     >
                         <DocumentTemplate
                             type={document.type}
                             numero={document.numero}
                             dateEmission={new Date(document.dateEmission)}
-                            dateEcheance={document.dateEcheance ? new Date(document.dateEcheance) : null}
+                            dateEcheance={
+                                document.dateEcheance
+                                    ? new Date(document.dateEcheance)
+                                    : null
+                            }
                             client={document.client}
-                            company={{ ...company, nom_entreprise: company.nom_entreprise || "" }}
+                            company={{
+                                ...company,
+                                nom_entreprise: company.nom_entreprise || "",
+                            }}
                             lignes={document.lignes}
                             total_ht={Number(document.total_ht)}
                             total_tva={Number(document.total_tva)}

@@ -141,6 +141,7 @@ export function EcheancesCalendar({
                             size="icon"
                             onClick={goToPreviousMonth}
                             className="h-8 w-8"
+                            aria-label="Mois précédent"
                         >
                             <ChevronLeft className="h-4 w-4" />
                         </Button>
@@ -149,6 +150,7 @@ export function EcheancesCalendar({
                             size="icon"
                             onClick={goToNextMonth}
                             className="h-8 w-8"
+                            aria-label="Mois suivant"
                         >
                             <ChevronRight className="h-4 w-4" />
                         </Button>

@@ -1,8 +1,8 @@
-import { LucideIcon } from "lucide-react";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { Card } from "@/components/ui/card";
 import { DS } from "@/lib/constants/design-system";
+import { cn } from "@/lib/utils";
+import { LucideIcon } from "lucide-react";
 
 export interface StatCardProps {
     icon: LucideIcon;
@@ -72,7 +72,7 @@ export function StatCard({
     return (
         <Card
             className={cn(
-                "group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500",
+                "group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-sm transition-all duration-300",
                 isClickable && "cursor-pointer",
                 className
             )}
@@ -83,7 +83,12 @@ export function StatCard({
                 <div className="mb-5">
                     <div className="flex items-center gap-2 mb-1">
                         <div className="w-1 h-4 bg-gradient-to-b from-black to-black/40 rounded-full" />
-                        <p className={cn("font-medium tracking-[-0.01em] text-black/60", styles.label)}>
+                        <p
+                            className={cn(
+                                "font-medium tracking-[-0.01em] text-black/60",
+                                styles.label
+                            )}
+                        >
                             {label}
                         </p>
                     </div>
@@ -99,7 +104,11 @@ export function StatCard({
                             )}
                         >
                             <Icon
-                                className={cn("text-black/60", styles.icon, iconClassName)}
+                                className={cn(
+                                    "text-black/60",
+                                    styles.icon,
+                                    iconClassName
+                                )}
                                 strokeWidth={2}
                             />
                         </div>

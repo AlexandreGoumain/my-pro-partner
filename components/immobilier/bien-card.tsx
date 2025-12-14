@@ -1,9 +1,8 @@
 "use client";
 
-import { memo, useCallback } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -13,17 +12,18 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { BienWithRelations } from "@/hooks/immobilier/use-biens";
 import {
-    Home,
-    MapPin,
-    MoreHorizontal,
+    BedDouble,
+    Calendar,
     Edit,
     Eye,
-    Trash2,
+    Home,
+    MapPin,
     Maximize,
-    BedDouble,
+    MoreHorizontal,
     Share2,
-    Calendar,
+    Trash2,
 } from "lucide-react";
+import { memo, useCallback } from "react";
 
 interface BienCardProps {
     bien: BienWithRelations;
@@ -116,7 +116,7 @@ export const BienCard = memo(function BienCard({
 
     return (
         <Card
-            className="group relative cursor-pointer overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500"
+            className="group relative cursor-pointer overflow-hidden border-black/[0.08] bg-white hover:shadow-sm transition-all duration-300"
             onClick={handleView}
         >
             {/* Image */}
@@ -129,14 +129,18 @@ export const BienCard = memo(function BienCard({
                     />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                        <Home className="h-12 w-12 text-black/20" strokeWidth={1.5} />
+                        <Home
+                            className="h-12 w-12 text-black/20"
+                            strokeWidth={1.5}
+                        />
                     </div>
                 )}
 
                 {/* Badge statut */}
                 <Badge
                     className={`absolute top-3 left-3 text-[11px] font-medium border ${
-                        STATUT_COLORS[bien.statut] || "bg-black/10 text-black/60"
+                        STATUT_COLORS[bien.statut] ||
+                        "bg-black/10 text-black/60"
                     }`}
                 >
                     {STATUT_LABELS[bien.statut] || bien.statut}
@@ -165,7 +169,8 @@ export const BienCard = memo(function BienCard({
                 <div className="flex items-start justify-between mb-2">
                     <div className="flex-1 min-w-0">
                         <p className="text-[11px] text-black/40 font-medium mb-1">
-                            {bien.reference} • {TYPE_BIEN_LABELS[bien.typeBien] || bien.typeBien}
+                            {bien.reference} •{" "}
+                            {TYPE_BIEN_LABELS[bien.typeBien] || bien.typeBien}
                         </p>
                         <h3 className="text-[15px] font-semibold tracking-[-0.01em] text-black line-clamp-1">
                             {bien.titre}
@@ -180,27 +185,54 @@ export const BienCard = memo(function BienCard({
                                 className="h-8 w-8 hover:bg-black/5 transition-all duration-200 shrink-0"
                                 onClick={(e) => e.stopPropagation()}
                             >
-                                <MoreHorizontal className="h-4 w-4 text-black/60" strokeWidth={2} />
+                                <MoreHorizontal
+                                    className="h-4 w-4 text-black/60"
+                                    strokeWidth={2}
+                                />
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48 bg-white border-black/10">
-                            <DropdownMenuItem onClick={handleView} className="cursor-pointer">
+                        <DropdownMenuContent
+                            align="end"
+                            className="w-48 bg-white border-black/10"
+                        >
+                            <DropdownMenuItem
+                                onClick={handleView}
+                                className="cursor-pointer"
+                            >
                                 <Eye className="mr-2 h-4 w-4" strokeWidth={2} />
                                 Voir détails
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={handleEdit} className="cursor-pointer">
-                                <Edit className="mr-2 h-4 w-4" strokeWidth={2} />
+                            <DropdownMenuItem
+                                onClick={handleEdit}
+                                className="cursor-pointer"
+                            >
+                                <Edit
+                                    className="mr-2 h-4 w-4"
+                                    strokeWidth={2}
+                                />
                                 Modifier
                             </DropdownMenuItem>
                             {onDiffuse && (
-                                <DropdownMenuItem onClick={handleDiffuse} className="cursor-pointer">
-                                    <Share2 className="mr-2 h-4 w-4" strokeWidth={2} />
+                                <DropdownMenuItem
+                                    onClick={handleDiffuse}
+                                    className="cursor-pointer"
+                                >
+                                    <Share2
+                                        className="mr-2 h-4 w-4"
+                                        strokeWidth={2}
+                                    />
                                     Diffuser
                                 </DropdownMenuItem>
                             )}
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={handleDelete} className="text-black/80 cursor-pointer">
-                                <Trash2 className="mr-2 h-4 w-4" strokeWidth={2} />
+                            <DropdownMenuItem
+                                onClick={handleDelete}
+                                className="text-black/80 cursor-pointer"
+                            >
+                                <Trash2
+                                    className="mr-2 h-4 w-4"
+                                    strokeWidth={2}
+                                />
                                 Supprimer
                             </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -225,7 +257,10 @@ export const BienCard = memo(function BienCard({
                     )}
                     {bien.nbChambres && (
                         <div className="flex items-center gap-1">
-                            <BedDouble className="h-3.5 w-3.5" strokeWidth={2} />
+                            <BedDouble
+                                className="h-3.5 w-3.5"
+                                strokeWidth={2}
+                            />
                             <span>{bien.nbChambres} ch.</span>
                         </div>
                     )}
@@ -239,7 +274,9 @@ export const BienCard = memo(function BienCard({
                 {/* Prix */}
                 <div className="flex items-center justify-between pt-3 border-t border-black/5">
                     <p className="text-[18px] font-bold tracking-[-0.02em] text-black">
-                        {formatPrice(Number(bien.prixVente || bien.prixLocation))}
+                        {formatPrice(
+                            Number(bien.prixVente || bien.prixLocation)
+                        )}
                     </p>
                     {bien.proprietaire && (
                         <p className="text-[12px] text-black/40">

@@ -1,0 +1,162 @@
+// RDV MODELS - Coiffure, Esthétique, Rendez-vous
+
+// ============================================
+// PRESTATIONS (COIFFURE / ESTHETIQUE)
+// ============================================
+
+model Prestation {
+  id          String  @id @default(cuid())
+  nom         String
+  description String?
+  duree       Int // Durée en minutes
+  prix        Decimal @db.Decimal(10, 2)
+  categorie   String? // Coupe, Couleur, Soin, etc.
+  actif       Boolean @default(true)
+  ordre       Int     @default(0)
+
+  // Tenant
+  entrepriseId String
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+
+  // Relations
+  rendezVous RendezVous[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([categorie])
+  @@index([actif])
+  @@index([entrepriseId, actif])
+}
+
+model Employe {
+  id        String  @id @default(cuid())
+  nom       String
+  prenom    String
+  email     String?
+  telephone String?
+  couleur   String? // Pour le calendrier (code hex)
+  actif     Boolean @default(true)
+
+  // Spécialités coach (fitness) - JSON array de strings
+  // Ex: ["musculation", "cardio", "yoga", "pilates", "boxe", "crossfit"]
+  specialites    Json? // Spécialités du coach (fitness)
+  bio            String? // Biographie/description du coach
+  certifications String? // Certifications (BPJEPS, etc.)
+
+  // Tenant
+  entrepriseId String
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+
+  // Relations
+  disponibilites DisponibiliteEmploye[]
+  rendezVous     RendezVous[]
+
+  // Relations fitness (coach)
+  coursAnimes    CoursCollectif[] // Cours dont il est l'instructeur par défaut
+  seancesAnimees SeanceCours[] // Séances qu'il anime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([actif])
+  @@index([entrepriseId, actif])
+}
+
+model DisponibiliteEmploye {
+  id          String  @id @default(cuid())
+  jourSemaine Int // 0=Dim, 1=Lun, 2=Mar, 3=Mer, 4=Jeu, 5=Ven, 6=Sam
+  heureDebut  String // "09:00"
+  heureFin    String // "18:00"
+  pause       Boolean @default(false) // true = indisponibilité (pause déjeuner)
+
+  // Relations
+  employeId String
+  employe   Employe @relation(fields: [employeId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([employeId])
+  @@index([jourSemaine])
+  @@index([employeId, jourSemaine])
+}
+
+model RendezVous {
+  id String @id @default(cuid())
+
+  // Client (optionnel si client existant)
+  clientId  String?
+  client    Client? @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  nomClient String // Nom si pas de client existant
+  telephone String?
+  email     String?
+
+  // Rendez-vous
+  date   DateTime
+  heure  String // "14:30"
+  duree  Int // Durée en minutes
+  statut RendezVousStatut @default(EN_ATTENTE)
+  notes  String?
+
+  // Prestation et employé
+  prestationId String?
+  prestation   Prestation? @relation(fields: [prestationId], references: [id], onDelete: SetNull)
+  employeId    String?
+  employe      Employe?    @relation(fields: [employeId], references: [id], onDelete: SetNull)
+
+  // Cabine (optionnel - pour esthétique/spa)
+  cabineId String?
+  cabine   Cabine? @relation(fields: [cabineId], references: [id], onDelete: SetNull)
+
+  // Tenant
+  entrepriseId String
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([date])
+  @@index([statut])
+  @@index([clientId])
+  @@index([employeId])
+  @@index([prestationId])
+  @@index([cabineId])
+  @@index([entrepriseId, date])
+  @@index([entrepriseId, statut])
+  @@index([employeId, date])
+}
+
+// ============================================
+// CABINES / SALLES DE SOINS (ESTHETIQUE)
+// ============================================
+
+model Cabine {
+  id          String  @id @default(cuid())
+  nom         String // "Cabine 1", "Salle Zen", "Cabine Hammam"
+  description String?
+  type        String? // "massage", "epilation", "soin_visage", "uv", "hammam"
+  capacite    Int     @default(1) // Nombre de personnes max
+  equipements String? // Liste des équipements (table, jacuzzi, UV, etc.)
+  couleur     String? // Pour l'affichage dans le planning
+  actif       Boolean @default(true)
+  ordre       Int     @default(0)
+
+  // Tenant
+  entrepriseId String
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+
+  // Relations
+  rendezVous RendezVous[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([actif])
+  @@index([type])
+  @@index([entrepriseId, actif])
+}

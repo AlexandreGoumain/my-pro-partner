@@ -1,0 +1,414 @@
+// SYNDIC COPROPRIETE MODELS
+
+model Copropriete {
+  id        String @id @default(cuid())
+  reference String
+  nom       String // Nom de la copropriété
+
+  // Adresse
+  adresse    String
+  codePostal String
+  ville      String
+
+  // Caractéristiques
+  nbBatiments    Int @default(1)
+  nbLots         Int
+  totalTantiemes Int // Total des tantièmes (souvent 10000)
+
+  // Immatriculation
+  numeroImmatriculation String?
+  dateImmatriculation   DateTime?
+
+  // Dates
+  dateCreation    DateTime? // Date création copropriété
+  datePriseSyndic DateTime // Date prise en charge
+  dateFinMandat   DateTime?
+
+  // Comptes bancaires
+  comptePrincipal String? // IBAN compte principal
+  compteTravaux   String? // IBAN compte travaux (Alur)
+
+  // Règlement
+  reglementCopro String? // URL règlement
+
+  notes String? @db.Text
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Relations
+  lots                LotCopropriete[]
+  appelsCharges       AppelCharges[]
+  assemblees          AssembleeGenerale[]
+  travauxCopro        TravauxCopropriete[]
+  compteCopro         CompteCopropriete[]
+  conseilSyndical     MembreConseilSyndical[]
+  ecrituresComptables EcritureComptableCopro[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([entrepriseId, reference])
+  @@index([entrepriseId])
+  @@index([ville])
+}
+
+model LotCopropriete {
+  id     String @id @default(cuid())
+  numero String // Numéro de lot
+
+  // Type
+  typeLot  TypeLot
+  etage    Int?
+  batiment String? // A, B, C...
+
+  // Surface et tantièmes
+  surface               Decimal? @db.Decimal(10, 2)
+  tantiemesGeneraux     Int // Tantièmes parties communes générales
+  tantiemesParticuliers Json? // { "ascenseur": 150, "chauffage": 200 }
+
+  // Copropriété
+  copropriete   Copropriete @relation(fields: [coproprieteId], references: [id])
+  coproprieteId String
+
+  // Copropriétaire actuel
+  coproprietaire   Client? @relation("LotsCoproprietaire", fields: [coproprietaireId], references: [id])
+  coproprietaireId String?
+
+  // Si loué
+  estLoue     Boolean @default(false)
+  locataire   Client? @relation("LotsLocataire", fields: [locataireId], references: [id])
+  locataireId String?
+
+  notes String?
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Relations
+  appelsCharges       LigneAppelCharges[]
+  ecrituresComptables EcritureComptableCopro[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([coproprieteId, numero])
+  @@index([entrepriseId])
+  @@index([coproprieteId])
+  @@index([coproprietaireId])
+}
+
+// ============================================
+// COMPTABILITE COPROPRIETE
+// ============================================
+
+model EcritureComptableCopro {
+  id String @id @default(cuid())
+
+  // Copropriété concernée
+  copropriete   Copropriete @relation(fields: [coproprieteId], references: [id], onDelete: Cascade)
+  coproprieteId String
+
+  // Lot concerné (optionnel)
+  lot   LotCopropriete? @relation(fields: [lotId], references: [id])
+  lotId String?
+
+  // Détails de l'écriture
+  dateEcriture       DateTime
+  libelle            String
+  montant            Decimal           @db.Decimal(10, 2)
+  typeEcriture       TypeEcritureCopro
+  compte             String // Numéro de compte comptable
+  categorieCharge    String? // Catégorie de charge (chauffage, ascenseur, etc.)
+  pieceJustificative String? // URL ou référence de la pièce
+  notes              String?           @db.Text
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([coproprieteId])
+  @@index([lotId])
+  @@index([dateEcriture])
+  @@index([typeEcriture])
+  @@index([compte])
+}
+
+model AppelCharges {
+  id     String @id @default(cuid())
+  numero String
+
+  // Copropriété
+  copropriete   Copropriete @relation(fields: [coproprieteId], references: [id])
+  coproprieteId String
+
+  // Type et période
+  typeAppel    TypeAppelCharges
+  trimestre    Int? // 1-4
+  annee        Int
+  dateEcheance DateTime
+
+  // Montant total
+  montantTotal Decimal @db.Decimal(12, 2)
+
+  // Statut
+  statut    StatutAppelCharges @default(BROUILLON)
+  dateEnvoi DateTime?
+
+  notes String?
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Relations
+  lignes LigneAppelCharges[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([coproprieteId, numero])
+  @@index([entrepriseId])
+  @@index([coproprieteId])
+  @@index([statut])
+  @@index([annee])
+}
+
+model LigneAppelCharges {
+  id String @id @default(cuid())
+
+  // Appel parent
+  appel   AppelCharges @relation(fields: [appelId], references: [id])
+  appelId String
+
+  // Lot concerné
+  lot   LotCopropriete @relation(fields: [lotId], references: [id])
+  lotId String
+
+  // Montant
+  montantDu    Decimal   @db.Decimal(10, 2)
+  montantPaye  Decimal   @default(0) @db.Decimal(10, 2)
+  datePaiement DateTime?
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([appelId])
+  @@index([lotId])
+  @@index([entrepriseId])
+}
+
+model AssembleeGenerale {
+  id String @id @default(cuid())
+
+  // Copropriété
+  copropriete   Copropriete @relation(fields: [coproprieteId], references: [id])
+  coproprieteId String
+
+  // Type et dates
+  typeAG     TypeAG   @default(ORDINAIRE)
+  dateAG     DateTime
+  heureDebut String // "18:30"
+  lieu       String
+
+  // Statut
+  statut StatutAG @default(PLANIFIEE)
+
+  // Convocation
+  dateConvocation  DateTime?
+  delaiConvocation Int       @default(21) // jours
+
+  // Ordre du jour
+  ordreJour Json? // Array de résolutions
+
+  // Résultats
+  nbPresents        Int?
+  nbRepresentes     Int?
+  tantiemesPresents Int?
+  quorum            Boolean?
+
+  // Documents
+  convocationUrl String?
+  pvUrl          String?
+
+  notes String? @db.Text
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Relations
+  resolutions ResolutionAG[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([coproprieteId])
+  @@index([dateAG])
+  @@index([statut])
+}
+
+model ResolutionAG {
+  id     String @id @default(cuid())
+  numero Int // Numéro de résolution dans l'AG
+
+  // AG
+  assemblee   AssembleeGenerale @relation(fields: [assembleeId], references: [id])
+  assembleeId String
+
+  // Contenu
+  titre        String
+  description  String?      @db.Text
+  typeMajorite TypeMajorite
+
+  // Vote
+  resultat      ResultatVote?
+  voixPour      Int?
+  voixContre    Int?
+  abstentions   Int?
+  tantiemesPour Int?
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([assembleeId])
+  @@index([entrepriseId])
+}
+
+model TravauxCopropriete {
+  id String @id @default(cuid())
+
+  // Copropriété
+  copropriete   Copropriete @relation(fields: [coproprieteId], references: [id])
+  coproprieteId String
+
+  // Travaux
+  titre       String
+  description String? @db.Text
+  categorie   String // Ravalement, Toiture, Ascenseur, etc.
+
+  // Statut
+  statut StatutTravauxCopro @default(PROJET)
+
+  // Budget
+  budgetEstime Decimal? @db.Decimal(12, 2)
+  budgetVote   Decimal? @db.Decimal(12, 2)
+  coutFinal    Decimal? @db.Decimal(12, 2)
+
+  // Dates
+  dateDebutPrevue DateTime?
+  dateFinPrevue   DateTime?
+  dateDebutReelle DateTime?
+  dateFinReelle   DateTime?
+
+  // Entreprise intervenante
+  prestataire        String?
+  contactPrestataire String?
+
+  // AG de vote
+  assembleeVote String? // ID de l'AG où c'est voté
+
+  // Documents
+  devis    Json? // Array d'URLs de devis
+  factures Json? // Array d'URLs de factures
+
+  notes String? @db.Text
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([coproprieteId])
+  @@index([statut])
+}
+
+// Comptabilité copropriété
+model CompteCopropriete {
+  id String @id @default(cuid())
+
+  // Copropriété
+  copropriete   Copropriete @relation(fields: [coproprieteId], references: [id])
+  coproprieteId String
+
+  // Exercice
+  exercice  Int // Année de l'exercice
+  dateDebut DateTime
+  dateFin   DateTime
+  cloture   Boolean  @default(false)
+
+  // Budget prévisionnel
+  budgetPrevisionnel Decimal @db.Decimal(12, 2)
+
+  // Réalisé
+  totalCharges  Decimal @default(0) @db.Decimal(12, 2)
+  totalProduits Decimal @default(0) @db.Decimal(12, 2)
+
+  // Solde
+  soldeDebut Decimal  @default(0) @db.Decimal(12, 2)
+  soldeFin   Decimal? @db.Decimal(12, 2)
+
+  // Documents
+  rapportFinancierUrl String?
+  annexesComptesUrl   String?
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([coproprieteId, exercice])
+  @@index([entrepriseId])
+  @@index([coproprieteId])
+}
+
+model MembreConseilSyndical {
+  id String @id @default(cuid())
+
+  // Copropriété
+  copropriete   Copropriete @relation(fields: [coproprieteId], references: [id])
+  coproprieteId String
+
+  // Membre
+  membre   Client @relation("MembresConseilSyndical", fields: [membreId], references: [id])
+  membreId String
+
+  // Rôle
+  role String // Président, Membre, Trésorier
+
+  // Mandat
+  dateDebut DateTime
+  dateFin   DateTime?
+  actif     Boolean   @default(true)
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([coproprieteId])
+  @@index([membreId])
+  @@index([entrepriseId])
+}

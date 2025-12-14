@@ -170,7 +170,7 @@ export function FilterBar({
                 <Button
                     key={index}
                     onClick={filter.onClick}
-                    variant={isActive ? "default" : (filter.variant || "outline")}
+                    variant={isActive ? "default" : filter.variant || "outline"}
                     className={cn(
                         "h-11 px-4 text-[14px] font-medium",
                         isActive && filter.activeClassName
@@ -225,7 +225,7 @@ export function FilterBar({
 
     if (variant === "card") {
         return (
-            <Card className="group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500">
+            <Card className="group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-sm transition-all duration-300">
                 <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <CardContent className="pt-6 relative">{content}</CardContent>
             </Card>

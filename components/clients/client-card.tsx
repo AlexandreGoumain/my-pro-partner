@@ -1,6 +1,5 @@
 "use client";
 
-import { memo, useCallback } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -14,22 +13,23 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Client } from "@/hooks/use-clients";
 import {
+    formatClientLocation,
+    getClientFullName,
+    getClientInitials,
+    hasContactInfo,
+} from "@/lib/utils/client-formatting";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import {
+    Edit,
+    Eye,
     Mail,
     MapPin,
     MoreHorizontal,
     Phone,
-    Edit,
-    Eye,
     Trash2,
 } from "lucide-react";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
-import {
-    getClientFullName,
-    getClientInitials,
-    formatClientLocation,
-    hasContactInfo,
-} from "@/lib/utils/client-formatting";
+import { memo, useCallback } from "react";
 
 interface ClientCardProps {
     client: Client;
@@ -49,24 +49,33 @@ export const ClientCard = memo(function ClientCard({
     const localisation = formatClientLocation(client.ville, client.codePostal);
     const hasContact = hasContactInfo(client);
 
-    const handleView = useCallback((e: React.MouseEvent) => {
-        e.stopPropagation();
-        onView?.(client);
-    }, [client, onView]);
+    const handleView = useCallback(
+        (e: React.MouseEvent) => {
+            e.stopPropagation();
+            onView?.(client);
+        },
+        [client, onView]
+    );
 
-    const handleEdit = useCallback((e: React.MouseEvent) => {
-        e.stopPropagation();
-        onEdit?.(client);
-    }, [client, onEdit]);
+    const handleEdit = useCallback(
+        (e: React.MouseEvent) => {
+            e.stopPropagation();
+            onEdit?.(client);
+        },
+        [client, onEdit]
+    );
 
-    const handleDelete = useCallback((e: React.MouseEvent) => {
-        e.stopPropagation();
-        onDelete?.(client);
-    }, [client, onDelete]);
+    const handleDelete = useCallback(
+        (e: React.MouseEvent) => {
+            e.stopPropagation();
+            onDelete?.(client);
+        },
+        [client, onDelete]
+    );
 
     return (
         <Card
-            className="group relative cursor-pointer overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500"
+            className="group relative cursor-pointer overflow-hidden border-black/[0.08] bg-white hover:shadow-sm transition-all duration-300"
             onClick={handleView}
         >
             <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -84,7 +93,12 @@ export const ClientCard = memo(function ClientCard({
                             </h3>
                             {client.createdAt && (
                                 <p className="text-[12px] text-black/40">
-                                    Depuis {format(new Date(client.createdAt), "MMM yyyy", { locale: fr })}
+                                    Depuis{" "}
+                                    {format(
+                                        new Date(client.createdAt),
+                                        "MMM yyyy",
+                                        { locale: fr }
+                                    )}
                                 </p>
                             )}
                         </div>
@@ -98,39 +112,71 @@ export const ClientCard = memo(function ClientCard({
                                 className="h-8 w-8 hover:bg-black/5 transition-all duration-200"
                                 onClick={(e) => e.stopPropagation()}
                             >
-                                <MoreHorizontal className="h-4 w-4 text-black/60" strokeWidth={2} />
+                                <MoreHorizontal
+                                    className="h-4 w-4 text-black/60"
+                                    strokeWidth={2}
+                                />
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48 bg-white border-black/10">
-                            <DropdownMenuItem onClick={handleView} className="cursor-pointer">
+                        <DropdownMenuContent
+                            align="end"
+                            className="w-48 bg-white border-black/10"
+                        >
+                            <DropdownMenuItem
+                                onClick={handleView}
+                                className="cursor-pointer"
+                            >
                                 <Eye className="mr-2 h-4 w-4" strokeWidth={2} />
                                 Voir détails
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={handleEdit} className="cursor-pointer">
-                                <Edit className="mr-2 h-4 w-4" strokeWidth={2} />
+                            <DropdownMenuItem
+                                onClick={handleEdit}
+                                className="cursor-pointer"
+                            >
+                                <Edit
+                                    className="mr-2 h-4 w-4"
+                                    strokeWidth={2}
+                                />
                                 Modifier
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={handleDelete} className="text-black/80 cursor-pointer">
-                                <Trash2 className="mr-2 h-4 w-4" strokeWidth={2} />
+                            <DropdownMenuItem
+                                onClick={handleDelete}
+                                className="text-black/80 cursor-pointer"
+                            >
+                                <Trash2
+                                    className="mr-2 h-4 w-4"
+                                    strokeWidth={2}
+                                />
                                 Supprimer
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
 
-                {(client.email || client.telephone || localisation) ? (
+                {client.email || client.telephone || localisation ? (
                     <div className="space-y-3">
                         {client.email && (
-                            <ContactInfoRow icon={Mail} value={client.email} truncate />
+                            <ContactInfoRow
+                                icon={Mail}
+                                value={client.email}
+                                truncate
+                            />
                         )}
 
                         {client.telephone && (
-                            <ContactInfoRow icon={Phone} value={client.telephone} />
+                            <ContactInfoRow
+                                icon={Phone}
+                                value={client.telephone}
+                            />
                         )}
 
                         {localisation && (
-                            <ContactInfoRow icon={MapPin} value={localisation} truncate />
+                            <ContactInfoRow
+                                icon={MapPin}
+                                value={localisation}
+                                truncate
+                            />
                         )}
                     </div>
                 ) : (

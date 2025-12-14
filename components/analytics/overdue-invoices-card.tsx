@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
-import { Clock } from "lucide-react";
 import { pluralize } from "@/lib/utils/format";
+import { Clock } from "lucide-react";
 
 export interface OverdueInvoicesCardProps {
     overdueInvoices: number;
@@ -10,7 +10,7 @@ export function OverdueInvoicesCard({
     overdueInvoices,
 }: OverdueInvoicesCardProps) {
     return (
-        <Card className="group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500">
+        <Card className="group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-sm transition-all duration-300">
             <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             <div className="relative p-6">
                 <div className="mb-6">
@@ -34,7 +34,13 @@ export function OverdueInvoicesCard({
                                 {overdueInvoices}
                             </div>
                             <div className="text-[13px] text-black/60 mt-1">
-                                {pluralize(overdueInvoices, "facture")} {pluralize(overdueInvoices, "nécessite", "nécessitent")} un suivi
+                                {pluralize(overdueInvoices, "facture")}{" "}
+                                {pluralize(
+                                    overdueInvoices,
+                                    "nécessite",
+                                    "nécessitent"
+                                )}{" "}
+                                un suivi
                             </div>
                         </div>
                     </div>

@@ -1,0 +1,150 @@
+// ARTICLE & CATALOGUE MODELS
+
+model Categorie {
+  id          String  @id @default(cuid())
+  nom         String
+  description String?
+  ordre       Int     @default(0)
+  parentId    String?
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  parent       Categorie?          @relation("CategoriesToParent", fields: [parentId], references: [id])
+  enfants      Categorie[]         @relation("CategoriesToParent")
+  articles     Article[]
+  champsCustom ChampPersonnalise[]
+
+  createdAt DateTime @default(now())
+
+  @@index([entrepriseId])
+  @@index([nom])
+  @@index([ordre])
+}
+
+model ChampPersonnalise {
+  id          String          @id @default(cuid())
+  categorieId String
+  nom         String
+  code        String
+  type        TypeChampCustom @default(TEXT)
+  ordre       Int             @default(0)
+  obligatoire Boolean         @default(false)
+  placeholder String?
+  description String?
+  options     Json?
+  validation  Json?
+
+  categorie Categorie @relation(fields: [categorieId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([categorieId, code])
+  @@index([categorieId])
+  @@index([ordre])
+}
+
+model Article {
+  id            String      @id @default(cuid())
+  reference     String
+  nom           String
+  description   String?
+  type          ArticleType @default(PRODUIT)
+  prix_ht       Decimal     @db.Decimal(10, 2)
+  tva_taux      Decimal     @default(20.00) @db.Decimal(5, 2)
+  unite         String      @default("unité")
+  stock_actuel  Int         @default(0)
+  stock_min     Int         @default(0)
+  gestion_stock Boolean     @default(false)
+  actif         Boolean     @default(true)
+  champsCustom  Json?
+
+  // Champs spécifiques pour type PIECE (pièces détachées)
+  typePiece        TypeRessource? // Type de pièce (ECRAN, BATTERIE, etc.)
+  etatPiece        EtatOccasion? // État de la pièce (COMME_NEUF, BON, etc.)
+  marque           String? // Compatibilité marque
+  modele           String? // Compatibilité modèle
+  articleOrigineId String? // Article source si issu d'un démontage
+  valeurEstimee    Decimal?       @db.Decimal(10, 2) // Valeur estimée pour calcul marge
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  categorie       Categorie?          @relation(fields: [categorieId], references: [id])
+  categorieId     String?
+  lignes          LigneDocument[]
+  mouvements      MouvementStock[]
+  storeStockItems StoreStockItem[] // Stock par magasin
+  transferItems   StockTransferItem[] // Items dans les transferts
+
+  // Relations pour les articles d'occasion
+  rachat           RachatArticle? // Si type=OCCASION, lien vers les infos de rachat
+  demontage        DemontageArticle?  @relation("ArticleDemonte") // Si démonté
+  piecesRecuperees RessourceAtelier[] @relation("PieceOrigine") // Pièces récupérées de cet article
+
+  // Relations pour les pièces détachées (type PIECE)
+  articleOrigine   Article?               @relation("PiecesDetachees", fields: [articleOrigineId], references: [id], onDelete: SetNull)
+  piecesDetachees  Article[]              @relation("PiecesDetachees") // Pièces issues du démontage de cet article
+  lignesReparation ReparationLignePiece[] // Utilisations dans des réparations
+
+  // Relations pour système plomberie
+  interventionsMateriel InterventionMateriel[] // Matériel utilisé dans interventions
+  stockCamionnettes     StockCamionnette[] // Stock dans les camionnettes
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([entrepriseId, reference])
+  @@index([entrepriseId])
+  @@index([reference])
+  @@index([nom])
+  @@index([type])
+  @@index([categorieId])
+  @@index([actif])
+  @@index([entrepriseId, actif])
+  @@index([categorieId, actif])
+  @@index([typePiece])
+  @@index([marque])
+  @@index([modele])
+  @@index([articleOrigineId])
+}
+
+model MouvementStock {
+  id          String        @id @default(cuid())
+  type        TypeMouvement
+  quantite    Int
+  stock_avant Int
+  stock_apres Int
+  motif       String?
+  reference   String?
+  notes       String?
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  articleId String
+
+  // Multi-magasins
+  store   Store?  @relation(fields: [storeId], references: [id])
+  storeId String? // Magasin concerné par le mouvement
+
+  // Tracking utilisateur qui a créé le mouvement
+  createdByUser User?   @relation("UserStockMovements", fields: [createdBy], references: [id])
+  createdBy     String?
+
+  createdAt DateTime @default(now())
+
+  @@index([entrepriseId])
+  @@index([articleId])
+  @@index([storeId])
+  @@index([type])
+  @@index([createdAt])
+  @@index([createdBy])
+  @@index([articleId, createdAt])
+  @@index([entrepriseId, createdAt])
+}

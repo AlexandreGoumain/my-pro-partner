@@ -2,19 +2,19 @@
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { DatePicker } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageHeader } from "@/components/ui/page-header";
 import { PageSkeleton } from "@/components/ui/page-skeleton";
 import { Textarea } from "@/components/ui/textarea";
-import { DatePicker } from "@/components/ui/date-picker";
-import { LineItemsEditor } from "./line-items-editor";
-import { DocumentTotals } from "./document-totals";
-import { ClientCombobox } from "./client-combobox";
-import { ArrowLeft, Save, Send } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
 import { useDocumentForm } from "@/hooks/use-document-form";
 import type { DocumentType } from "@/lib/types/document.types";
+import { ArrowLeft, Save, Send } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { ClientCombobox } from "./client-combobox";
+import { DocumentTotals } from "./document-totals";
+import { LineItemsEditor } from "./line-items-editor";
 
 interface DocumentFormPageProps {
     documentType: DocumentType;
@@ -72,7 +72,7 @@ export function DocumentFormPage({
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
-                    <Card className="group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500">
+                    <Card className="group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-sm transition-all duration-300">
                         <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                         <div className="relative p-6">
                             <div className="mb-6">
@@ -83,104 +83,150 @@ export function DocumentFormPage({
                                     </h3>
                                 </div>
                             </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="client" className="text-[14px] font-medium">
-                                    Client *
-                                </Label>
-                                <ClientCombobox
-                                    clients={clients}
-                                    value={formData.clientId}
-                                    onValueChange={(value) =>
-                                        setFormData((prev) => ({ ...prev, clientId: value }))
-                                    }
-                                    triggerClassName="h-11 text-[14px] border-black/10"
-                                />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label
+                                        htmlFor="client"
+                                        className="text-[14px] font-medium"
+                                    >
+                                        Client *
+                                    </Label>
+                                    <ClientCombobox
+                                        clients={clients}
+                                        value={formData.clientId}
+                                        onValueChange={(value) =>
+                                            setFormData((prev) => ({
+                                                ...prev,
+                                                clientId: value,
+                                            }))
+                                        }
+                                        triggerClassName="h-11 text-[14px] border-black/10"
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label
+                                        htmlFor="dateEmission"
+                                        className="text-[14px] font-medium"
+                                    >
+                                        Date d&apos;émission
+                                    </Label>
+                                    <DatePicker
+                                        date={
+                                            formData.dateEmission
+                                                ? new Date(
+                                                      formData.dateEmission
+                                                  )
+                                                : undefined
+                                        }
+                                        onSelect={(date) =>
+                                            setFormData((prev) => ({
+                                                ...prev,
+                                                dateEmission: date
+                                                    ? date
+                                                          .toISOString()
+                                                          .split("T")[0]
+                                                    : "",
+                                            }))
+                                        }
+                                        placeholder="Sélectionner la date d'émission"
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label
+                                        htmlFor="dateEcheance"
+                                        className="text-[14px] font-medium"
+                                    >
+                                        Date d&apos;échéance
+                                    </Label>
+                                    <DatePicker
+                                        date={
+                                            formData.dateEcheance
+                                                ? new Date(
+                                                      formData.dateEcheance
+                                                  )
+                                                : undefined
+                                        }
+                                        onSelect={(date) =>
+                                            setFormData((prev) => ({
+                                                ...prev,
+                                                dateEcheance: date
+                                                    ? date
+                                                          .toISOString()
+                                                          .split("T")[0]
+                                                    : "",
+                                            }))
+                                        }
+                                        placeholder="Sélectionner la date d'échéance"
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label
+                                        htmlFor="validite"
+                                        className="text-[14px] font-medium"
+                                    >
+                                        Validité (jours)
+                                    </Label>
+                                    <Input
+                                        id="validite"
+                                        type="number"
+                                        value={formData.validite_jours}
+                                        onChange={(e) =>
+                                            setFormData((prev) => ({
+                                                ...prev,
+                                                validite_jours:
+                                                    parseInt(e.target.value) ||
+                                                    30,
+                                            }))
+                                        }
+                                        className="h-11 border-black/10"
+                                    />
+                                </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="dateEmission" className="text-[14px] font-medium">
-                                    Date d&apos;émission
-                                </Label>
-                                <DatePicker
-                                    date={formData.dateEmission ? new Date(formData.dateEmission) : undefined}
-                                    onSelect={(date) =>
-                                        setFormData((prev) => ({
-                                            ...prev,
-                                            dateEmission: date ? date.toISOString().split("T")[0] : "",
-                                        }))
-                                    }
-                                    placeholder="Sélectionner la date d'émission"
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="dateEcheance" className="text-[14px] font-medium">
-                                    Date d&apos;échéance
-                                </Label>
-                                <DatePicker
-                                    date={formData.dateEcheance ? new Date(formData.dateEcheance) : undefined}
-                                    onSelect={(date) =>
-                                        setFormData((prev) => ({
-                                            ...prev,
-                                            dateEcheance: date ? date.toISOString().split("T")[0] : "",
-                                        }))
-                                    }
-                                    placeholder="Sélectionner la date d'échéance"
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="validite" className="text-[14px] font-medium">
-                                    Validité (jours)
+                            <div className="mt-4 space-y-2">
+                                <Label
+                                    htmlFor="conditions"
+                                    className="text-[14px] font-medium"
+                                >
+                                    Conditions de paiement
                                 </Label>
                                 <Input
-                                    id="validite"
-                                    type="number"
-                                    value={formData.validite_jours}
+                                    id="conditions"
+                                    value={formData.conditions_paiement}
                                     onChange={(e) =>
                                         setFormData((prev) => ({
                                             ...prev,
-                                            validite_jours: parseInt(e.target.value) || 30,
+                                            conditions_paiement: e.target.value,
                                         }))
                                     }
+                                    placeholder="Ex: Paiement à 30 jours"
                                     className="h-11 border-black/10"
                                 />
                             </div>
-                        </div>
 
-                        <div className="mt-4 space-y-2">
-                            <Label htmlFor="conditions" className="text-[14px] font-medium">
-                                Conditions de paiement
-                            </Label>
-                            <Input
-                                id="conditions"
-                                value={formData.conditions_paiement}
-                                onChange={(e) =>
-                                    setFormData((prev) => ({
-                                        ...prev,
-                                        conditions_paiement: e.target.value,
-                                    }))
-                                }
-                                placeholder="Ex: Paiement à 30 jours"
-                                className="h-11 border-black/10"
-                            />
-                        </div>
-
-                        <div className="mt-4 space-y-2">
-                            <Label htmlFor="notes" className="text-[14px] font-medium">
-                                Notes
-                            </Label>
-                            <Textarea
-                                id="notes"
-                                value={formData.notes}
-                                onChange={(e) =>
-                                    setFormData((prev) => ({ ...prev, notes: e.target.value }))
-                                }
-                                placeholder="Notes ou commentaires additionnels..."
-                                className="min-h-[100px] border-black/10"
-                            />
-                        </div>
+                            <div className="mt-4 space-y-2">
+                                <Label
+                                    htmlFor="notes"
+                                    className="text-[14px] font-medium"
+                                >
+                                    Notes
+                                </Label>
+                                <Textarea
+                                    id="notes"
+                                    value={formData.notes}
+                                    onChange={(e) =>
+                                        setFormData((prev) => ({
+                                            ...prev,
+                                            notes: e.target.value,
+                                        }))
+                                    }
+                                    placeholder="Notes ou commentaires additionnels..."
+                                    className="min-h-[100px] border-black/10"
+                                />
+                            </div>
                         </div>
                     </Card>
 
@@ -208,8 +254,8 @@ export function DocumentFormPage({
                             {isSubmitting
                                 ? "Enregistrement..."
                                 : mode === "edit"
-                                ? "Mettre à jour et envoyer"
-                                : "Créer et envoyer"}
+                                  ? "Mettre à jour et envoyer"
+                                  : "Créer et envoyer"}
                         </Button>
                         <Button
                             onClick={() => handleSubmit("BROUILLON")}
@@ -218,7 +264,9 @@ export function DocumentFormPage({
                             className="w-full h-11 px-6 text-[14px] font-medium border-black/10 hover:bg-black/5"
                         >
                             <Save className="w-4 h-4 mr-2" strokeWidth={2} />
-                            {mode === "edit" ? "Mettre à jour en brouillon" : "Enregistrer en brouillon"}
+                            {mode === "edit"
+                                ? "Mettre à jour en brouillon"
+                                : "Enregistrer en brouillon"}
                         </Button>
                     </div>
                 </div>

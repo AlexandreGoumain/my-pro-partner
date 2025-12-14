@@ -8,15 +8,15 @@ export interface GridSkeletonProps {
     itemCount?: number;
     /** Configuration des colonnes responsive */
     gridColumns?: {
-        default?: number;
-        sm?: number;
-        md?: number;
-        lg?: number;
-        xl?: number;
-        "2xl"?: number;
+        default?: 1 | 2 | 3 | 4 | 5 | 6;
+        sm?: 1 | 2 | 3 | 4 | 5 | 6;
+        md?: 1 | 2 | 3 | 4 | 5 | 6;
+        lg?: 1 | 2 | 3 | 4 | 5 | 6;
+        xl?: 1 | 2 | 3 | 4 | 5 | 6;
+        "2xl"?: 1 | 2 | 3 | 4 | 5 | 6;
     };
     /** Espace entre les items */
-    gap?: number;
+    gap?: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 8;
     /** Composant skeleton personnalisé pour chaque item */
     itemSkeleton?: ReactNode;
     /** Hauteur par défaut si itemSkeleton n'est pas fourni */

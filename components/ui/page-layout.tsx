@@ -1,18 +1,21 @@
 import { PageHeader, PageHeaderProps } from "@/components/ui/page-header";
-import { StatisticsGrid, StatConfig } from "@/components/ui/statistics-grid";
+import { StatConfig, StatisticsGrid } from "@/components/ui/statistics-grid";
 import { ReactNode } from "react";
+
+type ColumnValue = 1 | 2 | 3 | 4 | 5 | 6;
+type GapValue = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 8;
 
 export interface PageLayoutProps {
     header: PageHeaderProps;
     stats?: StatConfig[];
     statsColumns?: {
-        default?: number;
-        sm?: number;
-        md?: number;
-        lg?: number;
-        xl?: number;
+        default?: ColumnValue;
+        sm?: ColumnValue;
+        md?: ColumnValue;
+        lg?: ColumnValue;
+        xl?: ColumnValue;
     };
-    statsGap?: number;
+    statsGap?: GapValue;
     filters?: ReactNode;
     children: ReactNode;
 }
