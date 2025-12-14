@@ -107,6 +107,7 @@ export function OrganiserTourneeStep({
                                     className="h-6 w-6"
                                     onClick={() => moveUp(index)}
                                     disabled={index === 0}
+                                    aria-label="Monter dans l'ordre"
                                 >
                                     <ArrowUp className="w-3 h-3" />
                                 </Button>
@@ -119,6 +120,7 @@ export function OrganiserTourneeStep({
                                     disabled={
                                         index === interventions.length - 1
                                     }
+                                    aria-label="Descendre dans l'ordre"
                                 >
                                     <ArrowDown className="w-3 h-3" />
                                 </Button>

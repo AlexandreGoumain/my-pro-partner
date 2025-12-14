@@ -1,5 +1,6 @@
 "use client";
 
+import { AddressInputGroup } from "@/components/ui/address-input-group";
 import {
     Collapsible,
     CollapsibleContent,
@@ -15,6 +16,7 @@ import {
 import { DialogActionButtons } from "@/components/ui/dialog-action-buttons";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 import {
     Select,
     SelectContent,
@@ -46,6 +48,19 @@ interface InterventionDialogProps {
     onSuccess: () => void;
 }
 
+const CLIENT_MODE_OPTIONS = [
+    {
+        value: "existing" as const,
+        label: "Client existant",
+        icon: <Users className="w-4 h-4" strokeWidth={2} />,
+    },
+    {
+        value: "new" as const,
+        label: "Nouveau client",
+        icon: <UserPlus className="w-4 h-4" strokeWidth={2} />,
+    },
+];
+
 export function InterventionDialog({
     open,
     onOpenChange,
@@ -70,6 +85,19 @@ export function InterventionDialog({
         businessType,
     });
 
+    const interventionTypes =
+        INTERVENTIONS_PAR_METIER[
+            businessType as keyof typeof INTERVENTIONS_PAR_METIER
+        ] || TYPE_INTERVENTION;
+    const equipmentTypes = EQUIPEMENTS_PAR_METIER[
+        businessType as keyof typeof EQUIPEMENTS_PAR_METIER
+    ] || [
+        ...EQUIPEMENTS_PAR_METIER.PLOMBERIE,
+        ...EQUIPEMENTS_PAR_METIER.CHAUFFAGE,
+        ...EQUIPEMENTS_PAR_METIER.MENUISERIE,
+    ];
+    const uniqueEquipmentTypes = [...new Set(equipmentTypes)];
+
     return (
         <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogContent className="max-w-lg">
@@ -88,36 +116,11 @@ export function InterventionDialog({
                     className="space-y-4 mt-2"
                 >
                     {/* Client Mode Toggle */}
-                    <div className="flex gap-2 p-1 bg-black/[0.03] rounded-lg">
-                        <button
-                            type="button"
-                            onClick={() =>
-                                updateField("clientMode", "existing")
-                            }
-                            className={cn(
-                                "flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-[13px] font-medium transition-all",
-                                form.clientMode === "existing"
-                                    ? "bg-white text-black shadow-sm"
-                                    : "text-black/50 hover:text-black/70"
-                            )}
-                        >
-                            <Users className="w-4 h-4" strokeWidth={2} />
-                            Client existant
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => updateField("clientMode", "new")}
-                            className={cn(
-                                "flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-[13px] font-medium transition-all",
-                                form.clientMode === "new"
-                                    ? "bg-white text-black shadow-sm"
-                                    : "text-black/50 hover:text-black/70"
-                            )}
-                        >
-                            <UserPlus className="w-4 h-4" strokeWidth={2} />
-                            Nouveau client
-                        </button>
-                    </div>
+                    <SegmentedControl
+                        value={form.clientMode}
+                        onValueChange={(v) => updateField("clientMode", v)}
+                        options={CLIENT_MODE_OPTIONS}
+                    />
 
                     {/* Existing Client Select */}
                     {form.clientMode === "existing" && (
@@ -223,7 +226,7 @@ export function InterventionDialog({
                         </div>
                     )}
 
-                    {/* Type & Priority - side by side */}
+                    {/* Type & Priority */}
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-2">
                             <Label className="text-[13px] font-medium">
@@ -242,11 +245,7 @@ export function InterventionDialog({
                                     <SelectValue placeholder="Type" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {(
-                                        INTERVENTIONS_PAR_METIER[
-                                            businessType as keyof typeof INTERVENTIONS_PAR_METIER
-                                        ] || TYPE_INTERVENTION
-                                    ).map((type) => (
+                                    {interventionTypes.map((type) => (
                                         <SelectItem key={type} value={type}>
                                             {
                                                 TYPE_INTERVENTION_LABELS[
@@ -258,7 +257,6 @@ export function InterventionDialog({
                                 </SelectContent>
                             </Select>
                         </div>
-
                         <div className="space-y-2">
                             <Label className="text-[13px] font-medium">
                                 Priorité
@@ -303,44 +301,21 @@ export function InterventionDialog({
 
                     {/* Address - Always visible for new client, collapsible for existing */}
                     {form.clientMode === "new" ? (
-                        <div className="space-y-3">
-                            <Label className="text-[13px] font-medium">
-                                Adresse d'intervention{" "}
-                                <span className="text-red-500">*</span>
-                            </Label>
-                            <Input
-                                value={form.adresse}
-                                onChange={(e) =>
-                                    updateField("adresse", e.target.value)
-                                }
-                                placeholder="Adresse"
-                                className="h-11 border-black/10"
-                            />
-                            <div className="grid grid-cols-2 gap-3">
-                                <Input
-                                    value={form.codePostal}
-                                    onChange={(e) =>
-                                        updateField(
-                                            "codePostal",
-                                            e.target.value
-                                        )
-                                    }
-                                    placeholder="Code postal"
-                                    maxLength={5}
-                                    className="h-11 border-black/10"
-                                />
-                                <Input
-                                    value={form.ville}
-                                    onChange={(e) =>
-                                        updateField("ville", e.target.value)
-                                    }
-                                    placeholder="Ville"
-                                    className="h-11 border-black/10"
-                                />
-                            </div>
-                        </div>
+                        <AddressInputGroup
+                            label="Adresse d'intervention"
+                            required
+                            value={{
+                                adresse: form.adresse,
+                                codePostal: form.codePostal,
+                                ville: form.ville,
+                            }}
+                            onChange={({ adresse, codePostal, ville }) => {
+                                updateField("adresse", adresse);
+                                updateField("codePostal", codePostal);
+                                updateField("ville", ville);
+                            }}
+                        />
                     ) : (
-                        /* Collapsible Details for existing client */
                         <Collapsible
                             open={form.showDetails}
                             onOpenChange={setShowDetails}
@@ -364,47 +339,25 @@ export function InterventionDialog({
                             </CollapsibleTrigger>
                             <CollapsibleContent className="space-y-4 pt-4">
                                 {/* Address override */}
-                                <div className="space-y-3 p-3 rounded-lg bg-black/[0.02] border border-black/8">
-                                    <Label className="text-[12px] font-medium text-black/60">
-                                        Adresse d'intervention
-                                    </Label>
-                                    <Input
-                                        value={form.adresse}
-                                        onChange={(e) =>
-                                            updateField(
-                                                "adresse",
-                                                e.target.value
-                                            )
-                                        }
-                                        placeholder="Adresse"
-                                        className="h-10 border-black/10 text-[13px]"
-                                    />
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <Input
-                                            value={form.codePostal}
-                                            onChange={(e) =>
-                                                updateField(
-                                                    "codePostal",
-                                                    e.target.value
-                                                )
-                                            }
-                                            placeholder="Code postal"
-                                            maxLength={5}
-                                            className="h-10 border-black/10 text-[13px]"
-                                        />
-                                        <Input
-                                            value={form.ville}
-                                            onChange={(e) =>
-                                                updateField(
-                                                    "ville",
-                                                    e.target.value
-                                                )
-                                            }
-                                            placeholder="Ville"
-                                            className="h-10 border-black/10 text-[13px]"
-                                        />
-                                    </div>
-                                </div>
+                                <AddressInputGroup
+                                    label="Adresse d'intervention"
+                                    compact
+                                    bordered
+                                    value={{
+                                        adresse: form.adresse,
+                                        codePostal: form.codePostal,
+                                        ville: form.ville,
+                                    }}
+                                    onChange={({
+                                        adresse,
+                                        codePostal,
+                                        ville,
+                                    }) => {
+                                        updateField("adresse", adresse);
+                                        updateField("codePostal", codePostal);
+                                        updateField("ville", ville);
+                                    }}
+                                />
 
                                 {/* Equipment */}
                                 <div className="grid grid-cols-2 gap-3">
@@ -422,20 +375,8 @@ export function InterventionDialog({
                                                 <SelectValue placeholder="Optionnel" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {(
-                                                    EQUIPEMENTS_PAR_METIER[
-                                                        businessType as keyof typeof EQUIPEMENTS_PAR_METIER
-                                                    ] || [
-                                                        ...EQUIPEMENTS_PAR_METIER.PLOMBERIE,
-                                                        ...EQUIPEMENTS_PAR_METIER.CHAUFFAGE,
-                                                        ...EQUIPEMENTS_PAR_METIER.MENUISERIE,
-                                                    ]
-                                                )
-                                                    .filter(
-                                                        (v, i, a) =>
-                                                            a.indexOf(v) === i
-                                                    )
-                                                    .map((type) => (
+                                                {uniqueEquipmentTypes.map(
+                                                    (type) => (
                                                         <SelectItem
                                                             key={type}
                                                             value={type}
@@ -446,11 +387,11 @@ export function InterventionDialog({
                                                                 ]
                                                             }
                                                         </SelectItem>
-                                                    ))}
+                                                    )
+                                                )}
                                             </SelectContent>
                                         </Select>
                                     </div>
-
                                     <div className="space-y-2">
                                         <Label className="text-[13px] font-medium">
                                             Marque

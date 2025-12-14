@@ -1,0 +1,1213 @@
+// ============================================
+// ALL ENUMS
+// ============================================
+
+// ============================================
+// CORE / MULTI-TENANCY
+// ============================================
+
+enum BusinessType {
+  GENERAL // Entreprise générique
+  PLOMBERIE // Plombier
+  ELECTRICITE // Électricien
+  CHAUFFAGE // Chauffagiste
+  MENUISERIE // Menuisier
+  PEINTURE // Peintre
+  MACONNERIE // Maçon
+  RESTAURATION // Restaurant, café, bar
+  BOULANGERIE // Boulangerie, pâtisserie
+  COIFFURE // Salon de coiffure
+  ESTHETIQUE // Institut de beauté, spa
+  FITNESS // Salle de sport, coaching
+  GARAGE // Garage automobile
+  INFORMATIQUE // Services informatiques
+  CONSULTING // Conseil, formation
+  COMMERCE_DETAIL // Commerce de détail
+  // Immobilier - 3 types spécialisés
+  AGENT_IMMOBILIER // Agent immobilier, mandataire (carte T)
+  GESTION_LOCATIVE // Administrateur de biens (carte G)
+  SYNDIC_COPROPRIETE // Syndic de copropriété
+  SANTE // Professions médicales/paramédicales
+  JURIDIQUE // Avocat, notaire
+  COMPTABILITE // Expert-comptable
+}
+
+enum PlanAbonnement {
+  FREE
+  STARTER
+  PRO
+  ENTERPRISE
+}
+
+// ============================================
+// STORE / MULTI-MAGASINS
+// ============================================
+
+enum StoreStatus {
+  ACTIVE // Magasin actif
+  INACTIVE // Magasin temporairement fermé
+  CLOSED // Magasin fermé définitivement
+}
+
+enum RegisterStatus {
+  ONLINE // Caisse en ligne
+  OFFLINE // Caisse hors ligne
+  BUSY // Caisse occupée (transaction en cours)
+  CLOSED // Caisse fermée
+}
+
+enum TransferStatus {
+  PENDING // En attente de validation
+  APPROVED // Approuvé, en transit
+  RECEIVED // Reçu au magasin destination
+  REJECTED // Rejeté
+  CANCELLED // Annulé
+}
+
+// ============================================
+// SUBSCRIPTION / ABONNEMENTS
+// ============================================
+
+enum SubscriptionStatus {
+  ACTIVE // Abonnement actif
+  TRIALING // En période d'essai
+  PAST_DUE // Paiement en retard
+  CANCELED // Annulé
+  INCOMPLETE // Paiement initial incomplet
+  INCOMPLETE_EXPIRED // Paiement initial expiré
+  UNPAID // Impayé
+  PAUSED // En pause
+}
+
+// ============================================
+// USERS / UTILISATEURS
+// ============================================
+
+enum UserRole {
+  OWNER // Propriétaire (créateur de l'entreprise)
+  ADMIN // Administrateur (accès complet)
+  MANAGER // Manager (gestion équipe + clients)
+  EMPLOYEE // Employé standard
+  CASHIER // Caissier (ventes uniquement)
+  ACCOUNTANT // Comptable (finances uniquement)
+}
+
+enum UserStatus {
+  ACTIVE // Actif
+  INACTIVE // Inactif
+  SUSPENDED // Suspendu
+  INVITED // Invité (pas encore accepté)
+  DELETED // Supprimé (soft delete)
+}
+
+enum TimeEntryType {
+  REGULAR // Journée normale
+  OVERTIME // Heures supplémentaires
+  SICK_LEAVE // Arrêt maladie
+  VACATION // Congés
+  REMOTE // Télétravail
+}
+
+enum ActivityType {
+  LOGIN
+  LOGOUT
+  CREATE
+  UPDATE
+  DELETE
+  VIEW
+  EXPORT
+  PRINT
+  SEND_EMAIL
+  PAYMENT_RECEIVED
+  SETTINGS_CHANGED
+}
+
+enum StatutEmploye {
+  ACTIF
+  CONGE
+  MALADIE
+  ABSENT
+  INACTIF
+}
+
+enum TypeContrat {
+  CDI
+  CDD
+  INTERIM
+  APPRENTI
+  STAGE
+  FREELANCE
+}
+
+// ============================================
+// CLIENTS
+// ============================================
+
+enum NotificationType {
+  // Documents & Paiements
+  NOUVEAU_DOCUMENT
+  PAIEMENT_RECU
+
+  // Fidélité
+  POINTS_EXPIRATION
+  NIVEAU_FIDELITE
+
+  // Rendez-vous
+  RDV_CONFIRME
+  RDV_RAPPEL
+  RDV_ANNULE
+  RDV_MODIFIE
+
+  // Interventions
+  INTERVENTION_PLANIFIEE
+  INTERVENTION_EN_ROUTE
+  INTERVENTION_EN_COURS
+  INTERVENTION_TERMINEE
+  INTERVENTION_ANNULEE
+
+  // Réparations
+  REPARATION_DEPOSEE
+  REPARATION_DIAGNOSTIC
+  REPARATION_PRETE
+  REPARATION_RETARD
+  REPARATION_LIVREE
+
+  // Général
+  GENERAL
+}
+
+// ============================================
+// ARTICLES / CATALOGUE
+// ============================================
+
+enum TypeChampCustom {
+  TEXT
+  TEXTAREA
+  NUMBER
+  DECIMAL
+  SELECT
+  MULTISELECT
+  CHECKBOX
+  DATE
+  COLOR
+  URL
+  EMAIL
+}
+
+enum ArticleType {
+  PRODUIT
+  SERVICE
+  OCCASION
+  PIECE
+}
+
+enum EtatOccasion {
+  COMME_NEUF
+  TRES_BON
+  BON
+  CORRECT
+  POUR_PIECES
+}
+
+enum ProvenanceOccasion {
+  RACHAT_CLIENT
+  MARKETPLACE_OCCASION
+  REPRISE
+  DON
+  RETOUR_SAV
+  AUTRE
+}
+
+enum TypeRessource {
+  ECRAN
+  BATTERIE
+  CARTE_MERE
+  CAMERA
+  HAUT_PARLEUR
+  CONNECTEUR_CHARGE
+  VITRE
+  CHASSIS
+  MEMOIRE_RAM
+  DISQUE_DUR
+  ALIMENTATION
+  VENTILATEUR
+  CLAVIER
+  TRACKPAD
+  AUTRE
+}
+
+// ============================================
+// DOCUMENTS / TRANSACTIONS
+// ============================================
+
+enum DocumentType {
+  DEVIS
+  FACTURE
+  AVOIR
+}
+
+enum DocumentStatut {
+  BROUILLON
+  ENVOYE
+  ACCEPTE
+  REFUSE
+  PAYE
+  ANNULE
+}
+
+enum MoyenPaiement {
+  ESPECES
+  CHEQUE
+  VIREMENT
+  CARTE
+  PRELEVEMENT
+}
+
+enum PaymentLinkStatus {
+  ACTIVE
+  EXPIRED
+  COMPLETED
+  DISABLED
+}
+
+enum TerminalStatus {
+  ONLINE
+  OFFLINE
+  BUSY
+  ERROR
+}
+
+enum ReconciliationStatus {
+  PENDING // En attente de rapprochement
+  MATCHED // Rapproché automatiquement
+  MANUAL // Rapproché manuellement
+  IGNORED // Ignoré
+  ANOMALY // Anomalie détectée
+}
+
+// ============================================
+// STOCK
+// ============================================
+
+enum TypeMouvement {
+  ENTREE
+  SORTIE
+  AJUSTEMENT
+  INVENTAIRE
+  RETOUR
+}
+
+// ============================================
+// OBJECTIFS
+// ============================================
+
+enum GoalMetricType {
+  // Métriques prédéfinies (calcul automatique)
+  REVENUE_MONTHLY // CA mensuel
+  REVENUE_QUARTERLY // CA trimestriel
+  REVENUE_YEARLY // CA annuel
+  NEW_CLIENTS // Nouveaux clients
+  CONVERSION_RATE // Taux de conversion devis->facture
+  DOCUMENTS_CREATED // Documents créés
+  AVERAGE_TICKET // Panier moyen
+  // Métrique personnalisée (mise à jour manuelle)
+  CUSTOM
+}
+
+enum GoalPeriod {
+  WEEKLY // Hebdomadaire
+  MONTHLY // Mensuel
+  QUARTERLY // Trimestriel
+  YEARLY // Annuel
+}
+
+enum GoalUnit {
+  CURRENCY // Montant en euros
+  NUMBER // Nombre entier
+  PERCENTAGE // Pourcentage
+}
+
+// ============================================
+// FIDÉLITÉ
+// ============================================
+
+enum TypeMouvementPoints {
+  GAIN
+  DEPENSE
+  EXPIRATION
+  AJUSTEMENT
+}
+
+// ============================================
+// SEGMENTATION / MARKETING
+// ============================================
+
+enum TypeSegment {
+  PREDEFINED // Segments système (tous clients, avec email, etc.)
+  CUSTOM // Segments créés par l'utilisateur
+}
+
+enum TriggerType {
+  NEW_CLIENT_IN_SEGMENT
+  CLIENT_MILESTONE
+  SEGMENT_CHANGE
+  INACTIVITY
+  SCHEDULED
+}
+
+enum ActionType {
+  SEND_EMAIL
+  ADD_TO_SEGMENT
+  REMOVE_FROM_SEGMENT
+  ADD_POINTS
+  SEND_SMS
+  CREATE_TASK
+}
+
+enum ExecutionStatut {
+  SUCCESS
+  FAILED
+  PENDING
+}
+
+enum CampaignType {
+  EMAIL
+  SMS
+  NOTIFICATION
+}
+
+enum CampaignStatut {
+  DRAFT
+  SCHEDULED
+  SENDING
+  SENT
+  CANCELLED
+}
+
+// ============================================
+// CHATBOT / IA
+// ============================================
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+// ============================================
+// RÉPARATIONS (BOUTIQUES INFORMATIQUE)
+// ============================================
+
+enum StatutReparation {
+  DEPOSE // Appareil déposé, en attente de diagnostic
+  DIAGNOSTIC // En cours de diagnostic
+  DEVIS_ENVOYE // Devis envoyé au client
+  ATTENTE_PIECES // En attente de pièces
+  EN_COURS // Réparation en cours
+  PRETE // Prête à être récupérée
+  LIVREE // Livrée au client
+  ANNULEE // Annulée
+  ABANDONNEE // Abandonnée (client n'est pas venu)
+}
+
+enum PrioriteReparation {
+  NORMALE
+  URGENTE
+  CRITIQUE
+}
+
+enum TypeAppareil {
+  PC_PORTABLE
+  PC_BUREAU
+  MAC
+  SMARTPHONE
+  TABLETTE
+  CONSOLE_JEU
+  SERVEUR
+  PERIPHERIQUE
+  AUTRE
+}
+
+// ============================================
+// INTERVENTIONS (PLOMBERIE / CHAUFFAGE / ARTISANS)
+// ============================================
+
+enum TypeIntervention {
+  // === PLOMBERIE / CHAUFFAGE ===
+  FUITE // Leak/emergency (plomberie)
+  DEPANNAGE // Repair (tous)
+  INSTALLATION // Installation (tous)
+  ENTRETIEN // Maintenance (tous)
+  DIAGNOSTIC // Diagnostic visit (tous)
+  DEBOUCHAGE // Unclogging (plomberie)
+  REMPLACEMENT // Replacement (tous)
+  RENOVATION // Renovation work (tous)
+  MISE_EN_SERVICE // Commissioning (chauffage, électricité)
+  RAMONAGE // Chimney sweeping (chauffage)
+  CONTROLE_ANNUEL // Annual inspection (chauffage - obligatoire)
+  // === MENUISERIE ===
+  POSE // Installation/fitting (menuiserie)
+  FABRICATION // Manufacturing (menuiserie)
+  REPARATION // Repair (menuiserie)
+  AJUSTEMENT // Adjustment (menuiserie)
+  FINITION // Finishing (menuiserie)
+  RESTAURATION // Restoration (menuiserie)
+  PRISE_COTES // Taking measurements (menuiserie)
+  DEPOSE // Removal (menuiserie)
+  // === PEINTURE ===
+  PREPARATION_SURFACES // Surface preparation (peinture)
+  PEINTURE_INTERIEURE // Interior painting (peinture)
+  PEINTURE_EXTERIEURE // Exterior painting (peinture)
+  RAVALEMENT // Facade renovation (peinture)
+  ENDUIT // Rendering/plastering (peinture)
+  PAPIER_PEINT // Wallpaper (peinture)
+  LASURE_VERNIS // Stain/varnish (peinture)
+  DECORATION // Decorative painting (peinture)
+  TRAITEMENT_SURFACES // Surface treatment (peinture)
+  // === GARAGE / AUTOMOBILE ===
+  REVISION // Periodic maintenance
+  VIDANGE // Oil change
+  FREINAGE // Brake repair/service
+  PNEUMATIQUES // Tire service
+  EMBRAYAGE // Clutch replacement
+  DISTRIBUTION // Timing belt service
+  ECHAPPEMENT // Exhaust repair
+  SUSPENSION // Suspension work
+  DIRECTION // Steering repair
+  DEMARRAGE // Starting system repair
+  CARROSSERIE // Body repair
+}
+
+enum StatutIntervention {
+  DEMANDE // Request received
+  PLANIFIEE // Scheduled
+  EN_ROUTE // Technician on the way
+  SUR_PLACE // On site
+  DIAGNOSTIC_FAIT // Diagnostic completed
+  DEVIS_ENVOYE // Quote sent
+  DEVIS_ACCEPTE // Quote accepted
+  EN_COURS // Work in progress
+  TERMINEE // Completed
+  FACTUREE // Invoiced
+  ANNULEE // Cancelled
+}
+
+enum PrioriteIntervention {
+  NORMALE // Normal
+  URGENTE // Urgent (leak, no heating)
+  CRITIQUE // Critical (flooding, gas leak, safety issue)
+}
+
+enum TypeEquipement {
+  // === PLOMBERIE ===
+  ROBINETTERIE // Faucets
+  SANITAIRES // Toilets, sinks
+  TUYAUTERIE // Piping
+  EVACUATION // Drainage
+  ADOUCISSEUR // Water softener
+  BALLON_EAU_CHAUDE // Hot water tank
+
+  // === CHAUFFAGE ===
+  CHAUDIERE_GAZ // Gas boiler
+  CHAUDIERE_FIOUL // Oil boiler
+  CHAUDIERE_BOIS // Wood boiler
+  CHAUDIERE_ELECTRIQUE // Electric boiler
+  POMPE_A_CHALEUR // Heat pump (generic)
+  PAC_AIR_AIR // Air-to-air heat pump
+  PAC_AIR_EAU // Air-to-water heat pump
+  PAC_GEOTHERMIQUE // Geothermal heat pump
+  CLIMATISATION // Air conditioning
+  RADIATEUR // Radiator
+  PLANCHER_CHAUFFANT // Underfloor heating
+  CHAUFFE_EAU // Water heater (gas/electric)
+  BALLON_THERMODYNAMIQUE // Thermodynamic water heater
+  THERMOSTAT // Thermostat/smart thermostat
+  VASE_EXPANSION // Expansion vessel
+  CIRCULATEUR // Circulation pump
+
+  // === MENUISERIE ===
+  FENETRE // Window
+  PORTE_INTERIEURE // Interior door
+  PORTE_ENTREE // Entry door
+  PORTE_GARAGE // Garage door
+  PORTE_BLINDEE // Armored/security door
+  VOLET_ROULANT // Roller shutter
+  VOLET_BATTANT // Hinged shutter
+  PERSIENNE // Louvered shutter
+  VELUX // Roof window (skylight)
+  BAIE_VITREE // Sliding glass door
+  PARQUET // Hardwood floor
+  ESCALIER // Staircase
+  MEUBLE_SUR_MESURE // Custom furniture
+  CUISINE // Kitchen
+  PLAN_TRAVAIL // Countertop/worktop
+  DRESSING // Walk-in closet
+  PLACARD // Closet/cabinet
+  BIBLIOTHEQUE // Bookcase
+  LAMBRIS // Wall/ceiling paneling
+  GARDE_CORPS // Railing/balustrade
+  PORTAIL // Gate
+  CLOTURE_BOIS // Wooden fence
+  PERGOLA // Pergola
+  TERRASSE_BOIS // Wooden deck
+  BARDAGE // Cladding
+  CHARPENTE // Roof frame
+  OSSATURE_BOIS // Timber frame
+  VERANDA // Conservatory
+  STORE // Awning/blind
+
+  // === PEINTURE (surfaces) ===
+  MUR_INTERIEUR // Interior wall
+  MUR_EXTERIEUR // Exterior wall
+  PLAFOND // Ceiling
+  FACADE // Facade
+  BOISERIE // Woodwork
+  FERRONNERIE // Ironwork
+  SOL // Floor
+  CAGE_ESCALIER // Stairwell
+
+  // === GARAGE / AUTOMOBILE ===
+  MOTEUR // Engine
+  BOITE_VITESSE // Gearbox/transmission
+  EMBRAYAGE_KIT // Clutch kit
+  TURBO // Turbocharger
+  COURROIE_DISTRIBUTION // Timing belt
+  PLAQUETTES_FREIN // Brake pads
+  DISQUES_FREIN // Brake discs
+  LIQUIDE_FREIN // Brake fluid
+  ETRIER_FREIN // Brake caliper
+  AMORTISSEUR // Shock absorber
+  RESSORT_SUSPENSION // Suspension spring
+  ROTULE // Ball joint
+  BIELLETTE // Tie rod
+  SILENT_BLOC // Silent block/bushing
+  PNEU // Tire
+  JANTE // Wheel rim
+  BATTERIE // Battery
+  ALTERNATEUR // Alternator
+  DEMARREUR // Starter motor
+  BOUGIE // Spark plug
+  POT_ECHAPPEMENT // Exhaust/muffler
+  CATALYSEUR // Catalytic converter
+  SILENCIEUX // Silencer
+  CLIMATISATION_AUTO // Car AC system
+  RADIATEUR_AUTO // Car radiator
+  POMPE_EAU // Water pump
+  THERMOSTAT_AUTO // Thermostat (auto)
+  FILTRE_HUILE // Oil filter
+  FILTRE_AIR // Air filter
+  FILTRE_HABITACLE // Cabin filter
+  FILTRE_CARBURANT // Fuel filter
+  HUILE_MOTEUR // Engine oil
+  PARE_BRISE // Windshield
+  PHARE // Headlight
+  RETROVISEUR // Mirror
+
+  // === COMMUN ===
+  POMPE // Pump (generic)
+  CONDUIT_FUMEE // Flue/chimney
+  VENTILATION // Ventilation system (VMC)
+  AUTRE // Other
+}
+
+enum TypeEntretienVehicule {
+  VIDANGE
+  REVISION
+  PNEUS
+  FREINS
+  CONTROLE_TECHNIQUE
+  REPARATION
+  AUTRE
+}
+
+enum TypeMouvementCamionnette {
+  CHARGEMENT // Loading from depot
+  UTILISATION // Used in intervention
+  RETOUR_DEPOT // Return to depot
+  AJUSTEMENT // Adjustment/correction
+  TRANSFERT // Transfer between vans
+  PERTE // Lost/damaged
+}
+
+enum TypeContratEntretien {
+  // Chauffage
+  CHAUDIERE_GAZ // Gas boiler maintenance
+  CHAUDIERE_FIOUL // Oil boiler maintenance
+  POMPE_A_CHALEUR // Heat pump maintenance
+  CLIMATISATION // AC maintenance
+  PLANCHER_CHAUFFANT // Underfloor heating maintenance
+  // Plomberie
+  ADOUCISSEUR // Water softener maintenance
+  PLOMBERIE_GENERAL // General plumbing (X interventions/year)
+  // Commun
+  MULTI_EQUIPEMENTS // Multiple equipment package
+  PERSONNALISE // Custom contract
+}
+
+enum StatutContrat {
+  ACTIF // Active
+  EXPIRE // Expired
+  RESILIE // Terminated
+  EN_ATTENTE // Pending (not yet started)
+  SUSPENDU // Suspended
+}
+
+enum PeriodiciteContrat {
+  MENSUEL // Monthly
+  TRIMESTRIEL // Quarterly
+  SEMESTRIEL // Semi-annual
+  ANNUEL // Annual
+}
+
+enum StatutEntretien {
+  PLANIFIE // Scheduled
+  CONFIRME // Confirmed by client
+  EN_COURS // In progress
+  TERMINE // Completed
+  REPORTE // Postponed
+  ANNULE // Cancelled
+}
+
+enum TypeEnergie {
+  GAZ_NATUREL
+  GAZ_PROPANE
+  FIOUL
+  ELECTRICITE
+  BOIS_BUCHES
+  BOIS_GRANULES
+  POMPE_CHALEUR
+  SOLAIRE
+  GEOTHERMIE
+}
+
+enum StatutEquipement {
+  EN_SERVICE // Operational
+  EN_PANNE // Broken down
+  A_REMPLACER // Needs replacement
+  HORS_SERVICE // Out of service
+  EN_ATTENTE_PIECE // Waiting for parts
+}
+
+// ============================================
+// RESTAURATION
+// ============================================
+
+enum TableStatut {
+  LIBRE
+  OCCUPEE
+  RESERVEE
+}
+
+enum ReservationStatut {
+  EN_ATTENTE
+  CONFIRMEE
+  ARRIVEE // Client arrivé
+  TERMINEE // Service terminé
+  ANNULEE
+  NO_SHOW // Client pas venu
+}
+
+// ============================================
+// COIFFURE / ESTHÉTIQUE / RENDEZ-VOUS
+// ============================================
+
+enum RendezVousStatut {
+  EN_ATTENTE
+  CONFIRME
+  EN_COURS
+  TERMINE
+  ANNULE
+  NO_SHOW
+}
+
+// ============================================
+// FITNESS / SALLE DE SPORT
+// ============================================
+
+enum StatutAbonnementFitness {
+  ACTIF // Abonnement en cours
+  SUSPENDU // Temporairement suspendu (vacances, blessure)
+  EXPIRE // Abonnement expiré
+  RESILIE // Résilié par le client ou l'admin
+  EN_ATTENTE // En attente de paiement/validation
+}
+
+enum PeriodiciteFitness {
+  JOURNALIER // Pass journée
+  HEBDOMADAIRE
+  MENSUEL
+  TRIMESTRIEL
+  SEMESTRIEL
+  ANNUEL
+  ILLIMITE // Abonnement à vie
+}
+
+enum NiveauCours {
+  DEBUTANT
+  INTERMEDIAIRE
+  AVANCE
+  TOUS_NIVEAUX
+}
+
+enum StatutSeanceCours {
+  PLANIFIEE // Séance programmée
+  EN_COURS // Séance en cours
+  TERMINEE // Séance terminée
+  ANNULEE // Séance annulée
+  COMPLETE // Plus de places disponibles
+}
+
+enum StatutReservationCours {
+  CONFIRMEE // Réservation confirmée
+  EN_ATTENTE // Liste d'attente
+  ANNULEE // Annulée par le client
+  NO_SHOW // Client absent
+  PRESENTE // Client présent (check-in effectué)
+}
+
+enum TypeSalleFitness {
+  MUSCULATION // Salle de musculation
+  CARDIO // Espace cardio
+  COURS_COLLECTIF // Salle de cours collectifs
+  PISCINE // Piscine
+  SAUNA // Sauna/hammam
+  VESTIAIRE // Vestiaires
+  CROSSFIT // Box CrossFit
+  YOGA // Studio yoga/pilates
+  SPINNING // Salle de cycling
+  BOXE // Ring/salle de boxe
+  AUTRE
+}
+
+enum TypeAccesFitness {
+  ENTREE // Entrée standard
+  SORTIE // Sortie
+  COURS // Accès pour un cours
+  ESPACE_PREMIUM // Accès zone premium (spa, etc.)
+}
+
+// ============================================
+// CONSULTING / SERVICES INTELLECTUELS
+// ============================================
+
+enum TypeFacturation {
+  FORFAIT // Fixed price for the mission
+  REGIE // Time & materials (hourly billing)
+  MIXTE // Fixed price + hourly overruns
+}
+
+enum StatutMission {
+  PROPOSITION // Quote sent, waiting for approval
+  VALIDEE // Approved, not started yet
+  EN_COURS // Work in progress
+  LIVREE // Delivered, pending invoicing
+  FACTUREE // Invoiced
+  CLOTUREE // Closed/archived
+  ANNULEE // Cancelled
+}
+
+// ============================================
+// COMPTABILITÉ
+// ============================================
+
+enum TypeDossierComptable {
+  BILAN // Bilan annuel
+  LIASSE_FISCALE // Liasse fiscale
+  TVA // Déclaration TVA
+  IS // Impôt sur les sociétés
+  IR // Impôt sur le revenu
+  PAIE // Gestion de la paie
+  SOCIAL // Déclarations sociales (URSSAF, etc.)
+  COMPTABILITE // Tenue comptable courante
+  CONSEIL // Mission de conseil
+  AUDIT // Audit/révision des comptes
+  JURIDIQUE // Missions juridiques (AG, statuts, etc.)
+  AUTRE // Autre type de mission
+}
+
+enum PeriodiciteEcheance {
+  PONCTUEL // Une seule fois
+  MENSUEL // Chaque mois
+  TRIMESTRIEL // Chaque trimestre
+  SEMESTRIEL // Chaque semestre
+  ANNUEL // Chaque année
+}
+
+enum StatutEcheance {
+  A_VENIR // Échéance à venir
+  EN_COURS // Travail en cours
+  PRET // Prêt pour dépôt
+  DEPOSE // Déposé/transmis
+  VALIDE // Validé par l'administration
+  EN_RETARD // En retard
+}
+
+enum RegimeFiscal {
+  REEL_NORMAL // Réel normal
+  REEL_SIMPLIFIE // Réel simplifié
+  MICRO // Micro-entreprise / Auto-entrepreneur
+}
+
+enum RegimeTVA {
+  MENSUEL // Déclaration mensuelle (CA3)
+  TRIMESTRIEL // Déclaration trimestrielle
+  ANNUEL // Déclaration annuelle (CA12)
+  FRANCHISE // Franchise en base de TVA
+}
+
+enum FormeJuridique {
+  SARL // Société à responsabilité limitée
+  SAS // Société par actions simplifiée
+  SA // Société anonyme
+  EURL // Entreprise unipersonnelle à responsabilité limitée
+  SASU // Société par actions simplifiée unipersonnelle
+  EI // Entreprise individuelle
+  EIRL // Entreprise individuelle à responsabilité limitée
+  SCI // Société civile immobilière
+  SNC // Société en nom collectif
+  ASSOCIATION // Association loi 1901
+  AUTRE // Autre forme juridique
+}
+
+enum TypeImposition {
+  IS // Impôt sur les sociétés
+  IR // Impôt sur le revenu
+}
+
+// ============================================
+// JURIDIQUE (CABINETS D'AVOCATS)
+// ============================================
+
+enum DomaineJuridique {
+  CIVIL // Droit civil général
+  FAMILLE // Droit de la famille (divorce, garde, succession)
+  PENAL // Droit pénal
+  COMMERCIAL // Droit commercial et des affaires
+  SOCIAL // Droit du travail
+  IMMOBILIER // Droit immobilier
+  ADMINISTRATIF // Droit administratif
+  FISCAL // Droit fiscal
+  PROPRIETE_INTELLECTUELLE // Propriété intellectuelle, marques, brevets
+  CONSOMMATION // Droit de la consommation
+  ASSURANCE // Droit des assurances
+  BANCAIRE // Droit bancaire
+  SOCIETES // Droit des sociétés
+  CONSTRUCTION // Droit de la construction
+  ENVIRONNEMENT // Droit de l'environnement
+  NUMERIQUE // Droit du numérique, RGPD
+  AUTRE // Autre domaine
+}
+
+enum TypeProcedure {
+  CONTENTIEUX // Procédure contentieuse (litige)
+  AMIABLE // Règlement amiable, médiation
+  CONSEIL // Mission de conseil pure
+  REDACTION // Rédaction d'actes
+  NEGOCIATION // Négociation contractuelle
+  AUDIT // Audit juridique
+  RECOUVREMENT // Recouvrement de créances
+  EXECUTION // Exécution de décision
+}
+
+enum Juridiction {
+  // Juridictions civiles
+  TRIBUNAL_JUDICIAIRE // TJ (ex-TGI)
+  TRIBUNAL_PROXIMITE // Tribunal de proximité
+  TRIBUNAL_COMMERCE // Tribunal de commerce
+  CONSEIL_PRUDHOMMES // Conseil de prud'hommes
+
+  // Juridictions pénales
+  TRIBUNAL_POLICE // Tribunal de police (contraventions)
+  TRIBUNAL_CORRECTIONNEL // Tribunal correctionnel (délits)
+  COUR_ASSISES // Cour d'assises (crimes)
+  JUGE_INSTRUCTION // Cabinet d'instruction
+
+  // Cours d'appel et cassation
+  COUR_APPEL // Cour d'appel
+  COUR_CASSATION // Cour de cassation
+
+  // Juridictions administratives
+  TRIBUNAL_ADMINISTRATIF // Tribunal administratif
+  COUR_ADMINISTRATIVE_APPEL // Cour administrative d'appel
+  CONSEIL_ETAT // Conseil d'État
+
+  // Autres
+  MEDIATEUR // Médiateur
+  ARBITRAGE // Tribunal arbitral
+  JAF // Juge aux affaires familiales
+  JEX // Juge de l'exécution
+  AUTRE // Autre juridiction
+}
+
+enum StatutAffaire {
+  ETUDE // En cours d'étude / prise en charge
+  INSTRUCTION // Phase d'instruction
+  MISE_EN_ETAT // Mise en état
+  AUDIENCE // Audience fixée
+  DELIBERE // En délibéré
+  DECISION // Décision rendue
+  APPEL // En appel
+  EXECUTEE // Exécution en cours
+  CLOTUREE // Affaire clôturée
+  ARCHIVEE // Affaire archivée
+}
+
+enum TypeEcheanceProcedurale {
+  AUDIENCE // Date d'audience
+  CONCLUSIONS // Dépôt de conclusions
+  PIECES // Communication de pièces
+  RECOURS // Délai de recours (appel, cassation)
+  SIGNIFICATION // Signification d'acte
+  EXECUTION // Délai d'exécution
+  PRESCRIPTION // Délai de prescription
+  MEDIATION // Séance de médiation
+  EXPERTISE // Opérations d'expertise
+  COMPARUTION // Comparution
+  DELIBERE // Délibéré
+  DECISION // Date de décision
+  AUTRE // Autre échéance
+}
+
+enum StatutEcheanceProcedurale {
+  A_VENIR // Échéance à venir
+  EN_PREPARATION // En cours de préparation
+  PRET // Documents prêts
+  EFFECTUEE // Échéance effectuée
+  REPORTEE // Reportée
+  ANNULEE // Annulée
+}
+
+enum TypeHonoraires {
+  TEMPS_PASSE // Facturation au temps passé
+  FORFAIT // Honoraires forfaitaires
+  RESULTAT // Honoraires de résultat
+  MIXTE // Forfait + temps passé ou résultat
+  AIDE_JURIDICTIONNELLE // Aide juridictionnelle
+}
+
+enum QualitePartie {
+  DEMANDEUR // Demandeur (qui introduit l'action)
+  DEFENDEUR // Défendeur
+  PARTIE_CIVILE // Partie civile (pénal)
+  PREVENU // Prévenu (pénal)
+  ACCUSE // Accusé (assises)
+  APPELANT // Appelant
+  INTIME // Intimé (appel)
+  INTERVENANT // Intervenant volontaire/forcé
+  TIERS // Tiers
+}
+
+enum TypeDiligence {
+  CONSULTATION // Consultation client
+  RECHERCHE // Recherches juridiques
+  REDACTION // Rédaction d'actes/conclusions
+  AUDIENCE // Présence à l'audience
+  NEGOCIATION // Négociation
+  CORRESPONDANCE // Courriers, emails
+  TELEPHONE // Appels téléphoniques
+  REUNION // Réunion
+  DEPLACEMENT // Déplacement
+  EXPERTISE // Participation expertise
+  ADMINISTRATIF // Formalités administratives
+  AUTRE // Autre diligence
+}
+
+// ============================================
+// IMMOBILIER (AGENT IMMOBILIER)
+// ============================================
+
+enum TypeBien {
+  APPARTEMENT
+  MAISON
+  TERRAIN
+  LOCAL_COMMERCIAL
+  BUREAU
+  PARKING
+  CAVE
+  IMMEUBLE
+  AUTRE
+}
+
+enum StatutBien {
+  DISPONIBLE
+  SOUS_COMPROMIS
+  VENDU
+  LOUE
+  RETIRE
+  EN_ATTENTE
+}
+
+enum TypeMandat {
+  VENTE_EXCLUSIF
+  VENTE_SIMPLE
+  LOCATION_EXCLUSIF
+  LOCATION_SIMPLE
+  RECHERCHE // Mandat de recherche
+}
+
+enum StatutMandat {
+  EN_COURS
+  SOUS_COMPROMIS
+  VENDU
+  LOUE
+  EXPIRE
+  ANNULE
+}
+
+enum StatutVisite {
+  PLANIFIEE
+  CONFIRMEE
+  EFFECTUEE
+  ANNULEE
+  ABSENT
+}
+
+enum StatutOffre {
+  EN_ATTENTE
+  ACCEPTEE
+  REFUSEE
+  CONTRE_OFFRE
+  EXPIREE
+  RETIREE
+}
+
+enum PortailDiffusion {
+  SELOGER
+  LEBONCOIN
+  BIEN_ICI
+  LOGIC_IMMO
+  PAP
+  FIGARO_IMMO
+  GREEN_ACRES // International
+  SITE_AGENCE
+  AUTRE
+}
+
+enum StatutDiffusion {
+  BROUILLON // Non publié
+  EN_ATTENTE // En attente de validation portail
+  ACTIVE // Publiée et active
+  PAUSE // Mise en pause temporaire
+  EXPIREE // Expirée automatiquement
+  REFUSEE // Refusée par le portail
+  ERREUR // Erreur technique
+}
+
+enum TypeAnnonce {
+  STANDARD
+  PREMIUM // Mise en avant payante
+  BOOST // Boost temporaire
+  VITRINE // Position vitrine
+}
+
+// ============================================
+// GESTION LOCATIVE
+// ============================================
+
+enum TypeBail {
+  HABITATION_VIDE
+  HABITATION_MEUBLEE
+  COMMERCIAL
+  PROFESSIONNEL
+  MIXTE
+  SAISONNIER
+}
+
+enum StatutBail {
+  EN_COURS
+  PREAVIS
+  TERMINE
+  RESILIE
+}
+
+enum StatutLoyer {
+  A_ENVOYER
+  ENVOYE
+  PAYE
+  PARTIELLEMENT_PAYE
+  IMPAYE
+  EN_CONTENTIEUX
+}
+
+enum TypeEtatLieux {
+  ENTREE
+  SORTIE
+}
+
+enum StatutIncident {
+  SIGNALE
+  EN_COURS
+  DEVIS_DEMANDE
+  TRAVAUX_PLANIFIES
+  RESOLU
+  ANNULE
+}
+
+// ============================================
+// SYNDIC COPROPRIÉTÉ
+// ============================================
+
+enum TypeLot {
+  APPARTEMENT
+  PARKING
+  CAVE
+  LOCAL_COMMERCIAL
+  BUREAU
+  CHAMBRE_SERVICE
+  AUTRE
+}
+
+enum TypeEcritureCopro {
+  DEBIT
+  CREDIT
+}
+
+enum TypeAppelCharges {
+  BUDGET_PREVISIONNEL
+  TRAVAUX
+  REGULARISATION
+  EXCEPTIONNEL
+}
+
+enum StatutAppelCharges {
+  BROUILLON
+  ENVOYE
+  PARTIELLEMENT_PAYE
+  PAYE
+  IMPAYE
+}
+
+enum TypeAG {
+  ORDINAIRE
+  EXTRAORDINAIRE
+}
+
+enum StatutAG {
+  PLANIFIEE
+  CONVOCATIONS_ENVOYEES
+  EN_COURS
+  TERMINEE
+  PV_ENVOYE
+}
+
+enum ResultatVote {
+  ADOPTEE
+  REJETEE
+  REPORTEE
+  NON_VOTEE
+}
+
+enum TypeMajorite {
+  SIMPLE // Article 24
+  ABSOLUE // Article 25
+  DOUBLE // Article 26
+  UNANIMITE
+}
+
+enum StatutTravauxCopro {
+  PROJET
+  VOTE
+  EN_COURS
+  TERMINE
+  ANNULE
+}

@@ -8,7 +8,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import { FileText, Receipt, FileX } from "lucide-react";
+import { FileText, FileX, Receipt } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export interface DocumentTypeSelectionDialogProps {
@@ -40,7 +40,9 @@ export function DocumentTypeSelectionDialog({
                     </DialogTitle>
                     <DialogDescription className="text-[14px] text-black/60">
                         Sélectionnez le type de document à créer pour{" "}
-                        <span className="font-medium text-black">{clientName}</span>
+                        <span className="font-medium text-black">
+                            {clientName}
+                        </span>
                     </DialogDescription>
                 </DialogHeader>
 
@@ -48,13 +50,16 @@ export function DocumentTypeSelectionDialog({
                     {/* Bouton Devis */}
                     <button
                         onClick={() => handleSelectType("devis")}
-                        className="group relative w-full overflow-hidden bg-white border border-black/[0.08] rounded-lg p-4 hover:shadow-lg hover:shadow-black/5 transition-all duration-300 text-left"
+                        className="group relative w-full overflow-hidden bg-white border border-black/[0.08] rounded-lg p-4 hover:shadow-sm transition-all duration-300 text-left"
                     >
                         <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
                         <div className="relative flex items-start gap-4">
                             <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-black/[0.03] group-hover:bg-black/[0.05] transition-colors duration-300">
-                                <FileText className="h-5 w-5 text-black/60" strokeWidth={2} />
+                                <FileText
+                                    className="h-5 w-5 text-black/60"
+                                    strokeWidth={2}
+                                />
                             </div>
                             <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-1">
@@ -64,7 +69,8 @@ export function DocumentTypeSelectionDialog({
                                     </h3>
                                 </div>
                                 <p className="text-[13px] text-black/60">
-                                    Créer un devis pour proposer vos produits ou services
+                                    Créer un devis pour proposer vos produits ou
+                                    services
                                 </p>
                             </div>
                         </div>
@@ -73,13 +79,16 @@ export function DocumentTypeSelectionDialog({
                     {/* Bouton Facture */}
                     <button
                         onClick={() => handleSelectType("facture")}
-                        className="group relative w-full overflow-hidden bg-white border border-black/[0.08] rounded-lg p-4 hover:shadow-lg hover:shadow-black/5 transition-all duration-300 text-left"
+                        className="group relative w-full overflow-hidden bg-white border border-black/[0.08] rounded-lg p-4 hover:shadow-sm transition-all duration-300 text-left"
                     >
                         <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
                         <div className="relative flex items-start gap-4">
                             <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-black/[0.03] group-hover:bg-black/[0.05] transition-colors duration-300">
-                                <Receipt className="h-5 w-5 text-black/60" strokeWidth={2} />
+                                <Receipt
+                                    className="h-5 w-5 text-black/60"
+                                    strokeWidth={2}
+                                />
                             </div>
                             <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-1">
@@ -89,7 +98,8 @@ export function DocumentTypeSelectionDialog({
                                     </h3>
                                 </div>
                                 <p className="text-[13px] text-black/60">
-                                    Créer une facture pour facturer vos prestations
+                                    Créer une facture pour facturer vos
+                                    prestations
                                 </p>
                             </div>
                         </div>
@@ -98,13 +108,16 @@ export function DocumentTypeSelectionDialog({
                     {/* Bouton Avoir */}
                     <button
                         onClick={() => handleSelectType("avoir")}
-                        className="group relative w-full overflow-hidden bg-white border border-black/[0.08] rounded-lg p-4 hover:shadow-lg hover:shadow-black/5 transition-all duration-300 text-left"
+                        className="group relative w-full overflow-hidden bg-white border border-black/[0.08] rounded-lg p-4 hover:shadow-sm transition-all duration-300 text-left"
                     >
                         <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
                         <div className="relative flex items-start gap-4">
                             <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-black/[0.03] group-hover:bg-black/[0.05] transition-colors duration-300">
-                                <FileX className="h-5 w-5 text-black/60" strokeWidth={2} />
+                                <FileX
+                                    className="h-5 w-5 text-black/60"
+                                    strokeWidth={2}
+                                />
                             </div>
                             <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-1">
@@ -114,7 +127,8 @@ export function DocumentTypeSelectionDialog({
                                     </h3>
                                 </div>
                                 <p className="text-[13px] text-black/60">
-                                    Créer un avoir pour rembourser ou corriger une facture
+                                    Créer un avoir pour rembourser ou corriger
+                                    une facture
                                 </p>
                             </div>
                         </div>

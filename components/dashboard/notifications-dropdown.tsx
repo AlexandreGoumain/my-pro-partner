@@ -144,6 +144,7 @@ export function NotificationsDropdown() {
                     variant="outline"
                     size="icon"
                     className="relative h-9 w-9 border-black/10 hover:bg-black/5 hover:border-black/15 transition-all duration-200"
+                    aria-label="Notifications"
                 >
                     <Bell className="w-4 h-4 text-black/60" strokeWidth={2} />
                     {hasNotifications && (

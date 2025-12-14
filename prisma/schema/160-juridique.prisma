@@ -1,0 +1,206 @@
+// JURIDIQUE MODELS - Cabinets d'avocats
+
+// ============================================
+// MODELS - JURIDIQUE
+// ============================================
+
+// Affaire juridique (dossier client)
+model Affaire {
+  id          String  @id @default(cuid())
+  reference   String // Référence interne: AFF-2024-001
+  intitule    String // Intitulé de l'affaire
+  description String? @db.Text
+
+  // Client
+  clientId      String
+  client        Client        @relation(fields: [clientId], references: [id])
+  qualiteClient QualitePartie @default(DEMANDEUR)
+
+  // Classification
+  domaine       DomaineJuridique
+  typeProcedure TypeProcedure    @default(CONTENTIEUX)
+  juridiction   Juridiction?
+  chambre       String? // Chambre du tribunal
+
+  // Numéros de procédure
+  numeroRG      String? // Numéro de rôle général
+  numeroParquet String? // Numéro parquet (pénal)
+
+  // Dates clés
+  dateOuverture DateTime  @default(now())
+  dateFaits     DateTime? // Date des faits litigieux
+  dateCloture   DateTime?
+
+  // Parties adverses
+  parties PartieAdverse[]
+
+  // Honoraires
+  typeHonoraires TypeHonoraires @default(TEMPS_PASSE)
+  tauxHoraire    Decimal?       @db.Decimal(10, 2)
+  montantForfait Decimal?       @db.Decimal(10, 2)
+  provision      Decimal?       @db.Decimal(10, 2) // Provision versée
+  montantAJ      Decimal?       @db.Decimal(10, 2) // Montant aide juridictionnelle
+
+  // Enjeu financier
+  enjeuFinancier Decimal? @db.Decimal(12, 2)
+
+  // Statut
+  statut StatutAffaire @default(ETUDE)
+
+  // Relations
+  echeances  EcheanceProcedurale[]
+  diligences Diligence[] // Temps passé et actions sur l'affaire
+
+  // Avocat en charge (si plusieurs dans le cabinet)
+  responsableId String?
+
+  // Document signé
+  devisId String? // Convention d'honoraires
+
+  // Conflit d'intérêts vérifié
+  conflitVerifie   Boolean   @default(false)
+  dateVerifConflit DateTime?
+
+  // Multi-tenant
+  entrepriseId String
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Index pour performances
+  @@index([entrepriseId])
+  @@index([clientId])
+  @@index([statut])
+  @@index([domaine])
+  @@index([juridiction])
+  @@index([dateOuverture])
+  @@index([entrepriseId, statut])
+  @@index([entrepriseId, domaine])
+  @@index([numeroRG])
+}
+
+// Partie adverse dans une affaire
+model PartieAdverse {
+  id String @id @default(cuid())
+
+  affaireId String
+  affaire   Affaire @relation(fields: [affaireId], references: [id], onDelete: Cascade)
+
+  // Identification
+  nom           String
+  prenom        String?
+  raisonSociale String? // Si personne morale
+  qualite       QualitePartie
+
+  // Contact
+  adresse   String?
+  email     String?
+  telephone String?
+
+  // Représentation
+  avocat          String? // Nom de l'avocat adverse
+  avocatBarreau   String? // Barreau de l'avocat adverse
+  avocatEmail     String?
+  avocatTelephone String?
+
+  // Multi-tenant
+  entrepriseId String
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([affaireId])
+  @@index([entrepriseId])
+  @@index([nom])
+}
+
+// Échéance procédurale
+model EcheanceProcedurale {
+  id String @id @default(cuid())
+
+  affaireId String
+  affaire   Affaire @relation(fields: [affaireId], references: [id], onDelete: Cascade)
+
+  // Type et libellé
+  type        TypeEcheanceProcedurale
+  libelle     String // Ex: "Audience de plaidoirie", "Dépôt conclusions n°2"
+  description String?                 @db.Text
+
+  // Dates
+  dateEcheance DateTime
+  heureDebut   String? // Format "HH:MM"
+  heureFin     String?
+
+  // Lieu (si audience/expertise)
+  lieu String? // Salle d'audience, adresse expertise
+
+  // Statut
+  statut StatutEcheanceProcedurale @default(A_VENIR)
+
+  // Résultat (après l'échéance)
+  resultat String? @db.Text // Notes sur ce qui s'est passé
+
+  // Rappels
+  rappel1Envoye Boolean @default(false) // Rappel 7 jours avant
+  rappel2Envoye Boolean @default(false) // Rappel 1 jour avant
+
+  // Multi-tenant
+  entrepriseId String
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([affaireId])
+  @@index([entrepriseId])
+  @@index([dateEcheance])
+  @@index([type])
+  @@index([statut])
+  @@index([entrepriseId, dateEcheance])
+}
+
+// Diligence (action effectuée sur un dossier)
+model Diligence {
+  id String @id @default(cuid())
+
+  affaireId String
+  affaire   Affaire @relation(fields: [affaireId], references: [id], onDelete: Cascade)
+
+  // Type et description
+  type        TypeDiligence
+  description String        @db.Text
+
+  // Date et durée
+  date  DateTime
+  duree Int // Durée en minutes
+
+  // Facturation
+  facturable  Boolean @default(true)
+  tauxHoraire Decimal @db.Decimal(10, 2)
+  montant     Decimal @db.Decimal(10, 2) // Calculé ou override
+
+  // Facturé ?
+  facturee  Boolean @default(false)
+  factureId String?
+
+  // Utilisateur qui a effectué la diligence
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  // Multi-tenant
+  entrepriseId String
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([affaireId])
+  @@index([entrepriseId])
+  @@index([userId])
+  @@index([date])
+  @@index([type])
+  @@index([facturee])
+  @@index([entrepriseId, date])
+}

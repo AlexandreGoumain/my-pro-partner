@@ -1,0 +1,54 @@
+// COMPTABILITE MODELS - Échéances fiscales
+
+model EcheanceFiscale {
+  id String @id @default(cuid())
+
+  // Lien avec le dossier/mission
+  missionId String
+  mission   Mission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+
+  // Lien direct avec le client (pour faciliter les requêtes)
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  // Type d'échéance
+  type    TypeDossierComptable
+  libelle String // Ex: "TVA CA3 Octobre 2024", "Bilan 2023"
+
+  // Dates
+  dateEcheance    DateTime // Date limite légale
+  dateRealisation DateTime? // Date de réalisation effective
+  dateDepot       DateTime? // Date de dépôt aux impôts
+
+  // Statut et suivi
+  statut      StatutEcheance      @default(A_VENIR)
+  periodicite PeriodiciteEcheance @default(PONCTUEL)
+
+  // Informations complémentaires
+  exerciceFiscal String? // Ex: "2024", "2024-2025"
+  periodeDebut   DateTime? // Début de la période concernée
+  periodeFin     DateTime? // Fin de la période concernée
+  montant        Float? // Montant déclaré (si applicable)
+  reference      String? // Référence du dépôt / numéro de formulaire
+  notes          String? // Notes internes
+
+  // Rappels
+  rappelEnvoye Boolean   @default(false)
+  dateRappel   DateTime?
+
+  // Multi-tenant
+  entrepriseId String
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([missionId])
+  @@index([clientId])
+  @@index([dateEcheance])
+  @@index([statut])
+  @@index([type])
+  @@index([entrepriseId, dateEcheance])
+  @@index([entrepriseId, statut])
+}

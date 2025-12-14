@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
-import { PrimaryActionButton } from "@/components/ui/primary-action-button";
 import { Card } from "@/components/ui/card";
-import { FileUp, Upload } from "lucide-react";
+import { PrimaryActionButton } from "@/components/ui/primary-action-button";
+import { Upload } from "lucide-react";
 
 export interface ImportSectionProps {
     isDragging: boolean;
@@ -25,7 +25,7 @@ export function ImportSection({
     onImport,
 }: ImportSectionProps) {
     return (
-        <Card className="group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500">
+        <Card className="group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-sm transition-all duration-300">
             <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             <div className="relative p-6">
                 <div className="mb-6">
@@ -62,7 +62,10 @@ export function ImportSection({
                         <div className="space-y-4">
                             <div className="flex justify-center">
                                 <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-black/5 transition-all duration-300 group-hover:scale-110">
-                                    <Upload className="h-6 w-6 text-black/60" strokeWidth={2} />
+                                    <Upload
+                                        className="h-6 w-6 text-black/60"
+                                        strokeWidth={2}
+                                    />
                                 </div>
                             </div>
                             <div>

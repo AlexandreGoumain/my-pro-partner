@@ -1,0 +1,113 @@
+// DOCUMENT MODELS - Devis, Factures, Avoirs
+
+model Document {
+  id           String         @id @default(cuid())
+  numero       String
+  type         DocumentType
+  dateEmission DateTime       @db.Date
+  dateEcheance DateTime?      @db.Date
+  statut       DocumentStatut @default(BROUILLON)
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  client   Client @relation(fields: [clientId], references: [id])
+  clientId String
+
+  // Série de numérotation (optionnel pour rétrocompatibilité)
+  serie   SerieDocument? @relation(fields: [serieId], references: [id])
+  serieId String?
+
+  // Multi-magasins
+  store   Store?  @relation(fields: [storeId], references: [id])
+  storeId String? // Magasin où le document a été créé
+
+  register   Register? @relation(fields: [registerId], references: [id])
+  registerId String? // Caisse où le document a été créé
+
+  total_ht  Decimal @default(0) @db.Decimal(10, 2)
+  total_tva Decimal @default(0) @db.Decimal(10, 2)
+  total_ttc Decimal @default(0) @db.Decimal(10, 2)
+
+  acompte_montant Decimal @default(0) @db.Decimal(10, 2)
+  reste_a_payer   Decimal @default(0) @db.Decimal(10, 2)
+
+  notes               String?
+  conditions_paiement String?
+  validite_jours      Int     @default(30)
+
+  devisId  String?
+  devis    Document?  @relation("DevisToFacture", fields: [devisId], references: [id])
+  factures Document[] @relation("DevisToFacture")
+
+  lignes           LigneDocument[]
+  paiements        Paiement[]
+  bankTransactions BankTransaction[] // Transactions bancaires rapprochées
+  reparations      Reparation[] // Réparations liées à ce document
+  interventions    Intervention[]    @relation("InterventionDocument") // Interventions plomberie liées
+
+  // Relations pour système consulting / services intellectuels
+  missionsDevis    Mission[] @relation("MissionDevis") // Missions créées depuis ce devis
+  missionsFactures Mission[] @relation("MissionFactures") // Missions facturées via ce document
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([entrepriseId, numero])
+  @@index([entrepriseId])
+  @@index([numero])
+  @@index([type])
+  @@index([clientId])
+  @@index([serieId])
+  @@index([statut])
+  @@index([dateEmission])
+  @@index([dateEcheance])
+  @@index([entrepriseId, statut]) // Index composite pour requêtes par entreprise + statut
+  @@index([entrepriseId, type])
+  @@index([clientId, statut])
+}
+
+model LigneDocument {
+  id         String   @id @default(cuid())
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  documentId String
+  article    Article? @relation(fields: [articleId], references: [id])
+  articleId  String?
+
+  ordre            Int
+  designation      String
+  description      String?
+  quantite         Decimal @db.Decimal(10, 2)
+  prix_unitaire_ht Decimal @db.Decimal(10, 2)
+  tva_taux         Decimal @db.Decimal(5, 2)
+  remise_pourcent  Decimal @default(0) @db.Decimal(5, 2)
+
+  montant_ht  Decimal @db.Decimal(10, 2)
+  montant_tva Decimal @db.Decimal(10, 2)
+  montant_ttc Decimal @db.Decimal(10, 2)
+
+  createdAt DateTime @default(now())
+
+  @@index([documentId])
+  @@index([articleId])
+  @@index([ordre])
+  @@index([documentId, articleId])
+}
+
+model Paiement {
+  id             String        @id @default(cuid())
+  document       Document      @relation(fields: [documentId], references: [id], onDelete: Restrict)
+  documentId     String
+  date_paiement  DateTime      @db.Date
+  montant        Decimal       @db.Decimal(10, 2)
+  moyen_paiement MoyenPaiement
+  reference      String?
+  notes          String?
+
+  createdAt DateTime @default(now())
+
+  @@index([documentId])
+  @@index([date_paiement])
+  @@index([moyen_paiement])
+}

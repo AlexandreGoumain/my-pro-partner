@@ -1,0 +1,332 @@
+// FITNESS MODELS - Salle de sport, Abonnements, Cours
+
+// Types d'abonnements fitness proposés
+model TypeAbonnementFitness {
+  id          String  @id @default(cuid())
+  nom         String // "Mensuel", "Annuel", "Pass 10 séances"
+  description String?
+
+  // Tarification
+  prix        Decimal            @db.Decimal(10, 2)
+  periodicite PeriodiciteFitness @default(MENSUEL)
+
+  // Durée
+  dureeJours    Int? // Durée en jours (null si illimité ou pass séances)
+  nombreSeances Int? // Pour les pass (10 séances, 20 séances, etc.)
+
+  // Accès
+  accesIllimite      Boolean @default(true) // Accès illimité ou limité
+  nombreAccesSemaine Int? // Si limité: nombre d'accès par semaine
+  accesCours         Boolean @default(true) // Accès aux cours collectifs
+  accesZonesPremium  Boolean @default(false) // Accès sauna, spa, etc.
+
+  // Options
+  engagementMois   Int     @default(0) // Durée d'engagement en mois
+  fraisInscription Decimal @default(0) @db.Decimal(10, 2)
+
+  // Statut
+  actif   Boolean @default(true)
+  ordre   Int     @default(0)
+  couleur String? // Pour l'affichage
+
+  // Tenant
+  entrepriseId String
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+
+  // Relations
+  abonnements AbonnementFitness[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([actif])
+  @@index([periodicite])
+  @@index([entrepriseId, actif])
+}
+
+// Abonnements des clients
+model AbonnementFitness {
+  id     String @id @default(cuid())
+  numero String // Numéro unique d'abonnement
+
+  // Client
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  // Type d'abonnement
+  typeAbonnementId String
+  typeAbonnement   TypeAbonnementFitness @relation(fields: [typeAbonnementId], references: [id])
+
+  // Dates
+  dateDebut       DateTime
+  dateFin         DateTime? // Null si illimité
+  dateResiliation DateTime? // Si résilié
+
+  // Statut
+  statut StatutAbonnementFitness @default(EN_ATTENTE)
+
+  // Compteurs (pour les pass séances)
+  seancesRestantes Int? // Nombre de séances restantes
+  seancesUtilisees Int  @default(0)
+
+  // Paiement
+  montantPaye      Decimal   @default(0) @db.Decimal(10, 2)
+  prochainPaiement DateTime?
+  modePaiement     String? // "cb", "prelevement", "especes", "cheque"
+
+  // Badge/Carte membre
+  numeroCarte String? @unique // Numéro de carte/badge
+  codeAcces   String? // Code PIN pour le check-in
+
+  notes String?
+
+  // Tenant
+  entrepriseId String
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+
+  // Relations
+  presences PresenceFitness[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([clientId])
+  @@index([typeAbonnementId])
+  @@index([statut])
+  @@index([dateDebut])
+  @@index([dateFin])
+  @@index([numeroCarte])
+  @@index([entrepriseId, statut])
+  @@index([entrepriseId, clientId])
+}
+
+// Cours collectifs proposés
+model CoursCollectif {
+  id          String  @id @default(cuid())
+  nom         String // "Yoga Vinyasa", "Spinning Intense", "Body Pump"
+  description String?
+
+  // Caractéristiques
+  dureeMinutes Int         @default(60)
+  niveau       NiveauCours @default(TOUS_NIVEAUX)
+  capaciteMax  Int         @default(20)
+
+  // Catégorie
+  categorie String? // "cardio", "renforcement", "bien-etre", "danse", "aquatique"
+
+  // Coach par défaut
+  instructeurId String?
+  instructeur   Employe? @relation(fields: [instructeurId], references: [id], onDelete: SetNull)
+
+  // Salle par défaut
+  salleId String?
+  salle   SalleFitness? @relation(fields: [salleId], references: [id], onDelete: SetNull)
+
+  // Options
+  materielNecessaire String? // "Tapis, serviette, bouteille d'eau"
+  couleur            String? // Pour le planning
+  actif              Boolean @default(true)
+  reservationRequise Boolean @default(true) // Nécessite une réservation
+
+  // Image
+  imageUrl String?
+
+  // Tenant
+  entrepriseId String
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+
+  // Relations
+  seances SeanceCours[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([actif])
+  @@index([niveau])
+  @@index([categorie])
+  @@index([instructeurId])
+  @@index([salleId])
+  @@index([entrepriseId, actif])
+}
+
+// Séances de cours planifiées
+model SeanceCours {
+  id String @id @default(cuid())
+
+  // Cours
+  coursId String
+  cours   CoursCollectif @relation(fields: [coursId], references: [id], onDelete: Cascade)
+
+  // Planning
+  dateHeure    DateTime // Date et heure de début
+  dureeMinutes Int? // Override de la durée du cours
+
+  // Coach (peut être différent du coach par défaut)
+  instructeurId String?
+  instructeur   Employe? @relation(fields: [instructeurId], references: [id], onDelete: SetNull)
+
+  // Salle (peut être différente de la salle par défaut)
+  salleId String?
+  salle   SalleFitness? @relation(fields: [salleId], references: [id], onDelete: SetNull)
+
+  // Capacité (peut être override)
+  capaciteMax Int? // Override de la capacité du cours
+
+  // Statut
+  statut StatutSeanceCours @default(PLANIFIEE)
+
+  // Compteurs
+  placesReservees Int @default(0)
+
+  // Notes
+  notes           String?
+  motifAnnulation String? // Si annulée
+
+  // Tenant
+  entrepriseId String
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+
+  // Relations
+  reservations ReservationCours[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([coursId])
+  @@index([dateHeure])
+  @@index([statut])
+  @@index([instructeurId])
+  @@index([salleId])
+  @@index([entrepriseId, dateHeure])
+  @@index([entrepriseId, statut])
+}
+
+// Réservations aux cours
+model ReservationCours {
+  id String @id @default(cuid())
+
+  // Séance
+  seanceId String
+  seance   SeanceCours @relation(fields: [seanceId], references: [id], onDelete: Cascade)
+
+  // Client
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  // Statut
+  statut          StatutReservationCours @default(CONFIRMEE)
+  positionAttente Int? // Position dans la liste d'attente
+
+  // Check-in
+  heureArrivee DateTime? // Heure d'arrivée effective
+
+  // Notes
+  notes String?
+
+  // Tenant
+  entrepriseId String
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([seanceId, clientId]) // Un client ne peut réserver qu'une fois par séance
+  @@index([entrepriseId])
+  @@index([seanceId])
+  @@index([clientId])
+  @@index([statut])
+  @@index([entrepriseId, clientId])
+  @@index([seanceId, statut])
+}
+
+// Salles et zones de la salle de sport
+model SalleFitness {
+  id          String  @id @default(cuid())
+  nom         String // "Salle Musculation", "Studio 1", "Piscine"
+  description String?
+
+  // Type
+  type TypeSalleFitness @default(AUTRE)
+
+  // Capacité
+  capacite Int @default(0) // 0 = illimitée
+
+  // Équipements
+  equipements String? // Liste des équipements
+  surface     Int? // Surface en m²
+
+  // Options
+  reservable Boolean @default(false) // Peut être réservée
+  premium    Boolean @default(false) // Zone premium (accès restreint)
+  actif      Boolean @default(true)
+  ordre      Int     @default(0)
+  couleur    String? // Pour l'affichage
+
+  // Tenant
+  entrepriseId String
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+
+  // Relations
+  cours     CoursCollectif[] // Cours qui s'y déroulent par défaut
+  seances   SeanceCours[] // Séances qui s'y déroulent
+  presences PresenceFitness[] // Check-ins dans cette zone
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([type])
+  @@index([actif])
+  @@index([premium])
+  @@index([entrepriseId, actif])
+}
+
+// Check-ins / Présences
+model PresenceFitness {
+  id String @id @default(cuid())
+
+  // Client
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  // Abonnement utilisé
+  abonnementId String?
+  abonnement   AbonnementFitness? @relation(fields: [abonnementId], references: [id], onDelete: SetNull)
+
+  // Type d'accès
+  typeAcces TypeAccesFitness @default(ENTREE)
+
+  // Horaires
+  heureEntree DateTime  @default(now())
+  heureSortie DateTime?
+
+  // Salle/Zone (optionnel)
+  salleId String?
+  salle   SalleFitness? @relation(fields: [salleId], references: [id], onDelete: SetNull)
+
+  // Méthode de check-in
+  methodCheckin String? // "badge", "code", "manuel", "app"
+
+  // Notes
+  notes String?
+
+  // Tenant
+  entrepriseId String
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([clientId])
+  @@index([abonnementId])
+  @@index([heureEntree])
+  @@index([typeAcces])
+  @@index([salleId])
+  @@index([entrepriseId, heureEntree])
+  @@index([entrepriseId, clientId])
+}

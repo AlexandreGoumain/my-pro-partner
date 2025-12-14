@@ -1,0 +1,220 @@
+// CLIENT MODELS - Clients, Fidélité, Segments
+
+model Client {
+  id         String  @id @default(cuid())
+  nom        String
+  prenom     String?
+  email      String?
+  telephone  String?
+  adresse    String?
+  codePostal String?
+  ville      String?
+  pays       String  @default("France")
+  notes      String?
+
+  // Authentification portail client
+  password            String? // Hashed password for client portal access
+  clientPortalEnabled Boolean   @default(false) // Enable/disable portal access
+  pendingApproval     Boolean   @default(false) // Client waiting for admin approval after self-registration
+  lastLoginAt         DateTime? // Track last portal login
+
+  // Programme de fidélité
+  points_solde     Int             @default(0)
+  niveauFidelite   NiveauFidelite? @relation(fields: [niveauFideliteId], references: [id])
+  niveauFideliteId String?
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  documents        Document[]
+  mouvementsPoints MouvementPoints[]
+  notifications    ClientNotification[]
+
+  // Relation pour système d'occasion (boutiques informatique)
+  rachats     RachatArticle[] // Articles rachetés à ce client
+  reparations Reparation[] // Réparations pour ce client
+
+  // Relations pour système plomberie/chauffage
+  interventions     Intervention[] // Interventions pour ce client
+  contratsEntretien ContratEntretien[] // Contrats d'entretien
+  equipements       EquipementClient[] // Parc équipements installés
+
+  // Relations pour système restauration
+  reservations Reservation[] // Réservations au restaurant
+
+  // Relations pour système coiffure / rendez-vous
+  rendezVous RendezVous[] // Rendez-vous chez le prestataire
+
+  // Relations pour système fitness
+  abonnementsFitness AbonnementFitness[] // Abonnements salle de sport
+  reservationsCours  ReservationCours[] // Réservations aux cours collectifs
+  presencesFitness   PresenceFitness[] // Historique des check-ins
+
+  // Relations pour système consulting / services intellectuels
+  missions Mission[] // Missions de consulting
+
+  // Relations pour système comptabilité
+  echeancesFiscales EcheanceFiscale[] // Échéances fiscales
+
+  // Relations pour système juridique (cabinets d'avocats)
+  affaires Affaire[] // Affaires juridiques
+
+  // Informations fiscales du client (pour cabinets comptables)
+  siret               String? // Numéro SIRET
+  formeJuridique      FormeJuridique? // Forme juridique (SARL, SAS, etc.)
+  regimeFiscal        RegimeFiscal? // Régime fiscal (réel normal, simplifié, micro)
+  regimeTVA           RegimeTVA? // Régime de TVA
+  typeImposition      TypeImposition? // Type d'imposition (IS ou IR)
+  dateClotureExercice String? // Date de clôture (format "MM-DD", ex: "12-31")
+  avecSalaries        Boolean? // Le client a-t-il des salariés ?
+  effectif            Int? // Nombre de salariés
+  codeAPE             String? // Code APE/NAF
+  numTVAIntra         String? // Numéro de TVA intracommunautaire
+
+  // Relations pour système immobilier
+  biensProprietaire      BienImmobilier[]        @relation("BiensProprietaire")
+  mandatsClient          MandatImmobilier[]      @relation("MandatsClient")
+  visitesAcquereur       VisiteImmobilier[]      @relation("VisitesAcquereur")
+  offresAcquereur        OffreAchat[]            @relation("OffresAcquereur")
+  recherchesAcquereur    RechercheAcquereur[]    @relation("RecherchesAcquereur")
+  leadsConvertis         LeadPortail[]           @relation("LeadsConvertis")
+  bauxLocataire          BailLocatif[]           @relation("BauxLocataire")
+  bauxProprietaire       BailLocatif[]           @relation("BauxProprietaire")
+  lotsCoproprietaire     LotCopropriete[]        @relation("LotsCoproprietaire")
+  lotsLocataire          LotCopropriete[]        @relation("LotsLocataire")
+  membresConseilSyndical MembreConseilSyndical[] @relation("MembresConseilSyndical")
+
+  // Security: Password reset tokens
+  passwordResetTokens PasswordResetToken[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([nom])
+  @@index([email])
+  @@index([ville])
+  @@index([niveauFideliteId])
+  @@index([points_solde])
+  @@index([clientPortalEnabled])
+  @@index([pendingApproval])
+  @@index([entrepriseId, pendingApproval])
+  @@index([entrepriseId, niveauFideliteId])
+  @@index([telephone])
+  @@index([siret])
+}
+
+// Notifications pour le portail client
+model ClientNotification {
+  id       String           @id @default(cuid())
+  type     NotificationType
+  titre    String
+  message  String?
+  lue      Boolean          @default(false)
+  metadata Json? // Données additionnelles (documentId, points, etc.)
+
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId String
+
+  createdAt DateTime  @default(now())
+  lueAt     DateTime?
+
+  @@index([clientId])
+  @@index([lue])
+  @@index([createdAt])
+  @@index([clientId, lue])
+}
+
+model NiveauFidelite {
+  id          String  @id @default(cuid())
+  nom         String
+  description String?
+  ordre       Int     @default(0)
+  seuilPoints Int
+  remise      Decimal @default(0) @db.Decimal(5, 2)
+  couleur     String  @default("#000000")
+  icone       String?
+  avantages   String?
+  actif       Boolean @default(true)
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  clients Client[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([entrepriseId, nom])
+  @@unique([entrepriseId, ordre])
+  @@index([entrepriseId])
+  @@index([ordre])
+  @@index([seuilPoints])
+  @@index([actif])
+}
+
+model MouvementPoints {
+  id             String              @id @default(cuid())
+  type           TypeMouvementPoints
+  points         Int
+  description    String?
+  reference      String?
+  dateExpiration DateTime?           @db.Date
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId String
+
+  createdAt DateTime @default(now())
+
+  @@index([entrepriseId])
+  @@index([clientId])
+  @@index([type])
+  @@index([createdAt])
+  @@index([dateExpiration])
+}
+
+// ============================================
+// SEGMENTATION CLIENTS
+// ============================================
+
+model Segment {
+  id          String      @id @default(cuid())
+  nom         String
+  description String?
+  type        TypeSegment @default(CUSTOM)
+  icone       String? // Nom de l'icône lucide-react (ex: "Users", "Mail", "MapPin")
+  couleur     String? // Couleur de fond (ex: "#f3f4f6")
+
+  // Critères de filtrage stockés en JSON
+  // Format pour segments prédéfinis: { type: "all" } ou { type: "with-email" }
+  // Format pour segments custom: [
+  //   { field: "email", operator: "exists" },
+  //   { field: "points_solde", operator: "gt", value: 100 }
+  // ]
+  criteres Json
+
+  // Statistiques (cache, recalculées périodiquement)
+  derniereCalcul DateTime?
+  nombreClients  Int?      @default(0)
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  campaigns Campaign[]
+
+  actif     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([entrepriseId, nom])
+  @@index([entrepriseId])
+  @@index([type])
+  @@index([actif])
+}

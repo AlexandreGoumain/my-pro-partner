@@ -1,0 +1,298 @@
+// CORE MODELS - Entreprise, Paramètres, Objectifs
+
+model Entreprise {
+  id    String  @id @default(cuid())
+  nom   String
+  slug  String? @unique // URL-friendly identifier for client portal registration
+  siret String? @unique
+  email String  @unique
+
+  // Type de business pour personnalisation
+  businessType BusinessType @default(GENERAL)
+  secteur      String? // Secteur d'activité détaillé
+
+  // Gestion d'abonnement
+  plan            PlanAbonnement @default(FREE)
+  abonnementActif Boolean        @default(true)
+  dateAbonnement  DateTime       @default(now())
+  dateExpiration  DateTime?
+
+  // Gestion de la période d'essai (trial)
+  trialActive    Boolean         @default(false)
+  trialPlan      PlanAbonnement?
+  trialStartDate DateTime?
+  trialExpiresAt DateTime?
+
+  // Relations (toutes les données de l'entreprise)
+  users            User[]
+  stores           Store[] // Magasins/Points de vente
+  categories       Categorie[]
+  articles         Article[]
+  clients          Client[]
+  documents        Document[]
+  mouvements       MouvementStock[]
+  parametres       ParametresEntreprise?
+  seriesDocuments  SerieDocument[]
+  niveauxFidelite  NiveauFidelite[]
+  mouvementsPoints MouvementPoints[]
+  segments         Segment[]
+  automations      Automation[]
+  campaigns        Campaign[]
+  conversations    Conversation[]
+  subscription     Subscription? // Un abonnement Stripe (optionnel)
+  usageCounters    UsageCounter[] // Compteurs d'usage mensuels
+  paymentLinks     PaymentLink[] // Liens de paiement
+  terminals        Terminal[] // Terminaux de paiement physiques
+  bankTransactions BankTransaction[] // Transactions bancaires pour rapprochement
+  stockTransfers   StockTransfer[] // Transferts de stock inter-magasins
+
+  // Relations pour système d'occasion (boutiques informatique)
+  rachats           RachatArticle[] // Rachats d'articles d'occasion
+  demontages        DemontageArticle[] // Démontages effectués
+  ressourcesAtelier RessourceAtelier[] // Ressources d'atelier (pièces)
+  reparations       Reparation[] // Réparations d'appareils
+
+  // Gestion du personnel
+  employees Employee[] // Employés de l'entreprise
+
+  // Relations pour système plomberie
+  interventions        Intervention[] // Interventions plomberie
+  camionnettes         Camionnette[] // Véhicules/camionnettes
+  stocksCamionnette    StockCamionnette[] // Stocks mobiles
+  contratsEntretien    ContratEntretien[] // Contrats d'entretien
+  entretiensVehicule   EntretienVehicule[] // Entretiens véhicules
+  equipementsClients   EquipementClient[] // Parc équipements clients
+  certificatsEntretien CertificatEntretien[] // Certificats d'entretien
+
+  // Relations pour système restauration
+  tablesRestaurant TableRestaurant[] // Tables du restaurant
+  reservations     Reservation[] // Réservations
+  menuItems        MenuItem[] // Plats et boissons du menu
+
+  // Relations pour système coiffure / rendez-vous / esthétique
+  prestations Prestation[] // Services proposés (coupe, couleur, soin, etc.)
+  employes    Employe[] // Employés (coiffeurs, esthéticiennes, etc.)
+  rendezVous  RendezVous[] // Rendez-vous clients
+  cabines     Cabine[] // Cabines/salles de soins (esthétique, spa)
+
+  // Relations pour système fitness / salle de sport
+  typesAbonnementFitness TypeAbonnementFitness[] // Types d'abonnements (mensuel, annuel, etc.)
+  abonnementsFitness     AbonnementFitness[] // Abonnements clients
+  coursFitness           CoursCollectif[] // Cours collectifs (yoga, spinning, etc.)
+  seancesCours           SeanceCours[] // Séances de cours planifiées
+  reservationsCours      ReservationCours[] // Réservations aux cours
+  sallesFitness          SalleFitness[] // Salles/zones de la salle de sport
+  presencesFitness       PresenceFitness[] // Check-ins des membres
+
+  // Relations pour système consulting / services intellectuels
+  missions     Mission[] // Missions de consulting
+  entreesTemps EntreeTemps[] // Entrées de temps
+
+  // Relations pour système comptabilité
+  echeancesFiscales EcheanceFiscale[] // Échéances fiscales
+
+  // Relations pour système juridique (cabinets d'avocats)
+  affaires              Affaire[] // Dossiers/affaires juridiques
+  partiesAdverses       PartieAdverse[] // Parties adverses
+  echeancesProcedurales EcheanceProcedurale[] // Échéances procédurales
+  diligences            Diligence[] // Diligences effectuées
+
+  // Relations pour système immobilier
+  biensImmobiliers     BienImmobilier[] // Portefeuille de biens
+  mandatsImmobiliers   MandatImmobilier[] // Mandats de vente/location
+  visitesImmobiliers   VisiteImmobilier[] // Visites planifiées
+  estimationsBiens     EstimationBien[] // Estimations réalisées
+  offresAchat          OffreAchat[] // Offres d'achat
+  configsPortails      ConfigurationPortail[] // Config portails diffusion
+  diffusionsAnnonces   DiffusionAnnonce[] // Diffusions vers portails
+  leadsPortails        LeadPortail[] // Leads des portails
+  recherchesAcquereurs RechercheAcquereur[] // Recherches acquéreurs
+
+  // Relations pour gestion locative
+  bailsLocatifs     BailLocatif[] // Baux locatifs
+  appelsLoyers      AppelLoyer[] // Appels de loyers
+  etatsLieux        EtatDesLieux[] // États des lieux
+  incidentsLocatifs IncidentLocatif[] // Incidents/travaux
+
+  // Relations pour syndic copropriété
+  coproprietes            Copropriete[] // Copropriétés gérées
+  lotsCopropriete         LotCopropriete[] // Lots de copropriété
+  appelsCharges           AppelCharges[] // Appels de charges
+  lignesAppelsCharges     LigneAppelCharges[] // Lignes d'appels
+  assembleesGenerales     AssembleeGenerale[] // Assemblées générales
+  resolutionsAG           ResolutionAG[] // Résolutions AG
+  travauxCopropriete      TravauxCopropriete[] // Travaux copropriété
+  comptesCopropriete      CompteCopropriete[] // Comptabilité copro
+  membresConseilSyndical  MembreConseilSyndical[] // Membres conseil
+  ecrituresComptableCopro EcritureComptableCopro[] // Écritures comptables copro
+
+  // Relations pour sécurité chatbot
+  chatbotAuditLogs    ChatbotAuditLog[]
+  chatbotActionTokens ChatbotActionToken[]
+
+  // Relations pour objectifs configurables
+  objectifs ObjectifEntreprise[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([slug])
+  @@index([siret])
+  @@index([abonnementActif])
+  @@index([businessType])
+}
+
+model ParametresEntreprise {
+  id             String  @id @default(cuid())
+  nom_entreprise String
+  siret          String?
+  tva_intra      String?
+  adresse        String?
+  code_postal    String?
+  ville          String?
+  telephone      String?
+  email          String?
+  site_web       String?
+  logo_url       String?
+
+  prefixe_devis           String @default("DEV")
+  prefixe_facture         String @default("FACT")
+  prochain_numero_devis   Int    @default(1)
+  prochain_numero_facture Int    @default(1)
+
+  // Configuration références articles/services
+  prefixe_produit          String @default("PRD")
+  prefixe_service          String @default("SRV")
+  prefixe_occasion         String @default("OCC")
+  prefixe_piece            String @default("PCE")
+  prochain_numero_produit  Int    @default(1)
+  prochain_numero_service  Int    @default(1)
+  prochain_numero_occasion Int    @default(1)
+  prochain_numero_piece    Int    @default(1)
+
+  // Configuration références réparations (boutiques informatique)
+  prefixe_reparation         String @default("REP")
+  prochain_numero_reparation Int    @default(1)
+
+  conditions_paiement_defaut String?
+  mentions_legales           String?
+
+  // Préférences de notification
+  notif_client_approved   Boolean @default(true) // Envoyer email quand client approuvé
+  notif_client_rejected   Boolean @default(true) // Envoyer email quand client rejeté
+  notif_client_invitation Boolean @default(true) // Envoyer email d'invitation
+  notif_client_welcome    Boolean @default(true) // Envoyer email de bienvenue
+  notif_document_sent     Boolean @default(true) // Envoyer email quand document envoyé
+  notif_payment_received  Boolean @default(true) // Envoyer email quand paiement reçu
+  notif_low_stock         Boolean @default(true) // Envoyer email si stock faible
+
+  // Multi-tenant: relation one-to-one
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String     @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+}
+
+model ObjectifEntreprise {
+  id          String         @id @default(cuid())
+  label       String // Nom de l'objectif
+  description String? // Description optionnelle
+  metricType  GoalMetricType // Type de métrique
+  period      GoalPeriod     @default(MONTHLY)
+  unit        GoalUnit       @default(NUMBER)
+
+  // Valeurs
+  targetValue  Decimal @db.Decimal(12, 2) // Valeur cible
+  currentValue Decimal @default(0) @db.Decimal(12, 2) // Valeur actuelle (pour CUSTOM)
+
+  // Configuration
+  enabled   Boolean @default(true) // Objectif actif ou non
+  sortOrder Int     @default(0) // Ordre d'affichage
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entrepriseId])
+  @@index([entrepriseId, enabled])
+}
+
+// Séries de numérotation personnalisées pour les documents
+model SerieDocument {
+  id          String  @id @default(cuid())
+  code        String // "ART", "SER", "CONS", etc.
+  nom         String // "Vente de produits", "Prestations", etc.
+  description String?
+  couleur     String? @default("#000000") // Couleur pour l'UI
+
+  // Types de documents supportés par cette série
+  pour_devis    Boolean @default(true)
+  pour_factures Boolean @default(true)
+  pour_avoirs   Boolean @default(false)
+
+  // Numérotation indépendante
+  prochain_numero Int       @default(1)
+  format_numero   String    @default("{CODE}{NUM5}") // Variables: {CODE}, {NUM5}, {YEAR}, {MONTH}, {TYPE}
+  reset_compteur  String    @default("AUCUN") // "AUCUN", "ANNUEL", "MENSUEL"
+  derniere_reset  DateTime? // Date du dernier reset (pour tracking)
+
+  // Configuration - Séries par défaut par type
+  est_defaut_devis    Boolean @default(false) // Série par défaut pour les devis
+  est_defaut_factures Boolean @default(false) // Série par défaut pour les factures
+  est_defaut_avoirs   Boolean @default(false) // Série par défaut pour les avoirs
+  active              Boolean @default(true)
+
+  // Multi-tenant
+  entreprise   Entreprise @relation(fields: [entrepriseId], references: [id], onDelete: Cascade)
+  entrepriseId String
+
+  // Relations
+  documents Document[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([entrepriseId, code])
+  @@index([entrepriseId])
+  @@index([entrepriseId, est_defaut_devis])
+  @@index([entrepriseId, est_defaut_factures])
+  @@index([entrepriseId, est_defaut_avoirs])
+  @@index([active])
+}
+
+model Waitlist {
+  id           String  @id @default(cuid())
+  email        String  @unique
+  company      String?
+  phone        String?
+  templateType String? // Type de template qui intéresse l'utilisateur
+
+  // Timestamps
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([createdAt])
+  @@index([templateType])
+}
+
+model ContactMessage {
+  id      String  @id @default(cuid())
+  name    String
+  email   String
+  company String?
+  phone   String?
+  message String  @db.Text
+
+  // Timestamps
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([createdAt])
+}

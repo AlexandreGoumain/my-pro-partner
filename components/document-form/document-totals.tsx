@@ -23,7 +23,9 @@ export function DocumentTotals({
     };
 
     return (
-        <Card className={`group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500 ${className || ""}`}>
+        <Card
+            className={`group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-sm transition-all duration-300 ${className || ""}`}
+        >
             <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             <div className="relative p-6">
                 <div className="mb-6">
@@ -37,16 +39,22 @@ export function DocumentTotals({
                 <div className="space-y-3">
                     <div className="flex items-center justify-between text-[14px]">
                         <span className="text-black/60">Total HT</span>
-                        <span className="font-medium">{formatCurrency(totalHT)}</span>
+                        <span className="font-medium">
+                            {formatCurrency(totalHT)}
+                        </span>
                     </div>
                     <div className="flex items-center justify-between text-[14px]">
                         <span className="text-black/60">TVA</span>
-                        <span className="font-medium">{formatCurrency(totalTVA)}</span>
+                        <span className="font-medium">
+                            {formatCurrency(totalTVA)}
+                        </span>
                     </div>
                     <div className="h-px bg-black/[0.08]" />
                     <div className="flex items-center justify-between text-[18px]">
                         <span className="font-semibold">Total TTC</span>
-                        <span className="font-bold">{formatCurrency(totalTTC)}</span>
+                        <span className="font-bold">
+                            {formatCurrency(totalTTC)}
+                        </span>
                     </div>
                 </div>
             </div>

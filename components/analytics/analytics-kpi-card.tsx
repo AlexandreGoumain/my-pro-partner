@@ -19,14 +19,19 @@ export function AnalyticsKPICard({
     className = "",
 }: AnalyticsKPICardProps) {
     return (
-        <Card className={`group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-lg hover:shadow-black/5 transition-all duration-500 ${className}`}>
+        <Card
+            className={`group relative overflow-hidden border-black/[0.08] bg-white hover:shadow-sm transition-all duration-300 ${className}`}
+        >
             <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/[0.01] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             <div className="relative p-6">
                 <div className="mb-5">
                     <div className="flex items-center gap-2 mb-1">
                         <div className="w-1 h-4 bg-gradient-to-b from-black to-black/40 rounded-full" />
                         <span className="text-[13px] font-medium tracking-[-0.01em] text-black/60 flex items-center gap-1.5">
-                            <Icon className="h-4 w-4 text-black/60" strokeWidth={2} />
+                            <Icon
+                                className="h-4 w-4 text-black/60"
+                                strokeWidth={2}
+                            />
                             {title}
                         </span>
                     </div>
