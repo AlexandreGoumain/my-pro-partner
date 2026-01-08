@@ -56,3 +56,47 @@ export function getClientIp(request: Request): string {
   // Fallback (ne devrait pas arriver en production)
   return "unknown";
 }
+
+/**
+ * Résultat du rate limiting avec gestion d'erreur
+ */
+export interface SafeRateLimitResult {
+  success: boolean;
+  limit?: number;
+  remaining?: number;
+  reset?: number;
+  error?: string;
+}
+
+/**
+ * Wrapper sécurisé pour le rate limiting
+ * En cas d'erreur Upstash (connexion bloquée, timeout, etc.),
+ * on laisse passer la requête (fail-open) plutôt que de bloquer
+ */
+export async function safeRateLimit(
+  limiter: Ratelimit,
+  identifier: string
+): Promise<SafeRateLimitResult> {
+  try {
+    const result = await limiter.limit(identifier);
+    return {
+      success: result.success,
+      limit: result.limit,
+      remaining: result.remaining,
+      reset: result.reset,
+    };
+  } catch (error) {
+    // Log l'erreur pour le debugging
+    console.error("[Rate Limiter] Error connecting to Upstash:", {
+      identifier,
+      error: error instanceof Error ? error.message : String(error),
+    });
+
+    // Fail-open: laisser passer en cas d'erreur Redis
+    // C'est mieux que de bloquer tous les utilisateurs si Redis est down
+    return {
+      success: true,
+      error: "Rate limiter unavailable, request allowed",
+    };
+  }
+}

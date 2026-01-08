@@ -2,37 +2,59 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { z } from "zod";
-import { publicFormLimiter, getClientIp } from "@/lib/rate-limit";
+import { publicFormLimiter, getClientIp, safeRateLimit } from "@/lib/rate-limit";
 
-// Schéma de validation
+// Schéma de validation renforcé
 const waitlistSchema = z.object({
-  email: z.string().email("Email invalide"),
-  company: z.string().optional(),
-  phone: z.string().optional(),
-  templateType: z.string().optional(),
+  email: z
+    .string()
+    .email("Email invalide")
+    .max(255, "Email trop long")
+    .transform((val) => val.toLowerCase().trim()),
+  company: z
+    .string()
+    .max(100, "Nom d'entreprise trop long")
+    .optional()
+    .transform((val) => val?.trim()),
+  phone: z
+    .string()
+    .max(20, "Numéro trop long")
+    .regex(/^[\d\s+\-().]*$/, "Format de téléphone invalide")
+    .optional()
+    .transform((val) => val?.trim()),
+  templateType: z.string().max(50).optional(),
   // Honeypot: ce champ doit rester vide (protection anti-bot)
-  website: z.string().optional(),
+  website: z.string().max(100).optional(),
 });
 
 export async function POST(request: Request) {
-  try {
-    // Rate limiting
-    const ip = getClientIp(request);
-    const { success, limit, remaining, reset } = await publicFormLimiter.limit(ip);
+  const ip = getClientIp(request);
 
-    if (!success) {
+  try {
+    // Rate limiting avec gestion d'erreur gracieuse
+    const rateLimitResult = await safeRateLimit(publicFormLimiter, ip);
+
+    if (!rateLimitResult.success) {
       return NextResponse.json(
         {
           error: "Trop de requêtes. Veuillez réessayer dans quelques instants.",
-          rateLimitReset: new Date(reset).toISOString()
+          rateLimitReset: rateLimitResult.reset
+            ? new Date(rateLimitResult.reset).toISOString()
+            : undefined,
         },
         {
           status: 429,
           headers: {
-            'X-RateLimit-Limit': limit.toString(),
-            'X-RateLimit-Remaining': remaining.toString(),
-            'X-RateLimit-Reset': reset.toString(),
-          }
+            ...(rateLimitResult.limit && {
+              "X-RateLimit-Limit": rateLimitResult.limit.toString(),
+            }),
+            ...(rateLimitResult.remaining !== undefined && {
+              "X-RateLimit-Remaining": rateLimitResult.remaining.toString(),
+            }),
+            ...(rateLimitResult.reset && {
+              "X-RateLimit-Reset": rateLimitResult.reset.toString(),
+            }),
+          },
         }
       );
     }
@@ -64,7 +86,7 @@ export async function POST(request: Request) {
     }
 
     // Créer le lead
-    const lead = await prisma.waitlist.create({
+    await prisma.waitlist.create({
       data: {
         email: validatedData.email,
         company: validatedData.company,
@@ -98,7 +120,11 @@ export async function POST(request: Request) {
       }
     }
 
-    console.error("Waitlist error:", error);
+    console.error("[Waitlist] Error details:", {
+      type: error?.constructor?.name,
+      message: error instanceof Error ? error.message : String(error),
+      ip,
+    });
     return NextResponse.json(
       { error: "Une erreur s'est produite" },
       { status: 500 }
