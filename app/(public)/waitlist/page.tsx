@@ -2,6 +2,14 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
     Select,
@@ -11,62 +19,45 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { useJoinWaitlist } from "@/hooks/use-waitlist";
+import {
+    ACTIVITY_TYPES,
+    waitlistSchema,
+    type WaitlistFormValues,
+} from "@/lib/validators/waitlist";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { CheckCircle2, Loader2 } from "lucide-react";
-import { useState, useMemo } from "react";
-
-// Regex simple pour validation email côté client
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+import { useForm } from "react-hook-form";
 
 export default function WaitlistPage() {
-    const [email, setEmail] = useState("");
-    const [company, setCompany] = useState("");
-    const [phone, setPhone] = useState("");
-    const [templateType, setTemplateType] = useState("");
-    const [website, setWebsite] = useState(""); // Honeypot - doit rester vide
+    const { mutate: joinWaitlist, isPending, isSuccess, error } = useJoinWaitlist();
 
-    const {
-        mutate: joinWaitlist,
-        isPending,
-        isSuccess,
-        error,
-    } = useJoinWaitlist();
+    const form = useForm<WaitlistFormValues>({
+        resolver: zodResolver(waitlistSchema),
+        defaultValues: {
+            email: "",
+            company: "",
+            phone: "",
+            templateType: "",
+            website: "", // Honeypot
+        },
+    });
 
-    // Validation email côté client
-    const isEmailValid = useMemo(() => {
-        return email.trim() !== "" && EMAIL_REGEX.test(email.trim());
-    }, [email]);
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-
-        // Validation côté client avant envoi
-        if (!isEmailValid) {
-            return;
-        }
-
+    const onSubmit = (data: WaitlistFormValues) => {
         joinWaitlist(
             {
-                email: email.trim(),
-                company: company.trim() || undefined,
-                phone: phone.trim() || undefined,
-                templateType: templateType || undefined,
-                website,
+                email: data.email.trim(),
+                company: data.company?.trim() || undefined,
+                phone: data.phone?.trim() || undefined,
+                templateType: data.templateType || undefined,
+                website: data.website,
             },
             {
                 onSuccess: () => {
-                    // Reset form on success
-                    setEmail("");
-                    setCompany("");
-                    setPhone("");
-                    setTemplateType("");
-                    setWebsite("");
+                    form.reset();
                 },
             }
         );
     };
-
-    // Message d'erreur formaté
-    const errorMessage = error?.message || null;
 
     if (isSuccess) {
         return (
@@ -117,183 +108,142 @@ export default function WaitlistPage() {
                 {/* Formulaire */}
                 <Card className="border-black/10 shadow-sm mb-8">
                     <CardContent className="pt-8 pb-8">
-                        <form onSubmit={handleSubmit} className="space-y-5">
-                            <div>
-                                <label
-                                    htmlFor="email"
-                                    className="block text-[14px] font-medium text-black/80 mb-2"
-                                >
-                                    Email professionnel *
-                                </label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    required
-                                    maxLength={255}
-                                    placeholder="votre@email.com"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="h-11 border-black/10 focus:border-black/30"
+                        <Form {...form}>
+                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+                                <FormField
+                                    control={form.control}
+                                    name="email"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-[14px] font-medium text-black/80">
+                                                Email professionnel *
+                                            </FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    {...field}
+                                                    type="email"
+                                                    maxLength={255}
+                                                    placeholder="votre@email.com"
+                                                    className="h-11 border-black/10 focus:border-black/30"
+                                                />
+                                            </FormControl>
+                                            <FormMessage className="text-[13px]" />
+                                        </FormItem>
+                                    )}
                                 />
-                            </div>
 
-                            <div>
-                                <label
-                                    htmlFor="company"
-                                    className="block text-[14px] font-medium text-black/80 mb-2"
-                                >
-                                    Nom de votre entreprise
-                                </label>
-                                <Input
-                                    id="company"
-                                    type="text"
-                                    maxLength={100}
-                                    placeholder="Mon Entreprise SARL"
-                                    value={company}
-                                    onChange={(e) => setCompany(e.target.value)}
-                                    className="h-11 border-black/10 focus:border-black/30"
+                                <FormField
+                                    control={form.control}
+                                    name="company"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-[14px] font-medium text-black/80">
+                                                Nom de votre entreprise
+                                            </FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    {...field}
+                                                    type="text"
+                                                    maxLength={100}
+                                                    placeholder="Mon Entreprise SARL"
+                                                    className="h-11 border-black/10 focus:border-black/30"
+                                                />
+                                            </FormControl>
+                                            <FormMessage className="text-[13px]" />
+                                        </FormItem>
+                                    )}
                                 />
-                            </div>
 
-                            <div>
-                                <label
-                                    htmlFor="phone"
-                                    className="block text-[14px] font-medium text-black/80 mb-2"
-                                >
-                                    Téléphone (optionnel)
-                                </label>
-                                <Input
-                                    id="phone"
-                                    type="tel"
-                                    maxLength={20}
-                                    placeholder="06 12 34 56 78"
-                                    value={phone}
-                                    onChange={(e) => setPhone(e.target.value)}
-                                    className="h-11 border-black/10 focus:border-black/30"
+                                <FormField
+                                    control={form.control}
+                                    name="phone"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-[14px] font-medium text-black/80">
+                                                Téléphone (optionnel)
+                                            </FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    {...field}
+                                                    type="tel"
+                                                    maxLength={20}
+                                                    placeholder="06 12 34 56 78"
+                                                    className="h-11 border-black/10 focus:border-black/30"
+                                                />
+                                            </FormControl>
+                                            <FormMessage className="text-[13px]" />
+                                        </FormItem>
+                                    )}
                                 />
-                            </div>
 
-                            <div>
-                                <label
-                                    htmlFor="templateType"
-                                    className="block text-[14px] font-medium text-black/80 mb-2"
-                                >
-                                    Type d&apos;activité
-                                </label>
-                                <Select
-                                    value={templateType}
-                                    onValueChange={setTemplateType}
-                                >
-                                    <SelectTrigger className="h-11 border-black/10 focus:border-black/30">
-                                        <SelectValue placeholder="Sélectionnez votre secteur" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="PLOMBERIE">
-                                            Plombier
-                                        </SelectItem>
-                                        <SelectItem value="ELECTRICITE">
-                                            Électricien
-                                        </SelectItem>
-                                        <SelectItem value="CHAUFFAGE">
-                                            Chauffagiste
-                                        </SelectItem>
-                                        <SelectItem value="MENUISERIE">
-                                            Menuisier
-                                        </SelectItem>
-                                        <SelectItem value="PEINTURE">
-                                            Peintre
-                                        </SelectItem>
-                                        <SelectItem value="MACONNERIE">
-                                            Maçon
-                                        </SelectItem>
-                                        <SelectItem value="RESTAURATION">
-                                            Restaurant / Café / Bar
-                                        </SelectItem>
-                                        <SelectItem value="BOULANGERIE">
-                                            Boulangerie / Pâtisserie
-                                        </SelectItem>
-                                        <SelectItem value="COIFFURE">
-                                            Salon de coiffure
-                                        </SelectItem>
-                                        <SelectItem value="ESTHETIQUE">
-                                            Institut de beauté / Spa
-                                        </SelectItem>
-                                        <SelectItem value="FITNESS">
-                                            Salle de sport / Coaching
-                                        </SelectItem>
-                                        <SelectItem value="GARAGE">
-                                            Garage automobile
-                                        </SelectItem>
-                                        <SelectItem value="INFORMATIQUE">
-                                            Services informatiques
-                                        </SelectItem>
-                                        <SelectItem value="CONSULTING">
-                                            Conseil / Formation
-                                        </SelectItem>
-                                        <SelectItem value="COMMERCE_DETAIL">
-                                            Commerce de détail
-                                        </SelectItem>
-                                        <SelectItem value="IMMOBILIER">
-                                            Agence immobilière
-                                        </SelectItem>
-                                        <SelectItem value="SANTE">
-                                            Professions médicales/paramédicales
-                                        </SelectItem>
-                                        <SelectItem value="JURIDIQUE">
-                                            Avocat / Notaire
-                                        </SelectItem>
-                                        <SelectItem value="COMPTABILITE">
-                                            Expert-comptable
-                                        </SelectItem>
-                                        <SelectItem value="GENERAL">
-                                            Autre
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            {/* Honeypot - Invisible field for bot detection */}
-                            <div
-                                className="absolute left-[-9999px]"
-                                aria-hidden="true"
-                            >
-                                <Input
-                                    type="text"
-                                    name="website"
-                                    value={website}
-                                    onChange={(e) => setWebsite(e.target.value)}
-                                    tabIndex={-1}
-                                    autoComplete="off"
+                                <FormField
+                                    control={form.control}
+                                    name="templateType"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-[14px] font-medium text-black/80">
+                                                Type d&apos;activité
+                                            </FormLabel>
+                                            <Select
+                                                onValueChange={field.onChange}
+                                                defaultValue={field.value}
+                                            >
+                                                <FormControl>
+                                                    <SelectTrigger className="h-11 border-black/10 focus:border-black/30">
+                                                        <SelectValue placeholder="Sélectionnez votre secteur" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    {ACTIVITY_TYPES.map((activity) => (
+                                                        <SelectItem key={activity.value} value={activity.value}>
+                                                            {activity.label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage className="text-[13px]" />
+                                        </FormItem>
+                                    )}
                                 />
-                            </div>
 
-                            {errorMessage && (
-                                <div className="p-4 rounded-md bg-red-50 border border-red-200">
-                                    <p className="text-[14px] text-red-700">
-                                        {errorMessage}
-                                    </p>
+                                {/* Honeypot - Invisible field for bot detection */}
+                                <div className="absolute left-[-9999px]" aria-hidden="true">
+                                    <Input
+                                        type="text"
+                                        {...form.register("website")}
+                                        tabIndex={-1}
+                                        autoComplete="off"
+                                    />
                                 </div>
-                            )}
 
-                            <Button
-                                type="submit"
-                                disabled={isPending || !isEmailValid}
-                                className="w-full bg-black hover:bg-black/90 text-white h-12 text-[15px] font-medium shadow-sm disabled:opacity-50"
-                            >
-                                {isPending ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Inscription en cours...
-                                    </>
-                                ) : (
-                                    "Rejoindre la liste d'attente"
+                                {error && (
+                                    <div className="p-4 rounded-md bg-red-50 border border-red-200">
+                                        <p className="text-[14px] text-red-700">
+                                            {error.message}
+                                        </p>
+                                    </div>
                                 )}
-                            </Button>
 
-                            <p className="text-[13px] text-black/40 text-center">
-                                Nous respectons votre vie privée. Pas de spam.
-                            </p>
-                        </form>
+                                <Button
+                                    type="submit"
+                                    disabled={isPending}
+                                    className="w-full bg-black hover:bg-black/90 text-white h-12 text-[15px] font-medium shadow-sm disabled:opacity-50"
+                                >
+                                    {isPending ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            Inscription en cours...
+                                        </>
+                                    ) : (
+                                        "Rejoindre la liste d'attente"
+                                    )}
+                                </Button>
+
+                                <p className="text-[13px] text-black/40 text-center">
+                                    Nous respectons votre vie privée. Pas de spam.
+                                </p>
+                            </form>
+                        </Form>
                     </CardContent>
                 </Card>
 
