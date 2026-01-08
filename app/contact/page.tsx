@@ -3,68 +3,56 @@
 import { Navigation } from "@/components/landing/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { CheckCircle, Mail, Send } from "lucide-react";
-import { useState } from "react";
+import { useSendContact } from "@/hooks/use-contact";
+import {
+    contactSchema,
+    type ContactFormValues,
+} from "@/lib/validators/contact";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { CheckCircle, Loader2, Mail, Send } from "lucide-react";
+import { useForm } from "react-hook-form";
 
 export default function ContactPage() {
-    const [formData, setFormData] = useState({
-        name: "",
-        email: "",
-        company: "",
-        phone: "",
-        message: "",
-        website: "", // Honeypot - doit rester vide
+    const { mutate: sendContact, isPending, isSuccess, error } = useSendContact();
+
+    const form = useForm<ContactFormValues>({
+        resolver: zodResolver(contactSchema),
+        defaultValues: {
+            name: "",
+            email: "",
+            company: "",
+            phone: "",
+            message: "",
+            website: "", // Honeypot
+        },
     });
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isSuccess, setIsSuccess] = useState(false);
-    const [error, setError] = useState("");
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsSubmitting(true);
-        setError("");
-
-        try {
-            const response = await fetch("/api/contact", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
+    const onSubmit = (data: ContactFormValues) => {
+        sendContact(
+            {
+                name: data.name.trim(),
+                email: data.email.trim(),
+                company: data.company?.trim() || undefined,
+                phone: data.phone?.trim() || undefined,
+                message: data.message.trim(),
+                website: data.website,
+            },
+            {
+                onSuccess: () => {
+                    form.reset();
                 },
-                body: JSON.stringify(formData),
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                setIsSuccess(true);
-                setFormData({
-                    name: "",
-                    email: "",
-                    company: "",
-                    phone: "",
-                    message: "",
-                    website: "",
-                });
-            } else {
-                setError(data.error || "Une erreur s'est produite");
             }
-        } catch (err) {
-            setError("Impossible d'envoyer le message. Réessayez plus tard.");
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    const handleChange = (
-        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-    ) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value,
-        });
+        );
     };
 
     return (
@@ -120,7 +108,7 @@ export default function ContactPage() {
                                         </p>
                                     </div>
                                     <Button
-                                        onClick={() => setIsSuccess(false)}
+                                        onClick={() => window.location.reload()}
                                         variant="outline"
                                         className="border-black/[0.08] hover:bg-black/[0.02] h-11 px-6 text-[14px] font-medium"
                                     >
@@ -128,148 +116,168 @@ export default function ContactPage() {
                                     </Button>
                                 </div>
                             ) : (
-                                <form
-                                    onSubmit={handleSubmit}
-                                    className="space-y-6"
-                                >
-                                    {/* Name & Email */}
-                                    <div className="grid sm:grid-cols-2 gap-6">
-                                        <div className="space-y-2">
-                                            <Label
-                                                htmlFor="name"
-                                                className="text-[13px] font-medium text-black/70"
-                                            >
-                                                Nom complet *
-                                            </Label>
-                                            <Input
-                                                id="name"
-                                                name="name"
-                                                value={formData.name}
-                                                onChange={handleChange}
-                                                required
-                                                className="h-11 border-black/[0.08] focus:border-black/[0.2] text-[14px]"
-                                                placeholder="Jean Dupont"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label
-                                                htmlFor="email"
-                                                className="text-[13px] font-medium text-black/70"
-                                            >
-                                                Email *
-                                            </Label>
-                                            <Input
-                                                id="email"
-                                                name="email"
-                                                type="email"
-                                                value={formData.email}
-                                                onChange={handleChange}
-                                                required
-                                                className="h-11 border-black/[0.08] focus:border-black/[0.2] text-[14px]"
-                                                placeholder="jean@exemple.fr"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    {/* Company & Phone */}
-                                    <div className="grid sm:grid-cols-2 gap-6">
-                                        <div className="space-y-2">
-                                            <Label
-                                                htmlFor="company"
-                                                className="text-[13px] font-medium text-black/70"
-                                            >
-                                                Entreprise
-                                            </Label>
-                                            <Input
-                                                id="company"
-                                                name="company"
-                                                value={formData.company}
-                                                onChange={handleChange}
-                                                className="h-11 border-black/[0.08] focus:border-black/[0.2] text-[14px]"
-                                                placeholder="Mon entreprise"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label
-                                                htmlFor="phone"
-                                                className="text-[13px] font-medium text-black/70"
-                                            >
-                                                Téléphone
-                                            </Label>
-                                            <Input
-                                                id="phone"
-                                                name="phone"
-                                                type="tel"
-                                                value={formData.phone}
-                                                onChange={handleChange}
-                                                className="h-11 border-black/[0.08] focus:border-black/[0.2] text-[14px]"
-                                                placeholder="06 12 34 56 78"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    {/* Message */}
-                                    <div className="space-y-2">
-                                        <Label
-                                            htmlFor="message"
-                                            className="text-[13px] font-medium text-black/70"
-                                        >
-                                            Message *
-                                        </Label>
-                                        <Textarea
-                                            id="message"
-                                            name="message"
-                                            value={formData.message}
-                                            onChange={handleChange}
-                                            required
-                                            rows={6}
-                                            className="border-black/[0.08] focus:border-black/[0.2] text-[14px] resize-none"
-                                            placeholder="Décrivez votre projet ou votre question..."
-                                        />
-                                    </div>
-
-                                    {/* Honeypot - Invisible field for bot detection */}
-                                    <div className="absolute left-[-9999px]" aria-hidden="true">
-                                        <Input
-                                            type="text"
-                                            name="website"
-                                            value={formData.website}
-                                            onChange={handleChange}
-                                            tabIndex={-1}
-                                            autoComplete="off"
-                                        />
-                                    </div>
-
-                                    {/* Error Message */}
-                                    {error && (
-                                        <div className="p-4 rounded-lg bg-red-50 border border-red-100">
-                                            <p className="text-[13px] text-red-600">
-                                                {error}
-                                            </p>
-                                        </div>
-                                    )}
-
-                                    {/* Submit Button */}
-                                    <Button
-                                        type="submit"
-                                        disabled={isSubmitting}
-                                        className="w-full bg-black hover:bg-black/90 text-white h-12 px-6 text-[14px] font-medium rounded-md shadow-sm group"
+                                <Form {...form}>
+                                    <form
+                                        onSubmit={form.handleSubmit(onSubmit)}
+                                        className="space-y-6"
                                     >
-                                        {isSubmitting ? (
-                                            "Envoi en cours..."
-                                        ) : (
-                                            <>
-                                                Envoyer le message
-                                                <Send className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                                            </>
-                                        )}
-                                    </Button>
+                                        {/* Name & Email */}
+                                        <div className="grid sm:grid-cols-2 gap-6">
+                                            <FormField
+                                                control={form.control}
+                                                name="name"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel className="text-[13px] font-medium text-black/70">
+                                                            Nom complet *
+                                                        </FormLabel>
+                                                        <FormControl>
+                                                            <Input
+                                                                {...field}
+                                                                maxLength={100}
+                                                                className="h-11 border-black/[0.08] focus:border-black/[0.2] text-[14px]"
+                                                                placeholder="Jean Dupont"
+                                                            />
+                                                        </FormControl>
+                                                        <FormMessage className="text-[13px]" />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="email"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel className="text-[13px] font-medium text-black/70">
+                                                            Email *
+                                                        </FormLabel>
+                                                        <FormControl>
+                                                            <Input
+                                                                {...field}
+                                                                type="email"
+                                                                maxLength={255}
+                                                                className="h-11 border-black/[0.08] focus:border-black/[0.2] text-[14px]"
+                                                                placeholder="jean@exemple.fr"
+                                                            />
+                                                        </FormControl>
+                                                        <FormMessage className="text-[13px]" />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                        </div>
 
-                                    <p className="text-[12px] text-black/40 text-center">
-                                        En envoyant ce formulaire, vous acceptez
-                                        notre politique de confidentialité.
-                                    </p>
-                                </form>
+                                        {/* Company & Phone */}
+                                        <div className="grid sm:grid-cols-2 gap-6">
+                                            <FormField
+                                                control={form.control}
+                                                name="company"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel className="text-[13px] font-medium text-black/70">
+                                                            Entreprise
+                                                        </FormLabel>
+                                                        <FormControl>
+                                                            <Input
+                                                                {...field}
+                                                                maxLength={100}
+                                                                className="h-11 border-black/[0.08] focus:border-black/[0.2] text-[14px]"
+                                                                placeholder="Mon entreprise"
+                                                            />
+                                                        </FormControl>
+                                                        <FormMessage className="text-[13px]" />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="phone"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel className="text-[13px] font-medium text-black/70">
+                                                            Téléphone
+                                                        </FormLabel>
+                                                        <FormControl>
+                                                            <Input
+                                                                {...field}
+                                                                type="tel"
+                                                                maxLength={20}
+                                                                className="h-11 border-black/[0.08] focus:border-black/[0.2] text-[14px]"
+                                                                placeholder="06 12 34 56 78"
+                                                            />
+                                                        </FormControl>
+                                                        <FormMessage className="text-[13px]" />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                        </div>
+
+                                        {/* Message */}
+                                        <FormField
+                                            control={form.control}
+                                            name="message"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-[13px] font-medium text-black/70">
+                                                        Message *
+                                                    </FormLabel>
+                                                    <FormControl>
+                                                        <Textarea
+                                                            {...field}
+                                                            rows={6}
+                                                            maxLength={5000}
+                                                            className="border-black/[0.08] focus:border-black/[0.2] text-[14px] resize-none"
+                                                            placeholder="Décrivez votre projet ou votre question..."
+                                                        />
+                                                    </FormControl>
+                                                    <FormMessage className="text-[13px]" />
+                                                </FormItem>
+                                            )}
+                                        />
+
+                                        {/* Honeypot - Invisible field for bot detection */}
+                                        <div className="absolute left-[-9999px]" aria-hidden="true">
+                                            <Input
+                                                type="text"
+                                                {...form.register("website")}
+                                                tabIndex={-1}
+                                                autoComplete="off"
+                                            />
+                                        </div>
+
+                                        {/* Error Message */}
+                                        {error && (
+                                            <div className="p-4 rounded-lg bg-red-50 border border-red-100">
+                                                <p className="text-[13px] text-red-600">
+                                                    {error.message}
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        {/* Submit Button */}
+                                        <Button
+                                            type="submit"
+                                            disabled={isPending}
+                                            className="w-full bg-black hover:bg-black/90 text-white h-12 px-6 text-[14px] font-medium rounded-md shadow-sm group"
+                                        >
+                                            {isPending ? (
+                                                <>
+                                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                    Envoi en cours...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    Envoyer le message
+                                                    <Send className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                                                </>
+                                            )}
+                                        </Button>
+
+                                        <p className="text-[12px] text-black/40 text-center">
+                                            En envoyant ce formulaire, vous acceptez
+                                            notre politique de confidentialité.
+                                        </p>
+                                    </form>
+                                </Form>
                             )}
                         </Card>
                     </div>

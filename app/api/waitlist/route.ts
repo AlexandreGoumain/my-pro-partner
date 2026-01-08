@@ -19,7 +19,7 @@ const waitlistSchema = z.object({
   phone: z
     .string()
     .max(20, "Numéro trop long")
-    .regex(/^[\d\s+\-().]*$/, "Format de téléphone invalide")
+    .regex(/^[\d\s]*$/, "Uniquement des chiffres")
     .optional()
     .transform((val) => val?.trim()),
   templateType: z.string().max(50).optional(),
