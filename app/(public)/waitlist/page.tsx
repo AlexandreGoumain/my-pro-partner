@@ -10,8 +10,12 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { useJoinWaitlist } from "@/hooks/use-waitlist";
 import { CheckCircle2, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+
+// Regex simple pour validation email côté client
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function WaitlistPage() {
     const [email, setEmail] = useState("");
@@ -19,51 +23,50 @@ export default function WaitlistPage() {
     const [phone, setPhone] = useState("");
     const [templateType, setTemplateType] = useState("");
     const [website, setWebsite] = useState(""); // Honeypot - doit rester vide
-    const [isLoading, setIsLoading] = useState(false);
-    const [isSuccess, setIsSuccess] = useState(false);
-    const [error, setError] = useState("");
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const {
+        mutate: joinWaitlist,
+        isPending,
+        isSuccess,
+        error,
+    } = useJoinWaitlist();
+
+    // Validation email côté client
+    const isEmailValid = useMemo(() => {
+        return email.trim() !== "" && EMAIL_REGEX.test(email.trim());
+    }, [email]);
+
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        setIsLoading(true);
-        setError("");
 
-        try {
-            const response = await fetch("/api/waitlist", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    email,
-                    company,
-                    phone,
-                    templateType,
-                    website,
-                }),
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                // Afficher le message d'erreur spécifique de l'API
-                setError(
-                    data.error ||
-                        "Une erreur s'est produite. Veuillez réessayer."
-                );
-                return;
-            }
-
-            setIsSuccess(true);
-            setEmail("");
-            setCompany("");
-            setPhone("");
-            setTemplateType("");
-            setWebsite("");
-        } catch (err) {
-            setError("Une erreur s'est produite. Veuillez réessayer.");
-        } finally {
-            setIsLoading(false);
+        // Validation côté client avant envoi
+        if (!isEmailValid) {
+            return;
         }
+
+        joinWaitlist(
+            {
+                email: email.trim(),
+                company: company.trim() || undefined,
+                phone: phone.trim() || undefined,
+                templateType: templateType || undefined,
+                website,
+            },
+            {
+                onSuccess: () => {
+                    // Reset form on success
+                    setEmail("");
+                    setCompany("");
+                    setPhone("");
+                    setTemplateType("");
+                    setWebsite("");
+                },
+            }
+        );
     };
+
+    // Message d'erreur formaté
+    const errorMessage = error?.message || null;
 
     if (isSuccess) {
         return (
@@ -126,6 +129,7 @@ export default function WaitlistPage() {
                                     id="email"
                                     type="email"
                                     required
+                                    maxLength={255}
                                     placeholder="votre@email.com"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
@@ -143,6 +147,7 @@ export default function WaitlistPage() {
                                 <Input
                                     id="company"
                                     type="text"
+                                    maxLength={100}
                                     placeholder="Mon Entreprise SARL"
                                     value={company}
                                     onChange={(e) => setCompany(e.target.value)}
@@ -160,6 +165,7 @@ export default function WaitlistPage() {
                                 <Input
                                     id="phone"
                                     type="tel"
+                                    maxLength={20}
                                     placeholder="06 12 34 56 78"
                                     value={phone}
                                     onChange={(e) => setPhone(e.target.value)}
@@ -261,20 +267,20 @@ export default function WaitlistPage() {
                                 />
                             </div>
 
-                            {error && (
+                            {errorMessage && (
                                 <div className="p-4 rounded-md bg-red-50 border border-red-200">
                                     <p className="text-[14px] text-red-700">
-                                        {error}
+                                        {errorMessage}
                                     </p>
                                 </div>
                             )}
 
                             <Button
                                 type="submit"
-                                disabled={isLoading}
-                                className="w-full bg-black hover:bg-black/90 text-white h-12 text-[15px] font-medium shadow-sm"
+                                disabled={isPending || !isEmailValid}
+                                className="w-full bg-black hover:bg-black/90 text-white h-12 text-[15px] font-medium shadow-sm disabled:opacity-50"
                             >
-                                {isLoading ? (
+                                {isPending ? (
                                     <>
                                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                         Inscription en cours...
