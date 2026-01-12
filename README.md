@@ -176,7 +176,3 @@ npm run build      # Build production
 npm run lint       # ESLint
 npx prisma studio  # Interface DB
 ```
-
----
-
-**Projet portfolio production-ready** démontrant une maîtrise complète de l'écosystème Next.js et des architectures SaaS professionnelles.
